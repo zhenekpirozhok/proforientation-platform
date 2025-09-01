@@ -1,28 +1,47 @@
 version: "3.9"
+
 services:
-  postgres:
+  postgres_db:
     image: postgres:16
     container_name: postgres_db
-    restart: always
-    environment:
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydb
-    ports:
-      - "5432:5432"
+    restart: unless-stopped
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./db/migration:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 5s
+      retries: 10
+
+  flyway:
+    image: flyway/flyway:10
+    container_name: flyway
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    command: >
+      -url=jdbc:postgresql://postgres_db:5432/$POSTGRES_DB
+      -user=$POSTGRES_USER
+      -password=$POSTGRES_PASSWORD
+      -baselineOnMigrate=true
+      migrate
+    volumes:
+      - ./db/migration:/flyway/sql
 
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: yauheniyakavalchuk@gmail.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+    restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "8080:80"
+    depends_on:
+      postgres_db:
+        condition: service_healthy
 
 volumes:
   postgres_data:
