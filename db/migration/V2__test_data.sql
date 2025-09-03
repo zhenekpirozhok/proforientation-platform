@@ -18,7 +18,8 @@ INSERT INTO statuses_t (code, lang, name_t) VALUES
 INSERT INTO users (uuid, name, password_hash, email, role) VALUES
   (gen_random_uuid(), 'Alice', 'hash1', 'alice@example.com', 'user'),
   (gen_random_uuid(), 'Zhenya', 'hash2', 'kavalchuk.yauheniya@student.ehu.lt', 'admin'),
-  (gen_random_uuid(), 'Alena', 'hash3', 'tsibets.alena@student.ehu.lt', 'admin');
+  (gen_random_uuid(), 'Alena', 'hash3', 'tsibets.alena@student.ehu.lt', 'admin'),
+  (gen_random_uuid(), 'Bob', 'hash4', 'bob@example.com', 'anonymous');
 
 -- Тест
 INSERT INTO tests DEFAULT VALUES RETURNING id;
