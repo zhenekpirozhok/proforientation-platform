@@ -1,0 +1,58 @@
+name: DB - Validate & Migrate
+
+on:
+  push:
+    paths: ["db/**"]
+  pull_request:
+    paths: ["db/**"]
+  workflow_dispatch: {}
+
+jobs:
+  flyway:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: app
+          POSTGRES_DB: appdb
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U app -d appdb"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Wait for Postgres (extra safety)
+        run: |
+          for i in {1..60}; do
+            pg_isready -h localhost -p 5432 -U app && exit 0
+            sleep 1
+          done
+          echo "Postgres is not ready" && exit 1
+
+      - name: Flyway migrate
+        uses: docker://flyway/flyway:10-alpine
+        with:
+          args: >
+            -url=jdbc:postgresql://postgres:5432/appdb
+            -user=app -password=app
+            -connectRetries=60
+            -baselineOnMigrate=true
+            -locations=filesystem:/github/workspace/db/migrations
+            migrate
+
+      - name: Flyway validate
+        uses: docker://flyway/flyway:10-alpine
+        with:
+          args: >
+            -url=jdbc:postgresql://postgres:5432/appdb
+            -user=app -password=app
+            -locations=filesystem:/github/workspace/db/migrations
+            validate
