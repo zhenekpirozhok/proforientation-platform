@@ -1,4 +1,5 @@
-name: Backend - Test, Build, Image
+name: Backend - Test, Build, Image (Maven)
+
 on:
   push:
     paths: ["backend/**"]
@@ -6,36 +7,57 @@ on:
     paths: ["backend/**"]
   workflow_dispatch: {}
 
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   be:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+      packages: write   # needed to push to GHCR
+      id-token: write   # future-proof if switching to OIDC for registries
+
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
-          cache: gradle
+          cache: maven
 
-      - name: Build with Gradle
-        if: ${{ hashFiles('backend/gradlew') != '' }}
-        working-directory: backend
-        run: |
-          chmod +x gradlew
-          ./gradlew clean test build -x integrationTest --no-daemon
+      # --- Tests & Build -----------------------------------------------------
 
-      - name: Build with Maven
-        if: ${{ hashFiles('backend/mvnw') != '' }}
-        working-directory: backend
+      # Run unit tests and build all modules. If you use failsafe for ITs,
+      # they'll run automatically on 'verify'. To skip ITs, pass -DskipITs=true
+      # and ensure your pom maps that property to failsafe.skipITs.
+      - name: Maven Verify
         run: |
-          chmod +x mvnw
-          ./mvnw -B -DskipITs=true clean verify
+          chmod +x mvnw || true
+          ./mvnw -B -U --no-transfer-progress \
+            -DskipITs=true \
+            clean verify
+
+      # Optional: upload surefire/failsafe reports for PRs and debugging
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-reports
+          path: |
+            **/target/surefire-reports/**
+            **/target/failsafe-reports/**
+          if-no-files-found: ignore
+
+      # --- Container Image ---------------------------------------------------
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -44,7 +66,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Docker meta
+      - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -52,6 +74,10 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha
+            # uncomment next line to tag semver tags: type=semver,pattern={{version}}
+          labels: |
+            org.opencontainers.image.source=${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
 
       - name: Build & Push Image
         uses: docker/build-push-action@v6
@@ -63,12 +89,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Upload JAR
+      # --- Artifacts ---------------------------------------------------------
+
+      - name: Upload JAR(s)
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: backend-jar
           path: |
-            backend/build/libs/*.jar
             backend/target/*.jar
+            backend/*/target/*.jar
           if-no-files-found: ignore
