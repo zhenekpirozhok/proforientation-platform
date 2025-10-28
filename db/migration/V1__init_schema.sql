@@ -1,297 +1,167 @@
--- ENUM TYPES
-CREATE TYPE user_roles AS ENUM ('user', 'admin', 'anonymous');
-CREATE TYPE question_type AS ENUM ('range_choice', 'single_choice', 'multiple_choice');
-CREATE TYPE sex_type AS ENUM ('male', 'female', 'other');
+-- Enable useful extensions
+CREATE EXTENSION IF NOT EXISTS citext;
 
--- LANGUAGES
-CREATE TABLE languages (
-  code varchar(10) PRIMARY KEY,
-  name varchar(100)
+-- =========
+-- USERS (admin vs non-admin)
+-- =========
+CREATE TABLE IF NOT EXISTS users (
+  id             BIGSERIAL PRIMARY KEY,
+  email          CITEXT UNIQUE,                 -- NULL for guests (no account)
+  password_hash  TEXT,
+  display_name   TEXT,
+  is_admin       BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  is_active      BOOLEAN NOT NULL DEFAULT TRUE
 );
 
--- STATUSES
-CREATE TABLE statuses (
-  code varchar(20) PRIMARY KEY
+-- =========
+-- QUIZ AUTHORING (versioned minimal)
+-- =========
+CREATE TABLE IF NOT EXISTS quizzes (
+  id             BIGSERIAL PRIMARY KEY,
+  code           TEXT UNIQUE NOT NULL,
+  title_default  TEXT NOT NULL,
+  status         TEXT NOT NULL DEFAULT 'draft'     -- draft/published
 );
 
-CREATE TABLE statuses_t (
-  code varchar(20),
-  lang varchar(10),
-  name_t varchar(100),
-  UNIQUE (code, lang),
-  FOREIGN KEY (code) REFERENCES statuses(code),
-  FOREIGN KEY (lang) REFERENCES languages(code)
+CREATE TABLE IF NOT EXISTS quiz_versions (
+  id             BIGSERIAL PRIMARY KEY,
+  quiz_id        BIGINT NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
+  version        INT NOT NULL,
+  is_current     BOOLEAN NOT NULL DEFAULT FALSE,
+  published_at   TIMESTAMPTZ,
+  UNIQUE (quiz_id, version)
 );
 
--- USERS
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  uuid uuid UNIQUE NOT NULL,
-  name varchar(255),
-  password_hash varchar(255),
-  email varchar(255),
-  created_at timestamp DEFAULT now(),
-  role user_roles
+CREATE TABLE IF NOT EXISTS questions (
+  id               BIGSERIAL PRIMARY KEY,
+  quiz_version_id  BIGINT NOT NULL REFERENCES quiz_versions(id) ON DELETE CASCADE,
+  qtype            TEXT NOT NULL,                  -- single/multi/likert/text
+  ord              INT NOT NULL,
+  required         BOOLEAN NOT NULL DEFAULT TRUE,
+  text_default     TEXT NOT NULL
 );
 
--- TESTS
-CREATE TABLE tests (
-  id SERIAL PRIMARY KEY,
-  created_at timestamp DEFAULT now()
+CREATE TABLE IF NOT EXISTS question_options (
+  id             BIGSERIAL PRIMARY KEY,
+  question_id    BIGINT NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+  ord            INT NOT NULL,
+  value_code     TEXT,
+  label_default  TEXT NOT NULL
 );
 
-CREATE TABLE tests_t (
-  test_id int,
-  lang varchar(10),
-  title_t varchar(255),
-  description_t text,
-  instruction_t text,
-  UNIQUE (test_id, lang),
-  FOREIGN KEY (test_id) REFERENCES tests(id),
-  FOREIGN KEY (lang) REFERENCES languages(code)
+-- =========
+-- QUIZ DELIVERY (attempts & answers) — guests supported
+-- =========
+CREATE TABLE IF NOT EXISTS attempts (
+  id               BIGSERIAL PRIMARY KEY,
+  quiz_id          BIGINT NOT NULL REFERENCES quizzes(id) ON DELETE RESTRICT,
+  quiz_version_id  BIGINT NOT NULL REFERENCES quiz_versions(id) ON DELETE RESTRICT,
+  user_id          BIGINT REFERENCES users(id) ON DELETE SET NULL,  -- NULL = guest
+  guest_token      TEXT,                                            -- identifies unauthenticated session
+  locale           TEXT NOT NULL DEFAULT 'en',
+  started_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  submitted_at     TIMESTAMPTZ,
+  duration_sec     INT
 );
 
--- SCALES
-CREATE TABLE scales (
-  id SERIAL PRIMARY KEY
+CREATE UNIQUE INDEX IF NOT EXISTS attempts_guest_once_idx
+  ON attempts(guest_token, quiz_version_id)
+  WHERE guest_token IS NOT NULL AND submitted_at IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS answers (
+  id             BIGSERIAL PRIMARY KEY,
+  attempt_id     BIGINT NOT NULL REFERENCES attempts(id) ON DELETE CASCADE,
+  question_id    BIGINT NOT NULL REFERENCES questions(id) ON DELETE RESTRICT,
+  option_id      BIGINT REFERENCES question_options(id) ON DELETE SET NULL,
+  value_text     TEXT,
+  value_numeric  NUMERIC,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE scales_t (
-  scale_id int,
-  lang varchar(10),
-  name_t varchar(255),
-  UNIQUE (scale_id, lang),
-  FOREIGN KEY (scale_id) REFERENCES scales(id),
-  FOREIGN KEY (lang) REFERENCES languages(code)
+CREATE INDEX IF NOT EXISTS answers_attempt_idx ON answers(attempt_id);
+
+-- =========
+-- TRAITS (profiles) & SCORES
+-- =========
+CREATE TABLE IF NOT EXISTS trait_profiles (
+  id           BIGSERIAL PRIMARY KEY,
+  code         TEXT UNIQUE NOT NULL,            -- e.g., R,I,A,S,E,C
+  name         TEXT NOT NULL,
+  description  TEXT
 );
 
-CREATE TABLE test_scales (
-  test_id int,
-  scale_id int,
-  PRIMARY KEY (test_id, scale_id),
-  FOREIGN KEY (test_id) REFERENCES tests(id),
-  FOREIGN KEY (scale_id) REFERENCES scales(id)
+CREATE TABLE IF NOT EXISTS attempt_trait_scores (
+  attempt_id   BIGINT NOT NULL REFERENCES attempts(id) ON DELETE CASCADE,
+  trait_id     BIGINT NOT NULL REFERENCES trait_profiles(id) ON DELETE CASCADE,
+  score        NUMERIC NOT NULL,                -- normalized 0..1 (or raw)
+  PRIMARY KEY (attempt_id, trait_id)
 );
 
--- ANSWER OPTIONS
-CREATE TABLE answer_option_sets (
-  id SERIAL PRIMARY KEY,
-  question_type question_type
+-- =========
+-- PROFESSIONS & AI-ASSISTED MAPPING
+-- =========
+CREATE TABLE IF NOT EXISTS professions (
+  id             BIGSERIAL PRIMARY KEY,
+  slug           TEXT UNIQUE NOT NULL,
+  title_default  TEXT NOT NULL,
+  description    TEXT,
+  trait_vector   JSONB NOT NULL DEFAULT '{}'::jsonb,  -- {"R":0.7,"I":0.2,...}
+  ai_confidence  NUMERIC
 );
 
-CREATE TABLE answer_option_sets_t (
-  set_id int,
-  lang varchar(10),
-  name_t varchar(255),
-  UNIQUE (set_id, lang),
-  FOREIGN KEY (set_id) REFERENCES answer_option_sets(id),
-  FOREIGN KEY (lang) REFERENCES languages(code)
+CREATE TABLE IF NOT EXISTS profession_traits (
+  profession_id BIGINT NOT NULL REFERENCES professions(id) ON DELETE CASCADE,
+  trait_id      BIGINT NOT NULL REFERENCES trait_profiles(id) ON DELETE CASCADE,
+  weight        NUMERIC NOT NULL DEFAULT 1.0,
+  PRIMARY KEY (profession_id, trait_id)
 );
 
-CREATE TABLE answer_options (
-  id SERIAL PRIMARY KEY
+CREATE TABLE IF NOT EXISTS attempt_recommendations (
+  id             BIGSERIAL PRIMARY KEY,
+  attempt_id     BIGINT NOT NULL REFERENCES attempts(id) ON DELETE CASCADE,
+  profession_id  BIGINT NOT NULL REFERENCES professions(id) ON DELETE RESTRICT,
+  score          NUMERIC,
+  reasoning      JSONB NOT NULL DEFAULT '{}'::jsonb
 );
 
-CREATE TABLE answer_options_t (
-  option_id int,
-  lang varchar(10),
-  text_t varchar(255),
-  UNIQUE (option_id, lang),
-  FOREIGN KEY (option_id) REFERENCES answer_options(id),
-  FOREIGN KEY (lang) REFERENCES languages(code)
+-- =========
+-- MINIMAL LOCALIZATION
+-- =========
+CREATE TABLE IF NOT EXISTS translations (
+  id            BIGSERIAL PRIMARY KEY,
+  entity_type   TEXT NOT NULL,                    -- 'quiz','question','option','profession'
+  entity_id     BIGINT NOT NULL,
+  locale        TEXT NOT NULL,                    -- 'en','ru', ...
+  field         TEXT NOT NULL,                    -- 'title','text','description'
+  text          TEXT NOT NULL,
+  UNIQUE (entity_type, entity_id, locale, field)
 );
 
-CREATE TABLE answer_option_set_items (
-  set_id int,
-  answer_option_id int,
-  position int,
-  PRIMARY KEY (set_id, answer_option_id),
-  FOREIGN KEY (set_id) REFERENCES answer_option_sets(id),
-  FOREIGN KEY (answer_option_id) REFERENCES answer_options(id)
-);
+-- =========
+-- Helpful indexes
+-- =========
+CREATE INDEX IF NOT EXISTS quizzes_code_idx         ON quizzes(code);
+CREATE INDEX IF NOT EXISTS professions_slug_idx     ON professions(slug);
+CREATE INDEX IF NOT EXISTS attempts_user_idx        ON attempts(user_id, submitted_at);
+CREATE INDEX IF NOT EXISTS translations_entity_idx  ON translations(entity_type, entity_id);
 
--- QUESTIONS
-CREATE TABLE questions (
-  id SERIAL PRIMARY KEY,
-  test_id int,
-  type question_type,
-  answer_option_set_id int,
-  FOREIGN KEY (test_id) REFERENCES tests(id),
-  FOREIGN KEY (answer_option_set_id) REFERENCES answer_option_sets(id)
-);
-
-CREATE TABLE questions_t (
-  question_id int,
-  lang varchar(10),
-  text_t varchar(255),
-  UNIQUE (question_id, lang),
-  FOREIGN KEY (question_id) REFERENCES questions(id),
-  FOREIGN KEY (lang) REFERENCES languages(code)
-);
-
--- ANSWER IMPACTS
-CREATE TABLE answer_impacts (
-  id SERIAL PRIMARY KEY,
-  answer_option_id int,
-  question_id int,
-  scale_id int,
-  weight int,
-  FOREIGN KEY (answer_option_id) REFERENCES answer_options(id),
-  FOREIGN KEY (question_id) REFERENCES questions(id),
-  FOREIGN KEY (scale_id) REFERENCES scales(id)
-);
-
--- TEST SESSIONS
-CREATE TABLE test_sessions (
-  id SERIAL PRIMARY KEY,
-  user_id int,
-  test_id int,
-  started_at timestamp,
-  completed_at timestamp,
-  status varchar(20),
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (test_id) REFERENCES tests(id),
-  FOREIGN KEY (status) REFERENCES statuses(code)
-);
-
-CREATE TABLE test_answers (
-  id SERIAL PRIMARY KEY,
-  test_session_id int,
-  question_id int,
-  answer_option_id int,
-  created_at timestamp DEFAULT now(),
-  FOREIGN KEY (test_session_id) REFERENCES test_sessions(id),
-  FOREIGN KEY (question_id) REFERENCES questions(id),
-  FOREIGN KEY (answer_option_id) REFERENCES answer_options(id)
-);
-
--- RESULT LEVELS
-CREATE TABLE result_levels (
-  test_id int,
-  scale_id int,
-  level_id SERIAL PRIMARY KEY,
-  min_points int,
-  max_points int,
-  UNIQUE (test_id, scale_id, level_id),
-  FOREIGN KEY (test_id) REFERENCES tests(id),
-  FOREIGN KEY (scale_id) REFERENCES scales(id)
-);
-
-CREATE TABLE result_levels_t (
-  test_id int,
-  scale_id int,
-  level_id int,
-  lang varchar(10),
-  name_t varchar(255),
-  explanation_t text,
-  PRIMARY KEY (test_id, scale_id, level_id, lang),
-  FOREIGN KEY (test_id) REFERENCES tests(id),
-  FOREIGN KEY (scale_id) REFERENCES scales(id),
-  FOREIGN KEY (level_id) REFERENCES result_levels(level_id),
-  FOREIGN KEY (lang) REFERENCES languages(code)
-);
-
--- PROFESSIONS
-CREATE TABLE profession_sets (
-  id SERIAL PRIMARY KEY
-);
-
-CREATE TABLE profession_sets_t (
-  profession_set_id int,
-  lang varchar(10),
-  name_t varchar(255),
-  description_t text,
-  UNIQUE (profession_set_id, lang),
-  FOREIGN KEY (profession_set_id) REFERENCES profession_sets(id),
-  FOREIGN KEY (lang) REFERENCES languages(code)
-);
-
-CREATE TABLE professions (
-  id SERIAL PRIMARY KEY,
-  profession_set_id int,
-  FOREIGN KEY (profession_set_id) REFERENCES profession_sets(id)
-);
-
-CREATE TABLE professions_t (
-  profession_id int,
-  lang varchar(10),
-  name_t varchar(255),
-  description_t text,
-  UNIQUE (profession_id, lang),
-  FOREIGN KEY (profession_id) REFERENCES professions(id),
-  FOREIGN KEY (lang) REFERENCES languages(code)
-);
-
--- LEVEL SCALE CRITERIA
-CREATE TABLE level_scale_criteria (
-  id SERIAL PRIMARY KEY,
-  level_id int,
-  scale_id int,
-  min_score int,
-  max_score int,
-  FOREIGN KEY (level_id) REFERENCES result_levels(level_id),
-  FOREIGN KEY (scale_id) REFERENCES scales(id)
-);
-
-CREATE TABLE level_scale_criteria_t (
-  criteria_id int,
-  lang varchar(10),
-  description_t text,
-  UNIQUE (criteria_id, lang),
-  FOREIGN KEY (criteria_id) REFERENCES level_scale_criteria(id),
-  FOREIGN KEY (lang) REFERENCES languages(code)
-);
-
--- PROFESSION RECOMMENDATIONS
-CREATE TABLE profession_recommendations (
-  test_id int,
-  scale_id int,
-  level_id int,
-  profession_id int,
-  recommendation_key varchar(255),
-  explanation_key varchar(255),
-  PRIMARY KEY (test_id, scale_id, level_id, profession_id),
-  FOREIGN KEY (test_id) REFERENCES tests(id),
-  FOREIGN KEY (scale_id) REFERENCES scales(id),
-  FOREIGN KEY (level_id) REFERENCES result_levels(level_id),
-  FOREIGN KEY (profession_id) REFERENCES professions(id)
-);
-
-CREATE TABLE profession_recommendations_t (
-  test_id int,
-  scale_id int,
-  level_id int,
-  profession_id int,
-  lang varchar(10),
-  recommendation_t varchar(500),
-  explanation_t text,
-  UNIQUE (test_id, scale_id, level_id, profession_id, lang),
-  FOREIGN KEY (test_id) REFERENCES tests(id),
-  FOREIGN KEY (scale_id) REFERENCES scales(id),
-  FOREIGN KEY (level_id) REFERENCES result_levels(level_id),
-  FOREIGN KEY (profession_id) REFERENCES professions(id),
-  FOREIGN KEY (lang) REFERENCES languages(code)
-);
-
--- TEST PROFESSION SETS
-CREATE TABLE test_profession_sets (
-  id SERIAL PRIMARY KEY,
-  test_id int,
-  profession_set_id int,
-  UNIQUE (test_id, profession_set_id),
-  FOREIGN KEY (test_id) REFERENCES tests(id),
-  FOREIGN KEY (profession_set_id) REFERENCES profession_sets(id)
-);
-
--- USER PROFILES
-CREATE TABLE user_profiles (
-  id SERIAL PRIMARY KEY,
-  test_session_id int,
-  education text,
-  plans text,
-  ref_code varchar(100),
-  sex sex_type,
-  year_of_birth int,
-  created_at timestamp DEFAULT now(),
-  FOREIGN KEY (test_session_id) REFERENCES test_sessions(id)
-);
+-- Consistency guard: ensure quiz_version_id belongs to quiz_id
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'uq_quiz_versions_id_quiz'
+  ) THEN
+    ALTER TABLE quiz_versions
+      ADD CONSTRAINT uq_quiz_versions_id_quiz UNIQUE (id, quiz_id);
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'fk_attempts_version_matches_quiz'
+  ) THEN
+    ALTER TABLE attempts
+      ADD CONSTRAINT fk_attempts_version_matches_quiz
+      FOREIGN KEY (quiz_version_id, quiz_id)
+      REFERENCES quiz_versions (id, quiz_id)
+      ON UPDATE RESTRICT ON DELETE RESTRICT;
+  END IF;
+END$$;
