@@ -4,7 +4,7 @@ services:
     container_name: postgres_db
     restart: unless-stopped
     env_file:
-      - .env
+      - .env        # expects POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -15,12 +15,36 @@ services:
       timeout: 5s
       retries: 12
 
+  # One-shot Flyway migrate (run manually when needed):
+  flyway:
+    image: flyway/flyway:10-alpine
+    container_name: flyway_migrate
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    volumes:
+      - ./db/migration:/flyway/sql
+    command: >
+      -url=jdbc:postgresql://postgres_db:5432/${POSTGRES_DB}
+      -user=${POSTGRES_USER} -password=${POSTGRES_PASSWORD}
+      -connectRetries=60
+      -baselineOnMigrate=true
+      -cleanDisabled=true
+      -group=true
+      -locations=filesystem:/flyway/sql
+      migrate
+    environment:
+      FLYWAY_PLACEHOLDERS_ENV: local
+    # By default this will exit after migrate completes
+    # Uncomment to auto-run on 'up' by default:
+    # restart: "no"
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
     restart: unless-stopped
     env_file:
-      - .env
+      - .env        # expects PGADMIN_DEFAULT_EMAIL, PGADMIN_DEFAULT_PASSWORD
     ports:
       - "8080:80"
     depends_on:

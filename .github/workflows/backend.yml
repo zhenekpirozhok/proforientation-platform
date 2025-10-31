@@ -35,10 +35,6 @@ jobs:
           cache: maven
 
       # --- Tests & Build -----------------------------------------------------
-
-      # Run unit tests and build all modules. If you use failsafe for ITs,
-      # they'll run automatically on 'verify'. To skip ITs, pass -DskipITs=true
-      # and ensure your pom maps that property to failsafe.skipITs.
       - name: Maven Verify
         run: |
           chmod +x mvnw || true
@@ -46,7 +42,6 @@ jobs:
             -DskipITs=true \
             clean verify
 
-      # Optional: upload surefire/failsafe reports for PRs and debugging
       - name: Upload Test Reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -58,7 +53,6 @@ jobs:
           if-no-files-found: ignore
 
       # --- Container Image ---------------------------------------------------
-
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
@@ -74,7 +68,6 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha
-            # uncomment next line to tag semver tags: type=semver,pattern={{version}}
           labels: |
             org.opencontainers.image.source=${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
@@ -90,7 +83,6 @@ jobs:
           cache-to: type=gha,mode=max
 
       # --- Artifacts ---------------------------------------------------------
-
       - name: Upload JAR(s)
         if: success()
         uses: actions/upload-artifact@v4
