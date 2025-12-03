@@ -18,26 +18,25 @@ services:
   # One-shot Flyway migrate (run manually when needed):
   flyway:
     image: flyway/flyway:10-alpine
-    container_name: flyway_migrate
     depends_on:
       postgres_db:
         condition: service_healthy
     volumes:
       - ./db/migration:/flyway/sql
-    command: >
-      -url=jdbc:postgresql://postgres_db:5432/${POSTGRES_DB}
-      -user=${POSTGRES_USER} -password=${POSTGRES_PASSWORD}
-      -connectRetries=60
-      -baselineOnMigrate=true
-      -cleanDisabled=true
-      -group=true
-      -locations=filesystem:/flyway/sql
-      migrate
-    environment:
-      FLYWAY_PLACEHOLDERS_ENV: local
-    # By default this will exit after migrate completes
-    # Uncomment to auto-run on 'up' by default:
-    # restart: "no"
+    command:
+      - -url=jdbc:postgresql://postgres_db:5432/${POSTGRES_DB}
+      - -user=${POSTGRES_USER}
+      - -password=${POSTGRES_PASSWORD}
+      - -connectRetries=60
+      - -baselineOnMigrate=true
+      - -cleanDisabled=true
+      - -group=true
+      - -locations=filesystem:/flyway/sql
+      - -placeholders.app_user_name=${APP_DB_USER}
+      - -placeholders.app_user_password=${APP_DB_PASSWORD}
+      - -placeholders.db_admin_name=${DB_ADMIN_USER}
+      - -placeholders.db_admin_password=${DB_ADMIN_PASSWORD}
+      - migrate
 
   pgadmin:
     image: dpage/pgadmin4
