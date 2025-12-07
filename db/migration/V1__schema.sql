@@ -9,7 +9,6 @@ CREATE TYPE user_role AS ENUM ('superadmin', 'admin', 'user');
 CREATE TYPE quiz_status AS ENUM ('draft', 'published', 'archived');
 CREATE TYPE quiz_processing_mode AS ENUM ('ml_riasec', 'llm');
 
-
 CREATE TYPE question_type AS ENUM ('single_choice', 'multi_choice', 'liker_scale_5', 'liker_scale_7');
 
 ----------------------------------------------------------------------
@@ -33,7 +32,7 @@ CREATE TABLE professions (
   title_default  VARCHAR(255) NOT NULL,
   description    TEXT,                         
   ml_class_code  VARCHAR(64),                    
-  category_id    BIGINT NOT NULL REFERENCES profession_categories(id),
+  category_id    INT NOT NULL REFERENCES profession_categories(id)
 );
 
 ----------------------------------------------------------------------
@@ -44,7 +43,7 @@ CREATE TABLE users (
   id            SERIAL PRIMARY KEY,
   email         VARCHAR(320) NOT NULL UNIQUE,  
   password_hash VARCHAR(255) NOT NULL,      
-  display_name  VARCHAR(255)                   
+  display_name  VARCHAR(255),                   
   role          user_role NOT NULL DEFAULT 'user',
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -61,15 +60,15 @@ CREATE TABLE quizzes (
   title_default   VARCHAR(255) NOT NULL,
   status          quiz_status NOT NULL DEFAULT 'draft',
   processing_mode quiz_processing_mode NOT NULL DEFAULT 'ml_riasec',
-  category_id     BIGINT NOT NULL REFERENCES profession_categories(id),
+  category_id     INT NOT NULL REFERENCES profession_categories(id),
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-  author_id       BIGINT NOT NULL REFERENCES users(id)     
+  author_id       INT NOT NULL REFERENCES users(id)     
 );
 
 CREATE TABLE quiz_versions (
   id           SERIAL PRIMARY KEY,
-  quiz_id      BIGINT NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
+  quiz_id      INT NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
   version      INT NOT NULL,
   is_current   BOOLEAN NOT NULL DEFAULT FALSE,
   published_at TIMESTAMPTZ,
@@ -82,16 +81,16 @@ CREATE TABLE quiz_versions (
 
 CREATE TABLE questions (
   id              SERIAL PRIMARY KEY,
-  quiz_version_id BIGINT NOT NULL REFERENCES quiz_versions(id) ON DELETE CASCADE,
-  ord             INT NOT NULL,                     -- порядок в квизе
+  quiz_version_id INT NOT NULL REFERENCES quiz_versions(id) ON DELETE CASCADE,
+  ord             INT NOT NULL,                     
   qtype           question_type NOT NULL DEFAULT 'single_choice',
   text_default    TEXT NOT NULL
 );
 
 CREATE TABLE question_options (
   id            SERIAL PRIMARY KEY,
-  question_id   BIGINT NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
-  ord           INT NOT NULL,                       -- порядок варианта
+  question_id   INT NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+  ord           INT NOT NULL,                       
   label_default VARCHAR(255) NOT NULL    
 );
 
@@ -112,9 +111,9 @@ CREATE TABLE trait_profiles (
 ----------------------------------------------------------------------
 
 CREATE TABLE question_option_traits (
-  question_option_id BIGINT NOT NULL
+  question_option_id INT NOT NULL
     REFERENCES question_options(id) ON DELETE CASCADE,
-  trait_id           BIGINT NOT NULL
+  trait_id           INT NOT NULL
     REFERENCES trait_profiles(id) ON DELETE CASCADE,
   weight             NUMERIC NOT NULL DEFAULT 1.0,
   PRIMARY KEY (question_option_id, trait_id)
@@ -126,8 +125,8 @@ CREATE TABLE question_option_traits (
 
 CREATE TABLE attempts (
   id              SERIAL PRIMARY KEY,
-  quiz_version_id BIGINT NOT NULL REFERENCES quiz_versions(id),
-  user_id         BIGINT REFERENCES users(id),
+  quiz_version_id INT NOT NULL REFERENCES quiz_versions(id),
+  user_id         INT REFERENCES users(id),
   guest_token     VARCHAR(255),     
   locale          VARCHAR(10) NOT NULL DEFAULT 'en',
   started_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -146,19 +145,18 @@ CREATE TABLE attempts (
 
 CREATE TABLE answers (
   id          SERIAL PRIMARY KEY,
-  attempt_id  BIGINT NOT NULL REFERENCES attempts(id) ON DELETE CASCADE,
-  option_id   BIGINT NOT NULL REFERENCES question_options(id),
+  attempt_id  INT NOT NULL REFERENCES attempts(id) ON DELETE CASCADE,
+  option_id   INT NOT NULL REFERENCES question_options(id),
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 
 ----------------------------------------------------------------------
 -- 12. Результаты по трейтам для попытки
 ----------------------------------------------------------------------
 
 CREATE TABLE attempt_trait_scores (
-  attempt_id BIGINT NOT NULL REFERENCES attempts(id) ON DELETE CASCADE,
-  trait_id   BIGINT NOT NULL REFERENCES trait_profiles(id) ON DELETE CASCADE,
+  attempt_id INT NOT NULL REFERENCES attempts(id) ON DELETE CASCADE,
+  trait_id   INT NOT NULL REFERENCES trait_profiles(id) ON DELETE CASCADE,
   score      NUMERIC NOT NULL,
   PRIMARY KEY (attempt_id, trait_id)
 );
@@ -168,10 +166,10 @@ CREATE TABLE attempt_trait_scores (
 ----------------------------------------------------------------------
 
 CREATE TABLE attempt_recommendations (
-  id            SERIAL PRIMARY KEY,
-  attempt_id    BIGINT NOT NULL REFERENCES attempts(id) ON DELETE CASCADE,
-  profession_id BIGINT NOT NULL REFERENCES professions(id),
-  score         NUMERIC,
+  id              SERIAL PRIMARY KEY,
+  attempt_id      INT NOT NULL REFERENCES attempts(id) ON DELETE CASCADE,
+  profession_id   INT NOT NULL REFERENCES professions(id),
+  score           NUMERIC,
   llm_explanation TEXT
 );
 
@@ -180,8 +178,8 @@ CREATE TABLE attempt_recommendations (
 ----------------------------------------------------------------------
 
 CREATE TABLE quiz_professions (
-  quiz_id       BIGINT NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
-  profession_id BIGINT NOT NULL REFERENCES professions(id) ON DELETE CASCADE,
+  quiz_id       INT NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
+  profession_id INT NOT NULL REFERENCES professions(id) ON DELETE CASCADE,
   PRIMARY KEY (quiz_id, profession_id)
 );
 
@@ -192,12 +190,11 @@ CREATE TABLE quiz_professions (
 CREATE TABLE translations (
   id          SERIAL PRIMARY KEY,
   entity_type VARCHAR(32) NOT NULL
-    CHECK (entity_type IN ('quiz','question',
-                          'question_option','profession')),
+    CHECK (entity_type IN ('quiz','question','question_option','profession')),
   locale      VARCHAR(10) NOT NULL,
   field       VARCHAR(32) NOT NULL
     CHECK (field IN ('title','text','description')),
-  text        TEXT NOT NULL  ,
-  entity_id   BIGINT NOT NULL,
+  text        TEXT NOT NULL,
+  entity_id   INT NOT NULL,
   UNIQUE (entity_type, entity_id, locale, field)
 );

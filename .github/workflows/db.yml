@@ -15,46 +15,68 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: app
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: appdb
-        ports: ["5432:5432"]
+        ports:
+          - 5432:5432
         options: >-
-          --health-cmd="pg_isready -U app -d appdb"
+          --health-cmd="pg_isready -U postgres -d appdb"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=30
+
+    env:
+      # обычные переменные
+      POSTGRES_USER: postgres
+      POSTGRES_DB: appdb
+
+      APP_DB_USER: app_user
+      DB_ADMIN_USER: db_admin
+
+      # секреты
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      APP_DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}
+      DB_ADMIN_PASSWORD: ${{ secrets.DB_ADMIN_PASSWORD }}
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Wait for Postgres (extra safety)
+      - name: Wait for Postgres
         run: |
           for i in {1..60}; do
-            pg_isready -h localhost -p 5432 -U app >/dev/null 2>&1 && exit 0
+            pg_isready -h localhost -p 5432 -U postgres >/dev/null 2>&1 && exit 0
             sleep 1
           done
           echo "Postgres is not ready" && exit 1
 
+      # ✅ MIGRATE (с placeholders и суперпользователем)
       - name: Flyway migrate
         uses: docker://flyway/flyway:10-alpine
         with:
           args: >
             -url=jdbc:postgresql://postgres:5432/appdb
-            -user=app -password=app
+            -user=postgres
+            -password=${POSTGRES_PASSWORD}
             -connectRetries=60
             -baselineOnMigrate=true
             -cleanDisabled=true
             -group=true
             -locations=filesystem:/github/workspace/db/migration
+            -placeholders.app_user_name=${APP_DB_USER}
+            -placeholders.app_user_password=${APP_DB_PASSWORD}
+            -placeholders.db_admin_name=${DB_ADMIN_USER}
+            -placeholders.db_admin_password=${DB_ADMIN_PASSWORD}
             migrate
 
+      # ✅ VALIDATE (уже без placeholders можно, но оставим для一致ности)
       - name: Flyway validate
         uses: docker://flyway/flyway:10-alpine
         with:
           args: >
             -url=jdbc:postgresql://postgres:5432/appdb
-            -user=app -password=app
+            -user=postgres
+            -password=${POSTGRES_PASSWORD}
             -locations=filesystem:/github/workspace/db/migration
             validate

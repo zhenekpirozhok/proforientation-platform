@@ -1,54 +1,61 @@
+version: "3.9"
+
 services:
+
   postgres_db:
     image: postgres:16
     container_name: postgres_db
     restart: unless-stopped
     env_file:
-      - .env        # expects POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
+      - .env        # POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 12
 
-  # One-shot Flyway migrate (run manually when needed):
+
   flyway:
     image: flyway/flyway:10-alpine
+    container_name: flyway
     depends_on:
       postgres_db:
         condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres_db:5432/${POSTGRES_DB}
+      FLYWAY_USER: ${POSTGRES_USER}
+      FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
+
+      FLYWAY_PLACEHOLDERS_APP_USER_NAME: ${APP_DB_USER}
+      FLYWAY_PLACEHOLDERS_APP_USER_PASSWORD: ${APP_DB_PASSWORD}
+      FLYWAY_PLACEHOLDERS_DB_ADMIN_NAME: ${DB_ADMIN_USER}
+      FLYWAY_PLACEHOLDERS_DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD}
+
+      FLYWAY_BASELINE_ON_MIGRATE: "true"
+      FLYWAY_CLEAN_DISABLED: "true"
+      FLYWAY_GROUP: "true"
     volumes:
       - ./db/migration:/flyway/sql
-    command:
-      - -url=jdbc:postgresql://postgres_db:5432/${POSTGRES_DB}
-      - -user=${POSTGRES_USER}
-      - -password=${POSTGRES_PASSWORD}
-      - -connectRetries=60
-      - -baselineOnMigrate=true
-      - -cleanDisabled=true
-      - -group=true
-      - -locations=filesystem:/flyway/sql
-      - -placeholders.app_user_name=${APP_DB_USER}
-      - -placeholders.app_user_password=${APP_DB_PASSWORD}
-      - -placeholders.db_admin_name=${DB_ADMIN_USER}
-      - -placeholders.db_admin_password=${DB_ADMIN_PASSWORD}
-      - migrate
+
 
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
     restart: unless-stopped
     env_file:
-      - .env        # expects PGADMIN_DEFAULT_EMAIL, PGADMIN_DEFAULT_PASSWORD
+      - .env        # PGADMIN_DEFAULT_EMAIL, PGADMIN_DEFAULT_PASSWORD
     ports:
       - "8080:80"
     depends_on:
       postgres_db:
         condition: service_healthy
+
 
 volumes:
   postgres_data:
