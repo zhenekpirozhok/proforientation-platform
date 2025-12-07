@@ -17,9 +17,10 @@ CREATE TYPE question_type AS ENUM ('single_choice', 'multi_choice', 'liker_scale
 ----------------------------------------------------------------------
 
 CREATE TABLE profession_categories (
-  id   BIGSERIAL PRIMARY KEY,
-  code TEXT UNIQUE NOT NULL,      -- 'it', 'med', 'general', 'sap', ...
-  name TEXT NOT NULL
+  id   SERIAL PRIMARY KEY,
+  code VARCHAR(50) UNIQUE NOT NULL,     
+  name VARCHAR(255) NOT NULL,
+  color_code VARCHAR(7) NOT NULL DEFAULT '#000000'       
 );
 
 ----------------------------------------------------------------------
@@ -27,12 +28,12 @@ CREATE TABLE profession_categories (
 ----------------------------------------------------------------------
 
 CREATE TABLE professions (
-  id             BIGSERIAL PRIMARY KEY,
-  code           TEXT UNIQUE NOT NULL,   -- бизнес-код / slug
-  title_default  TEXT NOT NULL,
-  description    TEXT,
+  id             SERIAL PRIMARY KEY,
+  code           VARCHAR(64) UNIQUE NOT NULL,   
+  title_default  VARCHAR(255) NOT NULL,
+  description    TEXT,                         
+  ml_class_code  VARCHAR(64),                    
   category_id    BIGINT NOT NULL REFERENCES profession_categories(id),
-  ml_class_code  TEXT                    -- код класса из ML-модели (может быть NULL)
 );
 
 ----------------------------------------------------------------------
@@ -40,10 +41,10 @@ CREATE TABLE professions (
 ----------------------------------------------------------------------
 
 CREATE TABLE users (
-  id            BIGSERIAL PRIMARY KEY,
-  email         TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
-  display_name  TEXT,
+  id            SERIAL PRIMARY KEY,
+  email         VARCHAR(320) NOT NULL UNIQUE,  
+  password_hash VARCHAR(255) NOT NULL,      
+  display_name  VARCHAR(255)                   
   role          user_role NOT NULL DEFAULT 'user',
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -55,9 +56,9 @@ CREATE TABLE users (
 ----------------------------------------------------------------------
 
 CREATE TABLE quizzes (
-  id              BIGSERIAL PRIMARY KEY,
-  code            TEXT NOT NULL UNIQUE,           -- 'riasec_main', 'sap_roles'
-  title_default   TEXT NOT NULL,
+  id              SERIAL PRIMARY KEY,
+  code            VARCHAR(64) NOT NULL UNIQUE, 
+  title_default   VARCHAR(255) NOT NULL,
   status          quiz_status NOT NULL DEFAULT 'draft',
   processing_mode quiz_processing_mode NOT NULL DEFAULT 'ml_riasec',
   category_id     BIGINT NOT NULL REFERENCES profession_categories(id),
@@ -67,7 +68,7 @@ CREATE TABLE quizzes (
 );
 
 CREATE TABLE quiz_versions (
-  id           BIGSERIAL PRIMARY KEY,
+  id           SERIAL PRIMARY KEY,
   quiz_id      BIGINT NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
   version      INT NOT NULL,
   is_current   BOOLEAN NOT NULL DEFAULT FALSE,
@@ -80,7 +81,7 @@ CREATE TABLE quiz_versions (
 ----------------------------------------------------------------------
 
 CREATE TABLE questions (
-  id              BIGSERIAL PRIMARY KEY,
+  id              SERIAL PRIMARY KEY,
   quiz_version_id BIGINT NOT NULL REFERENCES quiz_versions(id) ON DELETE CASCADE,
   ord             INT NOT NULL,                     -- порядок в квизе
   qtype           question_type NOT NULL DEFAULT 'single_choice',
@@ -88,10 +89,10 @@ CREATE TABLE questions (
 );
 
 CREATE TABLE question_options (
-  id            BIGSERIAL PRIMARY KEY,
+  id            SERIAL PRIMARY KEY,
   question_id   BIGINT NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
   ord           INT NOT NULL,                       -- порядок варианта
-  label_default TEXT NOT NULL
+  label_default VARCHAR(255) NOT NULL    
 );
 
 ----------------------------------------------------------------------
@@ -99,11 +100,11 @@ CREATE TABLE question_options (
 ----------------------------------------------------------------------
 
 CREATE TABLE trait_profiles (
-  id               BIGSERIAL PRIMARY KEY,
-  code             TEXT UNIQUE NOT NULL,   -- 'R','I','A','S','E','C','SAP_DEV','SAP_FUNC',...
-  name             TEXT NOT NULL,
-  description      TEXT,
-  bipolar_pair_code TEXT                  -- одинаковый для полюсов одной шкалы (если нужно)
+  id               SERIAL PRIMARY KEY,
+  code              VARCHAR(32) UNIQUE NOT NULL,
+  name              VARCHAR(255) NOT NULL,
+  description       TEXT,            
+  bipolar_pair_code VARCHAR(32)       
 );
 
 ----------------------------------------------------------------------
@@ -124,11 +125,11 @@ CREATE TABLE question_option_traits (
 ----------------------------------------------------------------------
 
 CREATE TABLE attempts (
-  id              BIGSERIAL PRIMARY KEY,
+  id              SERIAL PRIMARY KEY,
   quiz_version_id BIGINT NOT NULL REFERENCES quiz_versions(id),
   user_id         BIGINT REFERENCES users(id),
-  guest_token     TEXT,
-  locale          TEXT NOT NULL DEFAULT 'en',
+  guest_token     VARCHAR(255),     
+  locale          VARCHAR(10) NOT NULL DEFAULT 'en',
   started_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   submitted_at    TIMESTAMPTZ,
   uuid            UUID NOT NULL DEFAULT gen_random_uuid(),
@@ -144,7 +145,7 @@ CREATE TABLE attempts (
 ----------------------------------------------------------------------
 
 CREATE TABLE answers (
-  id          BIGSERIAL PRIMARY KEY,
+  id          SERIAL PRIMARY KEY,
   attempt_id  BIGINT NOT NULL REFERENCES attempts(id) ON DELETE CASCADE,
   option_id   BIGINT NOT NULL REFERENCES question_options(id),
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -167,7 +168,7 @@ CREATE TABLE attempt_trait_scores (
 ----------------------------------------------------------------------
 
 CREATE TABLE attempt_recommendations (
-  id            BIGSERIAL PRIMARY KEY,
+  id            SERIAL PRIMARY KEY,
   attempt_id    BIGINT NOT NULL REFERENCES attempts(id) ON DELETE CASCADE,
   profession_id BIGINT NOT NULL REFERENCES professions(id),
   score         NUMERIC,
@@ -189,14 +190,14 @@ CREATE TABLE quiz_professions (
 ----------------------------------------------------------------------
 
 CREATE TABLE translations (
-  id          BIGSERIAL PRIMARY KEY,
-  entity_type TEXT NOT NULL
-              CHECK (entity_type IN ('quiz','quiz_version','question',
-                                      'question_option','profession')),
+  id          SERIAL PRIMARY KEY,
+  entity_type VARCHAR(32) NOT NULL
+    CHECK (entity_type IN ('quiz','question',
+                          'question_option','profession')),
+  locale      VARCHAR(10) NOT NULL,
+  field       VARCHAR(32) NOT NULL
+    CHECK (field IN ('title','text','description')),
+  text        TEXT NOT NULL  ,
   entity_id   BIGINT NOT NULL,
-  locale      TEXT NOT NULL,
-  field       TEXT NOT NULL
-              CHECK (field IN ('title','text','description')),
-  text        TEXT NOT NULL,
   UNIQUE (entity_type, entity_id, locale, field)
 );

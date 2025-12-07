@@ -7,11 +7,6 @@
 -- Ускорение поиска профессий по категориям
 CREATE INDEX idx_professions_category ON professions(category_id);
 
--- Формат кода профессии: строчные латинские буквы, цифры, подчеркивания
-ALTER TABLE professions
-  ADD CONSTRAINT chk_professions_code_format
-  CHECK (code ~ '^[a-z0-9_]+$');
-
 -- Ускорение поиска активных пользователей по ролям
 CREATE INDEX idx_users_role_active
   ON users(role, is_active);
@@ -74,7 +69,8 @@ CREATE INDEX idx_ar_attempt ON attempt_recommendations(attempt_id);
 CREATE INDEX idx_ar_profession ON attempt_recommendations(profession_id);
 
 -- Переводы по сущности
-CREATE INDEX idx_translations_entity ON translations(entity_type, entity_id);
+CREATE INDEX idx_translations_entity_locale
+  ON translations (entity_type, entity_id, locale);
 
 ----------------------------------------------------------------------
 -- Дополнительные CHECK-ограничения
@@ -84,11 +80,6 @@ CREATE INDEX idx_translations_entity ON translations(entity_type, entity_id);
 ALTER TABLE answers
   ADD CONSTRAINT uq_answers_attempt_option
   UNIQUE (attempt_id, option_id);
-
--- Формат e-mail в таблице users
-ALTER TABLE users
-  ADD CONSTRAINT chk_users_email_format
-  CHECK (email ~ '^[^@]+@[^@]+\.[^@]+$');
 
 -- Проверка, что текущая версия опубликована
 ALTER TABLE quiz_versions
@@ -129,11 +120,6 @@ ALTER TABLE trait_profiles
 ALTER TABLE attempts
   ADD CONSTRAINT chk_attempts_time_order
   CHECK (submitted_at IS NULL OR submitted_at >= started_at);
-
--- Ограничение на 0–1 в attempt_trait_scores
-ALTER TABLE attempt_trait_scores
-  ADD CONSTRAINT chk_attempt_trait_scores_0_1
-  CHECK (score >= 0 AND score <= 1);
 
 
 ----------------------------------------------------------------------
@@ -195,14 +181,14 @@ BEGIN
   )
   INSERT INTO attempt_trait_scores (attempt_id, trait_id, score)
   SELECT
-    a.attempt_id,
-    a.trait_id,
+    p_attempt_id,
+    m.trait_id,
     CASE
-      WHEN m.max_score IS NULL OR m.max_score = 0 THEN 0
-      ELSE ROUND(a.actual_score / m.max_score, 6)
-    END AS score_norm -- значение от 0 до 1
-  FROM actual a
-  LEFT JOIN max_scores m USING (trait_id);
+      WHEN m.max_score = 0 THEN 0
+      ELSE ROUND(COALESCE(a.actual_score, 0) / m.max_score, 6)
+    END AS score_norm
+  FROM max_scores m
+  LEFT JOIN actual a USING (trait_id);
 
 END;
 $$ LANGUAGE plpgsql;
@@ -239,25 +225,6 @@ AFTER INSERT OR UPDATE OF submitted_at ON attempts
 FOR EACH ROW
 EXECUTE FUNCTION trg_set_attempt_trait_scores_on_submit();
 
-
-----------------------------------------------------------------------
--- Триггер: приведение e-mail к нижнему регистру
-----------------------------------------------------------------------
-
-CREATE OR REPLACE FUNCTION normalize_user_email()
-RETURNS trigger AS $$
-BEGIN
-  IF NEW.email IS NOT NULL THEN
-    NEW.email := lower(trim(NEW.email));
-  END IF;
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_users_email_normalize
-BEFORE INSERT OR UPDATE ON users
-FOR EACH ROW
-EXECUTE FUNCTION normalize_user_email();
 
 ----------------------------------------------------------------------
 -- Триггер: опция должна относиться к тому же квизу, что и попытка
@@ -445,3 +412,122 @@ FROM attempts a
 JOIN quiz_versions qv ON qv.id = a.quiz_version_id
 JOIN quizzes q        ON q.id = qv.quiz_id
 LEFT JOIN users u      ON u.id = a.user_id;
+
+----------------------------------------------------------------------
+-- VIEW: переводы для сущностей
+----------------------------------------------------------------------
+
+CREATE VIEW questions_ru AS
+SELECT
+    q.id,
+    q.quiz_version_id,
+    q.ord,
+    q.qtype,
+    COALESCE(t.text, q.text_default) AS text
+FROM questions q
+LEFT JOIN translations t
+    ON t.entity_type = 'question'
+   AND t.entity_id   = q.id
+   AND t.field       = 'text'
+   AND t.locale      = 'ru';
+
+CREATE VIEW question_options_ru AS
+SELECT
+    qo.id,
+    qo.question_id,
+    qo.ord,
+    COALESCE(t.text, qo.label_default) AS label
+FROM question_options qo
+LEFT JOIN translations t
+    ON t.entity_type = 'question_option'
+   AND t.entity_id   = qo.id
+   AND t.field       = 'label'
+   AND t.locale      = 'ru';
+
+CREATE OR REPLACE VIEW professions_ru AS
+SELECT
+    p.id,
+    p.code,
+    COALESCE(t.text, p.title_default) AS title,
+    COALESCE(t2.text, p.description)  AS description
+FROM professions p
+LEFT JOIN translations t
+    ON t.entity_type = 'profession'
+   AND t.entity_id   = p.id
+   AND t.field       = 'title'
+   AND t.locale      = 'ru'
+LEFT JOIN translations t2
+    ON t2.entity_type = 'profession'
+   AND t2.entity_id   = p.id
+   AND t2.field       = 'description'
+   AND t2.locale      = 'ru';
+
+CREATE OR REPLACE VIEW quizzes_ru AS
+SELECT
+    q.id,
+    q.code,
+    COALESCE(t.text, q.title_default) AS title
+FROM quizzes q
+LEFT JOIN translations t
+    ON t.entity_type = 'quiz'
+   AND t.entity_id   = q.id
+   AND t.field       = 'title'
+   AND t.locale      = 'ru';
+
+
+CREATE OR REPLACE VIEW quizzes_en AS
+SELECT
+    q.id,
+    q.code,
+    COALESCE(t.text, q.title_default) AS title
+FROM quizzes q
+LEFT JOIN translations t
+    ON t.entity_type = 'quiz'
+   AND t.entity_id   = q.id
+   AND t.field       = 'title'
+   AND t.locale      = 'en';
+
+CREATE OR REPLACE VIEW professions_en AS
+SELECT
+    p.id,
+    p.code,
+    COALESCE(t.text, p.title_default) AS title,
+    COALESCE(t2.text, p.description)  AS description
+FROM professions p
+LEFT JOIN translations t
+    ON t.entity_type = 'profession'
+   AND t.entity_id   = p.id
+   AND t.field       = 'title'
+   AND t.locale      = 'en'
+LEFT JOIN translations t2
+    ON t2.entity_type = 'profession'
+   AND t2.entity_id   = p.id
+   AND t2.field       = 'description'
+   AND t2.locale      = 'en';
+
+CREATE VIEW question_options_en AS
+SELECT
+    qo.id,
+    qo.question_id,
+    qo.ord,
+    COALESCE(t.text, qo.label_default) AS label
+FROM question_options qo
+LEFT JOIN translations t
+    ON t.entity_type = 'question_option'
+   AND t.entity_id   = qo.id
+   AND t.field       = 'label'
+   AND t.locale      = 'en';
+
+CREATE VIEW questions_en AS
+SELECT
+    q.id,
+    q.quiz_version_id,
+    q.ord,
+    q.qtype,
+    COALESCE(t.text, q.text_default) AS text
+FROM questions q
+LEFT JOIN translations t
+    ON t.entity_type = 'question'
+   AND t.entity_id   = q.id
+   AND t.field       = 'text'
+   AND t.locale      = 'en';
