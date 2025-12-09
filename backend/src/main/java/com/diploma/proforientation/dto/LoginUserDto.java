@@ -3,7 +3,9 @@ package com.diploma.proforientation.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -15,6 +17,8 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class LoginUserDto {
 
     /**
@@ -44,4 +48,10 @@ public class LoginUserDto {
      * </p>
      */
     private boolean rememberMe;
+
+    public LoginUserDto(String email, String password) {
+        this.email = email;
+        this.password = password;
+        this.rememberMe = false;
+    }
 }

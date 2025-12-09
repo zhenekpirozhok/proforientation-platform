@@ -23,7 +23,7 @@ public class PasswordResetToken {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     /**
      * The unique token string used to verify the password reset request.
@@ -32,10 +32,11 @@ public class PasswordResetToken {
     private String token;
 
     /**
-     * The email address of the user who requested the password reset.
+     * The id of the user who requested the password reset.
      */
-    @Column(nullable = false)
-    private String email;
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     /**
      * The date and time at which this token expires.

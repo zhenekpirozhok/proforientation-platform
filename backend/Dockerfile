@@ -1,13 +1,20 @@
-FROM amazoncorretto:21
+# Build Stage
+FROM maven:3.9.6-amazoncorretto-21 AS builder
+
 WORKDIR /build
-COPY . .
-RUN yum install -y tar gzip dos2unix && dos2unix ./mvnw && ./mvnw clean package
+COPY pom.xml .
+COPY src ./src
+
+RUN mvn -B -DskipTests clean package
 
 
+# Runtime Stage
 FROM amazoncorretto:21
 
+WORKDIR /app
 RUN yum -y install jq
-COPY --from=0 /build/target/*.jar backend.jar
 
-# Set the default command to run the Java application
-ENTRYPOINT ["java", "-Xmx1024M", "-jar", "/backend.jar"]
+COPY --from=builder /build/target/*.jar backend.jar
+EXPOSE 8082
+
+ENTRYPOINT ["java", "-Xmx1024M", "-jar", "/app/backend.jar"]

@@ -1,11 +1,11 @@
 package com.diploma.proforientation.config;
 
-import com.diploma.proforientation.service.JwtService;
+import com.diploma.proforientation.service.impl.JwtServiceImpl;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.antlr.v4.runtime.misc.NotNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,8 +15,11 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.lang.NonNull;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * A Spring Security filter that intercepts HTTP requests to validate JWT tokens.
@@ -29,22 +32,22 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final HandlerExceptionResolver handlerExceptionResolver;
-    private final JwtService jwtService;
+    private final JwtServiceImpl jwtServiceImpl;
     private final UserDetailsService userDetailsService;
 
     /**
      * Constructs a new {@code JwtAuthenticationFilter}.
      *
      * @param handlerExceptionResolver used to handle exceptions during filtering
-     * @param jwtService               service for JWT operations like extraction and validation
+     * @param jwtServiceImpl               service for JWT operations like extraction and validation
      * @param userDetailsService       service to load user details by username/email
      */
     public JwtAuthenticationFilter(
             HandlerExceptionResolver handlerExceptionResolver,
-            JwtService jwtService,
+            JwtServiceImpl jwtServiceImpl,
             UserDetailsService userDetailsService) {
         this.handlerExceptionResolver = handlerExceptionResolver;
-        this.jwtService = jwtService;
+        this.jwtServiceImpl = jwtServiceImpl;
         this.userDetailsService = userDetailsService;
     }
 
@@ -64,9 +67,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      */
     @Override
     protected void doFilterInternal(
-            @NotNull HttpServletRequest request,
-            @NotNull HttpServletResponse response,
-            @NotNull FilterChain chain) throws ServletException, IOException {
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain chain) throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             chain.doFilter(request, response);
@@ -75,18 +78,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             final String jwt = authHeader.substring(7);
-            final String userEmail = jwtService.extractUsername(jwt);
+            final String userEmail = jwtServiceImpl.extractUsername(jwt);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (userEmail != null && authentication == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
-                if (jwtService.isTokenValid(jwt, userDetails)) {
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities()
-                    );
-                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                if (jwtServiceImpl.isTokenValid(jwt, userDetails)) {
+                    Claims claims = jwtServiceImpl.extractAllClaims(jwt);
+                    List<String> roles = claims.get("roles", List.class);
+                    var authorities = roles.stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .toList();
+
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    authorities
+                            );
+
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
             chain.doFilter(request, response);

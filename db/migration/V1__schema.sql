@@ -5,7 +5,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto; -- для gen_random_uuid()
 
 -- 2. Enum-типы (роль пользователя, статус и режим обработки квиза)
 
-CREATE TYPE user_role AS ENUM ('superadmin', 'admin', 'user');
+CREATE TYPE user_role AS ENUM ('SUPERADMIN', 'ADMIN', 'USER');
 CREATE TYPE quiz_status AS ENUM ('draft', 'published', 'archived');
 CREATE TYPE quiz_processing_mode AS ENUM ('ml_riasec', 'llm');
 
@@ -44,7 +44,7 @@ CREATE TABLE users (
   email         VARCHAR(320) NOT NULL UNIQUE,  
   password_hash VARCHAR(255) NOT NULL,      
   display_name  VARCHAR(255),                   
-  role          user_role NOT NULL DEFAULT 'user',
+  role          user_role NOT NULL DEFAULT 'USER',
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   is_active     BOOLEAN NOT NULL DEFAULT TRUE
@@ -197,4 +197,18 @@ CREATE TABLE translations (
   text        TEXT NOT NULL,
   entity_id   INT NOT NULL,
   UNIQUE (entity_type, entity_id, locale, field)
+);
+
+----------------------------------------------------------------------
+-- 16. Password Reset Token
+----------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS password_reset (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    expiry_date TIMESTAMP NOT NULL,
+
+    CONSTRAINT fk_password_reset_user
+    FOREIGN KEY (user_id) REFERENCES users(id)
+    ON DELETE CASCADE
 );

@@ -4,6 +4,7 @@ import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.service.UserService;
 import com.diploma.proforientation.service.impl.UserServiceImpl;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +23,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
+    @PreAuthorize("hasAuthority(@Roles.USER)")
     public ResponseEntity<User> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
@@ -29,6 +31,7 @@ public class UserController {
     }
 
     @GetMapping("/")
+    @PreAuthorize("hasAuthority(@Roles.ADMIN)")
     public ResponseEntity<List<User>> allUsers() {
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users);

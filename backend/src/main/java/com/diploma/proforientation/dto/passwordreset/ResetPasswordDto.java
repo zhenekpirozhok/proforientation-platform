@@ -1,4 +1,4 @@
-package com.diploma.proforientation.dto.resetPassword;
+package com.diploma.proforientation.dto.passwordreset;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

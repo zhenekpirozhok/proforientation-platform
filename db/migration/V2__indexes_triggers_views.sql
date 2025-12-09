@@ -72,6 +72,14 @@ CREATE INDEX idx_ar_profession ON attempt_recommendations(profession_id);
 CREATE INDEX idx_translations_entity_locale
   ON translations (entity_type, entity_id, locale);
 
+-- Index to speed up lookup by user id
+CREATE INDEX IF NOT EXISTS idx_password_reset_user_id
+    ON password_reset(user_id);
+
+-- Index to quickly clean/remove expired tokens
+CREATE INDEX IF NOT EXISTS idx_password_reset_expiry
+    ON password_reset(expiry_date);
+
 ----------------------------------------------------------------------
 -- Дополнительные CHECK-ограничения
 ----------------------------------------------------------------------

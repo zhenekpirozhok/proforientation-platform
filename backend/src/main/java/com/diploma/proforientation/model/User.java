@@ -1,9 +1,11 @@
 package com.diploma.proforientation.model;
 
+import com.diploma.proforientation.model.role.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.OffsetDateTime;
@@ -20,7 +22,7 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(unique = true)
     private String email;
@@ -31,8 +33,10 @@ public class User implements UserDetails {
     @Column(name = "display_name")
     private String displayName;
 
-    @Column(name = "is_admin", nullable = false)
-    private boolean isAdmin = false;
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "role", nullable = false, columnDefinition = "user_role")
+    private UserRole role = UserRole.USER;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt = OffsetDateTime.now();
@@ -40,18 +44,18 @@ public class User implements UserDetails {
     @Column(name = "is_active", nullable = false)
     private boolean isActive = true;
 
-    public User(String email, String passwordHash, String displayName, boolean isAdmin) {
+    public User(String email, String passwordHash, String displayName, UserRole role) {
         this.email = email;
+        this.role = role;
         this.passwordHash = passwordHash;
         this.displayName = displayName;
-        this.isAdmin = isAdmin;
     }
 
     // --- UserDetails interface methods ---
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(isAdmin ? "ROLE_ADMIN" : "ROLE_USER"));
+        return List.of(role.asAuthority());
     }
 
     @Override

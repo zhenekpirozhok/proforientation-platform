@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class OAuth2UserService extends DefaultOAuth2UserService {
+    private static final String EMAIL_ATTRIBUTE = "email";
+    private static final String NAME_ATTRIBUTE = "name";
+    private static final String EMPTY_ATTRIBUTE = "";
+
     private final UserRepository userRepository;
 
     public OAuth2UserService(UserRepository userRepository) {
@@ -20,14 +24,14 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User user = super.loadUser(userRequest);
 
-        String email = user.getAttribute("email");
+        String email = user.getAttribute(EMAIL_ATTRIBUTE);
 
         userRepository.findByEmail(email)
                 .orElseGet(() -> {
                     User newUser = new User();
                     newUser.setEmail(email);
-                    newUser.setDisplayName(user.getAttribute("name"));
-                    newUser.setPasswordHash("");
+                    newUser.setDisplayName(user.getAttribute(NAME_ATTRIBUTE));
+                    newUser.setPasswordHash(EMPTY_ATTRIBUTE);
                     return userRepository.save(newUser);
                 });
 

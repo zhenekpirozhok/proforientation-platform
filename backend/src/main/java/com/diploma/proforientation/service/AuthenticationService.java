@@ -11,4 +11,5 @@ public interface AuthenticationService {
     void sendResetToken(String email);
     void resetPassword(String token, String newPassword);
     User authenticateWithGoogleIdToken(String idTokenString);
+    void deleteAccount(String email, String password);
 }

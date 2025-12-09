@@ -1,6 +1,7 @@
 package com.diploma.proforientation.repository;
 
 import com.diploma.proforientation.model.PasswordResetToken;
+import com.diploma.proforientation.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -28,4 +29,5 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
      * @param token the unique token string of the token to delete
      */
     void deleteByToken(String token);
+    void deleteAllByUser(User user);
 }

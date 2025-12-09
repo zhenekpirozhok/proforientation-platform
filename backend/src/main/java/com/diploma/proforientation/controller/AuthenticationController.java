@@ -4,44 +4,42 @@ import com.diploma.proforientation.dto.GoogleOneTapLoginRequest;
 import com.diploma.proforientation.dto.LoginUserDto;
 import com.diploma.proforientation.dto.RefreshTokenRequest;
 import com.diploma.proforientation.dto.RegisterUserDto;
-import com.diploma.proforientation.dto.resetPassword.RequestResetPasswordDto;
-import com.diploma.proforientation.dto.resetPassword.ResetPasswordDto;
+import com.diploma.proforientation.dto.passwordreset.RequestResetPasswordDto;
+import com.diploma.proforientation.dto.passwordreset.ResetPasswordDto;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.response.LoginResponse;
 import com.diploma.proforientation.service.AuthenticationService;
-import com.diploma.proforientation.service.JwtService;
+import com.diploma.proforientation.service.impl.JwtServiceImpl;
 import com.diploma.proforientation.service.impl.AuthenticationServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.security.Principal;
 
 /**
  * REST controller for handling user authentication-related endpoints,
  * including user registration, login, token refresh, and password reset operations.
- *
- * <p>All endpoints are prefixed with "/auth". Cross-origin requests are allowed from
- * "http://localhost:5173".</p>
  */
 @RequestMapping("/auth")
 @RestController
 @Validated
 public class AuthenticationController {
-    private final JwtService jwtService;
+    private final JwtServiceImpl jwtServiceImpl;
     private final AuthenticationService authenticationService;
 
     /**
      * Constructs an AuthenticationController with the required dependencies.
      *
-     * @param jwtService the service responsible for JWT token operations
+     * @param jwtServiceImpl the service responsible for JWT token operations
      * @param authenticationService the service handling authentication logic
      */
-    public AuthenticationController(JwtService jwtService, AuthenticationServiceImpl authenticationService) {
-        this.jwtService = jwtService;
+    public AuthenticationController(JwtServiceImpl jwtServiceImpl, AuthenticationServiceImpl authenticationService) {
+        this.jwtServiceImpl = jwtServiceImpl;
         this.authenticationService = authenticationService;
     }
 
@@ -66,11 +64,11 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> authenticate(@Valid @RequestBody LoginUserDto loginUserDto){
         User user = authenticationService.authenticate(loginUserDto);
-        String accessToken = jwtService.generateToken(user);
+        String accessToken = jwtServiceImpl.generateToken(user);
         String refreshToken = loginUserDto.isRememberMe()
-                ? jwtService.generateLongLivedRefreshToken(user)
-                : jwtService.generateRefreshToken(user);
-        LoginResponse loginResponse = new LoginResponse(accessToken, refreshToken, jwtService.getExpirationTime());
+                ? jwtServiceImpl.generateLongLivedRefreshToken(user)
+                : jwtServiceImpl.generateRefreshToken(user);
+        LoginResponse loginResponse = new LoginResponse(accessToken, refreshToken, jwtServiceImpl.getExpirationTime());
         return ResponseEntity.ok(loginResponse);
     }
 
@@ -86,12 +84,12 @@ public class AuthenticationController {
         String refreshToken = request.getRefreshToken();
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        if (!jwtService.isTokenValid(refreshToken, user)) {
+        if (!jwtServiceImpl.isTokenValid(refreshToken, user)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String newAccessToken = jwtService.generateToken(user);
-        return ResponseEntity.ok(new LoginResponse(newAccessToken, refreshToken, jwtService.getExpirationTime()));
+        String newAccessToken = jwtServiceImpl.generateToken(user);
+        return ResponseEntity.ok(new LoginResponse(newAccessToken, refreshToken, jwtServiceImpl.getExpirationTime()));
     }
 
     /**
@@ -126,12 +124,22 @@ public class AuthenticationController {
         try {
             User user = authenticationService.authenticateWithGoogleIdToken(request.getToken());
 
-            String accessToken = jwtService.generateToken(user);
-            String refreshToken = jwtService.generateRefreshToken(user); // Or a long-lived version if needed
+            String accessToken = jwtServiceImpl.generateToken(user);
+            String refreshToken = jwtServiceImpl.generateRefreshToken(user);
 
-            return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, jwtService.getExpirationTime()));
+            return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, jwtServiceImpl.getExpirationTime()));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
+    }
+
+    @DeleteMapping("/account")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> deleteAccount(
+            @RequestParam String password,
+            Principal principal) {
+
+        authenticationService.deleteAccount(principal.getName(), password);
+        return ResponseEntity.noContent().build();
     }
 }

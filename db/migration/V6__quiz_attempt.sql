@@ -4,7 +4,7 @@ VALUES (
   'user1@example.com',
   '$2b$12$eZqFSMfJ8WJKL5JLEH6rFOWszRsXxDDFwZkEPIjgQq0QGPm0v9Rhu',
   'Test User One',
-  'user',
+  'USER',
   TRUE
 )
 ON CONFLICT (email) DO NOTHING;

@@ -40,6 +40,7 @@ services:
       FLYWAY_GROUP: "true"
     volumes:
       - ./db/migration:/flyway/sql
+    command: migrate
 
 
   pgadmin:
@@ -54,6 +55,25 @@ services:
       postgres_db:
         condition: service_healthy
 
+
+  back:
+    image: 'backend'
+    build:
+      context: ./backend
+    container_name: backend
+    depends_on:
+      - postgres_db
+    env_file:
+      - .env  # expects POSTGRES_PORT, JWT_SECRET_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, OPENAI_API_KEY, LOGGING_LEVEL, POSTGRES_HOST
+    environment:
+      - LOGGING_LEVEL=DEBUG
+    ports:
+      - "8082:8082"
+    healthcheck:
+      test: if [ "$(curl --silent http://localhost:8082/actuator/health/readiness |  jq -r .status)" = 'UP' ]; then exit 0; else exit 1; fi;
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
