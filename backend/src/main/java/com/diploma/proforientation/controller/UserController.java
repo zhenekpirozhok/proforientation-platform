@@ -2,7 +2,6 @@ package com.diploma.proforientation.controller;
 
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.service.UserService;
-import com.diploma.proforientation.service.impl.UserServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -18,7 +17,7 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
-    public UserController(UserServiceImpl userService) {
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 

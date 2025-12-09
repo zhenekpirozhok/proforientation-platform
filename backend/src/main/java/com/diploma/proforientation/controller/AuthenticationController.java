@@ -9,8 +9,7 @@ import com.diploma.proforientation.dto.passwordreset.ResetPasswordDto;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.response.LoginResponse;
 import com.diploma.proforientation.service.AuthenticationService;
-import com.diploma.proforientation.service.impl.JwtServiceImpl;
-import com.diploma.proforientation.service.impl.AuthenticationServiceImpl;
+import com.diploma.proforientation.service.JwtService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,17 +28,17 @@ import java.security.Principal;
 @RestController
 @Validated
 public class AuthenticationController {
-    private final JwtServiceImpl jwtServiceImpl;
+    private final JwtService jwtService;
     private final AuthenticationService authenticationService;
 
     /**
      * Constructs an AuthenticationController with the required dependencies.
      *
-     * @param jwtServiceImpl the service responsible for JWT token operations
+     * @param jwtService the service responsible for JWT token operations
      * @param authenticationService the service handling authentication logic
      */
-    public AuthenticationController(JwtServiceImpl jwtServiceImpl, AuthenticationServiceImpl authenticationService) {
-        this.jwtServiceImpl = jwtServiceImpl;
+    public AuthenticationController(JwtService jwtService, AuthenticationService authenticationService) {
+        this.jwtService = jwtService;
         this.authenticationService = authenticationService;
     }
 
@@ -64,11 +63,11 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> authenticate(@Valid @RequestBody LoginUserDto loginUserDto){
         User user = authenticationService.authenticate(loginUserDto);
-        String accessToken = jwtServiceImpl.generateToken(user);
+        String accessToken = jwtService.generateToken(user);
         String refreshToken = loginUserDto.isRememberMe()
-                ? jwtServiceImpl.generateLongLivedRefreshToken(user)
-                : jwtServiceImpl.generateRefreshToken(user);
-        LoginResponse loginResponse = new LoginResponse(accessToken, refreshToken, jwtServiceImpl.getExpirationTime());
+                ? jwtService.generateLongLivedRefreshToken(user)
+                : jwtService.generateRefreshToken(user);
+        LoginResponse loginResponse = new LoginResponse(accessToken, refreshToken, jwtService.getExpirationTime());
         return ResponseEntity.ok(loginResponse);
     }
 
@@ -84,12 +83,12 @@ public class AuthenticationController {
         String refreshToken = request.getRefreshToken();
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        if (!jwtServiceImpl.isTokenValid(refreshToken, user)) {
+        if (!jwtService.isTokenValid(refreshToken, user)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String newAccessToken = jwtServiceImpl.generateToken(user);
-        return ResponseEntity.ok(new LoginResponse(newAccessToken, refreshToken, jwtServiceImpl.getExpirationTime()));
+        String newAccessToken = jwtService.generateToken(user);
+        return ResponseEntity.ok(new LoginResponse(newAccessToken, refreshToken, jwtService.getExpirationTime()));
     }
 
     /**
@@ -124,10 +123,10 @@ public class AuthenticationController {
         try {
             User user = authenticationService.authenticateWithGoogleIdToken(request.getToken());
 
-            String accessToken = jwtServiceImpl.generateToken(user);
-            String refreshToken = jwtServiceImpl.generateRefreshToken(user);
+            String accessToken = jwtService.generateToken(user);
+            String refreshToken = jwtService.generateRefreshToken(user);
 
-            return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, jwtServiceImpl.getExpirationTime()));
+            return ResponseEntity.ok(new LoginResponse(accessToken, refreshToken, jwtService.getExpirationTime()));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }

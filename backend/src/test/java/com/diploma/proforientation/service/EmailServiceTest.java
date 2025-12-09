@@ -1,6 +1,5 @@
 package com.diploma.proforientation.service;
 
-
 import com.diploma.proforientation.service.impl.EmailServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
