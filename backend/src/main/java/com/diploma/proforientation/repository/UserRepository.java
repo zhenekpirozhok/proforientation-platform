@@ -14,7 +14,7 @@ import java.util.Optional;
  * </p>
  */
 @Repository
-public interface UserRepository extends CrudRepository<User, Long> {
+public interface UserRepository extends CrudRepository<User, Integer> {
 
     /**
      * Finds a {@link User} entity by its unique email address.

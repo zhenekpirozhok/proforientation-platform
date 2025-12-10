@@ -1,0 +1,105 @@
+package com.diploma.proforientation.service.impl;
+
+import com.diploma.proforientation.dto.OptionDto;
+import com.diploma.proforientation.dto.request.create.CreateOptionRequest;
+import com.diploma.proforientation.dto.request.update.UpdateOptionRequest;
+import com.diploma.proforientation.model.Question;
+import com.diploma.proforientation.model.QuestionOption;
+import com.diploma.proforientation.repository.QuestionOptionRepository;
+import com.diploma.proforientation.repository.QuestionRepository;
+import com.diploma.proforientation.service.OptionService;
+import com.diploma.proforientation.util.TranslationResolver;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class OptionServiceImpl implements OptionService {
+
+    private final QuestionOptionRepository optionRepo;
+    private final QuestionRepository questionRepo;
+    private final TranslationResolver translationResolver;
+
+    @Override
+    public OptionDto create(CreateOptionRequest req) {
+        Question question = questionRepo.findById(req.questionId())
+                .orElseThrow(() -> new EntityNotFoundException("Question not found"));
+
+        QuestionOption opt = new QuestionOption();
+        opt.setQuestion(question);
+        opt.setOrd(req.ord());
+        opt.setLabelDefault(req.label());
+
+        return toDto(optionRepo.save(opt));
+    }
+
+    @Override
+    public OptionDto update(Integer id, UpdateOptionRequest req) {
+        QuestionOption opt = optionRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Option not found"));
+
+        if (req.ord() != null) {
+            opt.setOrd(req.ord());
+        }
+        if (req.label() != null) {
+            opt.setLabelDefault(req.label());
+        }
+
+        return toDto(optionRepo.save(opt));
+    }
+
+    @Override
+    public void delete(Integer id) {
+        optionRepo.deleteById(id);
+    }
+
+    @Override
+    public OptionDto updateOrder(Integer id, Integer ord) {
+        QuestionOption opt = optionRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Option not found"));
+        opt.setOrd(ord);
+        return toDto(optionRepo.save(opt));
+    }
+
+    @Override
+    public List<OptionDto> getByQuestionLocalized(Integer questionId, String locale) {
+        // Ensure question exists
+        questionRepo.findById(questionId)
+                .orElseThrow(() -> new EntityNotFoundException("Question not found"));
+
+        return optionRepo.findByQuestionIdOrderByOrd(questionId)
+                .stream()
+                .map(o -> toDtoLocalized(o, locale))
+                .toList();
+    }
+
+    private OptionDto toDto(QuestionOption opt) {
+        return new OptionDto(
+                opt.getId(),
+                opt.getQuestion().getId(),
+                opt.getOrd(),
+                opt.getLabelDefault()
+        );
+    }
+
+    private OptionDto toDtoLocalized(QuestionOption option, String locale) {
+
+        String label = translationResolver.resolve(
+                "question_option",
+                option.getId(),
+                "text",
+                locale,
+                option.getLabelDefault()
+        );
+
+        return new OptionDto(
+                option.getId(),
+                option.getQuestion().getId(),
+                option.getOrd(),
+                label
+        );
+    }
+}

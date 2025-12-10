@@ -1,4 +1,4 @@
-package com.diploma.proforientation.dto;
+package com.diploma.proforientation.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

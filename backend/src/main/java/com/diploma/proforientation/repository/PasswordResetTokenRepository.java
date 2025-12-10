@@ -13,7 +13,7 @@ import java.util.Optional;
  * custom finder methods for password reset tokens.
  * </p>
  */
-public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Long> {
+public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Integer> {
 
     /**
      * Finds a {@link PasswordResetToken} by its token string.

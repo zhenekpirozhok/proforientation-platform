@@ -1,4 +1,4 @@
-package com.diploma.proforientation.response;
+package com.diploma.proforientation.dto.response;
 
 import lombok.Getter;
 import lombok.Setter;

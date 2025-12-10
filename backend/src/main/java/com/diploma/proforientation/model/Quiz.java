@@ -1,0 +1,46 @@
+package com.diploma.proforientation.model;
+
+import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
+import com.diploma.proforientation.model.enumeration.QuizStatus;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.Instant;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "quizzes")
+public class Quiz {
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(unique = true, nullable = false)
+    private String code;
+
+    @Column(name = "title_default", nullable = false)
+    private String titleDefault;
+
+    @Enumerated(EnumType.STRING)
+    private QuizStatus status = QuizStatus.draft;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "processing_mode")
+    private QuizProcessingMode processingMode = QuizProcessingMode.ml_riasec;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private ProfessionCategory category;
+
+    @Column(name = "created_at")
+    private Instant createdAt = Instant.now();
+
+    @Column(name = "updated_at")
+    private Instant updatedAt = Instant.now();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", nullable = false)
+    private User author;
+}

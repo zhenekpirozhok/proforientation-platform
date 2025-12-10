@@ -1,4 +1,4 @@
-package com.diploma.proforientation.model.role;
+package com.diploma.proforientation.model.enumeration;
 
 import lombok.Getter;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

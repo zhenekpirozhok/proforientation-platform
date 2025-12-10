@@ -1,4 +1,4 @@
-package com.diploma.proforientation.dto;
+package com.diploma.proforientation.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

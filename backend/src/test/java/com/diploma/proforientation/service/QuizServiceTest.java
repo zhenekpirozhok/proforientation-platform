@@ -1,0 +1,138 @@
+package com.diploma.proforientation.service;
+
+import com.diploma.proforientation.dto.QuizDto;
+import com.diploma.proforientation.dto.request.create.CreateQuizRequest;
+import com.diploma.proforientation.dto.request.update.UpdateQuizRequest;
+import com.diploma.proforientation.model.ProfessionCategory;
+import com.diploma.proforientation.model.Quiz;
+import com.diploma.proforientation.model.User;
+import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
+import com.diploma.proforientation.repository.ProfessionCategoryRepository;
+import com.diploma.proforientation.repository.QuizRepository;
+import com.diploma.proforientation.repository.UserRepository;
+import com.diploma.proforientation.service.impl.QuizServiceImpl;
+import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class QuizServiceTest {
+
+    @Mock
+    private QuizRepository quizRepo;
+
+    @Mock
+    private ProfessionCategoryRepository categoryRepo;
+
+    @Mock
+    private UserRepository userRepo;
+
+    @InjectMocks
+    private QuizServiceImpl service;
+
+    ProfessionCategory category;
+    User author;
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+
+        category = new ProfessionCategory();
+        category.setId(5);
+
+        author = new User();
+        author.setId(1);
+    }
+
+    @Test
+    void getAll_shouldReturnList() {
+        Quiz quiz = new Quiz();
+        quiz.setId(1);
+        quiz.setCode("Q1");
+        quiz.setTitleDefault("Test");
+
+        when(quizRepo.findAll()).thenReturn(List.of(quiz));
+
+        List<QuizDto> result = service.getAll();
+
+        assertThat(result).hasSize(1);
+        verify(quizRepo).findAll();
+    }
+
+    @Test
+    void getById_shouldReturnQuiz() {
+        Quiz quiz = new Quiz();
+        quiz.setId(10);
+        quiz.setCode("Q10");
+        quiz.setTitleDefault("Quiz Title");
+
+        when(quizRepo.findById(10)).thenReturn(Optional.of(quiz));
+
+        QuizDto result = service.getById(10);
+
+        assertThat(result.id()).isEqualTo(10);
+    }
+
+    @Test
+    void create_shouldCreateQuiz() {
+        CreateQuizRequest req =
+                new CreateQuizRequest("QX", "New Quiz", "ml_riasec", 5, 1);
+
+        when(categoryRepo.findById(5)).thenReturn(Optional.of(category));
+        when(userRepo.findById(1)).thenReturn(Optional.of(author));
+
+        Quiz saved = new Quiz();
+        saved.setId(99);
+        saved.setCode("QX");
+        saved.setTitleDefault("New Quiz");
+        saved.setCategory(category);
+        saved.setAuthor(author);
+        saved.setProcessingMode(QuizProcessingMode.ml_riasec);
+
+        when(quizRepo.save(any())).thenReturn(saved);
+
+        QuizDto result = service.create(req);
+
+        assertThat(result.id()).isEqualTo(99);
+        verify(quizRepo).save(any());
+    }
+
+    @Test
+    void create_shouldThrowWhenCategoryNotFound() {
+        CreateQuizRequest req =
+                new CreateQuizRequest("QX", "Title", "ml_riasec", 100, 1);
+
+        when(categoryRepo.findById(100)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.create(req))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    void update_shouldModifyQuiz() {
+        Quiz quiz = new Quiz();
+        quiz.setId(5);
+        quiz.setTitleDefault("Old");
+        quiz.setProcessingMode(QuizProcessingMode.ml_riasec);
+
+        when(quizRepo.findById(5)).thenReturn(Optional.of(quiz));
+        when(categoryRepo.findById(5)).thenReturn(Optional.of(category));
+        when(quizRepo.save(quiz)).thenReturn(quiz);
+
+        UpdateQuizRequest req =
+                new UpdateQuizRequest("Updated", "ml_riasec", 5);
+
+        QuizDto result = service.update(5, req);
+
+        assertThat(result.title()).isEqualTo("Updated");
+        verify(quizRepo).save(quiz);
+    }
+}
