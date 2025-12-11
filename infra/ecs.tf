@@ -2,44 +2,58 @@ resource "aws_ecs_cluster" "main" {
   name = "backend-cluster"
 }
 
+resource "aws_security_group" "backend_sg" {
+  name   = "backend-sg"
+  vpc_id = var.vpc_id
+
+  # Allow ECS tasks to reach RDS
+  ingress {
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [var.rds_security_group_id]
+  }
+
+  # Outbound to internet (for updates, etc)
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "aws_ecs_task_definition" "backend" {
-  family                   = "backend"
+  family                   = var.backend_task_family
+  network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"
   memory                   = "1024"
-  network_mode             = "awsvpc"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
+  # GitHub Actions (option 1) will overwrite image + env vars
   container_definitions = jsonencode([
     {
       name      = "backend"
-      image     = "${aws_ecr_repository.backend.repository_url}:latest"
+      image     = "placeholder"  # Gets replaced by CI/CD
       essential = true
       portMappings = [{
-        containerPort = 8082
+        containerPort = var.container_port
       }]
-      environment = [
-        { name = "POSTGRES_HOST",      value = var.db_host },
-        { name = "POSTGRES_PORT",      value = "5432" },
-        { name = "POSTGRES_DB",        value = var.db_name },
-        { name = "POSTGRES_USER",      value = var.db_user },
-        { name = "POSTGRES_PASSWORD",  value = var.db_password },
-        { name = "JWT_SECRET_KEY",     value = var.jwt_secret }
-      ]
     }
   ])
 }
 
 resource "aws_ecs_service" "backend" {
-  name            = "backend-service"
+  name            = var.backend_service_name
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.backend.arn
   desired_count   = 1
-
-  launch_type = "FARGATE"
+  launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = var.private_subnets
+    subnets         = var.subnets
     security_groups = [aws_security_group.backend_sg.id]
-    assign_public_ip = true  # or false if using ALB
+    assign_public_ip = true
   }
 }
