@@ -4,7 +4,7 @@ resource "aws_ecs_cluster" "main" {
 
 resource "aws_security_group" "backend_sg" {
   name   = "backend-sg"
-  vpc_id = data.aws_vpc.default.id
+  vpc_id = var.vpc_id
 
   # Allow ECS tasks to reach RDS
   ingress {
@@ -52,7 +52,7 @@ resource "aws_ecs_service" "backend" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = data.aws_subnets.default.ids
+    subnets         = var.subnets
     security_groups = [aws_security_group.backend_sg.id]
     assign_public_ip = true
   }
