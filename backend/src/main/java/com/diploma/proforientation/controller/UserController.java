@@ -22,7 +22,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasAuthority(@Roles.USER)")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<User> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
@@ -30,7 +30,7 @@ public class UserController {
     }
 
     @GetMapping("/")
-    @PreAuthorize("hasAuthority(@Roles.ADMIN)")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<User>> allUsers() {
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users);

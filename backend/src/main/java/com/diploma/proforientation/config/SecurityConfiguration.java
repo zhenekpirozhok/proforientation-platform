@@ -60,6 +60,12 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/auth/**",
+                                "/quizzes**",
+                                "/professions**",
+                                "/options**",
+                                "/attempts**",
+                                "/attempts/**",
+                                "/demo/**",
                                 "/api/v1.0/**",
                                 "/actuator/health/readiness",
                                 "/error",

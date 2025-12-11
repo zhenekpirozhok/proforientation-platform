@@ -144,6 +144,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<version>3.1.8</version>
+		</dependency>
 
 		<!-- Test -->
 		<dependency>
@@ -237,6 +242,34 @@
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>${jacoco.version}</version>
 
+				<executions>
+					<!-- Attach JaCoCo to test phase -->
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+
+					<!-- Generate report after tests -->
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+
+					<!-- Enforce coverage rules -->
+					<execution>
+						<id>jacoco-check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+
 				<configuration>
 					<excludes>
 						<exclude>**/config/**</exclude>
@@ -244,6 +277,7 @@
 						<exclude>**/response/**</exclude>
 						<exclude>**/model/**</exclude>
 						<exclude>**/model/role/**</exclude>
+						<exclude>**/service/scoring/demo/**</exclude>
 					</excludes>
 					<rules>
 						<rule>
@@ -258,9 +292,6 @@
 						</rule>
 					</rules>
 				</configuration>
-
-				<executions>
-				</executions>
 			</plugin>
 
 		</plugins>

@@ -5,7 +5,7 @@ import com.diploma.proforientation.dto.RegisterUserDto;
 import com.diploma.proforientation.exception.*;
 import com.diploma.proforientation.model.PasswordResetToken;
 import com.diploma.proforientation.model.User;
-import com.diploma.proforientation.model.role.UserRole;
+import com.diploma.proforientation.model.enumeration.UserRole;
 import com.diploma.proforientation.repository.PasswordResetTokenRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.AuthenticationService;

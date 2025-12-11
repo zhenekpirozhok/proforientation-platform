@@ -1,6 +1,6 @@
 package com.diploma.proforientation.model;
 
-import com.diploma.proforientation.model.role.UserRole;
+import com.diploma.proforientation.model.enumeration.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;

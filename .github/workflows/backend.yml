@@ -1,4 +1,4 @@
-name: Backend - Test, Build, Image (Maven)
+name: Backend CI/CD
 
 on:
   push:
@@ -12,24 +12,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  be:
+  backend:
+    name: Backend - Test, Lint, Build, Image
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
-      packages: write   # needed to push to GHCR
-      id-token: write   # future-proof if switching to OIDC for registries
+      packages: write
+      id-token: write
 
     defaults:
       run:
         working-directory: backend
 
     steps:
+      # ------------------------------
+      # Checkout
+      # ------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
+      # ------------------------------
+      # Java Setup
+      # ------------------------------
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -37,32 +42,97 @@ jobs:
           java-version: "21"
           cache: maven
 
-      # --- Tests & Build -----------------------------------------------------
+      # ------------------------------
+      # Build & Tests (Unit + IT + Coverage)
+      # ------------------------------
       - name: Maven Verify
         run: |
           chmod +x mvnw || true
-          ./mvnw -B -U --no-transfer-progress \
-            -DskipITs=true \
-            clean verify
+          ./mvnw -B -U --no-transfer-progress verify
 
-      - name: Upload Test Reports
+      # ------------------------------
+      # Quality Gate: Coverage >= 80%
+      # ------------------------------
+      - name: Enforce Coverage Quality Gate (>= 80%)
+        run: |
+          CSV_FILE="target/site/jacoco/jacoco.csv"
+
+          if [ ! -f "$CSV_FILE" ]; then
+            echo "❌ JaCoCo CSV not found at $CSV_FILE"
+            exit 1
+          fi
+
+          MISSED=$(awk -F',' 'NR>1 {sum+=$4} END {print sum}' "$CSV_FILE")
+          COVERED=$(awk -F',' 'NR>1 {sum+=$5} END {print sum}' "$CSV_FILE")
+
+          TOTAL=$((MISSED + COVERED))
+
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "❌ No coverage data found"
+            exit 1
+          fi
+
+          COVERAGE=$(awk -v c="$COVERED" -v t="$TOTAL" 'BEGIN { printf "%.2f", (c/t)*100 }')
+
+          echo "📊 Instruction Coverage: $COVERAGE%"
+
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "❌ Coverage below required threshold: 80%"
+            exit 1
+          fi
+
+          echo "✔ Coverage meets threshold"
+
+      # ------------------------------
+      # Lint Checks
+      # ------------------------------
+      - name: Check for commented-out code
+        run: |
+          echo "Checking for commented-out code..."
+          if grep -RIn --include="*.java" -E "^\s*//\s*(class|interface|void|public|private|protected|return|import|package)" .; then
+            echo "❌ Commented-out code found"
+            exit 1
+          else
+            echo "✔ No commented-out code"
+          fi
+
+      - name: Run Checkstyle
+        run: ./mvnw checkstyle:check
+
+      - name: Run PMD
+        run: ./mvnw pmd:check
+
+      # ------------------------------
+      # Upload Test & Coverage Reports
+      # ------------------------------
+      - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: backend-test-reports
-          path: |
-            **/target/surefire-reports/**
-            **/target/failsafe-reports/**
-          if-no-files-found: ignore
+          name: test-reports
+          path: backend/target/surefire-reports/**
 
-      # --- Container Image ---------------------------------------------------
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: backend/target/site/jacoco/**
+
+      # ------------------------------
+      # Docker Image Build & Push
+      # ------------------------------
+      # ------------------------------
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -74,7 +144,7 @@ jobs:
           labels: |
             org.opencontainers.image.source=${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-
+      
       - name: Build & Push Image
         uses: docker/build-push-action@v6
         with:
@@ -85,7 +155,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # --- Artifacts ---------------------------------------------------------
+
+      # ------------------------------
+      # Upload JAR Artifacts
+      # ------------------------------
       - name: Upload JAR(s)
         if: success()
         uses: actions/upload-artifact@v4

@@ -1,13 +1,13 @@
 package com.diploma.proforientation.controller;
 
-import com.diploma.proforientation.dto.GoogleOneTapLoginRequest;
+import com.diploma.proforientation.dto.request.GoogleOneTapLoginRequest;
 import com.diploma.proforientation.dto.LoginUserDto;
-import com.diploma.proforientation.dto.RefreshTokenRequest;
+import com.diploma.proforientation.dto.request.RefreshTokenRequest;
 import com.diploma.proforientation.dto.RegisterUserDto;
 import com.diploma.proforientation.dto.passwordreset.RequestResetPasswordDto;
 import com.diploma.proforientation.dto.passwordreset.ResetPasswordDto;
 import com.diploma.proforientation.model.User;
-import com.diploma.proforientation.response.LoginResponse;
+import com.diploma.proforientation.dto.response.LoginResponse;
 import com.diploma.proforientation.service.AuthenticationService;
 import com.diploma.proforientation.service.JwtService;
 import jakarta.validation.Valid;

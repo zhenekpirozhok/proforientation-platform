@@ -2,7 +2,7 @@ package com.diploma.proforientation.service;
 
 import com.diploma.proforientation.config.JwtProperties;
 import com.diploma.proforientation.model.User;
-import com.diploma.proforientation.model.role.UserRole;
+import com.diploma.proforientation.model.enumeration.UserRole;
 import com.diploma.proforientation.service.impl.JwtServiceImpl;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;

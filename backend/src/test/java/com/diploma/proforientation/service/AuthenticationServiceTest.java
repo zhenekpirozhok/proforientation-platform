@@ -6,7 +6,7 @@ import com.diploma.proforientation.exception.EmailNotFoundException;
 import com.diploma.proforientation.exception.UserNotFoundForPasswordResetException;
 import com.diploma.proforientation.model.PasswordResetToken;
 import com.diploma.proforientation.model.User;
-import com.diploma.proforientation.model.role.UserRole;
+import com.diploma.proforientation.model.enumeration.UserRole;
 import com.diploma.proforientation.repository.PasswordResetTokenRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.impl.AuthenticationServiceImpl;

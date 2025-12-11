@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -21,9 +22,14 @@ public class UserServiceImpl implements UserService {
 
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        userRepository.findAll().forEach(users::add);
+        users.addAll(userRepository.findAll());
         log.debug(String.valueOf(users.size()));
         return users;
+    }
+
+    @Override
+    public Optional<Integer> findIdByEmail(String email) {
+        return userRepository.findIdByEmail(email);
     }
 }
 
