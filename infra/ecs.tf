@@ -52,7 +52,7 @@ resource "aws_ecs_service" "backend" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = var.subnets
+    subnets         = data.aws_subnets.default.ids
     security_groups = [aws_security_group.backend_sg.id]
     assign_public_ip = true
   }
