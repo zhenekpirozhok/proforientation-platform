@@ -4,6 +4,7 @@ import com.diploma.proforientation.dto.TranslationDto;
 import com.diploma.proforientation.dto.request.create.CreateTranslationRequest;
 import com.diploma.proforientation.dto.request.update.UpdateTranslationRequest;
 import com.diploma.proforientation.service.TranslationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class TranslationController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public TranslationDto create(@RequestBody CreateTranslationRequest req) {
+    public TranslationDto create(@Valid @RequestBody CreateTranslationRequest req) {
         return service.create(req);
     }
 

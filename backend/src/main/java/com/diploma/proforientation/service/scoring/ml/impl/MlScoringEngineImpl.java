@@ -28,47 +28,45 @@ public class MlScoringEngineImpl implements MlScoringEngine {
     @Override
     public ScoringResult evaluate(Integer attemptId) {
 
-        // 1. Get raw answers (1-5)
+        // 1. Load answers from DB
         List<Integer> answers = answerRepo.findValuesByAttemptId(attemptId);
 
-        if (answers.size() != 48) {
-            throw new IllegalStateException("RIASEC ML requires exactly 48 answers");
-        }
-
-        // 2. Normalize for ML: (x - 1) / 4
-        List<BigDecimal> normalized = answers.stream()
-                .map(a -> BigDecimal.valueOf(a - 1).divide(BigDecimal.valueOf(4), 6, RoundingMode.HALF_UP))
-                .toList();
-
-        // 3. Get ML prediction
-        MlResultResponse mlResponse = mlClient.predict(normalized);
-
-        // 4. Convert to RecommendationDto
+        // 2. Evaluate ML part (shared logic)
+        MlResultResponse mlResponse = evaluateMl(answers);
         List<RecommendationDto> recs = mlMapper.toRecommendations(mlResponse);
 
-        // 5. Compute R/I/A/S/E/C using DB trait weights
+        // 3. Compute DB-based trait scores (only for full evaluate)
         Map<TraitProfile, BigDecimal> traitScores =
                 traitCalculator.calculateScores(attemptId);
 
-        // 6. Combine into ScoringResult
+        // 4. Construct final scoring result
         return new ScoringResult(traitScores, recs);
     }
 
     public ScoringResult evaluateRaw(List<Integer> answers) {
 
+        MlResultResponse mlResponse = evaluateMl(answers);
+        List<RecommendationDto> recs = mlMapper.toRecommendations(mlResponse);
+
+        return new ScoringResult(Map.of(), recs);
+    }
+
+    private MlResultResponse evaluateMl(List<Integer> answers) {
+        validateAnswers(answers);
+        List<BigDecimal> normalized = normalizeAnswers(answers);
+        return mlClient.predict(normalized);
+    }
+
+    private void validateAnswers(List<Integer> answers) {
         if (answers.size() != 48) {
             throw new IllegalStateException("RIASEC ML requires exactly 48 answers");
         }
+    }
 
-        List<BigDecimal> normalized = answers.stream()
+    private List<BigDecimal> normalizeAnswers(List<Integer> answers) {
+        return answers.stream()
                 .map(a -> BigDecimal.valueOf(a - 1)
                         .divide(BigDecimal.valueOf(4), 6, RoundingMode.HALF_UP))
                 .toList();
-
-        MlResultResponse mlResponse = mlClient.predict(normalized);
-        List<RecommendationDto> recs = mlMapper.toRecommendations(mlResponse);
-
-        // No DB trait weights here → return empty trait map
-        return new ScoringResult(Map.of(), recs);
     }
 }

@@ -4,6 +4,7 @@ import com.diploma.proforientation.dto.QuestionDto;
 import com.diploma.proforientation.dto.request.create.CreateQuestionRequest;
 import com.diploma.proforientation.dto.request.update.UpdateQuestionRequest;
 import com.diploma.proforientation.service.QuestionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,14 +20,14 @@ public class QuestionController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public QuestionDto create(@RequestBody CreateQuestionRequest req) {
+    public QuestionDto create(@Valid @RequestBody CreateQuestionRequest req) {
         return questionService.create(req);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public QuestionDto update(@PathVariable Integer id,
-                              @RequestBody UpdateQuestionRequest req) {
+                              @Valid @RequestBody UpdateQuestionRequest req) {
         return questionService.update(id, req);
     }
 
