@@ -116,7 +116,7 @@ public class AttemptServiceImpl implements AttemptService {
     @Override
     public AttemptResultDto getResult(Integer attemptId) {
 
-        Attempt attempt = attemptRepo.findById(attemptId)
+        attemptRepo.findById(attemptId)
                 .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
 
         List<AttemptTraitScore> scores = traitScoreRepo.findByAttemptId(attemptId);

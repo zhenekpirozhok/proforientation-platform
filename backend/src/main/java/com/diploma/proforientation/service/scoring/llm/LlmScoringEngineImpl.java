@@ -156,7 +156,7 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
 
         sb.append("\nAnswers:\n");
         for (int i = 0; i < answers.size(); i++) {
-            sb.append((i + 1)).append(": ").append(answers.get(i)).append("\n");
+            sb.append(i + 1).append(": ").append(answers.get(i)).append("\n");
         }
 
         sb.append("\nProfessions:\n");
