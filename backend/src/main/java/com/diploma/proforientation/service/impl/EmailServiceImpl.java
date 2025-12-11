@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailServiceImpl implements EmailService {
     public static final String RESET_LINK = "http://localhost:5173/reset-password?token=";
+    private static final String EMAIL_SUBJECT= "Password Reset Request";
+    private static final String EMAIL_MESSAGE = "Click the link to reset your password:\n";
 
     private final JavaMailSender mailSender;
 
@@ -19,8 +21,8 @@ public class EmailServiceImpl implements EmailService {
         String resetLink = RESET_LINK + token;
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
-        message.setSubject("Password Reset Request");
-        message.setText("Click the link to reset your password:\n" + resetLink);
+        message.setSubject(EMAIL_SUBJECT);
+        message.setText(EMAIL_MESSAGE + resetLink);
 
         mailSender.send(message);
     }

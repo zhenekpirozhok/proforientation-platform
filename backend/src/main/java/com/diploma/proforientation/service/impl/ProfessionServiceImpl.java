@@ -18,6 +18,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProfessionServiceImpl implements ProfessionService {
 
+    private static final String ENTITY_TYPE_PROF = "profession";
+    public static final String FIELD_TITLE = "title";
+    public static final String FIELD_DESCRIPTION = "description";
+
     private final ProfessionRepository repo;
     private final ProfessionCategoryRepository categoryRepo;
     private final TranslationResolver translationResolver;
@@ -97,17 +101,17 @@ public class ProfessionServiceImpl implements ProfessionService {
     private ProfessionDto toDtoLocalized(Profession p, String locale) {
 
         String title = translationResolver.resolve(
-                "profession",
+                ENTITY_TYPE_PROF,
                 p.getId(),
-                "title",
+                FIELD_TITLE,
                 locale,
                 p.getTitleDefault()
         );
 
         String description = translationResolver.resolve(
-                "profession",
+                ENTITY_TYPE_PROF,
                 p.getId(),
-                "description",
+                FIELD_DESCRIPTION,
                 locale,
                 p.getDescription()
         );

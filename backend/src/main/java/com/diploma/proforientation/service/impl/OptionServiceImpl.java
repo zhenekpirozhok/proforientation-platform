@@ -19,6 +19,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OptionServiceImpl implements OptionService {
 
+    public static final String ENTITY_TYPE_OPTION = "question_option";
+    public static final String FIELD_TEXT = "text";
+
     private final QuestionOptionRepository optionRepo;
     private final QuestionRepository questionRepo;
     private final TranslationResolver translationResolver;
@@ -66,7 +69,6 @@ public class OptionServiceImpl implements OptionService {
 
     @Override
     public List<OptionDto> getByQuestionLocalized(Integer questionId, String locale) {
-        // Ensure question exists
         questionRepo.findById(questionId)
                 .orElseThrow(() -> new EntityNotFoundException("Question not found"));
 
@@ -88,9 +90,9 @@ public class OptionServiceImpl implements OptionService {
     private OptionDto toDtoLocalized(QuestionOption option, String locale) {
 
         String label = translationResolver.resolve(
-                "question_option",
+                ENTITY_TYPE_OPTION,
                 option.getId(),
-                "text",
+                FIELD_TEXT,
                 locale,
                 option.getLabelDefault()
         );

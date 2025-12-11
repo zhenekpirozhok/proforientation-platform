@@ -12,9 +12,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.diploma.proforientation.service.impl.ProfessionServiceImpl.FIELD_DESCRIPTION;
+
+
 @Service
 @RequiredArgsConstructor
 public class TraitServiceImpl implements TraitService {
+
+    private static final String ENTITY_TYPE_TRAIT= "trait";
+    private static final String FIELD_NAME = "name";
 
     private final TraitProfileRepository repo;
     private final TranslationResolver translationResolver;
@@ -89,17 +95,17 @@ public class TraitServiceImpl implements TraitService {
     private TraitDto toDtoLocalized(TraitProfile trait, String locale) {
 
         String name = translationResolver.resolve(
-                "trait",
+                ENTITY_TYPE_TRAIT,
                 trait.getId(),
-                "name",
+                FIELD_NAME,
                 locale,
                 trait.getName()
         );
 
         String description = translationResolver.resolve(
-                "trait",
+                ENTITY_TYPE_TRAIT,
                 trait.getId(),
-                "description",
+                FIELD_DESCRIPTION,
                 locale,
                 trait.getDescription()
         );

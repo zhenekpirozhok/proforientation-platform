@@ -19,9 +19,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.diploma.proforientation.service.impl.OptionServiceImpl.ENTITY_TYPE_OPTION;
+import static com.diploma.proforientation.service.impl.OptionServiceImpl.FIELD_TEXT;
+
 @Service
 @RequiredArgsConstructor
 public class QuestionServiceImpl implements QuestionService {
+
+    private static final String ENTITY_TYPE_QUESTION = "question";
 
     private final QuestionRepository questionRepo;
     private final QuizVersionRepository quizVersionRepo;
@@ -104,7 +109,8 @@ public class QuestionServiceImpl implements QuestionService {
     private QuestionDto toLocalizedDto(Question q, String locale) {
 
         String localized = translationRepo
-                .findByEntityTypeAndEntityIdAndFieldAndLocale("question", q.getId(), "text", locale)
+                .findByEntityTypeAndEntityIdAndFieldAndLocale(ENTITY_TYPE_QUESTION, q.getId(),
+                        FIELD_TEXT, locale)
                 .map(t -> t.getText())
                 .orElse(q.getTextDefault());
 
@@ -113,7 +119,8 @@ public class QuestionServiceImpl implements QuestionService {
         List<OptionDto> optionDtos = options.stream()
                 .map(opt -> {
                     String label = translationRepo
-                            .findByEntityTypeAndEntityIdAndFieldAndLocale("question_option", opt.getId(), "text", locale)
+                            .findByEntityTypeAndEntityIdAndFieldAndLocale(ENTITY_TYPE_OPTION, opt.getId(),
+                                    FIELD_TEXT, locale)
                             .map(t -> t.getText())
                             .orElse(opt.getLabelDefault());
 

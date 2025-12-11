@@ -15,6 +15,8 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class TraitScoreCalculatorImpl implements TraitScoreCalculator {
+    private static final String ATTEMPT_ID_KEY = "attemptId";
+
 
     @PersistenceContext
     private final EntityManager em;
@@ -36,7 +38,7 @@ public class TraitScoreCalculatorImpl implements TraitScoreCalculator {
         """;
 
         List<Object[]> rows = em.createNativeQuery(sql)
-                .setParameter("attemptId", attemptId)
+                .setParameter(ATTEMPT_ID_KEY, attemptId)
                 .getResultList();
 
         Map<TraitProfile, BigDecimal> result = new HashMap<>();

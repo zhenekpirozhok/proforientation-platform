@@ -15,6 +15,8 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class MlClientImpl implements MlClient {
+    private static final String FEATURES_KEY = "features";
+    private static final String PREDICT_ENDPOINT = "/predict";
 
     private final RestClient client;
 
@@ -22,10 +24,10 @@ public class MlClientImpl implements MlClient {
     public MlResultResponse predict(List<BigDecimal> features) {
 
         Map<String, Object> body = new HashMap<>();
-        body.put("features", features);
+        body.put(FEATURES_KEY, features);
 
         return client.post()
-                .uri("/predict")
+                .uri(PREDICT_ENDPOINT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(body)
                 .retrieve()

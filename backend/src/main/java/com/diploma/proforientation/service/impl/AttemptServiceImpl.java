@@ -24,6 +24,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AttemptServiceImpl implements AttemptService {
 
+    private static final String STATUS_IN_PROGRESS = "in_progress";
+    private static final String STATUS_COMPLETED = "completed";
+
     private final AttemptRepository attemptRepo;
     private final UserRepository userRepo;
     private final QuizVersionRepository quizVersionRepo;
@@ -185,7 +188,7 @@ public class AttemptServiceImpl implements AttemptService {
                 a.getId(),
                 a.getQuizVersion().getId(),
                 quiz.getTitleDefault(),  // later localized
-                a.getSubmittedAt() == null ? "in_progress" : "completed",
+                a.getSubmittedAt() == null ? STATUS_IN_PROGRESS : STATUS_COMPLETED,
                 a.getStartedAt(),
                 a.getSubmittedAt(),
                 a.getSubmittedAt() != null
