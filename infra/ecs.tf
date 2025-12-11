@@ -4,7 +4,7 @@ resource "aws_ecs_cluster" "main" {
 
 resource "aws_security_group" "backend_sg" {
   name   = "backend-sg"
-  vpc_id = var.vpc_id
+  vpc_id = data.aws_vpc.default.id
 
   # Allow ECS tasks to reach RDS
   ingress {
