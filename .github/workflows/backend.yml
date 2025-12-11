@@ -53,7 +53,7 @@ jobs:
       # ------------------------------
       # Quality Gate: Coverage >= 80%
       # ------------------------------
-      - name: Enforce Coverage Quality Gate (>= 80% instructions)
+      - name: Enforce Coverage Quality Gate (>= 80%)
         run: |
           CSV_FILE="target/site/jacoco/jacoco.csv"
 
