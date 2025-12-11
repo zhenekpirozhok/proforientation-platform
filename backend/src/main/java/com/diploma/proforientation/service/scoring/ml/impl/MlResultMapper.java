@@ -12,6 +12,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class MlResultMapper {
+    private static final String EXPLANATION_PREFIX = "Predicted as: ";
 
     private final ProfessionRepository professionRepository;
 
@@ -30,7 +31,7 @@ public class MlResultMapper {
         return new RecommendationDto(
                 professionId,
                 p.probability(),
-                "Predicted as: " + p.major()
+                EXPLANATION_PREFIX + p.major()
         );
     }
 }

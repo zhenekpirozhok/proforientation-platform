@@ -4,6 +4,7 @@ import com.diploma.proforientation.dto.OptionDto;
 import com.diploma.proforientation.dto.request.create.CreateOptionRequest;
 import com.diploma.proforientation.dto.request.update.UpdateOptionRequest;
 import com.diploma.proforientation.service.OptionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,14 +21,14 @@ public class OptionController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public OptionDto create(@RequestBody CreateOptionRequest req) {
+    public OptionDto create(@Valid @RequestBody CreateOptionRequest req) {
         return optionService.create(req);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public OptionDto update(@PathVariable Integer id,
-                            @RequestBody UpdateOptionRequest req) {
+                            @Valid @RequestBody UpdateOptionRequest req) {
         return optionService.update(id, req);
     }
 

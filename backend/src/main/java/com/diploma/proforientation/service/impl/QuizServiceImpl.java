@@ -19,9 +19,13 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 
+import static com.diploma.proforientation.service.impl.ProfessionServiceImpl.FIELD_TITLE;
+
 @Service
 @RequiredArgsConstructor
 public class QuizServiceImpl implements QuizService {
+
+    private static final String ENTITY_TYPE_QUIZ = "quiz";
 
     private final QuizRepository quizRepo;
     private final ProfessionCategoryRepository categoryRepo;
@@ -124,9 +128,9 @@ public class QuizServiceImpl implements QuizService {
     private QuizDto toDtoLocalized(Quiz q, String locale) {
 
         String title = translationResolver.resolve(
-                "quiz",
+                ENTITY_TYPE_QUIZ,
                 q.getId(),
-                "title",
+                FIELD_TITLE,
                 locale,
                 q.getTitleDefault()
         );

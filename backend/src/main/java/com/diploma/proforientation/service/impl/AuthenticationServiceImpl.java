@@ -29,6 +29,7 @@ import java.util.UUID;
 @Slf4j
 public class AuthenticationServiceImpl implements AuthenticationService {
     private static final String TOKEN_NAME = "name";
+    public static final String EMPTY_STRING = "";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -125,7 +126,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         User newUser = new User();
                         newUser.setEmail(email);
                         newUser.setDisplayName(name);
-                        newUser.setPasswordHash(""); // no password for Google users
+                        newUser.setPasswordHash(EMPTY_STRING); // no password for Google users
                         return userRepository.save(newUser);
                     });
         } catch (Exception e) {

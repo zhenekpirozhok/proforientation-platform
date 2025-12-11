@@ -3,6 +3,7 @@ package com.diploma.proforientation.controller;
 import com.diploma.proforientation.dto.ProfessionCategoryDto;
 import com.diploma.proforientation.dto.request.create.CreateCategoryRequest;
 import com.diploma.proforientation.service.ProfessionCategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,14 +25,14 @@ public class ProfessionCategoryController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ProfessionCategoryDto create(@RequestBody CreateCategoryRequest req) {
+    public ProfessionCategoryDto create(@Valid @RequestBody CreateCategoryRequest req) {
         return service.create(req);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ProfessionCategoryDto update(@PathVariable Integer id,
-                                        @RequestBody CreateCategoryRequest req) {
+                                        @Valid @RequestBody CreateCategoryRequest req) {
         return service.update(id, req);
     }
 

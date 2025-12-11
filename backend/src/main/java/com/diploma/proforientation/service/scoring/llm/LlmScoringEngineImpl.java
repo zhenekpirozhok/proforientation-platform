@@ -15,9 +15,20 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.*;
 
+import static com.diploma.proforientation.service.impl.AuthenticationServiceImpl.EMPTY_STRING;
+
 @Service
 @RequiredArgsConstructor
 public class LlmScoringEngineImpl implements LlmScoringEngine {
+
+    private static final String NOT_VALID_JSON_REGEX1 = "```";
+    private static final String NOT_VALID_JSON_REGEX2 = "```json";
+    private static final String TRAITS_KEY = "traits";
+    private static final String RECOMMENDATIONS_KEY = "recommendations";
+    private static final String PROFESSION_ID_KEY = "professionId";
+    private static final String SCORE_KEY = "score";
+    private static final String EXPLANATION_KEY = "explanation";
+
 
     private final OpenAiChatModel openAiChat;
 
@@ -71,9 +82,9 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
 
     public JsonNode parseJson(String text) {
         try {
-            if (text.startsWith("```")) {
-                text = text.replaceAll("```json", "")
-                        .replaceAll("```", "")
+            if (text.startsWith(NOT_VALID_JSON_REGEX1)) {
+                text = text.replaceAll(NOT_VALID_JSON_REGEX2, EMPTY_STRING)
+                        .replaceAll(NOT_VALID_JSON_REGEX1, EMPTY_STRING)
                         .trim();
             }
             return new ObjectMapper().readTree(text);
@@ -84,7 +95,7 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
 
     public Map<TraitProfile, BigDecimal> parseTraits(JsonNode json) {
         Map<TraitProfile, BigDecimal> map = new HashMap<>();
-        JsonNode traitsNode = json.get("traits");
+        JsonNode traitsNode = json.get(TRAITS_KEY);
         if (traitsNode == null) return map;
 
         traitsNode.fieldNames().forEachRemaining(code -> {
@@ -100,14 +111,14 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
 
     public List<RecommendationDto> parseRecommendations(JsonNode json) {
         List<RecommendationDto> list = new ArrayList<>();
-        JsonNode arr = json.get("recommendations");
+        JsonNode arr = json.get(RECOMMENDATIONS_KEY);
         if (arr == null || !arr.isArray()) return list;
 
         for (JsonNode node : arr) {
             list.add(new RecommendationDto(
-                    node.get("professionId").asInt(),
-                    BigDecimal.valueOf(node.get("score").asDouble()),
-                    node.get("explanation").asText()
+                    node.get(PROFESSION_ID_KEY).asInt(),
+                    BigDecimal.valueOf(node.get(SCORE_KEY).asDouble()),
+                    node.get(EXPLANATION_KEY).asText()
             ));
         }
         return list;

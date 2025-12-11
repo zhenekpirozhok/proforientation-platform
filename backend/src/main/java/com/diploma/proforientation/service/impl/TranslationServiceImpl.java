@@ -18,11 +18,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TranslationServiceImpl implements TranslationService {
 
+    private static final String CACHE_VALUE = "translations";
+
     private final TranslationRepository repo;
 
     @Override
     @CacheEvict(
-            value = "translations",
+            value = CACHE_VALUE,
             key = "T(String).format('%s:%d:%s:%s', #req.entityType(), #req.entityId(), #req.field(), #req.locale())"
     )
     public TranslationDto create(CreateTranslationRequest req) {
@@ -37,7 +39,7 @@ public class TranslationServiceImpl implements TranslationService {
     }
 
     @Override
-    @CacheEvict(value = "translations", allEntries = true)
+    @CacheEvict(value = CACHE_VALUE, allEntries = true)
     public TranslationDto update(Integer id, UpdateTranslationRequest req) {
         Translation t = repo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Translation not found"));
@@ -47,7 +49,7 @@ public class TranslationServiceImpl implements TranslationService {
     }
 
     @Override
-    @CacheEvict(value = "translations", allEntries = true)
+    @CacheEvict(value = CACHE_VALUE, allEntries = true)
     public void delete(Integer id) {
         if (!repo.existsById(id)) {
             throw new EntityNotFoundException("Translation not found");
@@ -85,7 +87,7 @@ public class TranslationServiceImpl implements TranslationService {
      */
     @Override
     @Cacheable(
-            value = "translations", unless = "#result == null",
+            value = CACHE_VALUE, unless = "#result == null",
             key = "T(String).format('%s:%d:%s:%s', #entityType, #entityId, #field, #locale)"
     )
     public String translate(String entityType, Integer entityId, String field, String locale) {
