@@ -1,0 +1,252 @@
+package com.diploma.proforientation.service;
+
+import com.diploma.proforientation.dto.AttemptResultDto;
+import com.diploma.proforientation.dto.AttemptSummaryDto;
+import com.diploma.proforientation.dto.RecommendationDto;
+import com.diploma.proforientation.dto.response.AttemptStartResponse;
+import com.diploma.proforientation.model.*;
+import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
+import com.diploma.proforientation.repository.*;
+import com.diploma.proforientation.service.impl.AttemptServiceImpl;
+import com.diploma.proforientation.service.scoring.ScoringEngine;
+import com.diploma.proforientation.service.scoring.ScoringEngineFactory;
+import com.diploma.proforientation.service.scoring.ScoringResult;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.*;
+
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
+class AttemptServiceTest {
+
+    @Mock AttemptRepository attemptRepo;
+    @Mock UserRepository userRepo;
+    @Mock QuizVersionRepository quizVersionRepo;
+    @Mock AnswerRepository answerRepo;
+    @Mock QuestionOptionRepository optionRepo;
+    @Mock AttemptTraitScoreRepository traitScoreRepo;
+    @Mock AttemptRecommendationRepository recRepo;
+    @Mock ProfessionRepository professionRepo;
+    @Mock ScoringEngineFactory scoringEngineFactory;
+    @Mock ScoringEngine scoringEngine;
+
+    @InjectMocks AttemptServiceImpl service;
+
+    @BeforeEach
+    void setup() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void testStartAttempt_guest() {
+
+        QuizVersion qv = new QuizVersion();
+        qv.setId(10);
+
+        Attempt saved = new Attempt();
+        saved.setId(55);
+        saved.setGuestToken("guest-123");
+
+        when(quizVersionRepo.findById(10)).thenReturn(Optional.of(qv));
+        when(attemptRepo.save(any())).thenReturn(saved);
+
+        AttemptStartResponse res = service.startAttempt(10, null);
+
+        assertThat(res.attemptId()).isEqualTo(55);
+        assertThat(res.guestToken()).isEqualTo("guest-123");
+    }
+
+    @Test
+    void testStartAttempt_user() {
+
+        QuizVersion qv = new QuizVersion();
+        qv.setId(10);
+
+        User user = new User();
+        user.setId(99);
+
+        Attempt saved = new Attempt();
+        saved.setId(77);
+
+        when(quizVersionRepo.findById(10)).thenReturn(Optional.of(qv));
+        when(userRepo.getReferenceById(99)).thenReturn(user);
+        when(attemptRepo.save(any())).thenReturn(saved);
+
+        AttemptStartResponse res = service.startAttempt(10, 99);
+
+        assertThat(res.attemptId()).isEqualTo(77);
+        assertThat(res.guestToken()).isNull();
+    }
+
+    @Test
+    void testAddAnswer() {
+
+        Attempt attempt = new Attempt();
+        attempt.setId(1);
+
+        QuestionOption opt = new QuestionOption();
+        opt.setId(5);
+
+        when(attemptRepo.findById(1)).thenReturn(Optional.of(attempt));
+        when(optionRepo.findById(5)).thenReturn(Optional.of(opt));
+
+        service.addAnswer(1, 5);
+
+        verify(answerRepo, times(1)).save(any());
+    }
+
+    @Test
+    void testSubmitAttempt() {
+
+        // mock attempt
+        Attempt attempt = new Attempt();
+        attempt.setId(10);
+
+        Quiz quiz = new Quiz();
+        quiz.setProcessingMode(QuizProcessingMode.ml_riasec);
+
+        QuizVersion qv = new QuizVersion();
+        qv.setId(2);
+        qv.setQuiz(quiz);
+
+        attempt.setQuizVersion(qv);
+
+        // mock scoring
+        Map<TraitProfile, BigDecimal> traits = new HashMap<>();
+        TraitProfile t = new TraitProfile();
+        t.setCode("R");
+        traits.put(t, BigDecimal.TEN);
+
+        List<RecommendationDto> recs = List.of(
+                new RecommendationDto(100, BigDecimal.ONE, "ok")
+        );
+
+        ScoringResult result = new ScoringResult(traits, recs);
+
+        // configure mocks
+        when(attemptRepo.findById(10)).thenReturn(Optional.of(attempt));
+        when(scoringEngineFactory.getEngine(QuizProcessingMode.ml_riasec)).thenReturn(scoringEngine);
+        when(scoringEngine.evaluate(10)).thenReturn(result);
+
+        Profession prof = new Profession();
+        prof.setId(100);
+        when(professionRepo.findById(100)).thenReturn(Optional.of(prof));
+
+        AttemptResultDto dto = service.submitAttempt(10);
+
+        assertThat(dto.traitScores()).containsEntry("R", BigDecimal.TEN);
+        assertThat(dto.recommendations()).hasSize(1);
+
+        verify(traitScoreRepo, times(1)).deleteByAttempt_Id(10);
+        verify(recRepo, times(1)).deleteByAttempt_Id(10);
+        verify(traitScoreRepo, times(1)).save(any());
+        verify(recRepo, times(1)).save(any());
+    }
+
+    @Test
+    void testGetMyAttempts_user() {
+
+        Attempt a = new Attempt();
+        a.setId(5);
+        a.setStartedAt(Instant.now());
+
+        Quiz q = new Quiz();
+        q.setTitleDefault("RIASEC");
+        QuizVersion qv = new QuizVersion();
+        qv.setQuiz(q);
+        a.setQuizVersion(qv);
+
+        when(attemptRepo.findByUserIdOrderByStartedAtDesc(99))
+                .thenReturn(List.of(a));
+
+        List<AttemptSummaryDto> list = service.getMyAttempts(99, null);
+
+        assertThat(list).hasSize(1);
+        assertThat(list.getFirst().quizTitle()).isEqualTo("RIASEC");
+    }
+
+    @Test
+    void testGetMyAttempts_guest() {
+
+        Attempt a = new Attempt();
+        a.setId(7);
+        a.setGuestToken("abc");
+        a.setStartedAt(Instant.now());
+
+        Quiz q = new Quiz();
+        q.setTitleDefault("RIASEC");
+        QuizVersion qv = new QuizVersion();
+        qv.setQuiz(q);
+        a.setQuizVersion(qv);
+
+        when(attemptRepo.findByGuestTokenOrderByStartedAtDesc("abc"))
+                .thenReturn(List.of(a));
+
+        List<AttemptSummaryDto> list = service.getMyAttempts(null, "abc");
+
+        assertThat(list).hasSize(1);
+        assertThat(list.getFirst().id()).isEqualTo(7);
+    }
+
+    @Test
+    void testGetResult() {
+
+        Attempt attempt = new Attempt();
+        attempt.setId(10);
+        when(attemptRepo.findById(10)).thenReturn(Optional.of(attempt));
+
+        TraitProfile trait = new TraitProfile();
+        trait.setCode("I");
+
+        AttemptTraitScore ts = new AttemptTraitScore();
+        ts.setTrait(trait);
+        ts.setScore(BigDecimal.TEN);
+
+        AttemptRecommendation ar = new AttemptRecommendation();
+        Profession p = new Profession();
+        p.setId(50);
+        ar.setProfession(p);
+        ar.setScore(BigDecimal.ONE);
+        ar.setLlmExplanation("good");
+
+        when(traitScoreRepo.findByAttemptId(10))
+                .thenReturn(List.of(ts));
+
+        when(recRepo.findByAttemptId(10))
+                .thenReturn(List.of(ar));
+
+        AttemptResultDto dto = service.getResult(10);
+
+        assertThat(dto.traitScores()).containsEntry("I", BigDecimal.TEN);
+        assertThat(dto.recommendations()).hasSize(1);
+    }
+
+    @Test
+    void testAdminSearchAttempts() {
+
+        Attempt a = new Attempt();
+        a.setId(22);
+        a.setStartedAt(Instant.now());
+
+        Quiz q = new Quiz();
+        q.setTitleDefault("RIASEC");
+        QuizVersion qv = new QuizVersion();
+        qv.setQuiz(q);
+        a.setQuizVersion(qv);
+
+        when(attemptRepo.searchAdmin(null, 5, null, null))
+                .thenReturn(List.of(a));
+
+        List<AttemptSummaryDto> list =
+                service.adminSearchAttempts(null, 5, null, null);
+
+        assertThat(list).hasSize(1);
+        assertThat(list.getFirst().id()).isEqualTo(22);
+    }
+}

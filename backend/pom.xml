@@ -277,6 +277,7 @@
 						<exclude>**/response/**</exclude>
 						<exclude>**/model/**</exclude>
 						<exclude>**/model/role/**</exclude>
+						<exclude>**/service/scoring/demo/**</exclude>
 					</excludes>
 					<rules>
 						<rule>

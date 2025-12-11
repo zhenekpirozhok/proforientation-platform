@@ -45,7 +45,7 @@ class QuestionControllerTest {
 
         CreateQuestionRequest req = new CreateQuestionRequest(1, 1, "single_choice", "Test Q");
 
-        QuestionDto dto = new QuestionDto(10, 1, 1, "single_choice", "Test Q");
+        QuestionDto dto = new QuestionDto(10, 1, 1, "single_choice", "Test Q", null);
 
         when(service.create(req)).thenReturn(dto);
 
@@ -60,7 +60,7 @@ class QuestionControllerTest {
         setAdmin();
 
         UpdateQuestionRequest req = new UpdateQuestionRequest(2, "multiple_choice", "Updated");
-        QuestionDto dto = new QuestionDto(5, 1, 2, "multiple_choice", "Updated");
+        QuestionDto dto = new QuestionDto(5, 1, 2, "multiple_choice", "Updated", null);
 
         when(service.update(5, req)).thenReturn(dto);
 

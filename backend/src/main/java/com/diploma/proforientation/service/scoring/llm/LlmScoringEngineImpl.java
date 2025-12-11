@@ -69,7 +69,7 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
         return new ScoringResult(traits, recs);
     }
 
-    private JsonNode parseJson(String text) {
+    public JsonNode parseJson(String text) {
         try {
             if (text.startsWith("```")) {
                 text = text.replaceAll("```json", "")
@@ -82,7 +82,7 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
         }
     }
 
-    private Map<TraitProfile, BigDecimal> parseTraits(JsonNode json) {
+    public Map<TraitProfile, BigDecimal> parseTraits(JsonNode json) {
         Map<TraitProfile, BigDecimal> map = new HashMap<>();
         JsonNode traitsNode = json.get("traits");
         if (traitsNode == null) return map;
@@ -98,7 +98,7 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
         return map;
     }
 
-    private List<RecommendationDto> parseRecommendations(JsonNode json) {
+    public List<RecommendationDto> parseRecommendations(JsonNode json) {
         List<RecommendationDto> list = new ArrayList<>();
         JsonNode arr = json.get("recommendations");
         if (arr == null || !arr.isArray()) return list;

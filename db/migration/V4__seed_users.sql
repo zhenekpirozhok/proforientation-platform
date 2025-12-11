@@ -14,7 +14,7 @@ VALUES
 
   -- ADMINS
   ('admin1@example.com',
-   '$2b$12$lcqLS0Sv/Q4RzTGMTcoDt.C.91oIytT9M5m3bAop/DHxCzfDbNl2u',
+   '$2a$10$e8UVnqzL4PxyZTA1cCFnIuGT5HlVGxw4soWLob3z6xnxNrC6Th22m',
    'Admin One', 'ADMIN', TRUE),
 
   ('admin2@example.com',

@@ -1,12 +1,16 @@
 package com.diploma.proforientation.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "translations",
         uniqueConstraints = @UniqueConstraint(columnNames = {"entity_type", "entity_id", "locale", "field"}))
 public class Translation {
