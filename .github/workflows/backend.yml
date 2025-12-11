@@ -168,3 +168,91 @@ jobs:
             backend/target/*.jar
             backend/*/target/*.jar
           if-no-files-found: ignore
+
+  deploy:
+    needs: backend   
+    runs-on: ubuntu-latest
+  
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+      ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+      ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+      ECS_TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY }}
+  
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+  
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+  
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+  
+      - name: Build and push Docker image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA}
+          ECR_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}
+  
+          docker build -t ${ECR_URI}:${IMAGE_TAG} ./backend
+          docker push ${ECR_URI}:${IMAGE_TAG}
+  
+          echo "IMAGE_URI=${ECR_URI}:${IMAGE_TAG}" >> $GITHUB_ENV
+  
+      - name: Get current task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${ECS_TASK_FAMILY} \
+            --query 'taskDefinition' \
+            --output json > task-def.json
+  
+      - name: Inject env vars + image into task definition
+        run: |
+          cat task-def.json \
+          | jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' \
+          | jq --arg IMAGE_URI "$IMAGE_URI" '.containerDefinitions[0].image = $IMAGE_URI' \
+          | jq '.containerDefinitions[0].environment = [
+              {"name":"POSTGRES_HOST","value":"${{ secrets.POSTGRES_HOST }}"},
+              {"name":"POSTGRES_PORT","value":"${{ secrets.POSTGRES_PORT }}"},
+              {"name":"POSTGRES_DB","value":"${{ secrets.POSTGRES_DB }}"},
+              {"name":"POSTGRES_USER","value":"${{ secrets.POSTGRES_USER }}"},
+              {"name":"POSTGRES_PASSWORD","value":"${{ secrets.POSTGRES_PASSWORD }}"},
+              {"name":"ML_API_URL","value":"${{ secrets.ML_API_URL }}"},
+              {"name":"APP_DB_USER","value":"${{ secrets.APP_DB_USER }}"},
+              {"name":"APP_DB_PASSWORD","value":"${{ secrets.APP_DB_PASSWORD }}"},
+              {"name":"DB_ADMIN_USER","value":"${{ secrets.DB_ADMIN_USER }}"},
+              {"name":"DB_ADMIN_PASSWORD","value":"${{ secrets.DB_ADMIN_PASSWORD }}"},
+              {"name":"PGADMIN_DEFAULT_EMAIL","value":"${{ secrets.PGADMIN_DEFAULT_EMAIL }}"},
+              {"name":"PGADMIN_DEFAULT_PASSWORD","value":"${{ secrets.PGADMIN_DEFAULT_PASSWORD }}"},
+              {"name":"JWT_SECRET_KEY","value":"${{ secrets.JWT_SECRET_KEY }}"},
+              {"name":"GOOGLE_CLIENT_ID","value":"${{ secrets.GOOGLE_CLIENT_ID }}"},
+              {"name":"GOOGLE_CLIENT_SECRET","value":"${{ secrets.GOOGLE_CLIENT_SECRET }}"},
+              {"name":"OPENAI_API_KEY","value":"${{ secrets.OPENAI_API_KEY }}"},
+              {"name":"LOGGING_LEVEL","value":"${{ secrets.LOGGING_LEVEL }}"}
+            ]' \
+          > new-task-def.json
+  
+      - name: Register new task definition
+        id: register-task-def
+        run: |
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
+            --cli-input-json file://new-task-def.json \
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+  
+          echo "TASK_DEF_ARN=${NEW_TASK_DEF_ARN}" >> $GITHUB_ENV
+  
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster ${ECS_CLUSTER} \
+            --service ${ECS_SERVICE} \
+            --task-definition ${TASK_DEF_ARN} \
+            --force-new-deployment
+  
