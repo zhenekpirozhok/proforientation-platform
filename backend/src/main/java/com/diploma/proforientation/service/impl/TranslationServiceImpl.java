@@ -70,6 +70,15 @@ public class TranslationServiceImpl implements TranslationService {
                 .toList();
     }
 
+    @Override
+    public List<TranslationDto> getAllForEntityType(String entityType) {
+        return repo
+                .findByEntityType(entityType)
+                .stream()
+                .map(this::toDto)
+                .toList();
+    }
+
     /**
      * Generic runtime translation resolver.
      * Returns translated text or null if translation not found.

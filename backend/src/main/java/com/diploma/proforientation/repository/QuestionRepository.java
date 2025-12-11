@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface QuestionRepository extends JpaRepository<Question, Integer> {
     List<Question> findByQuizVersionId(Integer quizVersionId);
+    List<Question> findByQuizVersionIdOrderByOrd(Integer quizVersionId);
 }

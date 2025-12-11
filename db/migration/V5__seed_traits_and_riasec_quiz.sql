@@ -46,122 +46,74 @@ ON CONFLICT (quiz_id, version) DO NOTHING;
 
 
 -- 3. Вопросы (48 штук, по 8 на каждый трейт R/I/A/S/E/C), тип liker_scale_5
-WITH current_qv AS (
-  SELECT id
-  FROM quiz_versions
-  WHERE quiz_id = (SELECT id FROM quizzes WHERE code = 'riasec_main')
-    AND is_current = TRUE
+WITH qv AS (
+    SELECT id AS quiz_version_id
+    FROM quiz_versions
+    WHERE quiz_id = (SELECT id FROM quizzes WHERE code = 'riasec_main')
+      AND is_current = TRUE
 )
+
 INSERT INTO questions (quiz_version_id, ord, qtype, text_default)
 VALUES
-  -- R (Realistic)
-  ((SELECT id FROM current_qv),  1, 'liker_scale_5',
-   'Мне нравится работать руками с инструментами, оборудованием или механизмами.'),
-  ((SELECT id FROM current_qv),  2, 'liker_scale_5',
-   'Я предпочитаю практическую работу, где результат можно увидеть или потрогать.'),
-  ((SELECT id FROM current_qv),  3, 'liker_scale_5',
-   'Мне интересно разбирать вещи, чинить технику или что-то собирать.'),
-  ((SELECT id FROM current_qv),  4, 'liker_scale_5',
-   'Я чувствую себя комфортно в мастерской, лаборатории или на производстве.'),
-  ((SELECT id FROM current_qv),  5, 'liker_scale_5',
-   'Я люблю задачи, где нужно что-то настроить, отрегулировать или оптимизировать работу устройства.'),
-  ((SELECT id FROM current_qv),  6, 'liker_scale_5',
-   'Меня привлекают профессии, связанные с техникой, инженерией или эксплуатацией оборудования.'),
-  ((SELECT id FROM current_qv),  7, 'liker_scale_5',
-   'Я предпочитаю чёткие инструкции и конкретные физические задачи, а не абстрактные обсуждения.'),
-  ((SELECT id FROM current_qv),  8, 'liker_scale_5',
-   'Мне нравится работать на открытом воздухе, выполнять физически активную или прикладную работу.'),
+-- REALISTIC (R)
+((SELECT quiz_version_id FROM qv), 1, 'liker_scale_5', 'Test the quality of parts before shipment'),
+((SELECT quiz_version_id FROM qv), 2, 'liker_scale_5', 'Lay brick or tile'),
+((SELECT quiz_version_id FROM qv), 3, 'liker_scale_5', 'Work on an offshore oil-drilling rig'),
+((SELECT quiz_version_id FROM qv), 4, 'liker_scale_5', 'Assemble electronic parts'),
+((SELECT quiz_version_id FROM qv), 5, 'liker_scale_5', 'Operate a grinding machine in a factory'),
+((SELECT quiz_version_id FROM qv), 6, 'liker_scale_5', 'Fix a broken faucet'),
+((SELECT quiz_version_id FROM qv), 7, 'liker_scale_5', 'Assemble products in a factory'),
+((SELECT quiz_version_id FROM qv), 8, 'liker_scale_5', 'Install flooring in houses'),
 
-  -- I (Investigative)
-  ((SELECT id FROM current_qv),  9, 'liker_scale_5',
-   'Мне нравится анализировать информацию, данные или явления, чтобы понять, как всё устроено.'),
-  ((SELECT id FROM current_qv), 10, 'liker_scale_5',
-   'Я получаю удовольствие от решения сложных логических или математических задач.'),
-  ((SELECT id FROM current_qv), 11, 'liker_scale_5',
-   'Мне интересно проводить исследования, эксперименты или проверки гипотез.'),
-  ((SELECT id FROM current_qv), 12, 'liker_scale_5',
-   'Я люблю читать научно-популярные статьи, разбираться в причинах и следствиях.'),
-  ((SELECT id FROM current_qv), 13, 'liker_scale_5',
-   'Я предпочитаю проекты, в которых нужно разбираться в деталях и строить выводы.'),
-  ((SELECT id FROM current_qv), 14, 'liker_scale_5',
-   'Мне комфортно работать с формулами, моделями или аналитическими инструментами.'),
-  ((SELECT id FROM current_qv), 15, 'liker_scale_5',
-   'Меня привлекают профессии, связанные с наукой, аналитикой или исследованиями.'),
-  ((SELECT id FROM current_qv), 16, 'liker_scale_5',
-   'Мне важно сначала всё продумать и понять, прежде чем принимать решения или делать выводы.'),
+-- INVESTIGATIVE (I)
+((SELECT quiz_version_id FROM qv), 9, 'liker_scale_5', 'Study the structure of the human body'),
+((SELECT quiz_version_id FROM qv), 10, 'liker_scale_5', 'Study animal behavior'),
+((SELECT quiz_version_id FROM qv), 11, 'liker_scale_5', 'Do research on plants or animals'),
+((SELECT quiz_version_id FROM qv), 12, 'liker_scale_5', 'Develop a new medical treatment or procedure'),
+((SELECT quiz_version_id FROM qv), 13, 'liker_scale_5', 'Conduct biological research'),
+((SELECT quiz_version_id FROM qv), 14, 'liker_scale_5', 'Study whales and other types of marine life'),
+((SELECT quiz_version_id FROM qv), 15, 'liker_scale_5', 'Work in a biology lab'),
+((SELECT quiz_version_id FROM qv), 16, 'liker_scale_5', 'Make a map of the bottom of an ocean'),
 
-  -- A (Artistic)
-  ((SELECT id FROM current_qv), 17, 'liker_scale_5',
-   'Мне нравится придумывать новые идеи, образы или нестандартные решения.'),
-  ((SELECT id FROM current_qv), 18, 'liker_scale_5',
-   'Я получаю удовольствие от творческих занятий: рисования, музыки, письма или дизайна.'),
-  ((SELECT id FROM current_qv), 19, 'liker_scale_5',
-   'Мне важна возможность самовыражения в работе, а не только чёткие правила и инструкции.'),
-  ((SELECT id FROM current_qv), 20, 'liker_scale_5',
-   'Я люблю проекты, в которых можно экспериментировать со стилем, формой или подачей.'),
-  ((SELECT id FROM current_qv), 21, 'liker_scale_5',
-   'Меня привлекают профессии, связанные с искусством, дизайном, медиа или творчеством.'),
-  ((SELECT id FROM current_qv), 22, 'liker_scale_5',
-   'Я часто замечаю визуальные детали: цвета, композицию, оформление пространства или интерфейсов.'),
-  ((SELECT id FROM current_qv), 23, 'liker_scale_5',
-   'Мне нравится придумывать сценарии, истории или концепции для проектов.'),
-  ((SELECT id FROM current_qv), 24, 'liker_scale_5',
-   'Я чувствую дискомфорт, когда работа слишком однообразная и не оставляет места креативности.'),
+-- ARTISTIC (A)
+((SELECT quiz_version_id FROM qv), 17, 'liker_scale_5', 'Conduct a musical choir'),
+((SELECT quiz_version_id FROM qv), 18, 'liker_scale_5', 'Direct a play'),
+((SELECT quiz_version_id FROM qv), 19, 'liker_scale_5', 'Design artwork for magazines'),
+((SELECT quiz_version_id FROM qv), 20, 'liker_scale_5', 'Write a song'),
+((SELECT quiz_version_id FROM qv), 21, 'liker_scale_5', 'Write books or plays'),
+((SELECT quiz_version_id FROM qv), 22, 'liker_scale_5', 'Play a musical instrument'),
+((SELECT quiz_version_id FROM qv), 23, 'liker_scale_5', 'Perform stunts for a movie or television show'),
+((SELECT quiz_version_id FROM qv), 24, 'liker_scale_5', 'Design sets for plays'),
 
-  -- S (Social)
-  ((SELECT id FROM current_qv), 25, 'liker_scale_5',
-   'Мне нравится помогать людям, объяснять что-то или поддерживать в сложных ситуациях.'),
-  ((SELECT id FROM current_qv), 26, 'liker_scale_5',
-   'Я получаю энергию от живого общения и командной работы.'),
-  ((SELECT id FROM current_qv), 27, 'liker_scale_5',
-   'Мне интересно обучать других, делиться опытом или менторить.'),
-  ((SELECT id FROM current_qv), 28, 'liker_scale_5',
-   'Я часто замечаю, в каком эмоциональном состоянии находятся люди вокруг.'),
-  ((SELECT id FROM current_qv), 29, 'liker_scale_5',
-   'Меня привлекают профессии, связанные с образованием, психологией, HR или социальной сферой.'),
-  ((SELECT id FROM current_qv), 30, 'liker_scale_5',
-   'Я готов тратить время, чтобы выслушать человека и помочь ему разобраться с проблемой.'),
-  ((SELECT id FROM current_qv), 31, 'liker_scale_5',
-   'Я чувствую себя уверенно, когда нужно взаимодействовать с разными людьми и строить отношения.'),
-  ((SELECT id FROM current_qv), 32, 'liker_scale_5',
-   'Я часто беру на себя роль “связующего звена” между людьми или командами.'),
+-- SOCIAL (S)
+((SELECT quiz_version_id FROM qv), 25, 'liker_scale_5', 'Give career guidance to people'),
+((SELECT quiz_version_id FROM qv), 26, 'liker_scale_5', 'Do volunteer work at a non-profit organization'),
+((SELECT quiz_version_id FROM qv), 27, 'liker_scale_5', 'Help people who have problems with drugs or alcohol'),
+((SELECT quiz_version_id FROM qv), 28, 'liker_scale_5', 'Teach an individual an exercise routine'),
+((SELECT quiz_version_id FROM qv), 29, 'liker_scale_5', 'Help people with family-related problems'),
+((SELECT quiz_version_id FROM qv), 30, 'liker_scale_5', 'Supervise the activities of children at a camp'),
+((SELECT quiz_version_id FROM qv), 31, 'liker_scale_5', 'Teach children how to read'),
+((SELECT quiz_version_id FROM qv), 32, 'liker_scale_5', 'Help elderly people with their daily activities'),
 
-  -- E (Enterprising)
-  ((SELECT id FROM current_qv), 33, 'liker_scale_5',
-   'Мне нравится влиять на решения других, убеждать и аргументировать свою позицию.'),
-  ((SELECT id FROM current_qv), 34, 'liker_scale_5',
-   'Я получаю удовольствие от ведения переговоров, презентаций или публичных выступлений.'),
-  ((SELECT id FROM current_qv), 35, 'liker_scale_5',
-   'Мне интересно управлять проектами, брать ответственность и принимать решения.'),
-  ((SELECT id FROM current_qv), 36, 'liker_scale_5',
-   'Я чувствую себя комфортно в условиях неопределённости, когда нужно быстро ориентироваться.'),
-  ((SELECT id FROM current_qv), 37, 'liker_scale_5',
-   'Меня привлекают профессии, связанные с бизнесом, управлением, продажами или предпринимательством.'),
-  ((SELECT id FROM current_qv), 38, 'liker_scale_5',
-   'Я люблю замечать новые возможности и предлагать инициативы, даже если это рискованно.'),
-  ((SELECT id FROM current_qv), 39, 'liker_scale_5',
-   'Мне важно видеть результат в виде достигнутых целей, показателей или роста.'),
-  ((SELECT id FROM current_qv), 40, 'liker_scale_5',
-   'Я легко беру на себя лидерскую роль в группе или проекте.'),
+-- ENTERPRISING (E)
+((SELECT quiz_version_id FROM qv), 33, 'liker_scale_5', 'Sell restaurant franchises to individuals'),
+((SELECT quiz_version_id FROM qv), 34, 'liker_scale_5', 'Sell merchandise at a department store'),
+((SELECT quiz_version_id FROM qv), 35, 'liker_scale_5', 'Manage the operations of a hotel'),
+((SELECT quiz_version_id FROM qv), 36, 'liker_scale_5', 'Operate a beauty salon or barber shop'),
+((SELECT quiz_version_id FROM qv), 37, 'liker_scale_5', 'Manage a department within a large company'),
+((SELECT quiz_version_id FROM qv), 38, 'liker_scale_5', 'Manage a clothing store'),
+((SELECT quiz_version_id FROM qv), 39, 'liker_scale_5', 'Sell houses'),
+((SELECT quiz_version_id FROM qv), 40, 'liker_scale_5', 'Run a toy store'),
 
-  -- C (Conventional)
-  ((SELECT id FROM current_qv), 41, 'liker_scale_5',
-   'Мне нравится работать с таблицами, отчётами или структурированными данными.'),
-  ((SELECT id FROM current_qv), 42, 'liker_scale_5',
-   'Я предпочитаю, когда есть чёткие правила, инструкции и понятные процедуры.'),
-  ((SELECT id FROM current_qv), 43, 'liker_scale_5',
-   'Я аккуратно отношусь к документам, срокам и формальным требованиям.'),
-  ((SELECT id FROM current_qv), 44, 'liker_scale_5',
-   'Мне комфортно выполнять рутинные задачи, если понятен их смысл и важность.'),
-  ((SELECT id FROM current_qv), 45, 'liker_scale_5',
-   'Меня привлекают профессии, связанные с бухгалтерией, административной или офисной работой.'),
-  ((SELECT id FROM current_qv), 46, 'liker_scale_5',
-   'Я люблю наводить порядок в информации: сортировать, систематизировать, структурировать.'),
-  ((SELECT id FROM current_qv), 47, 'liker_scale_5',
-   'Я предпочитаю завершать начатые дела и доводить задачи до конца по плану.'),
-  ((SELECT id FROM current_qv), 48, 'liker_scale_5',
-   'Я чувствую себя спокойно, когда рабочие процессы заранее организованы и предсказуемы.');
-
+-- CONVENTIONAL (C)
+((SELECT quiz_version_id FROM qv), 41, 'liker_scale_5', 'Generate the monthly payroll checks for an office'),
+((SELECT quiz_version_id FROM qv), 42, 'liker_scale_5', 'Inventory supplies using a hand-held computer'),
+((SELECT quiz_version_id FROM qv), 43, 'liker_scale_5', 'Use a computer program to generate customer bills'),
+((SELECT quiz_version_id FROM qv), 44, 'liker_scale_5', 'Maintain employee records'),
+((SELECT quiz_version_id FROM qv), 45, 'liker_scale_5', 'Compute and record statistical and other numerical data'),
+((SELECT quiz_version_id FROM qv), 46, 'liker_scale_5', 'Operate a calculator'),
+((SELECT quiz_version_id FROM qv), 47, 'liker_scale_5', 'Handle customers\ bank transactions'),
+((SELECT quiz_version_id FROM qv), 48, 'liker_scale_5', 'Keep shipping and receiving records');
 
 -- 4. Опции для КАЖДОГО вопроса: Нет / Скорее нет / Нейтрально / Скорее да / Да
 WITH current_qv AS (
@@ -182,11 +134,11 @@ SELECT
   o.label_default
 FROM q
 CROSS JOIN (VALUES
-  (1, 'Нет'),
-  (2, 'Скорее нет'),
-  (3, 'Нейтрально'),
-  (4, 'Скорее да'),
-  (5, 'Да')
+  (1, 'Dislike'),
+  (2, 'Slightly dislike'),
+  (3, 'Neutral'),
+  (4, 'Enjoy'),
+  (5, 'Strongly Enjoy')
 ) AS o(ord, label_default)
 ORDER BY q.ord, o.ord;
 
@@ -240,3 +192,122 @@ SELECT
   END AS weight
 FROM qo
 CROSS JOIN traits;
+
+
+------------------------------------------------------------
+-- 6. Russian translations for all 48 questions
+------------------------------------------------------------
+DO $$
+    DECLARE
+        q RECORD;
+        ru_text TEXT[];
+    BEGIN
+        -- Russian translations in order (R1..C8)
+        ru_text := ARRAY[
+            -- R (1–8)
+            'Проверять качество деталей перед отправкой',
+            'Класть кирпич или плитку',
+            'Работать на морской нефтяной платформе',
+            'Собирать электронные компоненты',
+            'Работать на шлифовальном станке на фабрике',
+            'Чинить сломанный кран',
+            'Собирать изделия на производстве',
+            'Укладывать напольное покрытие в домах',
+
+            -- I (9–16)
+            'Изучать строение человеческого тела',
+            'Изучать поведение животных',
+            'Проводить исследования растений или животных',
+            'Разрабатывать новые медицинские процедуры',
+            'Проводить биологические исследования',
+            'Изучать китов и другую морскую жизнь',
+            'Работать в биологической лаборатории',
+            'Создавать карту дна океана',
+
+            -- A (17–24)
+            'Руководить музыкальным хором',
+            'Режиссировать спектакль',
+            'Создавать дизайн журналов',
+            'Писать песню',
+            'Писать книги или пьесы',
+            'Играть на музыкальном инструменте',
+            'Исполнять трюки для кино или телевидения',
+            'Проектировать сценические декорации',
+
+            -- S (25–32)
+            'Давать карьерные советы людям',
+            'Работать волонтером в некоммерческой организации',
+            'Помогать людям с зависимостями',
+            'Обучать человека тренировочной программе',
+            'Помогать семьям решать проблемы',
+            'Контролировать деятельность детей в лагере',
+            'Учить детей читать',
+            'Помогать пожилым людям с повседневными задачами',
+
+            -- E (33–40)
+            'Продавать франшизы ресторанов',
+            'Продавать товары в универмаге',
+            'Управлять работой отеля',
+            'Работать в салоне красоты или барбершопе',
+            'Руководить отделом в крупной компании',
+            'Управлять магазином одежды',
+            'Продавать дома',
+            'Управлять магазином игрушек',
+
+            -- C (41–48)
+            'Выписывать ежемесячные платежные ведомости',
+            'Проводить инвентаризацию через портативный компьютер',
+            'Использовать программу для формирования счетов',
+            'Вести кадровую документацию',
+            'Записывать статистические данные',
+            'Работать на калькуляторе',
+            'Обслуживать банковские операции клиентов',
+            'Вести учет отправлений и получений'
+            ];
+
+        FOR q IN
+            SELECT id, ord
+            FROM questions
+            WHERE quiz_version_id = (SELECT id FROM quiz_versions WHERE quiz_id =
+                                                                        (SELECT id FROM quizzes WHERE code='riasec_main') AND is_current=TRUE)
+            ORDER BY ord
+            LOOP
+                INSERT INTO translations (entity_type, entity_id, locale, field, text)
+                VALUES ('question', q.id, 'ru', 'text', ru_text[q.ord])
+                ON CONFLICT DO NOTHING;
+            END LOOP;
+    END $$;
+
+------------------------------------------------------------
+-- 7. Russian translations for Likert answer options
+------------------------------------------------------------
+
+DO $$
+    DECLARE
+        opt RECORD;
+        ru_labels TEXT[] := ARRAY[
+            '1 — Нет',
+            '2 — Скорее нет',
+            '3 — Нейтрально',
+            '4 — Скорее да',
+            '5 — Да'
+            ];
+    BEGIN
+        FOR opt IN
+            SELECT id, ord
+            FROM question_options
+            WHERE question_id IN (
+                SELECT id FROM questions
+                WHERE quiz_version_id = (
+                    SELECT id FROM quiz_versions
+                    WHERE quiz_id = (SELECT id FROM quizzes WHERE code='riasec_main')
+                      AND is_current = TRUE
+                )
+            )
+            ORDER BY id
+            LOOP
+                INSERT INTO translations (entity_type, entity_id, locale, field, text)
+                VALUES ('question_option', opt.id, 'ru', 'text', ru_labels[opt.ord])
+                ON CONFLICT DO NOTHING;
+            END LOOP;
+    END $$;

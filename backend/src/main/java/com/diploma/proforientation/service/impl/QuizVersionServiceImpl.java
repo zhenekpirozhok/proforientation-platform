@@ -94,6 +94,32 @@ public class QuizVersionServiceImpl implements QuizVersionService {
         }
     }
 
+    @Override
+    public List<QuizVersionDto> getVersionsForQuiz(Integer quizId) {
+        return versionRepo.findByQuizIdOrderByVersionDesc(quizId)
+                .stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    @Override
+    public QuizVersionDto getCurrentVersion(Integer quizId) {
+        QuizVersion v = versionRepo
+                .findByQuizIdAndCurrentTrue(quizId)
+                .orElseThrow(() -> new RuntimeException("Current version not found"));
+
+        return toDto(v);
+    }
+
+    @Override
+    public QuizVersionDto getVersion(Integer quizId, Integer version) {
+        QuizVersion v = versionRepo
+                .findByQuizIdAndVersion(quizId, version)
+                .orElseThrow(() -> new RuntimeException("Version not found"));
+
+        return toDto(v);
+    }
+
     private QuizVersionDto toDto(QuizVersion v) {
         return new QuizVersionDto(
                 v.getId(),

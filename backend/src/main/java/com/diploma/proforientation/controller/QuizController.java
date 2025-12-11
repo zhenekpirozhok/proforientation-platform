@@ -46,6 +46,12 @@ public class QuizController {
         return quizService.update(id, req);
     }
 
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public void delete(@PathVariable Integer id) {
+        quizService.delete(id);
+    }
+
     @PostMapping("/{id}/publish")
     @PreAuthorize("hasRole('ADMIN')")
     public QuizVersionDto publish(@PathVariable Integer id) {
@@ -56,5 +62,23 @@ public class QuizController {
     @PreAuthorize("hasRole('ADMIN')")
     public QuizVersionDto copyLatest(@PathVariable Integer id) {
         return versionService.copyLatestVersion(id);
+    }
+
+    @GetMapping("/{id}/versions")
+    public List<QuizVersionDto> getVersions(@PathVariable Integer id) {
+        return versionService.getVersionsForQuiz(id);
+    }
+
+    @GetMapping("/{id}/versions/current")
+    public QuizVersionDto getCurrentVersion(@PathVariable Integer id) {
+        return versionService.getCurrentVersion(id);
+    }
+
+    @GetMapping("/{id}/versions/{version}")
+    public QuizVersionDto getVersion(
+            @PathVariable Integer id,
+            @PathVariable Integer version
+    ) {
+        return versionService.getVersion(id, version);
     }
 }

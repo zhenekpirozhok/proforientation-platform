@@ -14,4 +14,5 @@ public interface TranslationService {
     TranslationDto getById(Integer id);
     List<TranslationDto> search(String entityType, Integer entityId, String locale);
     String translate(String entityType, Integer entityId, String field, String locale);
+    List<TranslationDto> getAllForEntityType(String entityType);
 }

@@ -17,6 +17,7 @@ public class ProfessionCategoryController {
     private final ProfessionCategoryService service;
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<ProfessionCategoryDto> getAll() {
         return service.getAll();
     }

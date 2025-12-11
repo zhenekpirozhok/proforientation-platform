@@ -67,7 +67,7 @@ public class QuizServiceImpl implements QuizService {
         q.setTitleDefault(req.title());
         q.setProcessingMode(req.processingMode() != null
                 ? Enum.valueOf(QuizProcessingMode.class, req.processingMode())
-                : QuizProcessingMode.ml_riasec);
+                : QuizProcessingMode.llm);
         q.setCategory(category);
         q.setAuthor(author);
         q.setCreatedAt(Instant.now());
@@ -100,6 +100,13 @@ public class QuizServiceImpl implements QuizService {
         q.setUpdatedAt(Instant.now());
 
         return toDto(quizRepo.save(q));
+    }
+
+    @Override
+    public void delete(Integer id) {
+        Quiz quiz = quizRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
+        quizRepo.delete(quiz);
     }
 
     private QuizDto toDto(Quiz q) {

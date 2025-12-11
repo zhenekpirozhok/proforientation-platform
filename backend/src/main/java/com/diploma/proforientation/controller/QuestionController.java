@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/questions")
 @RequiredArgsConstructor
@@ -39,5 +41,22 @@ public class QuestionController {
     public QuestionDto updateOrder(@PathVariable Integer id,
                                    @PathVariable Integer ord) {
         return questionService.updateOrder(id, ord);
+    }
+
+    @GetMapping("/quiz/{quizId}")
+    public List<QuestionDto> getQuestionsForQuiz(
+            @PathVariable Integer quizId,
+            @RequestParam(defaultValue = "en") String locale
+    ) {
+        return questionService.getQuestionsForCurrentVersion(quizId, locale);
+    }
+
+    @GetMapping("/quiz/{quizId}/version/{version}")
+    public List<QuestionDto> getQuestionsForQuizVersion(
+            @PathVariable Integer quizId,
+            @PathVariable Integer version,
+            @RequestParam(defaultValue = "en") String locale
+    ) {
+        return questionService.getQuestionsForVersion(quizId, version, locale);
     }
 }

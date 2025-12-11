@@ -28,7 +28,7 @@ public class Quiz {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "processing_mode")
-    private QuizProcessingMode processingMode = QuizProcessingMode.ml_riasec;
+    private QuizProcessingMode processingMode = QuizProcessingMode.llm;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

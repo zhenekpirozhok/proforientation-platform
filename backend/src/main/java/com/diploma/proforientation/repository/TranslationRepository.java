@@ -14,4 +14,6 @@ public interface TranslationRepository extends JpaRepository<Translation, Intege
     List<Translation> findByEntityTypeAndEntityIdAndLocale(
             String entityType, Integer entityId, String locale
     );
+
+    List<Translation> findByEntityType(String entityType);
 }

@@ -44,4 +44,11 @@ public class TranslationController {
     ) {
         return service.search(entityType, entityId, locale);
     }
+
+    @GetMapping("/entity/{entityType}")
+    public List<TranslationDto> getAllForEntityType(
+            @PathVariable String entityType
+    ) {
+        return service.getAllForEntityType(entityType);
+    }
 }

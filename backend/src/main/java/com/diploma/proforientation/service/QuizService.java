@@ -14,4 +14,5 @@ public interface QuizService {
     QuizDto getByIdLocalized(Integer id, String locale);
     QuizDto create(CreateQuizRequest req);
     QuizDto update(Integer id, UpdateQuizRequest req);
+    void delete(Integer id);
 }

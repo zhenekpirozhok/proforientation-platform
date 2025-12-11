@@ -54,6 +54,29 @@ public class AdvisorController {
     }
 
     /**
+     * Handles Spring Security 6+ authorization failures.
+     * <p>
+     * This exception is thrown when:
+     *  - a user is authenticated but does not have enough roles/permissions
+     *  - @PreAuthorize(...) or method-level security denies access
+     * <p>
+     * It corresponds to HTTP 403 Forbidden.
+     */
+    @ExceptionHandler(org.springframework.security.authorization.AuthorizationDeniedException.class)
+    public ResponseEntity<ExceptionDto> handleAuthorizationDenied(
+            org.springframework.security.authorization.AuthorizationDeniedException e
+    ) {
+        log.warn("Authorization denied: {}", e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ExceptionDto(
+                        HttpStatus.FORBIDDEN.value(),
+                        Instant.now(),
+                        "Access denied: insufficient permissions"
+                ));
+    }
+
+    /**
      * Handles validation exceptions triggered by @Valid annotations.
      *
      * @param e the validation exception
