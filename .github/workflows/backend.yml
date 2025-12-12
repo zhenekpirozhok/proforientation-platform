@@ -149,11 +149,12 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./backend
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ghcr.io/${{ github.repository }}/backend:latest
+            ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
 
       # ------------------------------
@@ -170,121 +171,23 @@ jobs:
           if-no-files-found: ignore
 
   deploy:
-    needs: backend   
+    needs: backend
     runs-on: ubuntu-latest
   
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-      ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
-      ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
-      ECS_TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY }}
-  
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-  
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/proforientation-platform/backend
   
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
+            docker login ghcr.io -u alenatsibets -p ${{ secrets.GITHUB_TOKEN }}
   
-      - name: Build and push Docker image
-        run: |
-          IMAGE_TAG=${GITHUB_SHA}
-          ECR_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}
+            docker compose pull backend
+            docker compose up -d backend
   
-          docker build -t ${ECR_URI}:${IMAGE_TAG} ./backend
-          docker push ${ECR_URI}:${IMAGE_TAG}
-  
-          echo "IMAGE_URI=${ECR_URI}:${IMAGE_TAG}" >> $GITHUB_ENV
-  
-      - name: Get current task definition
-        run: |
-          aws ecs describe-task-definition \
-            --task-definition ${ECS_TASK_FAMILY} \
-            --query 'taskDefinition' \
-            --output json > task-def.json
-  
-      - name: Inject env vars + image into task definition
-        env:
-          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          ML_API_URL: ${{ secrets.ML_API_URL }}
-          APP_DB_USER: ${{ secrets.APP_DB_USER }}
-          APP_DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}
-          DB_ADMIN_USER: ${{ secrets.DB_ADMIN_USER }}
-          DB_ADMIN_PASSWORD: ${{ secrets.DB_ADMIN_PASSWORD }}
-          PGADMIN_DEFAULT_EMAIL: ${{ secrets.PGADMIN_DEFAULT_EMAIL }}
-          PGADMIN_DEFAULT_PASSWORD: ${{ secrets.PGADMIN_DEFAULT_PASSWORD }}
-          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          LOGGING_LEVEL: ${{ secrets.LOGGING_LEVEL }}
-        run: |
-          jq '
-            del(
-              .taskDefinitionArn,
-              .revision,
-              .status,
-              .requiresAttributes,
-              .compatibilities,
-              .registeredAt,
-              .registeredBy,
-              .deregisteredAt,
-              .inferenceAccelerators,
-              .runtimePlatform,
-              .proxyConfiguration,
-              .placementConstraints,
-              .ephemeralStorage
-            )
-            | .containerDefinitions[0].image = env.IMAGE_URI
-            | .containerDefinitions[0].environment = [
-                {"name":"POSTGRES_HOST","value":env.POSTGRES_HOST},
-                {"name":"POSTGRES_PORT","value":env.POSTGRES_PORT},
-                {"name":"POSTGRES_DB","value":env.POSTGRES_DB},
-                {"name":"POSTGRES_USER","value":env.POSTGRES_USER},
-                {"name":"POSTGRES_PASSWORD","value":env.POSTGRES_PASSWORD},
-                {"name":"ML_API_URL","value":env.ML_API_URL},
-                {"name":"APP_DB_USER","value":env.APP_DB_USER},
-                {"name":"APP_DB_PASSWORD","value":env.APP_DB_PASSWORD},
-                {"name":"DB_ADMIN_USER","value":env.DB_ADMIN_USER},
-                {"name":"DB_ADMIN_PASSWORD","value":env.DB_ADMIN_PASSWORD},
-                {"name":"PGADMIN_DEFAULT_EMAIL","value":env.PGADMIN_DEFAULT_EMAIL},
-                {"name":"PGADMIN_DEFAULT_PASSWORD","value":env.PGADMIN_DEFAULT_PASSWORD},
-                {"name":"JWT_SECRET_KEY","value":env.JWT_SECRET_KEY},
-                {"name":"GOOGLE_CLIENT_ID","value":env.GOOGLE_CLIENT_ID},
-                {"name":"GOOGLE_CLIENT_SECRET","value":env.GOOGLE_CLIENT_SECRET},
-                {"name":"OPENAI_API_KEY","value":env.OPENAI_API_KEY},
-                {"name":"LOGGING_LEVEL","value":env.LOGGING_LEVEL}
-              ]
-          ' task-def.json > new-task-def.json
-  
-      - name: Register new task definition
-        id: register-task-def
-        run: |
-          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
-            --cli-input-json file://new-task-def.json \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text)
-  
-          echo "TASK_DEF_ARN=${NEW_TASK_DEF_ARN}" >> $GITHUB_ENV
-  
-      - name: Update ECS service
-        run: |
-          aws ecs update-service \
-            --cluster ${ECS_CLUSTER} \
-            --service ${ECS_SERVICE} \
-            --task-definition ${TASK_DEF_ARN} \
-            --force-new-deployment
+            docker ps
   
