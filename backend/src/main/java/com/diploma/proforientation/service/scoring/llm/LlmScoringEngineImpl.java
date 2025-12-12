@@ -7,6 +7,7 @@ import com.diploma.proforientation.service.scoring.ScoringResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatModel;
@@ -19,6 +20,7 @@ import static com.diploma.proforientation.service.impl.AuthenticationServiceImpl
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LlmScoringEngineImpl implements LlmScoringEngine {
 
     private static final String NOT_VALID_JSON_REGEX1 = "```";
@@ -55,6 +57,8 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
         String content = response.getResult().getOutput().getContent();
 
         JsonNode json = parseJson(content);
+
+        log.info("LLM request worked");
 
         return new ScoringResult(
                 parseTraits(json),
