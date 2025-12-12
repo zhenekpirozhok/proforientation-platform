@@ -244,8 +244,6 @@ jobs:
               .deregisteredAt,
               .inferenceAccelerators,
               .runtimePlatform,
-              .taskRoleArn,
-              .executionRoleArn,
               .proxyConfiguration,
               .placementConstraints,
               .ephemeralStorage
