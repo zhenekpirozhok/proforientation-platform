@@ -1,10 +1,37 @@
 {
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
     "format:check": "prettier --check .",
-    "gen:api": "openapi-typescript ../contracts/openapi.json -o src/shared/api/generated/schema.d.ts"
+    "format:fix": "prettier --write .",
+    "test": "jest",
+    "gen:api": "bash -lc 'SPEC=../contracts/openapi.json; if [ -f \"$SPEC\" ]; then npx openapi-typescript \"$SPEC\" -o src/shared/api/generated/schema.d.ts; else npx openapi-typescript http://localhost:8082/api/v1.0/docs -o src/shared/api/generated/schema.d.ts; fi'"
+  },
+  "dependencies": {
+    "next": "16.0.10",
+    "react": "19.2.1",
+    "react-dom": "19.2.1"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.10",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
     "openapi-typescript": "^7.10.1",
-    "prettier": "^3.7.4"
+    "prettier": "^3.7.4",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
   }
 }
