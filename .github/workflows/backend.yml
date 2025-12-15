@@ -50,6 +50,38 @@ jobs:
           chmod +x mvnw || true
           ./mvnw -B -U --no-transfer-progress verify
 
+      - name: Start backend (background)
+        run: |
+          # находим jar (подстрой путь под свой)
+          JAR=$(ls -1 target/*.jar | head -n 1)
+          echo "Using JAR: $JAR"
+          nohup java -jar "$JAR" --server.port=8082 > backend.log 2>&1 &
+          
+          # ждём пока поднимется
+          for i in {1..60}; do
+            if curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null; then
+              echo "Backend is up"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend did not start in time"
+          tail -n 200 backend.log || true
+          exit 1
+
+      - name: Export OpenAPI spec
+        run: |
+          curl -fsS http://localhost:8082/api/v1.0/docs -o openapi.json
+          # быстрая проверка, что файл не пустой и это json со словом "openapi" или "paths"
+          test -s openapi.json
+          grep -q '"paths"' openapi.json
+
+      - name: Upload OpenAPI spec artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-spec
+          path: backend/openapi.json
+
       # ------------------------------
       # Quality Gate: Coverage >= 80%
       # ------------------------------

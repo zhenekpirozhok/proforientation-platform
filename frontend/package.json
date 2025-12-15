@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "format:check": "prettier --check .",
+    "gen:api": "openapi-typescript ../contracts/openapi.json -o src/shared/api/generated/schema.d.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.10.1",
+    "prettier": "^3.7.4"
+  }
+}
