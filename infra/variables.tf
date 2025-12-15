@@ -3,32 +3,27 @@ variable "aws_region" {
   default = "eu-central-1"
 }
 
-variable "backend_service_name" {
-  type    = string
-  default = "backend-service"
+variable "vpc_id" {
+  description = "VPC where EC2 and RDS live"
+  type        = string
 }
 
-variable "backend_task_family" {
-  type    = string
-  default = "backend"
+variable "subnet_id" {
+  description = "PUBLIC subnet for EC2"
+  type        = string
 }
 
-variable "container_port" {
+variable "key_name" {
+  description = "Existing EC2 key pair name"
+  type        = string
+}
+
+variable "my_ip" {
+  description = "Your IP for SSH access (x.x.x.x/32)"
+  type        = string
+}
+
+variable "backend_port" {
   type    = number
   default = 8082
-}
-
-variable "vpc_id" {
-  description = "VPC where ECS will run"
-  type        = string
-}
-
-variable "subnets" {
-  description = "Subnets for ECS tasks"
-  type        = list(string)
-}
-
-variable "rds_security_group_id" {
-  description = "Security group of the RDS instance"
-  type        = string
 }
