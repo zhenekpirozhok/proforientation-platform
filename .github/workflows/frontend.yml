@@ -2,14 +2,21 @@ name: Frontend (Next.js) - Lint, Test, Build, Image
 
 on:
   push:
+    branches: ["main"]
     paths: ["frontend/**"]
   pull_request:
     paths: ["frontend/**"]
   workflow_dispatch: {}
 
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   next:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     permissions:
       contents: read
       packages: write
@@ -52,34 +59,44 @@ jobs:
         working-directory: frontend
         run: npm run build --if-present
 
-      # ==== Docker image to GHCR (только не PR) ====
+      - name: Trivy fs scan (HIGH/CRITICAL)
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: frontend
+          exit-code: 1
+          severity: CRITICAL,HIGH
 
       - name: Log in to GHCR
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ github.token }}
 
       - name: Set up Docker Buildx
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: docker/setup-buildx-action@v3
         with:
           driver: docker-container
 
       - name: Docker meta (tags & labels)
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}/frontend
           tags: |
+            type=sha,format=long
             type=ref,event=branch
-            type=sha
+          labels: |
+            org.opencontainers.image.source=${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
 
       - name: Build & Push Image
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
@@ -88,4 +105,3 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
