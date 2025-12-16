@@ -2,21 +2,27 @@ name: DB - Validate & Migrate
 
 on:
   push:
+    branches: ["main"]
     paths: ["db/**"]
   pull_request:
     paths: ["db/**"]
   workflow_dispatch: {}
 
+concurrency:
+  group: db-flyway-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   flyway:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     services:
       postgres:
         image: postgres:16
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: mydb
         ports:
           - 5432:5432
@@ -29,11 +35,11 @@ jobs:
     env:
       POSTGRES_USER: postgres
       POSTGRES_DB: mydb
+      POSTGRES_PASSWORD: postgres
 
       APP_DB_USER: app_user
       DB_ADMIN_USER: db_admin
 
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       APP_DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}
       DB_ADMIN_PASSWORD: ${{ secrets.DB_ADMIN_PASSWORD }}
 
@@ -41,15 +47,32 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Sanity check migrations folder
+        run: |
+          set -euo pipefail
+          ls -la db/migration
+          test -n "$(ls -1 db/migration/*.sql 2>/dev/null || true)" || (echo "No SQL migrations found" && exit 1)
+
       - name: Wait for Postgres
         run: |
           for i in {1..60}; do
-            pg_isready -h localhost -p 5432 -U postgres >/dev/null 2>&1 && exit 0
+            pg_isready -h localhost -p 5432 -U postgres -d mydb >/dev/null 2>&1 && exit 0
             sleep 1
           done
           echo "Postgres is not ready" && exit 1
 
-      # ✅ MIGRATE — через обычный docker run
+      - name: Flyway validate (pre)
+        run: |
+          docker run --rm \
+            --network host \
+            -v ${{ github.workspace }}/db/migration:/flyway/sql \
+            flyway/flyway:10-alpine \
+            -url=jdbc:postgresql://localhost:5432/mydb \
+            -user=postgres \
+            -password=$POSTGRES_PASSWORD \
+            -connectRetries=60 \
+            validate | tee flyway-validate-pre.log
+
       - name: Flyway migrate
         run: |
           docker run --rm \
@@ -67,9 +90,9 @@ jobs:
             -placeholders.app_user_password=$APP_DB_PASSWORD \
             -placeholders.db_admin_name=$DB_ADMIN_USER \
             -placeholders.db_admin_password=$DB_ADMIN_PASSWORD \
-            migrate
+            migrate | tee flyway-migrate.log
 
-      - name: Flyway validate
+      - name: Flyway validate (post)
         run: |
           docker run --rm \
             --network host \
@@ -78,4 +101,29 @@ jobs:
             -url=jdbc:postgresql://localhost:5432/mydb \
             -user=postgres \
             -password=$POSTGRES_PASSWORD \
-            validate
+            -connectRetries=60 \
+            validate | tee flyway-validate-post.log
+
+      - name: Flyway info
+        if: always()
+        run: |
+          docker run --rm \
+            --network host \
+            -v ${{ github.workspace }}/db/migration:/flyway/sql \
+            flyway/flyway:10-alpine \
+            -url=jdbc:postgresql://localhost:5432/mydb \
+            -user=postgres \
+            -password=$POSTGRES_PASSWORD \
+            info | tee flyway-info.log
+
+      - name: Upload Flyway logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flyway-logs
+          path: |
+            flyway-validate-pre.log
+            flyway-migrate.log
+            flyway-validate-post.log
+            flyway-info.log
+          if-no-files-found: ignore
