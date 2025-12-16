@@ -2,7 +2,7 @@ name: Backend CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths: ["backend/**"]
   pull_request:
     paths: ["backend/**"]
@@ -25,7 +25,6 @@ jobs:
       run:
         working-directory: backend
 
-    # Postgres for CI
     services:
       postgres_db:
         image: postgres:16-alpine
@@ -52,19 +51,16 @@ jobs:
           java-version: "21"
           cache: maven
 
-      # Build & tests
       - name: Maven Verify
         run: |
           chmod +x mvnw || true
           ./mvnw -B -U --no-transfer-progress verify
 
-      # Smoke test: start backend and wait for OpenAPI
       - name: Start backend (smoke test)
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: "5432"
           POSTGRES_DB: proforientation
-
           APP_DB_USER: postgres
           APP_DB_PASSWORD: postgres
 
@@ -77,14 +73,17 @@ jobs:
           GOOGLE_CLIENT_SECRET: dummy
           OPENAI_API_KEY: dummy
         run: |
+          set -euo pipefail
           JAR=$(ls -1 target/*.jar | head -n 1)
           echo "Using JAR: $JAR"
 
           nohup java -jar "$JAR" --server.port=8082 > backend.log 2>&1 &
+          PID=$!
 
           for i in {1..60}; do
             if curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null; then
               echo "✔ Backend is up"
+              kill $PID || true
               exit 0
             fi
             sleep 2
@@ -92,6 +91,7 @@ jobs:
 
           echo "❌ Backend did not start in time"
           tail -n 250 backend.log || true
+          kill $PID || true
           exit 1
 
       - name: Export OpenAPI spec
@@ -106,9 +106,12 @@ jobs:
           name: openapi-spec
           path: backend/openapi.json
 
-      # Coverage gate
+      - name: Install bc (for coverage gate)
+        run: sudo apt-get update && sudo apt-get install -y bc
+
       - name: Enforce Coverage Quality Gate (>= 80%)
         run: |
+          set -euo pipefail
           CSV_FILE="target/site/jacoco/jacoco.csv"
 
           if [ ! -f "$CSV_FILE" ]; then
@@ -135,9 +138,9 @@ jobs:
 
           echo "✔ Coverage meets threshold"
 
-      # Lint
       - name: Check for commented-out code
         run: |
+          set -euo pipefail
           echo "Checking for commented-out code..."
           if grep -RIn --include="*.java" -E "^\s*//\s*(class|interface|void|public|private|protected|return|import|package)" .; then
             echo "❌ Commented-out code found"
@@ -152,7 +155,6 @@ jobs:
       - name: Run PMD
         run: ./mvnw pmd:check
 
-      # Artifacts
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -166,6 +168,14 @@ jobs:
         with:
           name: coverage-report
           path: backend/target/site/jacoco/**
+
+      - name: Upload backend logs (smoke)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-smoke-logs
+          path: backend/backend.log
+          if-no-files-found: ignore
 
       - name: Upload JAR(s)
         if: success()
@@ -184,7 +194,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ github.token }}
 
       - name: Set up Docker Buildx
         if: github.ref == 'refs/heads/main'
@@ -197,11 +207,30 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/backend
           tags: |
-            type=ref,event=branch
             type=sha
+            type=ref,event=branch
           labels: |
             org.opencontainers.image.source=${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
+
+      # Security gate (required-ish for defense): scan image BEFORE push
+      - name: Build image (no push) for security scan
+        if: github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: false
+          load: true
+          tags: backend:scan
+
+      - name: Trivy scan image (HIGH/CRITICAL)
+        if: github.ref == 'refs/heads/main'
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: backend:scan
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
 
       - name: Build & Push Image
         if: github.ref == 'refs/heads/main'
@@ -212,114 +241,60 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: CI Summary
+        if: always()
+        run: |
+          {
+            echo "### Backend CI summary"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Branch: \`${GITHUB_REF_NAME}\`"
+            if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+              echo "- Image: \`ghcr.io/${GITHUB_REPOSITORY}/backend\` (tags: sha + branch)"
+            else
+              echo "- Image push skipped (not main)"
+            fi
+            echo "- OpenAPI artifact: \`openapi-spec\`"
+            echo "- Reports: \`test-reports\`, \`coverage-report\`"
+          } >> $GITHUB_STEP_SUMMARY
+
   deploy:
-    name: Deploy to AWS ECS
+    name: Deploy to EC2 (Docker Compose)
     needs: backend
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 
-    env:
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-      ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
-      ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
-      ECS_TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY }}
-
-      POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-      POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
-      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-
-      APP_DB_USER: ${{ secrets.APP_DB_USER }}
-      APP_DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}
-
-      ML_API_URL: ${{ secrets.ML_API_URL }}
-      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      LOGGING_LEVEL: ${{ secrets.LOGGING_LEVEL }}
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -euo pipefail
 
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
+            cd ~/proforientation-platform/backend
 
-      - name: Build and push Docker image to ECR
-        run: |
-          IMAGE_TAG=${GITHUB_SHA}
-          ECR_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}
+            echo "BACKEND_IMAGE_TAG=${GITHUB_SHA}" > .env
 
-          docker build -t ${ECR_URI}:${IMAGE_TAG} ./backend
-          docker push ${ECR_URI}:${IMAGE_TAG}
+            docker compose pull backend
+            docker compose up -d --no-deps backend
 
-          echo "IMAGE_URI=${ECR_URI}:${IMAGE_TAG}" >> $GITHUB_ENV
+            docker compose ps
+            docker ps
 
-      - name: Get current task definition
-        run: |
-          aws ecs describe-task-definition \
-            --task-definition ${ECS_TASK_FAMILY} \
-            --query 'taskDefinition' \
-            --output json > task-def.json
-
-      - name: Inject env vars + image into task definition
-        run: |
-          jq '
-            del(
-              .taskDefinitionArn,
-              .revision,
-              .status,
-              .requiresAttributes,
-              .compatibilities,
-              .registeredAt,
-              .registeredBy,
-              .deregisteredAt,
-              .inferenceAccelerators,
-              .runtimePlatform,
-              .taskRoleArn,
-              .executionRoleArn,
-              .proxyConfiguration,
-              .placementConstraints,
-              .ephemeralStorage
-            )
-            | .containerDefinitions[0].image = env.IMAGE_URI
-            | .containerDefinitions[0].environment = [
-                {"name":"POSTGRES_HOST","value":env.POSTGRES_HOST},
-                {"name":"POSTGRES_PORT","value":env.POSTGRES_PORT},
-                {"name":"POSTGRES_DB","value":env.POSTGRES_DB},
-                {"name":"APP_DB_USER","value":env.APP_DB_USER},
-                {"name":"APP_DB_PASSWORD","value":env.APP_DB_PASSWORD},
-                {"name":"ML_API_URL","value":env.ML_API_URL},
-                {"name":"JWT_SECRET_KEY","value":env.JWT_SECRET_KEY},
-                {"name":"GOOGLE_CLIENT_ID","value":env.GOOGLE_CLIENT_ID},
-                {"name":"GOOGLE_CLIENT_SECRET","value":env.GOOGLE_CLIENT_SECRET},
-                {"name":"OPENAI_API_KEY","value":env.OPENAI_API_KEY},
-                {"name":"LOGGING_LEVEL","value":env.LOGGING_LEVEL}
-              ]
-          ' task-def.json > new-task-def.json
-
-      - name: Register new task definition
-        run: |
-          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
-            --cli-input-json file://new-task-def.json \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text)
-
-          echo "TASK_DEF_ARN=${NEW_TASK_DEF_ARN}" >> $GITHUB_ENV
-
-      - name: Update ECS service
-        run: |
-          aws ecs update-service \
-            --cluster ${ECS_CLUSTER} \
-            --service ${ECS_SERVICE} \
-            --task-definition ${TASK_DEF_ARN} \
-            --force-new-deployment
+            if [ -n "${{ secrets.BACKEND_HEALTH_URL || '' }}" ]; then
+              echo "Checking: ${{ secrets.BACKEND_HEALTH_URL }}"
+              for i in {1..30}; do
+                if curl -fsS "${{ secrets.BACKEND_HEALTH_URL }}" >/dev/null; then
+                  echo "✔ Healthcheck OK"
+                  exit 0
+                fi
+                sleep 2
+              done
+              echo "❌ Healthcheck failed"
+              docker logs --tail=200 backend || true
+              exit 1
+            else
+              echo "BACKEND_HEALTH_URL is not set; skipping HTTP healthcheck."
+            fi
