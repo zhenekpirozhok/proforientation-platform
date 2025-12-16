@@ -25,16 +25,26 @@ jobs:
       run:
         working-directory: backend
 
+    # Postgres for CI
+    services:
+      postgres_db:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: proforientation
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d proforientation"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
     steps:
-      # ------------------------------
-      # Checkout
-      # ------------------------------
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ------------------------------
-      # Java Setup
-      # ------------------------------
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -42,22 +52,40 @@ jobs:
           java-version: "21"
           cache: maven
 
-      # ------------------------------
-      # Build & Tests (Unit + IT + Coverage)
-      # ------------------------------
+      # Build & tests
       - name: Maven Verify
         run: |
           chmod +x mvnw || true
           ./mvnw -B -U --no-transfer-progress verify
 
+      # Start app and export OpenAPI
       - name: Start backend (background)
+        env:
+          # ✅ ИМЕНА ПЕРЕМЕННЫХ ОСТАЮТСЯ КАК У ТЕБЯ В ПРОЕКТЕ
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: "5432"
+          POSTGRES_DB: proforientation
+
+          # spring.datasource.username/password берутся из APP_DB_*
+          APP_DB_USER: postgres
+          APP_DB_PASSWORD: postgres
+
+          # чтобы не падало на validate в пустой CI-базе
+          SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+          # остальное - чтобы не мешало старту (можно оставить пустым)
+          ML_API_URL: http://127.0.0.1:8000
+          JWT_SECRET_KEY: ci_demo_secret
+          GOOGLE_CLIENT_ID: dummy
+          GOOGLE_CLIENT_SECRET: dummy
+          OPENAI_API_KEY: dummy
         run: |
-          # находим jar (подстрой путь под свой)
           JAR=$(ls -1 target/*.jar | head -n 1)
           echo "Using JAR: $JAR"
+
           nohup java -jar "$JAR" --server.port=8082 > backend.log 2>&1 &
-          
-          # ждём пока поднимется
+
+          # wait until /docs is available
           for i in {1..60}; do
             if curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null; then
               echo "Backend is up"
@@ -65,14 +93,14 @@ jobs:
             fi
             sleep 2
           done
+
           echo "Backend did not start in time"
-          tail -n 200 backend.log || true
+          tail -n 250 backend.log || true
           exit 1
 
       - name: Export OpenAPI spec
         run: |
           curl -fsS http://localhost:8082/api/v1.0/docs -o openapi.json
-          # быстрая проверка, что файл не пустой и это json со словом "openapi" или "paths"
           test -s openapi.json
           grep -q '"paths"' openapi.json
 
@@ -82,9 +110,7 @@ jobs:
           name: openapi-spec
           path: backend/openapi.json
 
-      # ------------------------------
-      # Quality Gate: Coverage >= 80%
-      # ------------------------------
+      # Coverage gate
       - name: Enforce Coverage Quality Gate (>= 80%)
         run: |
           CSV_FILE="target/site/jacoco/jacoco.csv"
@@ -98,14 +124,12 @@ jobs:
           COVERED=$(awk -F',' 'NR>1 {sum+=$5} END {print sum}' "$CSV_FILE")
 
           TOTAL=$((MISSED + COVERED))
-
           if [ "$TOTAL" -eq 0 ]; then
             echo "❌ No coverage data found"
             exit 1
           fi
 
           COVERAGE=$(awk -v c="$COVERED" -v t="$TOTAL" 'BEGIN { printf "%.2f", (c/t)*100 }')
-
           echo "📊 Instruction Coverage: $COVERAGE%"
 
           if (( $(echo "$COVERAGE < 80" | bc -l) )); then
@@ -115,9 +139,7 @@ jobs:
 
           echo "✔ Coverage meets threshold"
 
-      # ------------------------------
-      # Lint Checks
-      # ------------------------------
+      # Lint
       - name: Check for commented-out code
         run: |
           echo "Checking for commented-out code..."
@@ -134,9 +156,7 @@ jobs:
       - name: Run PMD
         run: ./mvnw pmd:check
 
-      # ------------------------------
-      # Upload Test & Coverage Reports
-      # ------------------------------
+      # Artifacts
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -151,20 +171,17 @@ jobs:
           name: coverage-report
           path: backend/target/site/jacoco/**
 
-      # ------------------------------
-      # Docker Image Build & Push
-      # ------------------------------
-      # ------------------------------
+      # Docker image to GHCR
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -176,7 +193,7 @@ jobs:
           labels: |
             org.opencontainers.image.source=${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-      
+
       - name: Build & Push Image
         uses: docker/build-push-action@v6
         with:
@@ -187,10 +204,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-
-      # ------------------------------
-      # Upload JAR Artifacts
-      # ------------------------------
       - name: Upload JAR(s)
         if: success()
         uses: actions/upload-artifact@v4
@@ -201,10 +214,12 @@ jobs:
             backend/*/target/*.jar
           if-no-files-found: ignore
 
+  # deploy job оставляю как у тебя (он норм), но ниже дам инструкцию как “вернуться на AWS”
   deploy:
-    needs: backend   
+    needs: backend
     runs-on: ubuntu-latest
-  
+    if: ${{ github.event_name != 'pull_request' }}
+
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
@@ -212,38 +227,52 @@ jobs:
       ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
       ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
       ECS_TASK_FAMILY: ${{ secrets.ECS_TASK_FAMILY }}
-  
+
+      POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+      POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+
+      APP_DB_USER: ${{ secrets.APP_DB_USER }}
+      APP_DB_PASSWORD: ${{ secrets.APP_DB_PASSWORD }}
+
+      ML_API_URL: ${{ secrets.ML_API_URL }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      LOGGING_LEVEL: ${{ secrets.LOGGING_LEVEL }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-  
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-  
+
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
-  
+
       - name: Build and push Docker image
         run: |
           IMAGE_TAG=${GITHUB_SHA}
           ECR_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}
-  
+
           docker build -t ${ECR_URI}:${IMAGE_TAG} ./backend
           docker push ${ECR_URI}:${IMAGE_TAG}
-  
+
           echo "IMAGE_URI=${ECR_URI}:${IMAGE_TAG}" >> $GITHUB_ENV
-  
+
       - name: Get current task definition
         run: |
           aws ecs describe-task-definition \
             --task-definition ${ECS_TASK_FAMILY} \
             --query 'taskDefinition' \
             --output json > task-def.json
-  
+
       - name: Inject env vars + image into task definition
         run: |
           jq '
@@ -269,15 +298,9 @@ jobs:
                 {"name":"POSTGRES_HOST","value":env.POSTGRES_HOST},
                 {"name":"POSTGRES_PORT","value":env.POSTGRES_PORT},
                 {"name":"POSTGRES_DB","value":env.POSTGRES_DB},
-                {"name":"POSTGRES_USER","value":env.POSTGRES_USER},
-                {"name":"POSTGRES_PASSWORD","value":env.POSTGRES_PASSWORD},
-                {"name":"ML_API_URL","value":env.ML_API_URL},
                 {"name":"APP_DB_USER","value":env.APP_DB_USER},
                 {"name":"APP_DB_PASSWORD","value":env.APP_DB_PASSWORD},
-                {"name":"DB_ADMIN_USER","value":env.DB_ADMIN_USER},
-                {"name":"DB_ADMIN_PASSWORD","value":env.DB_ADMIN_PASSWORD},
-                {"name":"PGADMIN_DEFAULT_EMAIL","value":env.PGADMIN_DEFAULT_EMAIL},
-                {"name":"PGADMIN_DEFAULT_PASSWORD","value":env.PGADMIN_DEFAULT_PASSWORD},
+                {"name":"ML_API_URL","value":env.ML_API_URL},
                 {"name":"JWT_SECRET_KEY","value":env.JWT_SECRET_KEY},
                 {"name":"GOOGLE_CLIENT_ID","value":env.GOOGLE_CLIENT_ID},
                 {"name":"GOOGLE_CLIENT_SECRET","value":env.GOOGLE_CLIENT_SECRET},
@@ -286,17 +309,15 @@ jobs:
               ]
           ' task-def.json > new-task-def.json
 
-  
       - name: Register new task definition
-        id: register-task-def
         run: |
           NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \
             --cli-input-json file://new-task-def.json \
             --query 'taskDefinition.taskDefinitionArn' \
             --output text)
-  
+
           echo "TASK_DEF_ARN=${NEW_TASK_DEF_ARN}" >> $GITHUB_ENV
-  
+
       - name: Update ECS service
         run: |
           aws ecs update-service \
@@ -304,4 +325,3 @@ jobs:
             --service ${ECS_SERVICE} \
             --task-definition ${TASK_DEF_ARN} \
             --force-new-deployment
-  
