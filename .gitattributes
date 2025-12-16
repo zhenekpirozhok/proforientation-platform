@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+*.ts   text eol=lf
+*.d.ts text eol=lf
+*.json text eol=lf
+
+frontend/src/shared/api/generated/schema.d.ts text eol=lf

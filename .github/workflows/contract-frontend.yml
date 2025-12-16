@@ -1,38 +1,45 @@
 name: Contract → Frontend (Generate API types)
 
 on:
-  workflow_run:
-    workflows: ["Backend CI/CD"]
-    types: [completed]
+  push:
+    branches: ["main"]
+    paths:
+      - "contracts/openapi.json"
+      - "frontend/**"
+  workflow_dispatch: {}
 
 concurrency:
-  group: contract-types-${{ github.event.workflow_run.head_branch }}
+  group: contract-types-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   generate-types:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Download OpenAPI artifact
-        uses: dawidd6/action-download-artifact@v3
         with:
-          workflow: backend.yml
-          run_id: ${{ github.event.workflow_run.id }}
-          name: openapi-spec
-          path: contracts
+          fetch-depth: 0
 
-      - name: Verify OpenAPI artifact
+      - name: Normalize git line endings (LF)
+        run: |
+          set -euo pipefail
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+          git config --global core.safecrlf true
+
+      - name: Verify OpenAPI in repo
         run: |
           set -euo pipefail
           test -s contracts/openapi.json
           grep -q '"paths"' contracts/openapi.json
-          echo "✔ OpenAPI artifact OK: contracts/openapi.json"
+          echo "OpenAPI sha256:"
+          sha256sum contracts/openapi.json
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -45,35 +52,41 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Generate API types (from artifact)
+      - name: Generate API types (from repo OpenAPI)
         working-directory: frontend
         run: |
           set -euo pipefail
-          # gen:api uses ../contracts/openapi.json first (your script)
+          test -s ../contracts/openapi.json
           npm run gen:api
+
+      - name: Commit generated API types if changed
+        run: |
+          set -euo pipefail
+
+          # Коммитим только если изменился именно сгенерированный файл(ы)
+          if git diff --quiet -- frontend/src/shared/api/generated/; then
+            echo "✔ No generated type changes."
+            exit 0
+          fi
+
+          echo "Detected generated changes:"
+          git status --porcelain
+          git diff --stat -- frontend/src/shared/api/generated/ || true
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add frontend/src/shared/api/generated/
+          git commit -m "chore(contract): regenerate frontend API types"
+          git push
 
       - name: Contract gate - generated types must be committed (no diff)
         run: |
           set -euo pipefail
           if [ -n "$(git status --porcelain)" ]; then
             echo "❌ Contract failed: generated API types differ from committed files."
-            echo "Run 'npm run gen:api' and commit changes."
+            git status --porcelain
             git diff --stat
             exit 1
           fi
           echo "✔ Contract OK: generated types match committed files"
-
-      - name: Build frontend (contract check)
-        working-directory: frontend
-        run: npm run build --if-present
-
-      - name: Contract Summary
-        if: always()
-        run: |
-          {
-            echo "### Contract → Frontend"
-            echo "- Backend run: ${{ github.event.workflow_run.id }}"
-            echo "- Backend commit: ${{ github.event.workflow_run.head_sha }}"
-            echo "- OpenAPI: contracts/openapi.json (downloaded artifact)"
-            echo "- Gate: types generation produces no git diff"
-          } >> $GITHUB_STEP_SUMMARY
