@@ -3,157 +3,697 @@
  * Do not make direct changes to the file.
  */
 
-
 export interface paths {
-  "/translations/{id}": {
-    put: operations["update"];
-    delete: operations["delete"];
+  '/translations/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['update'];
+    post?: never;
+    delete: operations['delete'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/traits/{id}": {
-    get: operations["getById"];
-    put: operations["update_1"];
-    delete: operations["delete_1"];
+  '/traits/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getById'];
+    put: operations['update_1'];
+    post?: never;
+    delete: operations['delete_1'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/quizzes/{id}": {
-    get: operations["getById_1"];
-    put: operations["update_2"];
-    delete: operations["delete_2"];
+  '/quizzes/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getById_1'];
+    put: operations['update_2'];
+    post?: never;
+    delete: operations['delete_2'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/questions/{id}": {
-    put: operations["update_3"];
-    delete: operations["delete_3"];
+  '/questions/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['update_3'];
+    post?: never;
+    delete: operations['delete_3'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/questions/{id}/order/{ord}": {
-    put: operations["updateOrder"];
+  '/questions/{id}/order/{ord}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['updateOrder'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/professions/{id}": {
-    get: operations["getById_2"];
-    put: operations["update_4"];
-    delete: operations["delete_4"];
+  '/professions/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getById_2'];
+    put: operations['update_4'];
+    post?: never;
+    delete: operations['delete_4'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/options/{optionId}/traits": {
-    put: operations["updateTraits"];
-    post: operations["assignTraits"];
+  '/options/{optionId}/traits': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['updateTraits'];
+    post: operations['assignTraits'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/options/{id}": {
-    put: operations["update_5"];
-    delete: operations["delete_5"];
+  '/options/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['update_5'];
+    post?: never;
+    delete: operations['delete_5'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/options/{id}/order/{ord}": {
-    put: operations["updateOrder_1"];
+  '/options/{id}/order/{ord}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['updateOrder_1'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/categories/{id}": {
-    put: operations["update_6"];
-    delete: operations["delete_6"];
+  '/categories/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put: operations['update_6'];
+    post?: never;
+    delete: operations['delete_6'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/translations": {
-    get: operations["search"];
-    post: operations["create"];
+  '/translations': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['search'];
+    put?: never;
+    post: operations['create'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/traits": {
-    get: operations["getAll"];
-    post: operations["create_1"];
+  '/traits': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getAll'];
+    put?: never;
+    post: operations['create_1'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/quizzes": {
-    get: operations["getAll_1"];
-    post: operations["create_2"];
+  '/quizzes': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getAll_1'];
+    put?: never;
+    post: operations['create_2'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/quizzes/{id}/publish": {
-    post: operations["publish"];
+  '/quizzes/{id}/publish': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['publish'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/quizzes/{id}/copy": {
-    post: operations["copyLatest"];
+  '/quizzes/{id}/copy': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['copyLatest'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/questions": {
-    post: operations["create_3"];
+  '/questions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['create_3'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/professions": {
-    get: operations["getAll_2"];
-    post: operations["create_4"];
+  '/professions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getAll_2'];
+    put?: never;
+    post: operations['create_4'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/options": {
-    post: operations["create_5"];
+  '/options': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['create_5'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/demo/ml": {
-    post: operations["testMl"];
+  '/demo/ml': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['testMl'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/demo/llm": {
-    post: operations["testLlm"];
+  '/demo/llm': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['testLlm'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/categories": {
-    get: operations["getAll_3"];
-    post: operations["create_6"];
+  '/categories': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getAll_3'];
+    put?: never;
+    post: operations['create_6'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/auth/signup": {
-    post: operations["register"];
+  '/auth/signup': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['register'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/auth/reset-password": {
-    post: operations["resetPassword"];
+  '/auth/reset-password': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['resetPassword'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/auth/request-password-reset": {
-    post: operations["requestReset"];
+  '/auth/request-password-reset': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['requestReset'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/auth/refresh": {
-    post: operations["refreshToken"];
+  '/auth/refresh': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['refreshToken'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/auth/login": {
-    post: operations["authenticate"];
+  '/auth/login': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['authenticate'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/auth/google-onetap": {
-    post: operations["handleGoogleOneTap"];
+  '/auth/google-onetap': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['handleGoogleOneTap'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/attempts/{attemptId}/submit": {
-    post: operations["submit"];
+  '/attempts/{attemptId}/submit': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['submit'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/attempts/{attemptId}/answers": {
-    post: operations["addAnswer"];
+  '/attempts/{attemptId}/answers': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['addAnswer'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/attempts/start": {
-    post: operations["startAttempt"];
+  '/attempts/start': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['startAttempt'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/users/me": {
-    get: operations["authenticatedUser"];
+  '/users/me': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['authenticatedUser'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/users/": {
-    get: operations["allUsers"];
+  '/users/': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['allUsers'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/translations/entity/{entityType}": {
-    get: operations["getAllForEntityType"];
+  '/translations/entity/{entityType}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getAllForEntityType'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/quizzes/{id}/versions": {
-    get: operations["getVersions"];
+  '/quizzes/{id}/versions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getVersions'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/quizzes/{id}/versions/{version}": {
-    get: operations["getVersion"];
+  '/quizzes/{id}/versions/{version}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getVersion'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/quizzes/{id}/versions/current": {
-    get: operations["getCurrentVersion"];
+  '/quizzes/{id}/versions/current': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getCurrentVersion'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/questions/quiz/{quizId}": {
-    get: operations["getQuestionsForQuiz"];
+  '/questions/quiz/{quizId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getQuestionsForQuiz'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/questions/quiz/{quizId}/version/{version}": {
-    get: operations["getQuestionsForQuizVersion"];
+  '/questions/quiz/{quizId}/version/{version}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getQuestionsForQuizVersion'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/options/question/{questionId}": {
-    get: operations["getByQuestion"];
+  '/options/question/{questionId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getByQuestion'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/attempts": {
-    get: operations["myAttempts"];
+  '/attempts': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['myAttempts'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/attempts/{id}/result": {
-    get: operations["getResult"];
+  '/attempts/{id}/result': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['getResult'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/attempts/search": {
-    get: operations["search_1"];
+  '/attempts/search': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['search_1'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
-  "/auth/account": {
-    delete: operations["deleteAccount"];
+  '/auth/account': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    delete: operations['deleteAccount'];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
   };
 }
-
 export type webhooks = Record<string, never>;
-
 export interface components {
   schemas: {
     ExceptionDto: {
@@ -232,7 +772,7 @@ export interface components {
       ord?: number;
       qtype?: string;
       text?: string;
-      options?: components["schemas"]["OptionDto"][];
+      options?: components['schemas']['OptionDto'][];
     };
     CreateProfessionRequest: {
       code?: string;
@@ -253,7 +793,7 @@ export interface components {
       categoryId?: number;
     };
     OptionTraitListRequest: {
-      traits?: components["schemas"]["OptionTraitRequest"][];
+      traits?: components['schemas']['OptionTraitRequest'][];
     };
     OptionTraitRequest: {
       /** Format: int32 */
@@ -333,7 +873,7 @@ export interface components {
       traitScores?: {
         [key: string]: number;
       };
-      recommendations?: components["schemas"]["RecommendationDto"][];
+      recommendations?: components['schemas']['RecommendationDto'][];
     };
     RegisterUserDto: {
       email?: string;
@@ -350,14 +890,14 @@ export interface components {
       passwordHash?: string;
       displayName?: string;
       /** @enum {string} */
-      role?: "USER" | "ADMIN";
+      role?: 'USER' | 'ADMIN';
       /** Format: date-time */
       createdAt?: string;
       password?: string;
       username?: string;
       enabled?: boolean;
       active?: boolean;
-      authorities?: components["schemas"]["GrantedAuthority"][];
+      authorities?: components['schemas']['GrantedAuthority'][];
       accountNonExpired?: boolean;
       accountNonLocked?: boolean;
       credentialsNonExpired?: boolean;
@@ -390,7 +930,7 @@ export interface components {
       traitScores?: {
         [key: string]: number;
       };
-      recommendations?: components["schemas"]["RecommendationDto"][];
+      recommendations?: components['schemas']['RecommendationDto'][];
     };
     AddAnswerRequest: {
       /** Format: int32 */
@@ -421,857 +961,1242 @@ export interface components {
   headers: never;
   pathItems: never;
 }
-
 export type $defs = Record<string, never>;
-
-export type external = Record<string, never>;
-
 export interface operations {
-
   update: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UpdateTranslationRequest"];
+        'application/json': components['schemas']['UpdateTranslationRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["TranslationDto"];
+          '*/*': components['schemas']['TranslationDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   delete: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
-        content: never;
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   getById: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["TraitDto"];
+          '*/*': components['schemas']['TraitDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   update_1: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateTraitRequest"];
+        'application/json': components['schemas']['CreateTraitRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["TraitDto"];
+          '*/*': components['schemas']['TraitDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   delete_1: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
-        content: never;
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   getById_1: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuizDto"];
+          '*/*': components['schemas']['QuizDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   update_2: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UpdateQuizRequest"];
+        'application/json': components['schemas']['UpdateQuizRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuizDto"];
+          '*/*': components['schemas']['QuizDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   delete_2: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
-        content: never;
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   update_3: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UpdateQuestionRequest"];
+        'application/json': components['schemas']['UpdateQuestionRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuestionDto"];
+          '*/*': components['schemas']['QuestionDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   delete_3: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
-        content: never;
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   updateOrder: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
         ord: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuestionDto"];
+          '*/*': components['schemas']['QuestionDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   getById_2: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ProfessionDto"];
+          '*/*': components['schemas']['ProfessionDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   update_4: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateProfessionRequest"];
+        'application/json': components['schemas']['CreateProfessionRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ProfessionDto"];
+          '*/*': components['schemas']['ProfessionDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   delete_4: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
-        content: never;
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   updateTraits: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         optionId: number;
       };
+      cookie?: never;
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["OptionTraitListRequest"];
+        'application/json': components['schemas']['OptionTraitListRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
-        content: never;
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   assignTraits: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         optionId: number;
       };
+      cookie?: never;
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["OptionTraitListRequest"];
+        'application/json': components['schemas']['OptionTraitListRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
-        content: never;
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   update_5: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["UpdateOptionRequest"];
+        'application/json': components['schemas']['UpdateOptionRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["OptionDto"];
+          '*/*': components['schemas']['OptionDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   delete_5: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
-        content: never;
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   updateOrder_1: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
         ord: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["OptionDto"];
+          '*/*': components['schemas']['OptionDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   update_6: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateCategoryRequest"];
+        'application/json': components['schemas']['CreateCategoryRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ProfessionCategoryDto"];
+          '*/*': components['schemas']['ProfessionCategoryDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   delete_6: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
-        content: never;
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
@@ -1283,916 +2208,1413 @@ export interface operations {
         entityId: number;
         locale: string;
       };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["TranslationDto"][];
+          '*/*': components['schemas']['TranslationDto'][];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateTranslationRequest"];
+        'application/json': components['schemas']['CreateTranslationRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["TranslationDto"];
+          '*/*': components['schemas']['TranslationDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   getAll: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["TraitDto"][];
+          '*/*': components['schemas']['TraitDto'][];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   create_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateTraitRequest"];
+        'application/json': components['schemas']['CreateTraitRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["TraitDto"];
+          '*/*': components['schemas']['TraitDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   getAll_1: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuizDto"][];
+          '*/*': components['schemas']['QuizDto'][];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   create_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateQuizRequest"];
+        'application/json': components['schemas']['CreateQuizRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuizDto"];
+          '*/*': components['schemas']['QuizDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   publish: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuizVersionDto"];
+          '*/*': components['schemas']['QuizVersionDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   copyLatest: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuizVersionDto"];
+          '*/*': components['schemas']['QuizVersionDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   create_3: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateQuestionRequest"];
+        'application/json': components['schemas']['CreateQuestionRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuestionDto"];
+          '*/*': components['schemas']['QuestionDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   getAll_2: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ProfessionDto"][];
+          '*/*': components['schemas']['ProfessionDto'][];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   create_4: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateProfessionRequest"];
+        'application/json': components['schemas']['CreateProfessionRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ProfessionDto"];
+          '*/*': components['schemas']['ProfessionDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   create_5: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateOptionRequest"];
+        'application/json': components['schemas']['CreateOptionRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["OptionDto"];
+          '*/*': components['schemas']['OptionDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   testMl: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["DemoRequest"];
+        'application/json': components['schemas']['DemoRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ScoringResult"];
+          '*/*': components['schemas']['ScoringResult'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   testLlm: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["DemoRequest"];
+        'application/json': components['schemas']['DemoRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ScoringResult"];
+          '*/*': components['schemas']['ScoringResult'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   getAll_3: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ProfessionCategoryDto"][];
+          '*/*': components['schemas']['ProfessionCategoryDto'][];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   create_6: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["CreateCategoryRequest"];
+        'application/json': components['schemas']['CreateCategoryRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ProfessionCategoryDto"];
+          '*/*': components['schemas']['ProfessionCategoryDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   register: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["RegisterUserDto"];
+        'application/json': components['schemas']['RegisterUserDto'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["User"];
+          '*/*': components['schemas']['User'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   resetPassword: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["ResetPasswordDto"];
+        'application/json': components['schemas']['ResetPasswordDto'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": Record<string, never>;
+          '*/*': Record<string, never>;
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   requestReset: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["RequestResetPasswordDto"];
+        'application/json': components['schemas']['RequestResetPasswordDto'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": Record<string, never>;
+          '*/*': Record<string, never>;
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   refreshToken: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["RefreshTokenRequest"];
+        'application/json': components['schemas']['RefreshTokenRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["LoginResponse"];
+          '*/*': components['schemas']['LoginResponse'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   authenticate: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["LoginUserDto"];
+        'application/json': components['schemas']['LoginUserDto'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["LoginResponse"];
+          '*/*': components['schemas']['LoginResponse'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   handleGoogleOneTap: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["GoogleOneTapLoginRequest"];
+        'application/json': components['schemas']['GoogleOneTapLoginRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": Record<string, never>;
+          '*/*': Record<string, never>;
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   submit: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         attemptId: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["AttemptResultDto"];
+          '*/*': components['schemas']['AttemptResultDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   addAnswer: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         attemptId: number;
       };
+      cookie?: never;
     };
     requestBody: {
       content: {
-        "application/json": components["schemas"]["AddAnswerRequest"];
+        'application/json': components['schemas']['AddAnswerRequest'];
       };
     };
     responses: {
       /** @description OK */
       200: {
-        content: never;
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
@@ -2202,261 +3624,400 @@ export interface operations {
       query: {
         quizVersionId: number;
       };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["AttemptStartResponse"];
+          '*/*': components['schemas']['AttemptStartResponse'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   authenticatedUser: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["User"];
+          '*/*': components['schemas']['User'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   allUsers: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["User"][];
+          '*/*': components['schemas']['User'][];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   getAllForEntityType: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         entityType: string;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["TranslationDto"][];
+          '*/*': components['schemas']['TranslationDto'][];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   getVersions: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuizVersionDto"][];
+          '*/*': components['schemas']['QuizVersionDto'][];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   getVersion: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
         version: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuizVersionDto"];
+          '*/*': components['schemas']['QuizVersionDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   getCurrentVersion: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuizVersionDto"];
+          '*/*': components['schemas']['QuizVersionDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
@@ -2466,39 +4027,57 @@ export interface operations {
       query?: {
         locale?: string;
       };
+      header?: never;
       path: {
         quizId: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuestionDto"][];
+          '*/*': components['schemas']['QuestionDto'][];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
@@ -2508,79 +4087,116 @@ export interface operations {
       query?: {
         locale?: string;
       };
+      header?: never;
       path: {
         quizId: number;
         version: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["QuestionDto"][];
+          '*/*': components['schemas']['QuestionDto'][];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   getByQuestion: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         questionId: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["OptionDto"][];
+          '*/*': components['schemas']['OptionDto'][];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
@@ -2590,75 +4206,113 @@ export interface operations {
       query?: {
         guestToken?: string;
       };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["AttemptSummaryDto"][];
+          '*/*': components['schemas']['AttemptSummaryDto'][];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
   };
   getResult: {
     parameters: {
+      query?: never;
+      header?: never;
       path: {
         id: number;
       };
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["AttemptResultDto"];
+          '*/*': components['schemas']['AttemptResultDto'];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
@@ -2671,36 +4325,55 @@ export interface operations {
         from?: string;
         to?: string;
       };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["AttemptSummaryDto"][];
+          '*/*': components['schemas']['AttemptSummaryDto'][];
         };
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };
@@ -2710,34 +4383,53 @@ export interface operations {
       query: {
         password: string;
       };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    requestBody?: never;
     responses: {
       /** @description OK */
       200: {
-        content: never;
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Bad Request */
       400: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Unauthorized */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Not Found */
       404: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
       /** @description Internal Server Error */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
         content: {
-          "*/*": components["schemas"]["ExceptionDto"];
+          '*/*': components['schemas']['ExceptionDto'];
         };
       };
     };

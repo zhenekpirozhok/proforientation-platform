@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 25
 
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     defaults:
@@ -44,6 +44,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -121,6 +123,34 @@ jobs:
           grep -q '"paths"' openapi.json
 
           kill $PID || true
+
+      - name: Move OpenAPI to repo contracts/
+        run: |
+          set -euo pipefail
+          mkdir -p ../contracts
+          cp -f openapi.json ../contracts/openapi.json
+          test -s ../contracts/openapi.json
+          echo "contracts/openapi.json sha256:"
+          sha256sum ../contracts/openapi.json
+
+      - name: Commit contracts/openapi.json if changed (main only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+
+          cd ..
+          if git diff --quiet -- contracts/openapi.json; then
+            echo "No OpenAPI changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add contracts/openapi.json
+          git commit -m "chore(contract): update OpenAPI spec"
+          git push
+
 
       - name: Upload OpenAPI spec artifact
         uses: actions/upload-artifact@v4

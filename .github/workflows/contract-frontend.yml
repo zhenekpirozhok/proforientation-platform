@@ -1,23 +1,30 @@
 name: Contract → Frontend (Generate API types)
 
 on:
-  workflow_run:
-    workflows: ["Backend CI/CD"]
-    types: [completed]
+  push:
+    branches: ["main"]
+    paths:
+      - "contracts/openapi.json"
+      - "frontend/**"
+  workflow_dispatch: {}
 
 concurrency:
-  group: contract-types-${{ github.event.workflow_run.head_branch }}
+  group: contract-types-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   generate-types:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Normalize git line endings (LF)
         run: |
@@ -26,30 +33,13 @@ jobs:
           git config --global core.eol lf
           git config --global core.safecrlf true
 
-          echo "Git config:"
-          git config --global --list | grep -E 'core.autocrlf|core.eol|core.safecrlf'
-
-      - name: Download OpenAPI artifact
-        uses: dawidd6/action-download-artifact@v3
-        with:
-          workflow: backend.yml
-          run_id: ${{ github.event.workflow_run.id }}
-          name: openapi-spec
-          path: contracts
-
-      - name: Verify OpenAPI artifact and paths
+      - name: Verify OpenAPI in repo
         run: |
           set -euo pipefail
-          echo "Workspace: $GITHUB_WORKSPACE"
-          ls -la
-          ls -la contracts
           test -s contracts/openapi.json
           grep -q '"paths"' contracts/openapi.json
-          # Проверяем путь так, как его видит gen:api из папки frontend
-          test -s frontend/../contracts/openapi.json
-          echo "✔ OpenAPI OK and path frontend/../contracts/openapi.json exists"
           echo "OpenAPI sha256:"
-          sha256sum contracts/openapi.json | tee openapi.sha
+          sha256sum contracts/openapi.json
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -62,37 +52,40 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Show openapi-typescript version
+      - name: Generate API types (from repo OpenAPI)
         working-directory: frontend
         run: |
           set -euo pipefail
-          # покажет, какая версия реально используется
-          npx openapi-typescript --version || true
-          node -v
-          npm -v
-
-      - name: Normalize OpenAPI (jq -S)
-        run: |
-          jq -S . contracts/openapi.json > contracts/openapi.tmp
-          mv contracts/openapi.tmp contracts/openapi.json
-
-
-      - name: Generate API types (must use artifact)
-        working-directory: frontend
-        run: |
-          set -euo pipefail
-          # ВАЖНО: заставляем использовать файл и не уходить в localhost
           test -s ../contracts/openapi.json
           npm run gen:api
+
+      - name: Commit generated API types if changed
+        run: |
+          set -euo pipefail
+
+          # Коммитим только если изменился именно сгенерированный файл(ы)
+          if git diff --quiet -- frontend/src/shared/api/generated/; then
+            echo "✔ No generated type changes."
+            exit 0
+          fi
+
+          echo "Detected generated changes:"
+          git status --porcelain
+          git diff --stat -- frontend/src/shared/api/generated/ || true
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add frontend/src/shared/api/generated/
+          git commit -m "chore(contract): regenerate frontend API types"
+          git push
 
       - name: Contract gate - generated types must be committed (no diff)
         run: |
           set -euo pipefail
           if [ -n "$(git status --porcelain)" ]; then
             echo "❌ Contract failed: generated API types differ from committed files."
-            echo "Changed files:"
             git status --porcelain
-            echo "Diff stat:"
             git diff --stat
             exit 1
           fi
