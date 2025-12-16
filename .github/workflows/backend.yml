@@ -16,6 +16,7 @@ jobs:
   backend:
     name: Backend - Test, Lint, Build, Smoke, Image
     runs-on: ubuntu-latest
+    timeout-minutes: 25
 
     permissions:
       contents: read
@@ -56,7 +57,15 @@ jobs:
           chmod +x mvnw || true
           ./mvnw -B -U --no-transfer-progress verify
 
-      - name: Start backend (smoke test)
+      - name: Publish unit test results (PR/summary)
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Backend JUnit
+          path: backend/target/surefire-reports/*.xml
+          reporter: java-junit
+
+      - name: Smoke test + Export OpenAPI spec
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: "5432"
@@ -64,7 +73,6 @@ jobs:
           APP_DB_USER: postgres
           APP_DB_PASSWORD: postgres
 
-          # CI база пустая → чтобы стартовал
           SPRING_JPA_HIBERNATE_DDL_AUTO: update
 
           ML_API_URL: http://127.0.0.1:8000
@@ -74,31 +82,35 @@ jobs:
           OPENAI_API_KEY: dummy
         run: |
           set -euo pipefail
+
           JAR=$(ls -1 target/*.jar | head -n 1)
           echo "Using JAR: $JAR"
 
           nohup java -jar "$JAR" --server.port=8082 > backend.log 2>&1 &
           PID=$!
+          echo "Backend PID: $PID"
 
           for i in {1..60}; do
             if curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null; then
               echo "✔ Backend is up"
-              kill $PID || true
-              exit 0
+              break
             fi
             sleep 2
           done
 
-          echo "❌ Backend did not start in time"
-          tail -n 250 backend.log || true
-          kill $PID || true
-          exit 1
+          if ! curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null; then
+            echo "❌ Backend did not start in time"
+            tail -n 250 backend.log || true
+            kill $PID || true
+            exit 1
+          fi
 
-      - name: Export OpenAPI spec
-        run: |
+          echo "Exporting OpenAPI..."
           curl -fsS http://localhost:8082/api/v1.0/docs -o openapi.json
           test -s openapi.json
           grep -q '"paths"' openapi.json
+
+          kill $PID || true
 
       - name: Upload OpenAPI spec artifact
         uses: actions/upload-artifact@v4
@@ -169,7 +181,7 @@ jobs:
           name: coverage-report
           path: backend/target/site/jacoco/**
 
-      - name: Upload backend logs (smoke)
+      - name: Upload smoke logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -177,17 +189,6 @@ jobs:
           path: backend/backend.log
           if-no-files-found: ignore
 
-      - name: Upload JAR(s)
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-jar
-          path: |
-            backend/target/*.jar
-            backend/*/target/*.jar
-          if-no-files-found: ignore
-
-      # Docker image to GHCR (only main)
       - name: Log in to GHCR
         if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
@@ -207,13 +208,21 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}/backend
           tags: |
-            type=sha
+            type=sha,format=long
             type=ref,event=branch
           labels: |
             org.opencontainers.image.source=${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
 
-      # Security gate (required-ish for defense): scan image BEFORE push
+      - name: Trivy fs scan (HIGH/CRITICAL)
+        if: github.ref == 'refs/heads/main'
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: backend
+          exit-code: 1
+          severity: CRITICAL,HIGH
+
       - name: Build image (no push) for security scan
         if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v6
@@ -249,12 +258,12 @@ jobs:
             echo "- Commit: \`${GITHUB_SHA}\`"
             echo "- Branch: \`${GITHUB_REF_NAME}\`"
             if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-              echo "- Image: \`ghcr.io/${GITHUB_REPOSITORY}/backend\` (tags: sha + branch)"
+              echo "- Image: \`ghcr.io/${GITHUB_REPOSITORY}/backend\`"
+              echo "- Deploy tag: \`sha-${GITHUB_SHA}\`"
             else
               echo "- Image push skipped (not main)"
             fi
-            echo "- OpenAPI artifact: \`openapi-spec\`"
-            echo "- Reports: \`test-reports\`, \`coverage-report\`"
+            echo "- Artifacts: openapi-spec, test-reports, coverage-report, backend-smoke-logs"
           } >> $GITHUB_STEP_SUMMARY
 
   deploy:
@@ -262,6 +271,9 @@ jobs:
     needs: backend
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+    timeout-minutes: 15
 
     steps:
       - name: Deploy to EC2 via SSH
@@ -272,19 +284,15 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -euo pipefail
-
             cd ~/proforientation-platform/backend
 
-            echo "BACKEND_IMAGE_TAG=${GITHUB_SHA}" > .env
+            echo "BACKEND_IMAGE_TAG=sha-${GITHUB_SHA}" > .env
 
             docker compose pull backend
             docker compose up -d --no-deps backend
-
             docker compose ps
-            docker ps
 
-            if [ -n "${{ secrets.BACKEND_HEALTH_URL || '' }}" ]; then
-              echo "Checking: ${{ secrets.BACKEND_HEALTH_URL }}"
+            if [ -n "${{ secrets.BACKEND_HEALTH_URL }}" ]; then
               for i in {1..30}; do
                 if curl -fsS "${{ secrets.BACKEND_HEALTH_URL }}" >/dev/null; then
                   echo "✔ Healthcheck OK"
@@ -295,6 +303,4 @@ jobs:
               echo "❌ Healthcheck failed"
               docker logs --tail=200 backend || true
               exit 1
-            else
-              echo "BACKEND_HEALTH_URL is not set; skipping HTTP healthcheck."
             fi
