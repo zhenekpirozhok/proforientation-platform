@@ -45,8 +45,6 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      # Лучше в идеале держать openapi-typescript в package.json.
-      # Но даже так этот шаг делает CI детерминированным.
       - name: Pin openapi-typescript version (deterministic)
         working-directory: frontend
         run: npm i -D openapi-typescript@6.7.6
@@ -59,6 +57,14 @@ jobs:
           npm -v
           npx openapi-typescript --version
           which npx || true
+
+      - name: Ensure gen:api will use artifact path
+        run: |
+          set -euo pipefail
+          test -s contracts/openapi.json
+          # Проверяем путь именно относительно frontend/
+          test -s frontend/../contracts/openapi.json
+          echo "✔ gen:api will use ../contracts/openapi.json"
 
       - name: Generate API types (from artifact)
         working-directory: frontend
