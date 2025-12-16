@@ -19,6 +19,7 @@ jobs:
 
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout
@@ -26,12 +27,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Normalize git line endings (LF)
-        run: |
-          set -euo pipefail
-          git config --global core.autocrlf false
-          git config --global core.eol lf
-          git config --global core.safecrlf true
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "frontend/package-lock.json"
 
       - name: Verify OpenAPI in repo
         run: |
@@ -40,13 +41,6 @@ jobs:
           grep -q '"paths"' contracts/openapi.json
           echo "OpenAPI sha256:"
           sha256sum contracts/openapi.json
-
-      - name: Use Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: "frontend/package-lock.json"
 
       - name: Install frontend deps
         working-directory: frontend
@@ -59,34 +53,39 @@ jobs:
           test -s ../contracts/openapi.json
           npm run gen:api
 
-      - name: Commit generated API types if changed
+      - name: Detect generated changes
+        id: changes
         run: |
           set -euo pipefail
-
-          # Коммитим только если изменился именно сгенерированный файл(ы)
           if git diff --quiet -- frontend/src/shared/api/generated/; then
-            echo "✔ No generated type changes."
-            exit 0
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No generated changes."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Detected generated changes:"
+            git diff --stat -- frontend/src/shared/api/generated/ || true
           fi
 
-          echo "Detected generated changes:"
-          git status --porcelain
-          git diff --stat -- frontend/src/shared/api/generated/ || true
+      - name: Create or update PR with regenerated API types
+        if: steps.changes.outputs.changed == 'true'
+        id: cpr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(contract): regenerate frontend API types"
+          title: "chore(contract): regenerate frontend API types"
+          body: |
+            Автоматически обновлены сгенерированные API types после изменения contracts/openapi.json.
+          branch: chore/auto-regenerate-api-types
+          delete-branch: true
+          add-paths: |
+            frontend/src/shared/api/generated/
 
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add frontend/src/shared/api/generated/
-          git commit -m "chore(contract): regenerate frontend API types"
-          git push
-
-      - name: Contract gate - generated types must be committed (no diff)
+      - name: Summary
         run: |
-          set -euo pipefail
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "❌ Contract failed: generated API types differ from committed files."
-            git status --porcelain
-            git diff --stat
-            exit 1
+          echo "### Contract → Frontend summary" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.changes.outputs.changed }}" = "true" ]; then
+            echo "- Generated types changed ✅" >> $GITHUB_STEP_SUMMARY
+            echo "- PR created/updated: ${{ steps.cpr.outputs.pull-request-url }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- No changes in generated types (no PR needed) ✅" >> $GITHUB_STEP_SUMMARY
           fi
-          echo "✔ Contract OK: generated types match committed files"

@@ -5,7 +5,9 @@ on:
     branches: ["main"]
     paths: ["backend/**"]
   pull_request:
-    paths: ["backend/**"]
+    paths:
+      - "backend/**"
+      - "contracts/openapi.json"
   workflow_dispatch: {}
 
 concurrency:
@@ -20,6 +22,8 @@ jobs:
 
     permissions:
       contents: write
+      pull-requests: write
+      checks: write
       packages: write
 
     defaults:
@@ -69,13 +73,11 @@ jobs:
           echo "Download full test reports from artifacts: **test-reports**" >> $GITHUB_STEP_SUMMARY
 
       - name: Publish unit test results (check-run)
-        if: github.event_name != 'pull_request'
         uses: dorny/test-reporter@v1
         with:
           name: Backend JUnit
           path: backend/target/surefire-reports/*.xml
           reporter: java-junit
-
 
       - name: Smoke test + Export OpenAPI spec
         env:
@@ -124,6 +126,12 @@ jobs:
 
           kill $PID || true
 
+      - name: Upload OpenAPI spec artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-spec
+          path: backend/openapi.json
+
       - name: Move OpenAPI to repo contracts/
         run: |
           set -euo pipefail
@@ -133,30 +141,19 @@ jobs:
           echo "contracts/openapi.json sha256:"
           sha256sum ../contracts/openapi.json
 
-      - name: Commit contracts/openapi.json if changed (main only)
+      - name: Create or update PR with contracts/openapi.json (main only)
+        id: cpr_openapi
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          set -euo pipefail
-
-          cd ..
-          if git diff --quiet -- contracts/openapi.json; then
-            echo "No OpenAPI changes to commit."
-            exit 0
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add contracts/openapi.json
-          git commit -m "chore(contract): update OpenAPI spec"
-          git push
-
-
-      - name: Upload OpenAPI spec artifact
-        uses: actions/upload-artifact@v4
+        uses: peter-evans/create-pull-request@v6
         with:
-          name: openapi-spec
-          path: backend/openapi.json
+          commit-message: "chore(contract): update OpenAPI spec"
+          title: "chore(contract): update OpenAPI spec"
+          body: |
+            Автоматически обновлён contracts/openapi.json после smoke/export из backend.
+          branch: chore/auto-update-openapi
+          delete-branch: true
+          add-paths: |
+            contracts/openapi.json
 
       - name: Install bc (for coverage gate)
         run: sudo apt-get update && sudo apt-get install -y bc
@@ -304,6 +301,9 @@ jobs:
               echo "- Image push skipped (not main)"
             fi
             echo "- Artifacts: openapi-spec, test-reports, coverage-report, backend-smoke-logs"
+            if [ -n "${{ steps.cpr_openapi.outputs.pull-request-url }}" ]; then
+              echo "- OpenAPI PR: ${{ steps.cpr_openapi.outputs.pull-request-url }}"
+            fi
           } >> $GITHUB_STEP_SUMMARY
 
   deploy:
