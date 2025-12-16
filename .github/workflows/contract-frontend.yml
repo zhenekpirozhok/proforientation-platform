@@ -5,10 +5,15 @@ on:
     workflows: ["Backend CI/CD"]
     types: [completed]
 
+concurrency:
+  group: contract-types-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
 jobs:
   generate-types:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -22,6 +27,13 @@ jobs:
           name: openapi-spec
           path: contracts
 
+      - name: Verify OpenAPI artifact
+        run: |
+          set -euo pipefail
+          test -s contracts/openapi.json
+          grep -q '"paths"' contracts/openapi.json
+          echo "✔ OpenAPI artifact OK: contracts/openapi.json"
+
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -33,10 +45,35 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Generate API types
+      - name: Generate API types (from artifact)
         working-directory: frontend
-        run: npm run gen:api
+        run: |
+          set -euo pipefail
+          # gen:api uses ../contracts/openapi.json first (your script)
+          npm run gen:api
+
+      - name: Contract gate - generated types must be committed (no diff)
+        run: |
+          set -euo pipefail
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "❌ Contract failed: generated API types differ from committed files."
+            echo "Run 'npm run gen:api' and commit changes."
+            git diff --stat
+            exit 1
+          fi
+          echo "✔ Contract OK: generated types match committed files"
 
       - name: Build frontend (contract check)
         working-directory: frontend
         run: npm run build --if-present
+
+      - name: Contract Summary
+        if: always()
+        run: |
+          {
+            echo "### Contract → Frontend"
+            echo "- Backend run: ${{ github.event.workflow_run.id }}"
+            echo "- Backend commit: ${{ github.event.workflow_run.head_sha }}"
+            echo "- OpenAPI: contracts/openapi.json (downloaded artifact)"
+            echo "- Gate: types generation produces no git diff"
+          } >> $GITHUB_STEP_SUMMARY
