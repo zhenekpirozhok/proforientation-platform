@@ -23,7 +23,7 @@ Backend: отдельно (Java) + JWT (access/refresh)
 - **Next.js** (App Router), **TypeScript**
 - UI: допускается AntD или свой `shared/ui`.
 - State:
-  - серверные данные: **TanStack Query** *или* **RTK Query** (выбрать один и придерживаться)
+  - серверные данные: **TanStack Query** _или_ **RTK Query** (выбрать один и придерживаться)
   - локальный UI-state: React state / Zustand (по необходимости)
 - Валидация форм: Zod / Yup (выбрать один).
 - i18n: **next-intl** (рекомендуется) или next-i18next (выбрать один).
@@ -38,17 +38,20 @@ Backend: отдельно (Java) + JWT (access/refresh)
 ## 3) Роли и доступы (RBAC)
 
 Роли:
+
 - **superadmin**: управление квизами + управление пользователями
 - **admin**: управление квизами
 - **user**: прохождение, личный кабинет
 
 Правила:
+
 - **Backend — источник правды** по авторизации/ролям.
 - Frontend:
   - прячет/показывает элементы UI по ролям (удобство),
   - но **не** считается “защитой” (защита всегда на API).
 
 Маршруты:
+
 - Public: `/`, `/quizzes`, `/quizzes/[slug]`
 - User: `/me/**`
 - Admin: `/admin/**`
@@ -59,15 +62,19 @@ Backend: отдельно (Java) + JWT (access/refresh)
 ## 4) i18n (обязательная)
 
 ### 4.1 Языковые маршруты
+
 Используем префикс локали в URL:
+
 - `/ru/...`
 - `/en/...`
 
 Требования:
+
 - Локаль по умолчанию: настраивается (например, `ru`).
 - `hreflang` и canonical формируются корректно (важно для SEO).
 
 ### 4.2 Переводы
+
 - Все пользовательские строки — только через i18n словари.
 - Ключи переводов стабильные, без «склейки» строк.
 - Словари: `messages/ru.json`, `messages/en.json` (или аналогично).
@@ -77,25 +84,31 @@ Backend: отдельно (Java) + JWT (access/refresh)
 ## 5) BFF (Next `/api/*` → Java backend)
 
 ### 5.1 Принцип
+
 Браузер **не вызывает Java API напрямую**.  
 Все запросы идут в:
+
 - `GET/POST /api/...` (Next Route Handlers)
 
 А Next уже вызывает backend по `JAVA_API_URL`.
 
 ### 5.2 Причины
+
 - меньше CORS проблем,
 - безопаснее для токенов,
 - удобнее SSR/Server Components,
 - единый контроль ошибок и трейсинга.
 
 ### 5.3 Единый API клиент (server-side)
+
 Создаём `shared/lib/serverApi.ts`:
+
 - добавляет access token (из cookies),
 - при 401 → делает refresh → повторяет запрос 1 раз,
 - логирует ошибки (без утечек токенов).
 
 **Нельзя**:
+
 - хранить токены в `localStorage` (XSS риск),
 - прокидывать refresh token в клиентский JS.
 
@@ -104,20 +117,24 @@ Backend: отдельно (Java) + JWT (access/refresh)
 ## 6) JWT, cookies и обновление токена
 
 Рекомендуемая схема:
+
 - **access token**: короткий (5–15 минут)
 - **refresh token**: длинный (7–30 дней)
 - хранение: **httpOnly Secure cookies**
 
 Cookies (пример):
+
 - `access_token` (httpOnly, Secure, SameSite=Lax, Path=/)
 - `refresh_token` (httpOnly, Secure, SameSite=Lax, Path=/api/auth или /)
 
 BFF endpoints:
+
 - `POST /api/auth/login`
 - `POST /api/auth/refresh`
 - `POST /api/auth/logout`
 
 Правила:
+
 - refresh вызывается только сервером (Route Handler / serverApi).
 - при logout очищаем обе cookies.
 
@@ -126,20 +143,25 @@ BFF endpoints:
 ## 7) SEO: обязательный минимум
 
 ### 7.1 Рендеринг
+
 - Ленд/каталог: SSG + `revalidate` (ISR) где уместно.
 - Детали квиза: SSR или SSG (зависит от объёма и частоты обновлений).
 
 ### 7.2 Метаданные
+
 На страницах каталога и квиза:
+
 - `generateMetadata()` (title, description, OpenGraph, twitter)
 - canonical
 - `robots` (index/follow там, где нужно)
 
 ### 7.3 Sitemap/robots
+
 - `/sitemap.xml` генерируется автоматически
 - `/robots.txt` настраивается
 
 ### 7.4 JSON-LD (опционально, но желательно)
+
 Для страниц квизов/каталога — структурированные данные (если есть смысл).
 
 ---
@@ -155,7 +177,7 @@ BFF endpoints:
     - `(admin)/admin/`
     - `layout.tsx`
     - `page.tsx`
-  - `api/`  ← BFF (route handlers)
+  - `api/` ← BFF (route handlers)
 - `features/`
   - `auth/`
   - `quiz-player/`
@@ -182,22 +204,27 @@ BFF endpoints:
 Цель: типы и клиенты генерируются из спецификации backend (предпочтительно OpenAPI).
 
 ### 9.1 Вариант A (рекомендуется): OpenAPI → types + client
+
 Инструменты:
+
 - `openapi-typescript` (генерация типов)
 - `openapi-typescript-codegen` или `orval` (генерация клиента)
 
 Процесс:
-1) Backend отдаёт `openapi.json` (URL или файл в репо).
-2) В frontend добавляем скрипт:
+
+1. Backend отдаёт `openapi.json` (URL или файл в репо).
+2. В frontend добавляем скрипт:
    - `pnpm gen:api` / `npm run gen:api`
-3) Сгенерированное попадает в `shared/api/generated/**`
-4) Вручную не правим generated файлы.
+3. Сгенерированное попадает в `shared/api/generated/**`
+4. Вручную не правим generated файлы.
 
 Требования к CI:
+
 - генерация должна быть воспроизводимой
 - по возможности проверяем, что generated актуален (diff)
 
 ### 9.2 Вариант B: если нет OpenAPI
+
 - договориться о контракте (JSON schema / protobuf / вручную)
 - но всё равно стремиться к OpenAPI
 
@@ -206,6 +233,7 @@ BFF endpoints:
 ## 10) Ошибки, загрузки, пустые состояния
 
 Единые правила UX:
+
 - Loading: skeleton/spinner (без “скачков” layout)
 - Empty state: отдельный компонент
 - Errors:
@@ -219,19 +247,21 @@ BFF endpoints:
 ## 11) Тестирование (юнит-тесты обязательны)
 
 ### 11.1 Стек
+
 - Jest + React Testing Library
 - MSW для моков API
 - (опционально) Playwright для 1–2 e2e сценариев
 
 ### 11.2 Что обязательно покрыть
-1) `auth`:
+
+1. `auth`:
    - успешный логин (мок)
    - ошибка логина
    - logout
-2) `serverApi`:
+2. `serverApi`:
    - подставляет токен
    - refresh при 401 и повтор запроса
-3) `quiz-player`:
+3. `quiz-player`:
    - переходы по шагам
    - валидация ответов
    - отправка результата (мок)
@@ -256,6 +286,7 @@ BFF endpoints:
 - `NEXT_PUBLIC_APP_URL=https://app.example.com`
 
 Важно:
+
 - всё, что начинается с `NEXT_PUBLIC_` видно браузеру — токены/секреты туда не класть.
 
 ---
@@ -263,6 +294,7 @@ BFF endpoints:
 ## 14) Definition of Done (DoD) для фичи
 
 Фича считается готовой, если:
+
 - реализованы UI + состояние загрузки/ошибок/empty,
 - эндпоинты через BFF,
 - типы используются строго,
@@ -275,8 +307,7 @@ BFF endpoints:
 
 ## 15) Открытые решения (зафиксировать при старте)
 
-1) Выбор библиотеки i18n: `next-intl` vs `next-i18next`
-2) Выбор data fetching слоя: TanStack Query vs RTK Query
-3) Чем генерируем API клиент: orval vs openapi-typescript-codegen
-4) Где хранится access token: httpOnly cookie (рекомендуется) или в памяти (не рекомендуется для SSR)
-
+1. Выбор библиотеки i18n: `next-intl` vs `next-i18next`
+2. Выбор data fetching слоя: TanStack Query vs RTK Query
+3. Чем генерируем API клиент: orval vs openapi-typescript-codegen
+4. Где хранится access token: httpOnly cookie (рекомендуется) или в памяти (не рекомендуется для SSR)
