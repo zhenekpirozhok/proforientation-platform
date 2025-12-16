@@ -57,13 +57,23 @@ jobs:
           chmod +x mvnw || true
           ./mvnw -B -U --no-transfer-progress verify
 
-      - name: Publish unit test results (PR/summary)
-        if: always()
+      - name: PR test summary (no check-run)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "### Backend tests" >> $GITHUB_STEP_SUMMARY
+          echo "JUnit XML files:" >> $GITHUB_STEP_SUMMARY
+          ls -1 backend/target/surefire-reports/*.xml 2>/dev/null | wc -l | xargs -I{} echo "- surefire XML count: {}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download full test reports from artifacts: **test-reports**" >> $GITHUB_STEP_SUMMARY
+
+      - name: Publish unit test results (check-run)
+        if: github.event_name != 'pull_request'
         uses: dorny/test-reporter@v1
         with:
           name: Backend JUnit
           path: backend/target/surefire-reports/*.xml
           reporter: java-junit
+
 
       - name: Smoke test + Export OpenAPI spec
         env:
