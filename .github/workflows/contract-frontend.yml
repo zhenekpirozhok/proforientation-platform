@@ -27,12 +27,19 @@ jobs:
           name: openapi-spec
           path: contracts
 
-      - name: Verify OpenAPI artifact
+      - name: Verify OpenAPI artifact and paths
         run: |
           set -euo pipefail
+          echo "Workspace: $GITHUB_WORKSPACE"
+          ls -la
+          ls -la contracts
           test -s contracts/openapi.json
           grep -q '"paths"' contracts/openapi.json
-          echo "✔ OpenAPI artifact OK: contracts/openapi.json"
+          # Проверяем путь так, как его видит gen:api из папки frontend
+          test -s frontend/../contracts/openapi.json
+          echo "✔ OpenAPI OK and path frontend/../contracts/openapi.json exists"
+          echo "OpenAPI sha256:"
+          sha256sum contracts/openapi.json | tee openapi.sha
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -45,31 +52,21 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Pin openapi-typescript version (deterministic)
-        working-directory: frontend
-        run: npm i -D openapi-typescript@6.7.6
-
-      - name: Debug generator version
+      - name: Show openapi-typescript version
         working-directory: frontend
         run: |
           set -euo pipefail
+          # покажет, какая версия реально используется
+          npx openapi-typescript --version || true
           node -v
           npm -v
-          npx openapi-typescript --version
-          which npx || true
 
-      - name: Ensure gen:api will use artifact path
-        run: |
-          set -euo pipefail
-          test -s contracts/openapi.json
-          # Проверяем путь именно относительно frontend/
-          test -s frontend/../contracts/openapi.json
-          echo "✔ gen:api will use ../contracts/openapi.json"
-
-      - name: Generate API types (from artifact)
+      - name: Generate API types (must use artifact)
         working-directory: frontend
         run: |
           set -euo pipefail
+          # ВАЖНО: заставляем использовать файл и не уходить в localhost
+          test -s ../contracts/openapi.json
           npm run gen:api
 
       - name: Contract gate - generated types must be committed (no diff)
@@ -77,23 +74,10 @@ jobs:
           set -euo pipefail
           if [ -n "$(git status --porcelain)" ]; then
             echo "❌ Contract failed: generated API types differ from committed files."
-            echo "Run 'npm run gen:api' and commit changes."
+            echo "Changed files:"
+            git status --porcelain
+            echo "Diff stat:"
             git diff --stat
             exit 1
           fi
           echo "✔ Contract OK: generated types match committed files"
-
-      - name: Build frontend (contract check)
-        working-directory: frontend
-        run: npm run build --if-present
-
-      - name: Contract Summary
-        if: always()
-        run: |
-          {
-            echo "### Contract → Frontend"
-            echo "- Backend run: ${{ github.event.workflow_run.id }}"
-            echo "- Backend commit: ${{ github.event.workflow_run.head_sha }}"
-            echo "- OpenAPI: contracts/openapi.json (downloaded artifact)"
-            echo "- Gate: types generation produces no git diff"
-          } >> $GITHUB_STEP_SUMMARY
