@@ -24,7 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * </ul>
  *
  * <p>
- * <b>Note:</b> In modern Spring Security (6.3+), it is no longer necessary to manually define
+ * <b>Note:</b> In modern Spring Security (6.3+) it is no longer necessary to manually define
  * a {@code DaoAuthenticationProvider}. Spring automatically creates the appropriate provider
  * using the registered {@link UserDetailsService} and {@link PasswordEncoder}.
  * </p>
