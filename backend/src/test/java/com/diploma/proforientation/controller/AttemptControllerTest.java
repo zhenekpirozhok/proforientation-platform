@@ -4,6 +4,7 @@ import com.diploma.proforientation.dto.AttemptResultDto;
 import com.diploma.proforientation.dto.AttemptSummaryDto;
 import com.diploma.proforientation.dto.RecommendationDto;
 import com.diploma.proforientation.dto.request.AddAnswerRequest;
+import com.diploma.proforientation.dto.request.AddAnswersBulkRequest;
 import com.diploma.proforientation.dto.response.AttemptStartResponse;
 import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.util.AuthUtils;
@@ -246,4 +247,53 @@ class AttemptControllerTest {
 
         assertEquals("Admin error", ex.getMessage());
     }
+
+    @Test
+    void testAddAnswersBulk_success() {
+        AddAnswersBulkRequest req =
+                new AddAnswersBulkRequest(List.of(1, 2, 3));
+
+        attemptController.addAnswersBulk(10, req);
+
+        verify(attemptService, times(1))
+                .addAnswersBulk(10, List.of(1, 2, 3));
+    }
+
+    @Test
+    void testAddAnswersBulk_nullRequest() {
+        assertThrows(NullPointerException.class,
+                () -> attemptController.addAnswersBulk(10, null));
+
+        verify(attemptService, never())
+                .addAnswersBulk(anyInt(), any());
+    }
+
+    @Test
+    void testAddAnswersBulk_serviceThrows() {
+        AddAnswersBulkRequest req =
+                new AddAnswersBulkRequest(List.of(5, 6));
+
+        doThrow(new IllegalStateException("Attempt already submitted"))
+                .when(attemptService)
+                .addAnswersBulk(10, List.of(5, 6));
+
+        IllegalStateException ex = assertThrows(
+                IllegalStateException.class,
+                () -> attemptController.addAnswersBulk(10, req)
+        );
+
+        assertEquals("Attempt already submitted", ex.getMessage());
+    }
+
+    @Test
+    void testAddAnswersBulk_emptyOptions() {
+        AddAnswersBulkRequest req =
+                new AddAnswersBulkRequest(List.of());
+
+        attemptController.addAnswersBulk(10, req);
+
+        verify(attemptService)
+                .addAnswersBulk(10, List.of());
+    }
+
 }

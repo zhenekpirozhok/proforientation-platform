@@ -3,6 +3,7 @@ package com.diploma.proforientation.controller;
 import com.diploma.proforientation.dto.AttemptResultDto;
 import com.diploma.proforientation.dto.AttemptSummaryDto;
 import com.diploma.proforientation.dto.request.AddAnswerRequest;
+import com.diploma.proforientation.dto.request.AddAnswersBulkRequest;
 import com.diploma.proforientation.dto.response.AttemptStartResponse;
 import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.util.AuthUtils;
@@ -33,6 +34,14 @@ public class AttemptController {
     public void addAnswer(@PathVariable Integer attemptId,
                           @RequestBody AddAnswerRequest req) {
         attemptService.addAnswer(attemptId, req.optionId());
+    }
+
+    @PostMapping("/{attemptId}/answers/bulk")
+    public void addAnswersBulk(
+            @PathVariable Integer attemptId,
+            @RequestBody AddAnswersBulkRequest request
+    ) {
+        attemptService.addAnswersBulk(attemptId, request.optionIds());
     }
 
     @PostMapping("/{attemptId}/submit")

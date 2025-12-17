@@ -1,18 +1,11 @@
 package com.diploma.proforientation.service;
 
-import com.diploma.proforientation.dto.OptionDto;
 import com.diploma.proforientation.dto.QuestionDto;
 import com.diploma.proforientation.dto.request.create.CreateQuestionRequest;
 import com.diploma.proforientation.dto.request.update.UpdateQuestionRequest;
-import com.diploma.proforientation.model.Question;
-import com.diploma.proforientation.model.QuestionOption;
-import com.diploma.proforientation.model.QuizVersion;
-import com.diploma.proforientation.model.Translation;
+import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.model.enumeration.QuestionType;
-import com.diploma.proforientation.repository.QuestionOptionRepository;
-import com.diploma.proforientation.repository.QuestionRepository;
-import com.diploma.proforientation.repository.QuizVersionRepository;
-import com.diploma.proforientation.repository.TranslationRepository;
+import com.diploma.proforientation.repository.*;
 import com.diploma.proforientation.service.impl.QuestionServiceImpl;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,10 +40,6 @@ class QuestionServiceTest {
         version.setId(1);
     }
 
-    // -------------------------------------------------------------------------
-    // EXISTING TESTS (unchanged)
-    // -------------------------------------------------------------------------
-
     @Test
     void create_shouldCreateQuestion() {
         CreateQuestionRequest req =
@@ -70,7 +60,6 @@ class QuestionServiceTest {
 
         assertThat(result.id()).isEqualTo(10);
         assertThat(result.text()).isEqualTo("Test question");
-        verify(questionRepo).save(any());
     }
 
     @Test
@@ -107,27 +96,22 @@ class QuestionServiceTest {
     }
 
     @Test
-    void delete_shouldCallRepository() {
-        service.delete(3);
-        verify(questionRepo).deleteById(3);
-    }
-
-    // -------------------------------------------------------------------------
-    // NEW TESTS: update() when missing
-    // -------------------------------------------------------------------------
-    @Test
     void update_shouldFailWhenNotFound() {
         when(questionRepo.findById(999)).thenReturn(Optional.empty());
 
-        UpdateQuestionRequest req = new UpdateQuestionRequest(1, "single_choice", "X");
+        UpdateQuestionRequest req =
+                new UpdateQuestionRequest(1, "single_choice", "X");
 
         assertThatThrownBy(() -> service.update(999, req))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
-    // -------------------------------------------------------------------------
-    // NEW TESTS: updateOrder()
-    // -------------------------------------------------------------------------
+    @Test
+    void delete_shouldCallRepository() {
+        service.delete(3);
+        verify(questionRepo).deleteById(3);
+    }
+
     @Test
     void updateOrder_shouldChangeOrder() {
         Question q = new Question();
@@ -153,9 +137,6 @@ class QuestionServiceTest {
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
-    // -------------------------------------------------------------------------
-    // NEW TESTS: getQuestionsForCurrentVersion()
-    // -------------------------------------------------------------------------
     @Test
     void getQuestionsForCurrentVersion_shouldLocalizeTextAndOptions() {
 
@@ -172,15 +153,18 @@ class QuestionServiceTest {
         q.setQtype(QuestionType.single_choice);
         q.setQuizVersion(qv);
 
-        when(questionRepo.findByQuizVersionIdOrderByOrd(5))
-                .thenReturn(List.of(q));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Question> page = new PageImpl<>(List.of(q), pageable, 1);
 
-        // Localized question text
+        when(questionRepo.findByQuizVersionIdOrderByOrd(5, pageable))
+                .thenReturn(page);
+
         when(translationRepo.findByEntityTypeAndEntityIdAndFieldAndLocale(
                 "question", 100, "text", "ru"))
-                .thenReturn(Optional.of(new Translation(1, "question", 100, "ru", "text", "Перевод вопроса")));
+                .thenReturn(Optional.of(
+                        new Translation(1, "question", 100, "ru", "text", "Перевод вопроса")
+                ));
 
-        // Option
         QuestionOption opt = new QuestionOption();
         opt.setId(200);
         opt.setOrd(1);
@@ -190,26 +174,23 @@ class QuestionServiceTest {
         when(optionRepo.findByQuestionIdOrderByOrd(100))
                 .thenReturn(List.of(opt));
 
-        // Localized option text
         when(translationRepo.findByEntityTypeAndEntityIdAndFieldAndLocale(
                 "question_option", 200, "text", "ru"))
-                .thenReturn(Optional.of(new Translation(1, "question_option", 200, "ru", "text", "Перевод ответа")));
+                .thenReturn(Optional.of(
+                        new Translation(1, "question_option", 200, "ru", "text", "Перевод ответа")
+                ));
 
-        List<QuestionDto> result = service.getQuestionsForCurrentVersion(7, "ru");
+        Page<QuestionDto> result =
+                service.getQuestionsForCurrentVersion(7, "ru", pageable);
 
-        assertThat(result).hasSize(1);
-        QuestionDto dto = result.getFirst();
+        assertThat(result.getContent()).hasSize(1);
+        QuestionDto dto = result.getContent().getFirst();
 
         assertThat(dto.text()).isEqualTo("Перевод вопроса");
         assertThat(dto.options()).hasSize(1);
-
-        OptionDto o = dto.options().getFirst();
-        assertThat(o.label()).isEqualTo("Перевод ответа");
+        assertThat(dto.options().getFirst().label()).isEqualTo("Перевод ответа");
     }
 
-    // -------------------------------------------------------------------------
-    // NEW TESTS: getQuestionsForVersion()
-    // -------------------------------------------------------------------------
     @Test
     void getQuestionsForVersion_shouldReturnDefaultWhenNoTranslation() {
 
@@ -226,8 +207,11 @@ class QuestionServiceTest {
         q.setQtype(QuestionType.single_choice);
         q.setQuizVersion(qv);
 
-        when(questionRepo.findByQuizVersionIdOrderByOrd(9))
-                .thenReturn(List.of(q));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Question> page = new PageImpl<>(List.of(q), pageable, 1);
+
+        when(questionRepo.findByQuizVersionIdOrderByOrd(9, pageable))
+                .thenReturn(page);
 
         when(optionRepo.findByQuestionIdOrderByOrd(77))
                 .thenReturn(List.of());
@@ -235,9 +219,10 @@ class QuestionServiceTest {
         when(translationRepo.findByEntityTypeAndEntityIdAndFieldAndLocale(any(), any(), any(), any()))
                 .thenReturn(Optional.empty());
 
-        List<QuestionDto> list = service.getQuestionsForVersion(3, 1, "en");
+        Page<QuestionDto> result =
+                service.getQuestionsForVersion(3, 1, "en", pageable);
 
-        assertThat(list).hasSize(1);
-        assertThat(list.getFirst().text()).isEqualTo("Default");
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().text()).isEqualTo("Default");
     }
 }

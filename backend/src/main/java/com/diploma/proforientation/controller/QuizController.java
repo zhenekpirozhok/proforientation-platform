@@ -8,6 +8,9 @@ import com.diploma.proforientation.service.QuizService;
 import com.diploma.proforientation.service.QuizVersionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,9 +25,11 @@ public class QuizController {
     private final QuizVersionService versionService;
 
     @GetMapping
-    public List<QuizDto> getAll() {
+    public Page<QuizDto> getAll(
+            @PageableDefault(size = 20, sort = "id") Pageable pageable
+    ) {
         String locale = LocaleContextHolder.getLocale().getLanguage();
-        return quizService.getAllLocalized(locale);
+        return quizService.getAllLocalized(locale, pageable);
     }
 
     @GetMapping("/{id}")

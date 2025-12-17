@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.*;
 
 class AttemptServiceTest {
@@ -248,5 +249,80 @@ class AttemptServiceTest {
 
         assertThat(list).hasSize(1);
         assertThat(list.getFirst().id()).isEqualTo(22);
+    }
+
+    @Test
+    void testAddAnswersBulk_success() {
+
+        Attempt attempt = new Attempt();
+        attempt.setId(1);
+
+        QuestionOption opt1 = new QuestionOption();
+        opt1.setId(10);
+
+        QuestionOption opt2 = new QuestionOption();
+        opt2.setId(11);
+
+        when(attemptRepo.findById(1)).thenReturn(Optional.of(attempt));
+        when(optionRepo.findAllById(List.of(10, 11)))
+                .thenReturn(List.of(opt1, opt2));
+
+        service.addAnswersBulk(1, List.of(10, 11));
+
+        verify(answerRepo, times(1)).deleteByAttemptId(1);
+        verify(answerRepo, times(1))
+                .saveAll(argThat(iterable -> {
+                    int count = 0;
+                    for (Object ignored : iterable) {
+                        count++;
+                    }
+                    return count == 2;
+                }));    }
+
+    @Test
+    void testAddAnswersBulk_attemptNotFound() {
+
+        when(attemptRepo.findById(99)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.addAnswersBulk(99, List.of(1, 2)));
+
+        verify(answerRepo, never()).saveAll(any());
+    }
+
+    @Test
+    void testAddAnswersBulk_attemptAlreadySubmitted() {
+
+        Attempt attempt = new Attempt();
+        attempt.setId(1);
+        attempt.setSubmittedAt(Instant.now());
+
+        when(attemptRepo.findById(1)).thenReturn(Optional.of(attempt));
+
+        assertThrows(IllegalStateException.class,
+                () -> service.addAnswersBulk(1, List.of(1, 2)));
+
+        verify(answerRepo, never()).deleteByAttemptId(any());
+        verify(answerRepo, never()).saveAll(any());
+    }
+
+    @Test
+    void testAddAnswersBulk_someOptionsNotFound() {
+
+        Attempt attempt = new Attempt();
+        attempt.setId(1);
+
+        QuestionOption opt = new QuestionOption();
+        opt.setId(10);
+
+        when(attemptRepo.findById(1)).thenReturn(Optional.of(attempt));
+        when(optionRepo.findAllById(List.of(10, 11)))
+                .thenReturn(List.of(opt)); // only one found
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.addAnswersBulk(1, List.of(10, 11)));
+
+        verify(answerRepo, times(1)).deleteByAttemptId(1);
+        verify(answerRepo, never()).saveAll(any());
     }
 }

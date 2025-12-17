@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,19 +53,24 @@ class QuizControllerTest {
     }
 
     @Test
-    void getAll_shouldCallServiceWithLocale() {
-        List<QuizDto> list = List.of(
-                new QuizDto(1, "quiz1", "Тест 1", "published", "ml", 3, 2)
-        );
+    void getAll_shouldCallServiceWithLocaleAndPageable() {
+        Pageable pageable = PageRequest.of(0, 20);
 
-        when(quizService.getAllLocalized("ru")).thenReturn(list);
+        QuizDto dto =
+                new QuizDto(1, "quiz1", "Тест 1", "published", "ml", 3, 2);
 
-        List<QuizDto> result = controller.getAll();
+        Page<QuizDto> page =
+                new PageImpl<>(List.of(dto), pageable, 1);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).title()).isEqualTo("Тест 1");
+        when(quizService.getAllLocalized("ru", pageable))
+                .thenReturn(page);
 
-        verify(quizService).getAllLocalized("ru");
+        Page<QuizDto> result = controller.getAll(pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().title()).isEqualTo("Тест 1");
+
+        verify(quizService).getAllLocalized("ru", pageable);
     }
 
     @Test

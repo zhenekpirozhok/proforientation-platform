@@ -11,6 +11,7 @@ public interface AttemptService {
 
     AttemptStartResponse startAttempt(Integer quizVersionId, Integer userId);
     void addAnswer(Integer attemptId, Integer optionId);
+    void addAnswersBulk(Integer attemptId, List<Integer> optionIds);
     AttemptResultDto submitAttempt(Integer attemptId);
     List<AttemptSummaryDto> getMyAttempts(Integer userId, String guestToken);
     AttemptResultDto getResult(Integer attemptId);

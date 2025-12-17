@@ -12,6 +12,7 @@ import com.diploma.proforientation.service.scoring.ScoringEngine;
 import com.diploma.proforientation.service.scoring.ScoringEngineFactory;
 import com.diploma.proforientation.service.scoring.ScoringResult;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -59,6 +60,7 @@ public class AttemptServiceImpl implements AttemptService {
     }
 
     @Override
+    @Transactional
     public void addAnswer(Integer attemptId, Integer optionId) {
         Attempt attempt = attemptRepo.findById(attemptId)
                 .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
@@ -73,6 +75,40 @@ public class AttemptServiceImpl implements AttemptService {
     }
 
     @Override
+    @Transactional
+    public void addAnswersBulk(Integer attemptId, List<Integer> optionIds) {
+
+        Attempt attempt = attemptRepo.findById(attemptId)
+                .orElseThrow(() -> new IllegalArgumentException("Attempt not found"));
+
+        if (attempt.getSubmittedAt() != null) {
+            throw new IllegalStateException("Attempt already submitted");
+        }
+
+        // Overwrite previous answers
+        answerRepo.deleteByAttemptId(attemptId);
+
+        List<QuestionOption> options = optionRepo.findAllById(optionIds);
+
+        if (options.size() != optionIds.size()) {
+            throw new IllegalArgumentException("Some options not found");
+        }
+
+        List<Answer> answers = options.stream()
+                .map(option -> {
+                    Answer a = new Answer();
+                    a.setAttempt(attempt);
+                    a.setOption(option);
+                    a.setCreatedAt(Instant.now());
+                    return a;
+                })
+                .toList();
+
+        answerRepo.saveAll(answers);
+    }
+
+    @Override
+    @Transactional
     public AttemptResultDto submitAttempt(Integer attemptId) {
 
         Attempt attempt = attemptRepo.findById(attemptId)

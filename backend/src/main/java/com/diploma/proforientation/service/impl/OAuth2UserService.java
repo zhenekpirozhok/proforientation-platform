@@ -1,4 +1,4 @@
-package com.diploma.proforientation.service;
+package com.diploma.proforientation.service.impl;
 
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.repository.UserRepository;

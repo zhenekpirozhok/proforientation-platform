@@ -1,53 +1,79 @@
 package com.diploma.proforientation.service;
 
 import com.diploma.proforientation.model.User;
-import com.diploma.proforientation.model.enumeration.UserRole;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class UserServiceTest {
 
+    @Mock
     private UserRepository userRepository;
+
+    @InjectMocks
     private UserServiceImpl userService;
+
+    private User user1;
+    private User user2;
 
     @BeforeEach
     void setUp() {
-        userRepository = mock(UserRepository.class);
-        userService = new UserServiceImpl(userRepository);
+        MockitoAnnotations.openMocks(this);
+
+        user1 = new User();
+        user1.setEmail("user1@example.com");
+        user1.setDisplayName("User 1");
+
+        user2 = new User();
+        user2.setEmail("user2@example.com");
+        user2.setDisplayName("User 2");
     }
 
     @Test
-    void testGetAllUsersReturnsList() {
-        User u1 = new User("a@example.com", "p1", "A", UserRole.USER);
-        User u2 = new User("b@example.com", "p2", "B", UserRole.ADMIN);
-        List<User> repoUsers = List.of(u1, u2);
+    void shouldReturnUsersWithPagination() {
+        Pageable pageable = PageRequest.of(0, 10);
+        List<User> users = List.of(user1, user2);
+        Page<User> page = new PageImpl<>(users, pageable, users.size());
 
-        when(userRepository.findAll()).thenReturn(repoUsers);
+        when(userRepository.findAll(pageable)).thenReturn(page);
 
-        List<User> result = userService.getAllUsers();
+        Page<User> result = userService.getAllUsers(pageable);
 
-        assertEquals(2, result.size());
-        assertEquals("a@example.com", result.get(0).getEmail());
-        assertEquals("b@example.com", result.get(1).getEmail());
-        verify(userRepository, times(1)).findAll();
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals("user1@example.com", result.getContent().getFirst().getEmail());
+
+        verify(userRepository, times(1)).findAll(pageable);
+        verifyNoMoreInteractions(userRepository);
     }
 
     @Test
-    void testGetAllUsersEmptyList() {
-        when(userRepository.findAll()).thenReturn(new ArrayList<>());
+    void shouldReturnEmptyPageWhenNoUsersFound() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<User> emptyPage = Page.empty(pageable);
 
-        List<User> result = userService.getAllUsers();
+        when(userRepository.findAll(pageable)).thenReturn(emptyPage);
+
+        Page<User> result = userService.getAllUsers(pageable);
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(userRepository, times(1)).findAll();
+        assertEquals(0, result.getTotalElements());
+
+        verify(userRepository, times(1)).findAll(pageable);
+        verifyNoMoreInteractions(userRepository);
     }
 }

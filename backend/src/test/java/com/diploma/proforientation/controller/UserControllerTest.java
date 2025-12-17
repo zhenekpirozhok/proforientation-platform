@@ -7,6 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,25 +29,29 @@ class UserControllerTest {
     @InjectMocks
     private UserController userController;
 
-    private User mockUser;
+    private User user;
+    private User admin;
 
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
 
-        mockUser = new User();
-        mockUser.setEmail("user@example.com");
-        mockUser.setDisplayName("Test User");
+        user = new User();
+        user.setEmail("user@example.com");
+        user.setDisplayName("User");
+
+        admin = new User();
+        admin.setEmail("admin@example.com");
+        admin.setDisplayName("Admin");
     }
 
     @Test
-    void testAuthenticatedUser() {
-        // Prepare authentication object with principal
+    void shouldReturnAuthenticatedUser() {
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(
-                        mockUser,
+                        user,
                         null,
-                        List.of(new SimpleGrantedAuthority("USER"))
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
                 );
 
         SecurityContextHolder.getContext().setAuthentication(auth);
@@ -51,18 +59,32 @@ class UserControllerTest {
         ResponseEntity<User> response = userController.authenticatedUser();
 
         assertEquals(200, response.getStatusCode().value());
-        assertEquals(mockUser, response.getBody());
+        assertEquals(user, response.getBody());
     }
 
     @Test
-    void testAllUsers() {
-        List<User> userList = List.of(mockUser);
+    void shouldReturnUsersForAdminWithPagination() {
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(
+                        admin,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                );
 
-        when(userService.getAllUsers()).thenReturn(userList);
+        SecurityContextHolder.getContext().setAuthentication(auth);
 
-        ResponseEntity<List<User>> response = userController.allUsers();
+        Pageable pageable = PageRequest.of(0, 20);
+        List<User> users = List.of(user, admin);
+        Page<User> page = new PageImpl<>(users, pageable, users.size());
+
+        when(userService.getAllUsers(pageable)).thenReturn(page);
+
+        ResponseEntity<Page<User>> response = userController.allUsers(pageable);
 
         assertEquals(200, response.getStatusCode().value());
-        assertEquals(userList, response.getBody());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().getContent().size());
+
+        verify(userService, times(1)).getAllUsers(pageable);
     }
 }

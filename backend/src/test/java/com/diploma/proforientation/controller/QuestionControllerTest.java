@@ -9,6 +9,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -76,4 +80,51 @@ class QuestionControllerTest {
         controller.delete(7);
         verify(service).delete(7);
     }
+
+    @Test
+    void getQuestionsForQuiz_shouldReturnPaginatedQuestions() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        QuestionDto dto = new QuestionDto(
+                1, 1, 1, "single_choice", "Question", null
+        );
+
+        Page<QuestionDto> page =
+                new PageImpl<>(java.util.List.of(dto), pageable, 1);
+
+        when(service.getQuestionsForCurrentVersion(5, "en", pageable))
+                .thenReturn(page);
+
+        Page<QuestionDto> result =
+                controller.getQuestionsForQuiz(5, "en", pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().text()).isEqualTo("Question");
+
+        verify(service).getQuestionsForCurrentVersion(5, "en", pageable);
+    }
+
+    @Test
+    void getQuestionsForQuizVersion_shouldReturnPaginatedQuestions() {
+        Pageable pageable = PageRequest.of(0, 5);
+
+        QuestionDto dto = new QuestionDto(
+                10, 1, 2, "multi_choice", "Versioned question", null
+        );
+
+        Page<QuestionDto> page =
+                new PageImpl<>(java.util.List.of(dto), pageable, 1);
+
+        when(service.getQuestionsForVersion(3, 2, "ru", pageable))
+                .thenReturn(page);
+
+        Page<QuestionDto> result =
+                controller.getQuestionsForQuizVersion(3, 2, "ru", pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().qtype()).isEqualTo("multi_choice");
+
+        verify(service).getQuestionsForVersion(3, 2, "ru", pageable);
+    }
+
 }

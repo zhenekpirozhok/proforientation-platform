@@ -8,8 +8,8 @@ import java.util.List;
 
 public interface AnswerRepository extends JpaRepository<Answer, Integer> {
     List<Answer> findByAttemptId(Integer attemptId);
-    long countByAttemptId(Integer attemptId);
     void deleteByAttemptId(Integer attemptId);
+    long countByAttemptId(Integer attemptId);
     @Query("""
     SELECT qo.ord
     FROM Answer a

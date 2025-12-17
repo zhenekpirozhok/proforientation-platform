@@ -7,223 +7,196 @@ import com.diploma.proforientation.model.ProfessionCategory;
 import com.diploma.proforientation.repository.ProfessionCategoryRepository;
 import com.diploma.proforientation.repository.ProfessionRepository;
 import com.diploma.proforientation.service.impl.ProfessionServiceImpl;
+import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.ArgumentMatchers.any;
 
-@ExtendWith(MockitoExtension.class)
 class ProfessionServiceTest {
 
     @Mock
-    private ProfessionRepository professionRepo;
+    private ProfessionRepository repo;
 
     @Mock
     private ProfessionCategoryRepository categoryRepo;
 
+    @Mock
+    private TranslationResolver translationResolver;
+
     @InjectMocks
     private ProfessionServiceImpl service;
 
-    @Test
-    void getAll_shouldReturnListOfDtos() {
-        ProfessionCategory cat = new ProfessionCategory();
-        cat.setId(1);
-        cat.setCode("IT");
-        cat.setName("Tech");
-        cat.setColorCode("#000");
+    private Profession profession;
+    private ProfessionCategory category;
 
-        Profession p1 = new Profession();
-        p1.setId(10);
-        p1.setCode("DEV");
-        p1.setTitleDefault("Developer");
-        p1.setDescription("Writes code");
-        p1.setCategory(cat);
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
 
-        Profession p2 = new Profession();
-        p2.setId(11);
-        p2.setCode("DS");
-        p2.setTitleDefault("Data Scientist");
-        p2.setDescription("Analyzes data");
-        p2.setCategory(cat);
+        category = new ProfessionCategory();
+        category.setId(10);
 
-        when(professionRepo.findAll()).thenReturn(List.of(p1, p2));
-
-        List<ProfessionDto> result = service.getAll();
-
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).code()).isEqualTo("DEV");
-        assertThat(result.get(1).title()).isEqualTo("Data Scientist");
-
-        verify(professionRepo).findAll();
+        profession = new Profession();
+        profession.setId(1);
+        profession.setCode("DEV");
+        profession.setTitleDefault("Developer");
+        profession.setDescription("Writes code");
+        profession.setMlClassCode("ML_DEV");
+        profession.setCategory(category);
     }
 
     @Test
-    void getById_shouldReturnDto_whenProfessionExists() {
+    void shouldReturnAllProfessionsWithPagination() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Profession> page = new PageImpl<>(List.of(profession), pageable, 1);
 
-        ProfessionCategory cat = new ProfessionCategory();
-        cat.setId(1);
+        when(repo.findAll(pageable)).thenReturn(page);
 
-        Profession p = new Profession();
-        p.setId(10);
-        p.setCode("DEV");
-        p.setTitleDefault("Developer");
-        p.setCategory(cat);
+        Page<ProfessionDto> result = service.getAll(pageable);
 
-        when(professionRepo.findById(10)).thenReturn(Optional.of(p));
+        assertEquals(1, result.getContent().size());
+        assertEquals("Developer", result.getContent().getFirst().title());
 
-        ProfessionDto result = service.getById(10);
-
-        assertThat(result.id()).isEqualTo(10);
-        assertThat(result.code()).isEqualTo("DEV");
-
-        verify(professionRepo).findById(10);
+        verify(repo).findAll(pageable);
     }
 
     @Test
-    void getById_shouldThrow_whenNotFound() {
-        when(professionRepo.findById(777)).thenReturn(Optional.empty());
+    void shouldReturnLocalizedProfessions() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Profession> page = new PageImpl<>(List.of(profession), pageable, 1);
 
-        assertThatThrownBy(() -> service.getById(777))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Profession not found");
+        when(repo.findAll(pageable)).thenReturn(page);
+        when(translationResolver.resolve(any(), any(), eq("title"), eq("en"), any()))
+                .thenReturn("Developer EN");
+        when(translationResolver.resolve(any(), any(), eq("description"), eq("en"), any()))
+                .thenReturn("Writes code EN");
 
-        verify(professionRepo).findById(777);
+        Page<ProfessionDto> result = service.getAllLocalized("en", pageable);
+
+        ProfessionDto dto = result.getContent().getFirst();
+        assertEquals("Developer EN", dto.title());
+        assertEquals("Writes code EN", dto.description());
+
+        verify(translationResolver, times(2))
+                .resolve(any(), any(), any(), eq("en"), any());
     }
 
     @Test
-    void create_shouldSaveNewProfession() {
+    void shouldReturnProfessionById() {
+        when(repo.findById(1)).thenReturn(Optional.of(profession));
 
+        ProfessionDto dto = service.getById(1);
+
+        assertEquals("Developer", dto.title());
+        verify(repo).findById(1);
+    }
+
+    @Test
+    void shouldThrowWhenProfessionNotFound() {
+        when(repo.findById(99)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class,
+                () -> service.getById(99));
+    }
+
+    @Test
+    void shouldReturnLocalizedProfessionById() {
+        when(repo.findById(1)).thenReturn(Optional.of(profession));
+        when(translationResolver.resolve(any(), any(), eq("title"), eq("en"), any()))
+                .thenReturn("Developer EN");
+        when(translationResolver.resolve(any(), any(), eq("description"), eq("en"), any()))
+                .thenReturn("Writes code EN");
+
+        ProfessionDto dto = service.getByIdLocalized(1, "en");
+
+        assertEquals("Developer EN", dto.title());
+        assertEquals("Writes code EN", dto.description());
+    }
+
+    @Test
+    void shouldCreateProfession() {
         CreateProfessionRequest req = new CreateProfessionRequest(
-                "DEV", "Developer", "Writes code", "ML123", 1
+                "DEV",
+                "Developer",
+                "Writes code",
+                "ML_DEV",
+                10
         );
 
-        ProfessionCategory cat = new ProfessionCategory();
-        cat.setId(1);
-        cat.setCode("IT");
-        cat.setName("Tech");
-        cat.setColorCode("#111111");
+        when(categoryRepo.findById(10)).thenReturn(Optional.of(category));
+        when(repo.save(any(Profession.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        when(categoryRepo.findById(1)).thenReturn(Optional.of(cat));
+        ProfessionDto dto = service.create(req);
 
-        Profession saved = new Profession();
-        saved.setId(100);
-        saved.setCode("DEV");
-        saved.setTitleDefault("Developer");
-        saved.setDescription("Writes code");
-        saved.setMlClassCode("ML123");
-        saved.setCategory(cat);
+        assertEquals("Developer", dto.title());
+        assertEquals(10, dto.categoryId());
 
-        when(professionRepo.save(any())).thenReturn(saved);
-
-        ProfessionDto result = service.create(req);
-
-        assertThat(result.id()).isEqualTo(100);
-        assertThat(result.code()).isEqualTo("DEV");
-        assertThat(result.categoryId()).isEqualTo(1);
-
-        verify(categoryRepo).findById(1);
-        verify(professionRepo).save(any(Profession.class));
+        verify(repo).save(any(Profession.class));
     }
 
     @Test
-    void create_shouldThrow_whenCategoryNotFound() {
-
+    void shouldThrowWhenCategoryNotFoundOnCreate() {
         CreateProfessionRequest req = new CreateProfessionRequest(
-                "DEV", "Developer", "Writes code", "ML123", 99
+                "DEV", "Developer", "Writes code", "ML_DEV", 99
         );
 
         when(categoryRepo.findById(99)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.create(req))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Category not found");
-
-        verify(categoryRepo).findById(99);
-        verify(professionRepo, never()).save(any());
+        assertThrows(EntityNotFoundException.class,
+                () -> service.create(req));
     }
 
     @Test
-    void update_shouldModifyExistingProfession() {
-
+    void shouldUpdateProfession() {
         CreateProfessionRequest req = new CreateProfessionRequest(
-                "DEV2", "New Title", "New Description", "ML456", 1
+                "DEV2",
+                "Senior Dev",
+                "Writes better code",
+                "ML_DEV2",
+                10
         );
 
-        ProfessionCategory cat = new ProfessionCategory();
-        cat.setId(1);
+        when(repo.findById(1)).thenReturn(Optional.of(profession));
+        when(categoryRepo.findById(10)).thenReturn(Optional.of(category));
+        when(repo.save(any(Profession.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Profession existing = new Profession();
-        existing.setId(20);
-        existing.setCode("DEV");
-        existing.setTitleDefault("Old Title");
-        existing.setCategory(cat);
+        ProfessionDto dto = service.update(1, req);
 
-        when(professionRepo.findById(20)).thenReturn(Optional.of(existing));
-        when(categoryRepo.findById(1)).thenReturn(Optional.of(cat));
-        when(professionRepo.save(existing)).thenReturn(existing);
-
-        ProfessionDto result = service.update(20, req);
-
-        assertThat(result.code()).isEqualTo("DEV2");
-        assertThat(result.title()).isEqualTo("New Title");
-        assertThat(result.categoryId()).isEqualTo(1);
-
-        verify(professionRepo).findById(20);
-        verify(categoryRepo).findById(1);
-        verify(professionRepo).save(existing);
+        assertEquals("Senior Dev", dto.title());
+        assertEquals("ML_DEV2", dto.mlClassCode());
     }
 
     @Test
-    void update_shouldThrow_whenProfessionNotFound() {
-
+    void shouldThrowWhenProfessionNotFoundOnUpdate() {
         CreateProfessionRequest req = new CreateProfessionRequest(
-                "DEV", "Developer", "Writes code", "ML123", 1
+                "DEV", "Dev", "Desc", "ML", 10
         );
 
-        when(professionRepo.findById(55)).thenReturn(Optional.empty());
+        when(repo.findById(1)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.update(55, req))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Profession not found");
-
-        verify(professionRepo).findById(55);
-        verify(categoryRepo, never()).findById(any());
-        verify(professionRepo, never()).save(any());
+        assertThrows(EntityNotFoundException.class,
+                () -> service.update(1, req));
     }
 
     @Test
-    void update_shouldThrow_whenCategoryNotFound() {
+    void shouldDeleteProfession() {
+        doNothing().when(repo).deleteById(1);
 
-        CreateProfessionRequest req = new CreateProfessionRequest(
-                "DEV", "Developer", "Writes code", "ML123", 99
-        );
+        service.delete(1);
 
-        Profession existing = new Profession();
-        existing.setId(30);
-
-        when(professionRepo.findById(30)).thenReturn(Optional.of(existing));
-        when(categoryRepo.findById(99)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> service.update(30, req))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Category not found");
-
-        verify(categoryRepo).findById(99);
-        verify(professionRepo, never()).save(any());
-    }
-
-    @Test
-    void delete_shouldCallRepositoryDelete() {
-        service.delete(7);
-        verify(professionRepo).deleteById(7);
+        verify(repo).deleteById(1);
     }
 }

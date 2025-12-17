@@ -12,6 +12,7 @@ import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ public class OptionServiceImpl implements OptionService {
     private final TranslationResolver translationResolver;
 
     @Override
+    @Transactional
     public OptionDto create(CreateOptionRequest req) {
         Question question = questionRepo.findById(req.questionId())
                 .orElseThrow(() -> new EntityNotFoundException("Question not found"));
@@ -40,6 +42,7 @@ public class OptionServiceImpl implements OptionService {
     }
 
     @Override
+    @Transactional
     public OptionDto update(Integer id, UpdateOptionRequest req) {
         QuestionOption opt = optionRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Option not found"));
@@ -55,6 +58,7 @@ public class OptionServiceImpl implements OptionService {
     }
 
     @Override
+    @Transactional
     public void delete(Integer id) {
         optionRepo.deleteById(id);
     }

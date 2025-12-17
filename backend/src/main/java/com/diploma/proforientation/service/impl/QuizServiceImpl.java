@@ -14,7 +14,10 @@ import com.diploma.proforientation.service.QuizService;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -32,11 +35,18 @@ public class QuizServiceImpl implements QuizService {
     private final UserRepository userRepo;
     private final TranslationResolver translationResolver;
 
+    @Transactional(readOnly = true)
     @Override
-    public List<QuizDto> getAll() {
-        return quizRepo.findAll().stream()
-                .map(this::toDto)
-                .toList();
+    public Page<QuizDto> getAll(Pageable pageable) {
+        return quizRepo.findAll(pageable)
+                .map(this::toDto);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Page<QuizDto> getAllLocalized(String locale, Pageable pageable) {
+        return quizRepo.findAll(pageable)
+                .map(q -> toDtoLocalized(q, locale));
     }
 
     @Override
@@ -46,12 +56,6 @@ public class QuizServiceImpl implements QuizService {
                 .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
     }
 
-    public List<QuizDto> getAllLocalized(String locale) {
-        return quizRepo.findAll().stream()
-                .map(q -> toDtoLocalized(q, locale))
-                .toList();
-    }
-
     public QuizDto getByIdLocalized(Integer id, String locale) {
         Quiz quiz = quizRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
@@ -59,6 +63,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
+    @Transactional
     public QuizDto create(CreateQuizRequest req) {
         ProfessionCategory category = categoryRepo.findById(req.categoryId())
                 .orElseThrow(() -> new EntityNotFoundException("Category not found"));
@@ -81,6 +86,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
+    @Transactional
     public QuizDto update(Integer id, UpdateQuizRequest req) {
         Quiz q = quizRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
@@ -107,6 +113,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
+    @Transactional
     public void delete(Integer id) {
         Quiz quiz = quizRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));

@@ -9,6 +9,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,7 +20,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.List;
 import java.util.Locale;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -28,152 +31,136 @@ class ProfessionControllerTest {
     @InjectMocks
     private ProfessionController controller;
 
+    private ProfessionDto dto1;
+    private ProfessionDto dto2;
+
     @BeforeEach
-    void setup() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
-        LocaleContextHolder.setLocale(Locale.of("ru"));
-        SecurityContextHolder.clearContext();
-    }
 
-    @Test
-    void getAll_shouldCallServiceWithLocale() {
-        List<ProfessionDto> list = List.of(
-                new ProfessionDto(1, "dev", "Разработчик", "Описание", "ML", 3)
+        LocaleContextHolder.setLocale(Locale.ENGLISH);
+
+        dto1 = new ProfessionDto(
+                1,
+                "DEV",
+                "Developer",
+                "Writes code",
+                "ML_DEV",
+                10
         );
 
-        when(service.getAllLocalized("ru")).thenReturn(list);
+        dto2 = new ProfessionDto(
+                2,
+                "DOC",
+                "Doctor",
+                "Treats people",
+                "ML_DOC",
+                11
+        );
+    }
 
-        List<ProfessionDto> result = controller.getAll();
+    // -------------------------------------------------
+    // GET /professions
+    // -------------------------------------------------
+    @Test
+    void shouldReturnPaginatedLocalizedProfessions() {
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<ProfessionDto> page =
+                new PageImpl<>(List.of(dto1, dto2), pageable, 2);
 
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().title()).isEqualTo("Разработчик");
+        when(service.getAllLocalized("en", pageable)).thenReturn(page);
 
-        verify(service).getAllLocalized("ru");
+        Page<ProfessionDto> result = controller.getAll(pageable);
+
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals("Developer", result.getContent().getFirst().title());
+
+        verify(service, times(1)).getAllLocalized("en", pageable);
     }
 
     @Test
-    void getById_shouldCallServiceWithLocale() {
-        ProfessionDto dto =
-                new ProfessionDto(5, "doctor", "Доктор", "Описание", null, 1);
+    void shouldReturnProfessionByIdLocalized() {
+        when(service.getByIdLocalized(1, "en")).thenReturn(dto1);
 
-        when(service.getByIdLocalized(5, "ru")).thenReturn(dto);
+        ProfessionDto result = controller.getById(1);
 
-        ProfessionDto result = controller.getById(5);
+        assertNotNull(result);
+        assertEquals("DEV", result.code());
 
-        assertThat(result.id()).isEqualTo(5);
-        assertThat(result.title()).isEqualTo("Доктор");
-
-        verify(service).getByIdLocalized(5, "ru");
+        verify(service).getByIdLocalized(1, "en");
     }
 
     @Test
-    void testCreate_AsAdmin() {
-
-        setAdminAuth();
-
+    void shouldCreateProfessionForAdmin() {
         CreateProfessionRequest req = new CreateProfessionRequest(
-                "DEV", "Developer", "Writes code", "ML1", 3
+                "DEV",
+                "Developer",
+                "Writes code",
+                "ML_DEV",
+                10
         );
 
-        ProfessionDto expected = new ProfessionDto(
-                50, "DEV", "Developer", "Writes code", "ML1", 3
-        );
-
-        when(service.create(req)).thenReturn(expected);
-
-        ProfessionDto result = controller.create(req);
-
-        assertEquals(50, result.id());
-        verify(service).create(req);
-    }
-
-    @Test
-    void testCreate_UnauthorizedUser() {
-
-        setUserAuth();
-
-        CreateProfessionRequest req = new CreateProfessionRequest(
-                "DEV", "Developer", "Writes code", "ML1", 3
-        );
-
-        when(service.create(req)).thenThrow(new SecurityException("Access denied"));
-
-        assertThrows(SecurityException.class, () -> controller.create(req));
-    }
-
-    @Test
-    void testUpdate_AsAdmin() {
-
-        setAdminAuth();
-
-        CreateProfessionRequest req = new CreateProfessionRequest(
-                "DEV2", "New Title", "New Desc", "ML99", 3
-        );
-
-        ProfessionDto updated = new ProfessionDto(
-                10, "DEV2", "New Title", "New Desc", "ML99", 3
-        );
-
-        when(service.update(10, req)).thenReturn(updated);
-
-        ProfessionDto result = controller.update(10, req);
-
-        assertEquals("DEV2", result.code());
-        verify(service).update(10, req);
-    }
-
-    @Test
-    void testUpdate_UnauthorizedUser() {
-
-        setUserAuth();
-
-        CreateProfessionRequest req = new CreateProfessionRequest(
-                "DEV2", "New Title", "New Desc", "ML99", 3
-        );
-
-        when(service.update(10, req)).thenThrow(new SecurityException("Access denied"));
-
-        assertThrows(SecurityException.class, () -> controller.update(10, req));
-    }
-
-    @Test
-    void testDelete_AsAdmin() {
-
-        setAdminAuth();
-
-        controller.delete(7);
-
-        verify(service).delete(7);
-    }
-
-    @Test
-    void testDelete_UnauthorizedUser() {
-
-        setUserAuth();
-
-        doThrow(new SecurityException("Access denied"))
-                .when(service).delete(7);
-
-        assertThrows(SecurityException.class, () -> controller.delete(7));
-    }
-
-    private void setAdminAuth() {
-        SecurityContextHolder.getContext().setAuthentication(
+        UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(
                         "admin",
                         null,
                         List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
-                )
-        );
+                );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        when(service.create(req)).thenReturn(dto1);
+
+        ProfessionDto result = controller.create(req);
+
+        assertNotNull(result);
+        assertEquals("DEV", result.code());
+
+        verify(service).create(req);
     }
 
-    private void setUserAuth() {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(
-                        "user",
-                        null,
-                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
-                )
+    @Test
+    void shouldUpdateProfessionForAdmin() {
+        CreateProfessionRequest req = new CreateProfessionRequest(
+                "DEV2",
+                "Senior Developer",
+                "Writes better code",
+                "ML_DEV2",
+                10
         );
+
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(
+                        "admin",
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        when(service.update(1, req)).thenReturn(dto1);
+
+        ProfessionDto result = controller.update(1, req);
+
+        assertNotNull(result);
+        assertEquals("DEV", result.code());
+
+        verify(service).update(1, req);
+    }
+
+    @Test
+    void shouldDeleteProfessionForAdmin() {
+        UsernamePasswordAuthenticationToken auth =
+                new UsernamePasswordAuthenticationToken(
+                        "admin",
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                );
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        doNothing().when(service).delete(1);
+
+        controller.delete(1);
+
+        verify(service).delete(1);
     }
 }

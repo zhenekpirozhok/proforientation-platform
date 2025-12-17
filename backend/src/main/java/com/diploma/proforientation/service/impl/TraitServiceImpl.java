@@ -9,6 +9,7 @@ import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -55,6 +56,7 @@ public class TraitServiceImpl implements TraitService {
     }
 
     @Override
+    @Transactional
     public TraitDto create(CreateTraitRequest req) {
         TraitProfile t = new TraitProfile();
         t.setCode(req.code());
@@ -65,6 +67,7 @@ public class TraitServiceImpl implements TraitService {
     }
 
     @Override
+    @Transactional
     public TraitDto update(Integer id, CreateTraitRequest req) {
         TraitProfile t = repo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Trait not found"));
@@ -78,6 +81,7 @@ public class TraitServiceImpl implements TraitService {
     }
 
     @Override
+    @Transactional
     public void delete(Integer id) {
         repo.deleteById(id);
     }

@@ -4,15 +4,14 @@ package com.diploma.proforientation.service.impl;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.UserService;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
-@Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
@@ -20,11 +19,9 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
     }
 
-    public List<User> getAllUsers() {
-        List<User> users = new ArrayList<>();
-        users.addAll(userRepository.findAll());
-        log.debug(String.valueOf(users.size()));
-        return users;
+    @Transactional(readOnly = true)
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 
     @Override

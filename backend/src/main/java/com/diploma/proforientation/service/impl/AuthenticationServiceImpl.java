@@ -54,6 +54,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.googleIdTokenVerifier = googleIdTokenVerifier;
     }
 
+    @Transactional
     public User signup(RegisterUserDto input) {
         User user = new User(input.getEmail(), passwordEncoder.encode(input.getPassword()),
                 input.getDisplayName(), UserRole.USER);

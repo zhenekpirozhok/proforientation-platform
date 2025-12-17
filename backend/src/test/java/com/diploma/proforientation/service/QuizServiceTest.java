@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -53,18 +54,22 @@ class QuizServiceTest {
     }
 
     @Test
-    void getAll_shouldReturnList() {
+    void getAll_shouldReturnPage() {
         Quiz quiz = new Quiz();
         quiz.setId(1);
         quiz.setCode("Q1");
         quiz.setTitleDefault("Test");
 
-        when(quizRepo.findAll()).thenReturn(List.of(quiz));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Quiz> page = new PageImpl<>(List.of(quiz), pageable, 1);
 
-        List<QuizDto> result = service.getAll();
+        when(quizRepo.findAll(pageable)).thenReturn(page);
 
-        assertThat(result).hasSize(1);
-        verify(quizRepo).findAll();
+        Page<QuizDto> result = service.getAll(pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().title()).isEqualTo("Test");
+        verify(quizRepo).findAll(pageable);
     }
 
     @Test
@@ -79,6 +84,15 @@ class QuizServiceTest {
         QuizDto result = service.getById(10);
 
         assertThat(result.id()).isEqualTo(10);
+        verify(quizRepo).findById(10);
+    }
+
+    @Test
+    void getById_shouldThrowWhenNotFound() {
+        when(quizRepo.findById(99)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getById(99))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -102,6 +116,7 @@ class QuizServiceTest {
         QuizDto result = service.create(req);
 
         assertThat(result.id()).isEqualTo(99);
+        assertThat(result.title()).isEqualTo("New Quiz");
         verify(quizRepo).save(any());
     }
 
@@ -111,6 +126,18 @@ class QuizServiceTest {
                 new CreateQuizRequest("QX", "Title", "ml_riasec", 100, 1);
 
         when(categoryRepo.findById(100)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.create(req))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    void create_shouldThrowWhenAuthorNotFound() {
+        CreateQuizRequest req =
+                new CreateQuizRequest("QX", "Title", "ml_riasec", 5, 999);
+
+        when(categoryRepo.findById(5)).thenReturn(Optional.of(category));
+        when(userRepo.findById(999)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.create(req))
                 .isInstanceOf(EntityNotFoundException.class);
@@ -134,5 +161,16 @@ class QuizServiceTest {
 
         assertThat(result.title()).isEqualTo("Updated");
         verify(quizRepo).save(quiz);
+    }
+
+    @Test
+    void update_shouldThrowWhenQuizNotFound() {
+        when(quizRepo.findById(77)).thenReturn(Optional.empty());
+
+        UpdateQuizRequest req =
+                new UpdateQuizRequest("Updated", "ml_riasec", 5);
+
+        assertThatThrownBy(() -> service.update(77, req))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 }
