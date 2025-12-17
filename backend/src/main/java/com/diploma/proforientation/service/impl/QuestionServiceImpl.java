@@ -24,6 +24,8 @@ import java.util.List;
 
 import static com.diploma.proforientation.service.impl.OptionServiceImpl.ENTITY_TYPE_OPTION;
 import static com.diploma.proforientation.service.impl.OptionServiceImpl.FIELD_TEXT;
+import static com.diploma.proforientation.util.ErrorMessages.QUESTION_NOT_FOUND;
+import static com.diploma.proforientation.util.ErrorMessages.QUIZ_VERSION_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -40,7 +42,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Transactional
     public QuestionDto create(CreateQuestionRequest req) {
         QuizVersion version = quizVersionRepo.findById(req.quizVersionId())
-                .orElseThrow(() -> new EntityNotFoundException("Quiz version not found"));
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_VERSION_NOT_FOUND));
 
         Question q = new Question();
         q.setQuizVersion(version);
@@ -55,7 +57,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Transactional
     public QuestionDto update(Integer id, UpdateQuestionRequest req) {
         Question q = questionRepo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Question not found"));
+                .orElseThrow(() -> new EntityNotFoundException(QUESTION_NOT_FOUND));
 
         if (req.ord() != null) q.setOrd(req.ord());
         if (req.qtype() != null) q.setQtype(Enum.valueOf(QuestionType.class, req.qtype()));
@@ -73,7 +75,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public QuestionDto updateOrder(Integer id, Integer ord) {
         Question q = questionRepo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Question not found"));
+                .orElseThrow(() -> new EntityNotFoundException(QUESTION_NOT_FOUND));
 
         q.setOrd(ord);
         return toDto(questionRepo.save(q));
@@ -88,7 +90,7 @@ public class QuestionServiceImpl implements QuestionService {
     ) {
         QuizVersion version = quizVersionRepo
                 .findByQuizIdAndCurrentTrue(quizId)
-                .orElseThrow(() -> new RuntimeException("Quiz version not found"));
+                .orElseThrow(() -> new RuntimeException(QUIZ_VERSION_NOT_FOUND));
 
         return loadQuestions(version.getId(), locale, pageable);
     }
@@ -103,7 +105,7 @@ public class QuestionServiceImpl implements QuestionService {
     ) {
         QuizVersion version = quizVersionRepo
                 .findByQuizIdAndVersion(quizId, versionNum)
-                .orElseThrow(() -> new RuntimeException("Quiz version not found"));
+                .orElseThrow(() -> new RuntimeException(QUIZ_VERSION_NOT_FOUND));
 
         return loadQuestions(version.getId(), locale, pageable);
     }

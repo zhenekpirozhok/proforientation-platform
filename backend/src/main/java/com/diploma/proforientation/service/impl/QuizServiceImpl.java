@@ -23,6 +23,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static com.diploma.proforientation.service.impl.ProfessionServiceImpl.FIELD_TITLE;
+import static com.diploma.proforientation.util.ErrorMessages.*;
 
 @Service
 @RequiredArgsConstructor
@@ -53,12 +54,12 @@ public class QuizServiceImpl implements QuizService {
     public QuizDto getById(Integer id) {
         return quizRepo.findById(id)
                 .map(this::toDto)
-                .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
     }
 
     public QuizDto getByIdLocalized(Integer id, String locale) {
         Quiz quiz = quizRepo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
         return toDtoLocalized(quiz, locale);
     }
 
@@ -66,10 +67,10 @@ public class QuizServiceImpl implements QuizService {
     @Transactional
     public QuizDto create(CreateQuizRequest req) {
         ProfessionCategory category = categoryRepo.findById(req.categoryId())
-                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+                .orElseThrow(() -> new EntityNotFoundException(CATEGORY_NOT_FOUND));
 
         User author = userRepo.findById(req.authorId())
-                .orElseThrow(() -> new EntityNotFoundException("Author not found"));
+                .orElseThrow(() -> new EntityNotFoundException(AUTHOR_NOT_FOUND));
 
         Quiz q = new Quiz();
         q.setCode(req.code());
@@ -89,7 +90,7 @@ public class QuizServiceImpl implements QuizService {
     @Transactional
     public QuizDto update(Integer id, UpdateQuizRequest req) {
         Quiz q = quizRepo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
 
         if (req.title() != null) {
             q.setTitleDefault(req.title());
@@ -103,7 +104,7 @@ public class QuizServiceImpl implements QuizService {
 
         if (req.categoryId() != null) {
             ProfessionCategory category = categoryRepo.findById(req.categoryId())
-                    .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+                    .orElseThrow(() -> new EntityNotFoundException(CATEGORY_NOT_FOUND));
             q.setCategory(category);
         }
 
@@ -116,7 +117,7 @@ public class QuizServiceImpl implements QuizService {
     @Transactional
     public void delete(Integer id) {
         Quiz quiz = quizRepo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
         quizRepo.delete(quiz);
     }
 

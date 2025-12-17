@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.diploma.proforientation.util.ErrorMessages.CATEGORY_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 public class ProfessionCategoryServiceImpl implements ProfessionCategoryService {
@@ -36,7 +38,7 @@ public class ProfessionCategoryServiceImpl implements ProfessionCategoryService 
     @Transactional
     public ProfessionCategoryDto update(Integer id, CreateCategoryRequest req) {
         ProfessionCategory cat = repo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+                .orElseThrow(() -> new EntityNotFoundException(CATEGORY_NOT_FOUND));
 
         cat.setCode(req.code());
         cat.setName(req.name());

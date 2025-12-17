@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 
+import static com.diploma.proforientation.util.ErrorMessages.*;
+
 @Service
 @RequiredArgsConstructor
 public class QuizVersionServiceImpl implements QuizVersionService {
@@ -25,7 +27,7 @@ public class QuizVersionServiceImpl implements QuizVersionService {
     @Transactional
     public QuizVersionDto publishQuiz(Integer quizId) {
         Quiz quiz = quizRepo.findById(quizId)
-                .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
 
         QuizVersion latest = versionRepo.findTopByQuizIdOrderByVersionDesc(quizId).orElse(null);
         int newVersionNumber = latest != null ? latest.getVersion() + 1 : 1;
@@ -53,10 +55,10 @@ public class QuizVersionServiceImpl implements QuizVersionService {
     @Transactional
     public QuizVersionDto copyLatestVersion(Integer quizId) {
         Quiz quiz = quizRepo.findById(quizId)
-                .orElseThrow(() -> new EntityNotFoundException("Quiz not found"));
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
 
         QuizVersion latest = versionRepo.findTopByQuizIdOrderByVersionDesc(quizId)
-                .orElseThrow(() -> new EntityNotFoundException("No versions to copy"));
+                .orElseThrow(() -> new EntityNotFoundException(NO_QUIZ_VERSIONS));
 
         int newVersionNumber = latest.getVersion() + 1;
 
@@ -106,7 +108,7 @@ public class QuizVersionServiceImpl implements QuizVersionService {
     public QuizVersionDto getCurrentVersion(Integer quizId) {
         QuizVersion v = versionRepo
                 .findByQuizIdAndCurrentTrue(quizId)
-                .orElseThrow(() -> new RuntimeException("Current version not found"));
+                .orElseThrow(() -> new RuntimeException(CURRENT_QUIZ_VERSION_NOT_FOUND));
 
         return toDto(v);
     }
@@ -115,7 +117,7 @@ public class QuizVersionServiceImpl implements QuizVersionService {
     public QuizVersionDto getVersion(Integer quizId, Integer version) {
         QuizVersion v = versionRepo
                 .findByQuizIdAndVersion(quizId, version)
-                .orElseThrow(() -> new RuntimeException("Version not found"));
+                .orElseThrow(() -> new RuntimeException(QUIZ_VERSION_NOT_FOUND));
 
         return toDto(v);
     }

@@ -15,6 +15,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.diploma.proforientation.util.ErrorMessages.CATEGORY_NOT_FOUND;
+import static com.diploma.proforientation.util.ErrorMessages.PROFESSION_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 public class ProfessionServiceImpl implements ProfessionService {
@@ -22,8 +25,6 @@ public class ProfessionServiceImpl implements ProfessionService {
     private static final String ENTITY_TYPE_PROF = "profession";
     public static final String FIELD_TITLE = "title";
     public static final String FIELD_DESCRIPTION = "description";
-    public static final String NO_PROFESSION_MESSAGE = "Profession not found";
-    public static final String NO_CATEGORY_MESSAGE = "Category not found";
 
     private final ProfessionRepository repo;
     private final ProfessionCategoryRepository categoryRepo;
@@ -44,13 +45,13 @@ public class ProfessionServiceImpl implements ProfessionService {
     public ProfessionDto getById(Integer id) {
         return repo.findById(id)
                 .map(this::toDto)
-                .orElseThrow(() -> new EntityNotFoundException(NO_PROFESSION_MESSAGE));
+                .orElseThrow(() -> new EntityNotFoundException(PROFESSION_NOT_FOUND));
     }
 
     @Override
     public ProfessionDto getByIdLocalized(Integer id, String locale) {
         Profession p = repo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(NO_PROFESSION_MESSAGE));
+                .orElseThrow(() -> new EntityNotFoundException(PROFESSION_NOT_FOUND));
 
         return toDtoLocalized(p, locale);
     }
@@ -58,7 +59,7 @@ public class ProfessionServiceImpl implements ProfessionService {
     @Transactional
     public ProfessionDto create(CreateProfessionRequest req) {
         ProfessionCategory category = categoryRepo.findById(req.categoryId())
-                .orElseThrow(() -> new EntityNotFoundException(NO_CATEGORY_MESSAGE));
+                .orElseThrow(() -> new EntityNotFoundException(CATEGORY_NOT_FOUND));
 
         Profession p = new Profession();
         p.setCode(req.code());
@@ -73,10 +74,10 @@ public class ProfessionServiceImpl implements ProfessionService {
     @Transactional
     public ProfessionDto update(Integer id, CreateProfessionRequest req) {
         Profession p = repo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(NO_PROFESSION_MESSAGE));
+                .orElseThrow(() -> new EntityNotFoundException(PROFESSION_NOT_FOUND));
 
         ProfessionCategory category = categoryRepo.findById(req.categoryId())
-                .orElseThrow(() -> new EntityNotFoundException(NO_CATEGORY_MESSAGE));
+                .orElseThrow(() -> new EntityNotFoundException(CATEGORY_NOT_FOUND));
 
         p.setCode(req.code());
         p.setTitleDefault(req.title());

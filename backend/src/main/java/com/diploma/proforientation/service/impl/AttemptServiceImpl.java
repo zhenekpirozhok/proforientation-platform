@@ -21,6 +21,8 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.diploma.proforientation.util.ErrorMessages.*;
+
 @Service
 @RequiredArgsConstructor
 public class AttemptServiceImpl implements AttemptService {
@@ -45,7 +47,7 @@ public class AttemptServiceImpl implements AttemptService {
         Attempt attempt = new Attempt();
 
         QuizVersion qv = quizVersionRepo.findById(quizVersionId)
-                .orElseThrow(() -> new EntityNotFoundException("Quiz version not found"));
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_VERSION_NOT_FOUND));
 
         attempt.setQuizVersion(qv);
 
@@ -63,10 +65,10 @@ public class AttemptServiceImpl implements AttemptService {
     @Transactional
     public void addAnswer(Integer attemptId, Integer optionId) {
         Attempt attempt = attemptRepo.findById(attemptId)
-                .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ATTEMPT_NOT_FOUND));
 
         QuestionOption opt = optionRepo.findById(optionId)
-                .orElseThrow(() -> new EntityNotFoundException("Option not found"));
+                .orElseThrow(() -> new EntityNotFoundException(OPTION_NOT_FOUND));
 
         Answer ans = new Answer();
         ans.setAttempt(attempt);
@@ -79,10 +81,10 @@ public class AttemptServiceImpl implements AttemptService {
     public void addAnswersBulk(Integer attemptId, List<Integer> optionIds) {
 
         Attempt attempt = attemptRepo.findById(attemptId)
-                .orElseThrow(() -> new IllegalArgumentException("Attempt not found"));
+                .orElseThrow(() -> new IllegalArgumentException(ATTEMPT_NOT_FOUND));
 
         if (attempt.getSubmittedAt() != null) {
-            throw new IllegalStateException("Attempt already submitted");
+            throw new IllegalStateException(ATTEMPT_SUBMITTED);
         }
 
         // Overwrite previous answers
@@ -91,7 +93,7 @@ public class AttemptServiceImpl implements AttemptService {
         List<QuestionOption> options = optionRepo.findAllById(optionIds);
 
         if (options.size() != optionIds.size()) {
-            throw new IllegalArgumentException("Some options not found");
+            throw new IllegalArgumentException(OPTIONS_NOT_FOUND);
         }
 
         List<Answer> answers = options.stream()
@@ -112,7 +114,7 @@ public class AttemptServiceImpl implements AttemptService {
     public AttemptResultDto submitAttempt(Integer attemptId) {
 
         Attempt attempt = attemptRepo.findById(attemptId)
-                .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ATTEMPT_NOT_FOUND));
 
         attempt.setSubmittedAt(Instant.now());
         attemptRepo.save(attempt);
@@ -156,7 +158,7 @@ public class AttemptServiceImpl implements AttemptService {
     public AttemptResultDto getResult(Integer attemptId) {
 
         attemptRepo.findById(attemptId)
-                .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ATTEMPT_NOT_FOUND));
 
         List<AttemptTraitScore> scores = traitScoreRepo.findByAttemptId(attemptId);
         List<AttemptRecommendation> recs = recRepo.findByAttemptId(attemptId);
@@ -205,7 +207,7 @@ public class AttemptServiceImpl implements AttemptService {
         for (RecommendationDto dto : recs) {
 
             Profession prof = professionRepo.findById(dto.professionId())
-                    .orElseThrow(() -> new EntityNotFoundException("Profession not found"));
+                    .orElseThrow(() -> new EntityNotFoundException(PROFESSION_NOT_FOUND));
 
             AttemptRecommendation ar = new AttemptRecommendation();
             ar.setAttempt(attempt);
