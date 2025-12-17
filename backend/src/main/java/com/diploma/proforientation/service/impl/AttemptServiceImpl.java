@@ -11,6 +11,7 @@ import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.service.scoring.ScoringEngine;
 import com.diploma.proforientation.service.scoring.ScoringEngineFactory;
 import com.diploma.proforientation.service.scoring.ScoringResult;
+import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,8 @@ public class AttemptServiceImpl implements AttemptService {
 
     private static final String STATUS_IN_PROGRESS = "in_progress";
     private static final String STATUS_COMPLETED = "completed";
+    private static final String ENTITY_TYPE_QUIZ = "quiz";
+    private static final String FIELD_TITLE = "title";
 
     private final AttemptRepository attemptRepo;
     private final UserRepository userRepo;
@@ -40,6 +43,7 @@ public class AttemptServiceImpl implements AttemptService {
     private final ProfessionRepository professionRepo;
 
     private final ScoringEngineFactory scoringEngineFactory;
+    private final TranslationResolver translationResolver;
 
     @Override
     public AttemptStartResponse startAttempt(Integer quizVersionId, Integer userId) {
@@ -139,7 +143,7 @@ public class AttemptServiceImpl implements AttemptService {
     }
 
     @Override
-    public List<AttemptSummaryDto> getMyAttempts(Integer userId, String guestToken) {
+    public List<AttemptSummaryDto> getMyAttempts(Integer userId, String guestToken, String locale) {
 
         List<Attempt> attempts;
 
@@ -150,7 +154,7 @@ public class AttemptServiceImpl implements AttemptService {
         }
 
         return attempts.stream()
-                .map(this::toSummary)
+                .map(a -> toSummary(a, locale))
                 .toList();
     }
 
@@ -181,12 +185,19 @@ public class AttemptServiceImpl implements AttemptService {
     }
 
     @Override
-    public List<AttemptSummaryDto> adminSearchAttempts(Integer userId, Integer quizId, Instant from, Instant to) {
+    public List<AttemptSummaryDto> adminSearchAttempts(
+            Integer userId,
+            Integer quizId,
+            Instant from,
+            Instant to,
+            String locale
+    ) {
         return attemptRepo.searchAdmin(userId, quizId, from, to)
                 .stream()
-                .map(this::toSummary)
+                .map(a -> toSummary(a, locale))
                 .toList();
     }
+
 
     private Map<String, BigDecimal> toSimpleTraitMap(Map<TraitProfile, BigDecimal> map) {
         return map.entrySet().stream()
@@ -219,13 +230,21 @@ public class AttemptServiceImpl implements AttemptService {
         }
     }
 
-    private AttemptSummaryDto toSummary(Attempt a) {
+    private AttemptSummaryDto toSummary(Attempt a, String locale) {
         Quiz quiz = a.getQuizVersion().getQuiz();
+
+        String title = translationResolver.resolve(
+                ENTITY_TYPE_QUIZ,
+                quiz.getId(),
+                FIELD_TITLE,
+                locale,
+                quiz.getTitleDefault()
+        );
 
         return new AttemptSummaryDto(
                 a.getId(),
                 a.getQuizVersion().getId(),
-                quiz.getTitleDefault(),  // later localized
+                title,
                 a.getSubmittedAt() == null ? STATUS_IN_PROGRESS : STATUS_COMPLETED,
                 a.getStartedAt(),
                 a.getSubmittedAt(),

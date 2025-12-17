@@ -11,6 +11,7 @@ import com.diploma.proforientation.service.impl.AttemptServiceImpl;
 import com.diploma.proforientation.service.scoring.ScoringEngine;
 import com.diploma.proforientation.service.scoring.ScoringEngineFactory;
 import com.diploma.proforientation.service.scoring.ScoringResult;
+import com.diploma.proforientation.util.TranslationResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -36,6 +37,8 @@ class AttemptServiceTest {
     @Mock ProfessionRepository professionRepo;
     @Mock ScoringEngineFactory scoringEngineFactory;
     @Mock ScoringEngine scoringEngine;
+    @Mock
+    TranslationResolver translationResolver;
 
     @InjectMocks AttemptServiceImpl service;
 
@@ -158,7 +161,9 @@ class AttemptServiceTest {
         a.setStartedAt(Instant.now());
 
         Quiz q = new Quiz();
+        q.setId(1);
         q.setTitleDefault("RIASEC");
+
         QuizVersion qv = new QuizVersion();
         qv.setQuiz(q);
         a.setQuizVersion(qv);
@@ -166,7 +171,16 @@ class AttemptServiceTest {
         when(attemptRepo.findByUserIdOrderByStartedAtDesc(99))
                 .thenReturn(List.of(a));
 
-        List<AttemptSummaryDto> list = service.getMyAttempts(99, null);
+        when(translationResolver.resolve(
+                eq("quiz"),
+                eq(1),
+                eq("title"),
+                eq("en"),
+                eq("RIASEC")
+        )).thenReturn("RIASEC");
+
+        List<AttemptSummaryDto> list =
+                service.getMyAttempts(99, null, "en");
 
         assertThat(list).hasSize(1);
         assertThat(list.getFirst().quizTitle()).isEqualTo("RIASEC");
@@ -189,7 +203,7 @@ class AttemptServiceTest {
         when(attemptRepo.findByGuestTokenOrderByStartedAtDesc("abc"))
                 .thenReturn(List.of(a));
 
-        List<AttemptSummaryDto> list = service.getMyAttempts(null, "abc");
+        List<AttemptSummaryDto> list = service.getMyAttempts(null, "abc", "en");
 
         assertThat(list).hasSize(1);
         assertThat(list.getFirst().id()).isEqualTo(7);
@@ -245,7 +259,7 @@ class AttemptServiceTest {
                 .thenReturn(List.of(a));
 
         List<AttemptSummaryDto> list =
-                service.adminSearchAttempts(null, 5, null, null);
+                service.adminSearchAttempts(null, 5, null, null, "en");
 
         assertThat(list).hasSize(1);
         assertThat(list.getFirst().id()).isEqualTo(22);

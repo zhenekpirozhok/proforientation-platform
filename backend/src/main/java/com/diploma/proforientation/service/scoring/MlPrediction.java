@@ -1,4 +1,4 @@
-package com.diploma.proforientation.dto;
+package com.diploma.proforientation.service.scoring;
 
 import java.math.BigDecimal;
 

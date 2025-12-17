@@ -1,6 +1,6 @@
 package com.diploma.proforientation.scoring;
 
-import com.diploma.proforientation.dto.MlPrediction;
+import com.diploma.proforientation.service.scoring.MlPrediction;
 import com.diploma.proforientation.dto.RecommendationDto;
 import com.diploma.proforientation.dto.response.MlResultResponse;
 import com.diploma.proforientation.model.TraitProfile;

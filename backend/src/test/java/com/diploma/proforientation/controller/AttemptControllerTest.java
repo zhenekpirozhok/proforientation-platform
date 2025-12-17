@@ -14,10 +14,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,6 +39,7 @@ class AttemptControllerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        LocaleContextHolder.setLocale(Locale.ENGLISH);
     }
 
     @Test
@@ -89,14 +92,14 @@ class AttemptControllerTest {
         );
 
         when(authUtils.getAuthenticatedUserId()).thenReturn(userId);
-        when(attemptService.getMyAttempts(userId, guestToken))
+        when(attemptService.getMyAttempts(userId, guestToken, "en"))
                 .thenReturn(List.of(dto));
 
         List<AttemptSummaryDto> list = attemptController.myAttempts(guestToken);
 
         assertEquals(1, list.size());
         assertEquals(dto, list.getFirst());
-        verify(attemptService).getMyAttempts(userId, guestToken);
+        verify(attemptService).getMyAttempts(userId, guestToken, "en");
     }
 
     @Test
@@ -124,7 +127,7 @@ class AttemptControllerTest {
                 Instant.now(), Instant.now(), true
         );
 
-        when(attemptService.adminSearchAttempts(1, 2, from, to))
+        when(attemptService.adminSearchAttempts(1, 2, from, to, "en"))
                 .thenReturn(List.of(dto));
 
         List<AttemptSummaryDto> result =
@@ -133,7 +136,7 @@ class AttemptControllerTest {
         assertEquals(1, result.size());
         assertEquals(dto, result.getFirst());
 
-        verify(attemptService).adminSearchAttempts(1, 2, from, to);
+        verify(attemptService).adminSearchAttempts(1, 2, from, to, "en");
     }
 
     @Test
@@ -190,20 +193,20 @@ class AttemptControllerTest {
                 Instant.now(), null, false
         );
 
-        when(attemptService.getMyAttempts(10, null))
+        when(attemptService.getMyAttempts(10, null, "en"))
                 .thenReturn(List.of(dto));
 
         List<AttemptSummaryDto> list = attemptController.myAttempts(null);
 
         assertEquals(1, list.size());
-        verify(attemptService).getMyAttempts(10, null);
+        verify(attemptService).getMyAttempts(10, null, "en");
     }
 
     @Test
     void testMyAttempts_serviceThrows() {
         when(authUtils.getAuthenticatedUserId()).thenReturn(5);
 
-        when(attemptService.getMyAttempts(5, "guest"))
+        when(attemptService.getMyAttempts(5, "guest", "en"))
                 .thenThrow(new RuntimeException("DB error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -225,13 +228,13 @@ class AttemptControllerTest {
 
     @Test
     void testSearch_allFiltersNull() {
-        when(attemptService.adminSearchAttempts(null, null, null, null))
+        when(attemptService.adminSearchAttempts(null, null, null, null, "en"))
                 .thenReturn(List.of());
 
         List<AttemptSummaryDto> result = attemptController.search(null, null, null, null);
 
         assertTrue(result.isEmpty());
-        verify(attemptService).adminSearchAttempts(null, null, null, null);
+        verify(attemptService).adminSearchAttempts(null, null, null, null, "en");
     }
 
     @Test
@@ -239,7 +242,7 @@ class AttemptControllerTest {
         Instant from = Instant.now().minusSeconds(500);
         Instant to = Instant.now();
 
-        when(attemptService.adminSearchAttempts(5, 3, from, to))
+        when(attemptService.adminSearchAttempts(5, 3, from, to, "en"))
                 .thenThrow(new RuntimeException("Admin error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
