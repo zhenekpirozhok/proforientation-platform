@@ -12,7 +12,7 @@ public final class ErrorMessages {
     public static final String QUESTION_NOT_FOUND = "Question not found";
     public static final String OPTION_NOT_FOUND = "Option not found";
     public static final String OPTIONS_NOT_FOUND = "Some options not found";
-    public static final String TRAIT_NOT_FOUND = "Trait not found: ";
+    public static final String TRAIT_NOT_FOUND = "Trait not found";
     public static final String ATTEMPT_NOT_FOUND = "Attempt not found";
     public static final String ATTEMPT_SUBMITTED = "Attempt already submitted";
     public static final String TRANSLATION_NOT_FOUND = "Translation not found";
