@@ -53,6 +53,10 @@ jobs:
           test -s ../contracts/openapi.json
           npm run gen:api
 
+      - name: Format generated API types
+        working-directory: frontend
+        run: npx prettier --write "src/shared/api/generated/**/*"
+
       - name: Detect generated changes
         id: changes
         run: |
