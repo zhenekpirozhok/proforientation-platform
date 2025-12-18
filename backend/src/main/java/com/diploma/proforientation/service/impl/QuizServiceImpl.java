@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.List;
 
 import static com.diploma.proforientation.service.impl.ProfessionServiceImpl.FIELD_TITLE;
 import static com.diploma.proforientation.util.ErrorMessages.*;
