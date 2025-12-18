@@ -67,6 +67,7 @@ public class SecurityConfiguration {
                                 "/attempts/**",
                                 "/demo/**",
                                 "/api/v1.0/**",
+                                "/v3/api-docs.yaml",
                                 "/actuator/health/readiness",
                                 "/error",
                                 "/reset-password**"

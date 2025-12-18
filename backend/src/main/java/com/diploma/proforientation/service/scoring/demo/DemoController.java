@@ -1,6 +1,6 @@
 package com.diploma.proforientation.service.scoring.demo;
 
-import com.diploma.proforientation.service.scoring.ScoringResult;
+import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.diploma.proforientation.service.scoring.llm.LlmScoringEngineImpl;
 import com.diploma.proforientation.service.scoring.ml.impl.MlScoringEngineImpl;
 import lombok.RequiredArgsConstructor;

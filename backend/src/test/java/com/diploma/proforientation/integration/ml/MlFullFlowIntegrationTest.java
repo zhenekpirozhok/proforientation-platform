@@ -4,7 +4,7 @@ import com.diploma.proforientation.config.MlClientConfig;
 import com.diploma.proforientation.dto.RecommendationDto;
 import com.diploma.proforientation.repository.AnswerRepository;
 import com.diploma.proforientation.repository.ProfessionRepository;
-import com.diploma.proforientation.service.scoring.ScoringResult;
+import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.diploma.proforientation.service.scoring.ml.TraitScoreCalculator;
 import com.diploma.proforientation.service.scoring.ml.impl.MlClientImpl;
 import com.diploma.proforientation.service.scoring.ml.impl.MlResultMapper;

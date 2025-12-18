@@ -1,5 +1,7 @@
 package com.diploma.proforientation.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.Instant;
 
 /**
@@ -13,4 +15,24 @@ import java.time.Instant;
  * @param time    the timestamp when the error occurred
  * @param message a human-readable message or structured error details
  */
-public record ExceptionDto(Integer code, Instant time, Object message) {}
+@Schema(description = "Standardized API error response returned for all handled exceptions")
+public record ExceptionDto(
+        @Schema(
+                description = "HTTP status code representing the error type",
+                example = "400"
+        )
+        Integer code,
+        @Schema(
+                description = "Timestamp indicating when the error occurred (ISO-8601 format)",
+                example = "2025-01-15T14:32:10Z"
+        )
+        Instant time,
+        @Schema(
+                description = """
+                        Error details. May be:
+                        - a string message (e.g. 'Invalid credentials')
+                        - a structured object containing validation errors
+                        """,
+                example = "Invalid email or password"
+        )
+        Object message) {}

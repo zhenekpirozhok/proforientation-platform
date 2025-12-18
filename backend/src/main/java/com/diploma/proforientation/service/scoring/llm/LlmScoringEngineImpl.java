@@ -3,7 +3,7 @@ package com.diploma.proforientation.service.scoring.llm;
 import com.diploma.proforientation.dto.RecommendationDto;
 import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.repository.*;
-import com.diploma.proforientation.service.scoring.ScoringResult;
+import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;

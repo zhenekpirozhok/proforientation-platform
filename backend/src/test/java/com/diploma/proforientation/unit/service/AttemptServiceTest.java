@@ -10,7 +10,7 @@ import com.diploma.proforientation.repository.*;
 import com.diploma.proforientation.service.impl.AttemptServiceImpl;
 import com.diploma.proforientation.service.scoring.ScoringEngine;
 import com.diploma.proforientation.service.scoring.ScoringEngineFactory;
-import com.diploma.proforientation.service.scoring.ScoringResult;
+import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.diploma.proforientation.util.TranslationResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

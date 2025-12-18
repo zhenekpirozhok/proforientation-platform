@@ -10,7 +10,7 @@ import com.diploma.proforientation.service.AttemptService;
 
 import com.diploma.proforientation.service.scoring.ScoringEngine;
 import com.diploma.proforientation.service.scoring.ScoringEngineFactory;
-import com.diploma.proforientation.service.scoring.ScoringResult;
+import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;

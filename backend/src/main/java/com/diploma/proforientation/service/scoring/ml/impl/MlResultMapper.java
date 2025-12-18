@@ -1,6 +1,6 @@
 package com.diploma.proforientation.service.scoring.ml.impl;
 
-import com.diploma.proforientation.service.scoring.MlPrediction;
+import com.diploma.proforientation.dto.ml.MlPrediction;
 import com.diploma.proforientation.dto.RecommendationDto;
 import com.diploma.proforientation.dto.response.MlResultResponse;
 import com.diploma.proforientation.repository.ProfessionRepository;

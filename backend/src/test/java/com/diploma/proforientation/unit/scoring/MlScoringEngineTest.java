@@ -1,11 +1,11 @@
 package com.diploma.proforientation.unit.scoring;
 
-import com.diploma.proforientation.service.scoring.MlPrediction;
+import com.diploma.proforientation.dto.ml.MlPrediction;
 import com.diploma.proforientation.dto.RecommendationDto;
 import com.diploma.proforientation.dto.response.MlResultResponse;
 import com.diploma.proforientation.model.TraitProfile;
 import com.diploma.proforientation.repository.AnswerRepository;
-import com.diploma.proforientation.service.scoring.ScoringResult;
+import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.diploma.proforientation.service.scoring.ml.MlClient;
 import com.diploma.proforientation.service.scoring.ml.TraitScoreCalculator;
 import com.diploma.proforientation.service.scoring.ml.impl.MlResultMapper;
