@@ -1,4 +1,4 @@
-package com.diploma.proforientation.integration;
+package com.diploma.proforientation.integration.webmvc;
 
 import com.diploma.proforientation.config.JwtAuthenticationFilter;
 import com.diploma.proforientation.controller.TranslationController;
