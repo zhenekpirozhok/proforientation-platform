@@ -60,8 +60,6 @@ class AttemptControllerTest {
     @MockitoBean
     AuthUtils authUtils;
 
-    /* ---------- START ATTEMPT ---------- */
-
     @Test
     void startAttemptReturnsResponse() throws Exception {
         AttemptStartResponse response =
@@ -76,8 +74,6 @@ class AttemptControllerTest {
                 .andExpect(jsonPath("$.attemptId").value(1));
     }
 
-    /* ---------- ADD ANSWER ---------- */
-
     @Test
     void addAnswerReturnsOk() throws Exception {
         AddAnswerRequest req = new AddAnswerRequest(10);
@@ -87,8 +83,6 @@ class AttemptControllerTest {
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk());
     }
-
-    /* ---------- ADD ANSWERS BULK ---------- */
 
     @Test
     void addAnswersBulkReturnsOk() throws Exception {
@@ -100,8 +94,6 @@ class AttemptControllerTest {
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk());
     }
-
-    /* ---------- SUBMIT ---------- */
 
     @Test
     void submitReturnsResult() throws Exception {
@@ -116,8 +108,6 @@ class AttemptControllerTest {
         mockMvc.perform(post("/attempts/{id}/submit", 1))
                 .andExpect(status().isOk());
     }
-
-    /* ---------- MY ATTEMPTS ---------- */
 
     @Test
     void myAttemptsReturnsList() throws Exception {
@@ -140,8 +130,6 @@ class AttemptControllerTest {
                 .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)));
     }
 
-    /* ---------- GET RESULT ---------- */
-
     @Test
     void getResultReturnsDto() throws Exception {
         AttemptResultDto result = new AttemptResultDto(
@@ -155,8 +143,6 @@ class AttemptControllerTest {
         mockMvc.perform(get("/attempts/{id}/result", 1))
                 .andExpect(status().isOk());
     }
-
-    /* ---------- ADMIN SEARCH ---------- */
 
     @Test
     @WithMockUser(roles = "ADMIN")

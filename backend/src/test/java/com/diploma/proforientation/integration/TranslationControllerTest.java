@@ -69,8 +69,6 @@ class TranslationControllerTest {
         );
     }
 
-    /* -------------------- CREATE -------------------- */
-
     @Test
     @WithMockUser(roles = "ADMIN")
     void createTranslationReturnsDto() throws Exception {
