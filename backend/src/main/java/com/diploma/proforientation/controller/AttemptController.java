@@ -3,10 +3,12 @@ package com.diploma.proforientation.controller;
 import com.diploma.proforientation.dto.AttemptResultDto;
 import com.diploma.proforientation.dto.AttemptSummaryDto;
 import com.diploma.proforientation.dto.request.AddAnswerRequest;
+import com.diploma.proforientation.dto.request.AddAnswersBulkRequest;
 import com.diploma.proforientation.dto.response.AttemptStartResponse;
 import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.util.AuthUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +37,14 @@ public class AttemptController {
         attemptService.addAnswer(attemptId, req.optionId());
     }
 
+    @PostMapping("/{attemptId}/answers/bulk")
+    public void addAnswersBulk(
+            @PathVariable Integer attemptId,
+            @RequestBody AddAnswersBulkRequest request
+    ) {
+        attemptService.addAnswersBulk(attemptId, request.optionIds());
+    }
+
     @PostMapping("/{attemptId}/submit")
     public AttemptResultDto submit(@PathVariable Integer attemptId) {
         return attemptService.submitAttempt(attemptId);
@@ -45,8 +55,9 @@ public class AttemptController {
             @RequestParam(required = false) String guestToken
     ) {
         Integer userId = authUtils.getAuthenticatedUserId();
+        String locale = LocaleContextHolder.getLocale().getLanguage();
 
-        return attemptService.getMyAttempts(userId, guestToken);
+        return attemptService.getMyAttempts(userId, guestToken, locale);
     }
 
     @GetMapping("/{id}/result")
@@ -62,6 +73,7 @@ public class AttemptController {
             @RequestParam(required = false) Instant from,
             @RequestParam(required = false) Instant to
     ) {
-        return attemptService.adminSearchAttempts(userId, quizId, from, to);
+        String locale = LocaleContextHolder.getLocale().getLanguage();
+        return attemptService.adminSearchAttempts(userId, quizId, from, to, locale);
     }
 }

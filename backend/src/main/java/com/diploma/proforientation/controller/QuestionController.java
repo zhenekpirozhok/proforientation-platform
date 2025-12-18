@@ -6,10 +6,11 @@ import com.diploma.proforientation.dto.request.update.UpdateQuestionRequest;
 import com.diploma.proforientation.service.QuestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/questions")
@@ -45,19 +46,21 @@ public class QuestionController {
     }
 
     @GetMapping("/quiz/{quizId}")
-    public List<QuestionDto> getQuestionsForQuiz(
+    public Page<QuestionDto> getQuestionsForQuiz(
             @PathVariable Integer quizId,
-            @RequestParam(defaultValue = "en") String locale
+            @RequestParam(defaultValue = "en") String locale,
+            @PageableDefault(size = 20, sort = "ord") Pageable pageable
     ) {
-        return questionService.getQuestionsForCurrentVersion(quizId, locale);
+        return questionService.getQuestionsForCurrentVersion(quizId, locale, pageable);
     }
 
     @GetMapping("/quiz/{quizId}/version/{version}")
-    public List<QuestionDto> getQuestionsForQuizVersion(
+    public Page<QuestionDto> getQuestionsForQuizVersion(
             @PathVariable Integer quizId,
             @PathVariable Integer version,
-            @RequestParam(defaultValue = "en") String locale
+            @RequestParam(defaultValue = "en") String locale,
+            @PageableDefault(size = 20, sort = "ord") Pageable pageable
     ) {
-        return questionService.getQuestionsForVersion(quizId, version, locale);
+        return questionService.getQuestionsForVersion(quizId, version, locale, pageable);
     }
 }

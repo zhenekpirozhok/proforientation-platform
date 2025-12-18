@@ -16,6 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static com.diploma.proforientation.util.ErrorMessages.OPTION_NOT_FOUND;
+import static com.diploma.proforientation.util.ErrorMessages.TRAIT_NOT_FOUND;
+
 @Service
 @RequiredArgsConstructor
 public class OptionTraitServiceImpl implements OptionTraitService {
@@ -28,11 +31,11 @@ public class OptionTraitServiceImpl implements OptionTraitService {
     @Transactional
     public void assignTraits(Integer optionId, List<OptionTraitRequest> traits) {
         QuestionOption option = optionRepo.findById(optionId)
-                .orElseThrow(() -> new EntityNotFoundException("Option not found"));
+                .orElseThrow(() -> new EntityNotFoundException(OPTION_NOT_FOUND));
 
         for (OptionTraitRequest req : traits) {
             TraitProfile trait = traitRepo.findById(req.traitId())
-                    .orElseThrow(() -> new EntityNotFoundException("Trait not found: " + req.traitId()));
+                    .orElseThrow(() -> new EntityNotFoundException(TRAIT_NOT_FOUND + req.traitId()));
 
             QuestionOptionTrait entity = new QuestionOptionTrait();
             entity.setOption(option);
@@ -47,7 +50,7 @@ public class OptionTraitServiceImpl implements OptionTraitService {
     @Transactional
     public void updateTraits(Integer optionId, List<OptionTraitRequest> traits) {
         QuestionOption option = optionRepo.findById(optionId)
-                .orElseThrow(() -> new EntityNotFoundException("Option not found"));
+                .orElseThrow(() -> new EntityNotFoundException(OPTION_NOT_FOUND));
 
         qotRepo.deleteByOption(option);
 

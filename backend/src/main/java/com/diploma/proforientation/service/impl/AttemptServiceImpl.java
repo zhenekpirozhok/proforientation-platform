@@ -11,7 +11,9 @@ import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.service.scoring.ScoringEngine;
 import com.diploma.proforientation.service.scoring.ScoringEngineFactory;
 import com.diploma.proforientation.service.scoring.ScoringResult;
+import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +22,16 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.diploma.proforientation.util.ErrorMessages.*;
+
 @Service
 @RequiredArgsConstructor
 public class AttemptServiceImpl implements AttemptService {
 
     private static final String STATUS_IN_PROGRESS = "in_progress";
     private static final String STATUS_COMPLETED = "completed";
+    private static final String ENTITY_TYPE_QUIZ = "quiz";
+    private static final String FIELD_TITLE = "title";
 
     private final AttemptRepository attemptRepo;
     private final UserRepository userRepo;
@@ -37,6 +43,7 @@ public class AttemptServiceImpl implements AttemptService {
     private final ProfessionRepository professionRepo;
 
     private final ScoringEngineFactory scoringEngineFactory;
+    private final TranslationResolver translationResolver;
 
     @Override
     public AttemptStartResponse startAttempt(Integer quizVersionId, Integer userId) {
@@ -44,7 +51,7 @@ public class AttemptServiceImpl implements AttemptService {
         Attempt attempt = new Attempt();
 
         QuizVersion qv = quizVersionRepo.findById(quizVersionId)
-                .orElseThrow(() -> new EntityNotFoundException("Quiz version not found"));
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_VERSION_NOT_FOUND));
 
         attempt.setQuizVersion(qv);
 
@@ -59,12 +66,13 @@ public class AttemptServiceImpl implements AttemptService {
     }
 
     @Override
+    @Transactional
     public void addAnswer(Integer attemptId, Integer optionId) {
         Attempt attempt = attemptRepo.findById(attemptId)
-                .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ATTEMPT_NOT_FOUND));
 
         QuestionOption opt = optionRepo.findById(optionId)
-                .orElseThrow(() -> new EntityNotFoundException("Option not found"));
+                .orElseThrow(() -> new EntityNotFoundException(OPTION_NOT_FOUND));
 
         Answer ans = new Answer();
         ans.setAttempt(attempt);
@@ -73,10 +81,44 @@ public class AttemptServiceImpl implements AttemptService {
     }
 
     @Override
+    @Transactional
+    public void addAnswersBulk(Integer attemptId, List<Integer> optionIds) {
+
+        Attempt attempt = attemptRepo.findById(attemptId)
+                .orElseThrow(() -> new IllegalArgumentException(ATTEMPT_NOT_FOUND));
+
+        if (attempt.getSubmittedAt() != null) {
+            throw new IllegalStateException(ATTEMPT_SUBMITTED);
+        }
+
+        // Overwrite previous answers
+        answerRepo.deleteByAttemptId(attemptId);
+
+        List<QuestionOption> options = optionRepo.findAllById(optionIds);
+
+        if (options.size() != optionIds.size()) {
+            throw new IllegalArgumentException(OPTIONS_NOT_FOUND);
+        }
+
+        List<Answer> answers = options.stream()
+                .map(option -> {
+                    Answer a = new Answer();
+                    a.setAttempt(attempt);
+                    a.setOption(option);
+                    a.setCreatedAt(Instant.now());
+                    return a;
+                })
+                .toList();
+
+        answerRepo.saveAll(answers);
+    }
+
+    @Override
+    @Transactional
     public AttemptResultDto submitAttempt(Integer attemptId) {
 
         Attempt attempt = attemptRepo.findById(attemptId)
-                .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ATTEMPT_NOT_FOUND));
 
         attempt.setSubmittedAt(Instant.now());
         attemptRepo.save(attempt);
@@ -101,7 +143,7 @@ public class AttemptServiceImpl implements AttemptService {
     }
 
     @Override
-    public List<AttemptSummaryDto> getMyAttempts(Integer userId, String guestToken) {
+    public List<AttemptSummaryDto> getMyAttempts(Integer userId, String guestToken, String locale) {
 
         List<Attempt> attempts;
 
@@ -112,7 +154,7 @@ public class AttemptServiceImpl implements AttemptService {
         }
 
         return attempts.stream()
-                .map(this::toSummary)
+                .map(a -> toSummary(a, locale))
                 .toList();
     }
 
@@ -120,7 +162,7 @@ public class AttemptServiceImpl implements AttemptService {
     public AttemptResultDto getResult(Integer attemptId) {
 
         attemptRepo.findById(attemptId)
-                .orElseThrow(() -> new EntityNotFoundException("Attempt not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ATTEMPT_NOT_FOUND));
 
         List<AttemptTraitScore> scores = traitScoreRepo.findByAttemptId(attemptId);
         List<AttemptRecommendation> recs = recRepo.findByAttemptId(attemptId);
@@ -143,12 +185,19 @@ public class AttemptServiceImpl implements AttemptService {
     }
 
     @Override
-    public List<AttemptSummaryDto> adminSearchAttempts(Integer userId, Integer quizId, Instant from, Instant to) {
+    public List<AttemptSummaryDto> adminSearchAttempts(
+            Integer userId,
+            Integer quizId,
+            Instant from,
+            Instant to,
+            String locale
+    ) {
         return attemptRepo.searchAdmin(userId, quizId, from, to)
                 .stream()
-                .map(this::toSummary)
+                .map(a -> toSummary(a, locale))
                 .toList();
     }
+
 
     private Map<String, BigDecimal> toSimpleTraitMap(Map<TraitProfile, BigDecimal> map) {
         return map.entrySet().stream()
@@ -169,7 +218,7 @@ public class AttemptServiceImpl implements AttemptService {
         for (RecommendationDto dto : recs) {
 
             Profession prof = professionRepo.findById(dto.professionId())
-                    .orElseThrow(() -> new EntityNotFoundException("Profession not found"));
+                    .orElseThrow(() -> new EntityNotFoundException(PROFESSION_NOT_FOUND));
 
             AttemptRecommendation ar = new AttemptRecommendation();
             ar.setAttempt(attempt);
@@ -181,13 +230,21 @@ public class AttemptServiceImpl implements AttemptService {
         }
     }
 
-    private AttemptSummaryDto toSummary(Attempt a) {
+    private AttemptSummaryDto toSummary(Attempt a, String locale) {
         Quiz quiz = a.getQuizVersion().getQuiz();
+
+        String title = translationResolver.resolve(
+                ENTITY_TYPE_QUIZ,
+                quiz.getId(),
+                FIELD_TITLE,
+                locale,
+                quiz.getTitleDefault()
+        );
 
         return new AttemptSummaryDto(
                 a.getId(),
                 a.getQuizVersion().getId(),
-                quiz.getTitleDefault(),  // later localized
+                title,
                 a.getSubmittedAt() == null ? STATUS_IN_PROGRESS : STATUS_COMPLETED,
                 a.getStartedAt(),
                 a.getSubmittedAt(),

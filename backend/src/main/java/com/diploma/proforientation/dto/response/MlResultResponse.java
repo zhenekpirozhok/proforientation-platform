@@ -1,6 +1,6 @@
 package com.diploma.proforientation.dto.response;
 
-import com.diploma.proforientation.dto.MlPrediction;
+import com.diploma.proforientation.service.scoring.MlPrediction;
 
 import java.util.List;
 

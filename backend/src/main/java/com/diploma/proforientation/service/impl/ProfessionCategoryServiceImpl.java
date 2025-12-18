@@ -8,8 +8,11 @@ import com.diploma.proforientation.service.ProfessionCategoryService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.diploma.proforientation.util.ErrorMessages.CATEGORY_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +26,7 @@ public class ProfessionCategoryServiceImpl implements ProfessionCategoryService 
                 .toList();
     }
 
+    @Transactional
     public ProfessionCategoryDto create(CreateCategoryRequest req) {
         ProfessionCategory cat = new ProfessionCategory();
         cat.setCode(req.code());
@@ -31,9 +35,10 @@ public class ProfessionCategoryServiceImpl implements ProfessionCategoryService 
         return toDto(repo.save(cat));
     }
 
+    @Transactional
     public ProfessionCategoryDto update(Integer id, CreateCategoryRequest req) {
         ProfessionCategory cat = repo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+                .orElseThrow(() -> new EntityNotFoundException(CATEGORY_NOT_FOUND));
 
         cat.setCode(req.code());
         cat.setName(req.name());
@@ -42,6 +47,7 @@ public class ProfessionCategoryServiceImpl implements ProfessionCategoryService 
         return toDto(repo.save(cat));
     }
 
+    @Transactional
     public void delete(Integer id) {
         repo.deleteById(id);
     }

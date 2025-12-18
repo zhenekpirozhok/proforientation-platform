@@ -10,9 +10,13 @@ import com.diploma.proforientation.service.ProfessionService;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import static com.diploma.proforientation.util.ErrorMessages.CATEGORY_NOT_FOUND;
+import static com.diploma.proforientation.util.ErrorMessages.PROFESSION_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -26,36 +30,36 @@ public class ProfessionServiceImpl implements ProfessionService {
     private final ProfessionCategoryRepository categoryRepo;
     private final TranslationResolver translationResolver;
 
-    public List<ProfessionDto> getAll() {
-        return repo.findAll().stream()
-                .map(this::toDto)
-                .toList();
+    @Override
+    public Page<ProfessionDto> getAll(Pageable pageable) {
+        return repo.findAll(pageable)
+                .map(this::toDto);
     }
 
     @Override
-    public List<ProfessionDto> getAllLocalized(String locale) {
-        return repo.findAll().stream()
-                .map(p -> toDtoLocalized(p, locale))
-                .toList();
+    public Page<ProfessionDto> getAllLocalized(String locale, Pageable pageable) {
+        return repo.findAll(pageable)
+                .map(p -> toDtoLocalized(p, locale));
     }
 
     public ProfessionDto getById(Integer id) {
         return repo.findById(id)
                 .map(this::toDto)
-                .orElseThrow(() -> new EntityNotFoundException("Profession not found"));
+                .orElseThrow(() -> new EntityNotFoundException(PROFESSION_NOT_FOUND));
     }
 
     @Override
     public ProfessionDto getByIdLocalized(Integer id, String locale) {
         Profession p = repo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Profession not found"));
+                .orElseThrow(() -> new EntityNotFoundException(PROFESSION_NOT_FOUND));
 
         return toDtoLocalized(p, locale);
     }
 
+    @Transactional
     public ProfessionDto create(CreateProfessionRequest req) {
         ProfessionCategory category = categoryRepo.findById(req.categoryId())
-                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+                .orElseThrow(() -> new EntityNotFoundException(CATEGORY_NOT_FOUND));
 
         Profession p = new Profession();
         p.setCode(req.code());
@@ -67,12 +71,13 @@ public class ProfessionServiceImpl implements ProfessionService {
         return toDto(repo.save(p));
     }
 
+    @Transactional
     public ProfessionDto update(Integer id, CreateProfessionRequest req) {
         Profession p = repo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Profession not found"));
+                .orElseThrow(() -> new EntityNotFoundException(PROFESSION_NOT_FOUND));
 
         ProfessionCategory category = categoryRepo.findById(req.categoryId())
-                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
+                .orElseThrow(() -> new EntityNotFoundException(CATEGORY_NOT_FOUND));
 
         p.setCode(req.code());
         p.setTitleDefault(req.title());
@@ -83,6 +88,7 @@ public class ProfessionServiceImpl implements ProfessionService {
         return toDto(repo.save(p));
     }
 
+    @Transactional
     public void delete(Integer id) {
         repo.deleteById(id);
     }

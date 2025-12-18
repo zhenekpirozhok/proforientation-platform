@@ -9,10 +9,12 @@ import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 import static com.diploma.proforientation.service.impl.ProfessionServiceImpl.FIELD_DESCRIPTION;
+import static com.diploma.proforientation.util.ErrorMessages.TRAIT_NOT_FOUND;
 
 
 @Service
@@ -43,18 +45,19 @@ public class TraitServiceImpl implements TraitService {
     public TraitDto getById(Integer id) {
         return repo.findById(id)
                 .map(this::toDto)
-                .orElseThrow(() -> new EntityNotFoundException("Trait not found"));
+                .orElseThrow(() -> new EntityNotFoundException(TRAIT_NOT_FOUND));
     }
 
     @Override
     public TraitDto getByIdLocalized(Integer id, String locale) {
         TraitProfile trait = repo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Trait not found"));
+                .orElseThrow(() -> new EntityNotFoundException(TRAIT_NOT_FOUND));
 
         return toDtoLocalized(trait, locale);
     }
 
     @Override
+    @Transactional
     public TraitDto create(CreateTraitRequest req) {
         TraitProfile t = new TraitProfile();
         t.setCode(req.code());
@@ -65,9 +68,10 @@ public class TraitServiceImpl implements TraitService {
     }
 
     @Override
+    @Transactional
     public TraitDto update(Integer id, CreateTraitRequest req) {
         TraitProfile t = repo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Trait not found"));
+                .orElseThrow(() -> new EntityNotFoundException(TRAIT_NOT_FOUND));
 
         t.setCode(req.code());
         t.setName(req.name());
@@ -78,6 +82,7 @@ public class TraitServiceImpl implements TraitService {
     }
 
     @Override
+    @Transactional
     public void delete(Integer id) {
         repo.deleteById(id);
     }

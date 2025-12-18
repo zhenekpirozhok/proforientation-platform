@@ -12,8 +12,12 @@ import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.diploma.proforientation.util.ErrorMessages.OPTION_NOT_FOUND;
+import static com.diploma.proforientation.util.ErrorMessages.QUESTION_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -27,9 +31,10 @@ public class OptionServiceImpl implements OptionService {
     private final TranslationResolver translationResolver;
 
     @Override
+    @Transactional
     public OptionDto create(CreateOptionRequest req) {
         Question question = questionRepo.findById(req.questionId())
-                .orElseThrow(() -> new EntityNotFoundException("Question not found"));
+                .orElseThrow(() -> new EntityNotFoundException(QUESTION_NOT_FOUND));
 
         QuestionOption opt = new QuestionOption();
         opt.setQuestion(question);
@@ -40,9 +45,10 @@ public class OptionServiceImpl implements OptionService {
     }
 
     @Override
+    @Transactional
     public OptionDto update(Integer id, UpdateOptionRequest req) {
         QuestionOption opt = optionRepo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Option not found"));
+                .orElseThrow(() -> new EntityNotFoundException(OPTION_NOT_FOUND));
 
         if (req.ord() != null) {
             opt.setOrd(req.ord());
@@ -55,6 +61,7 @@ public class OptionServiceImpl implements OptionService {
     }
 
     @Override
+    @Transactional
     public void delete(Integer id) {
         optionRepo.deleteById(id);
     }
@@ -62,7 +69,7 @@ public class OptionServiceImpl implements OptionService {
     @Override
     public OptionDto updateOrder(Integer id, Integer ord) {
         QuestionOption opt = optionRepo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Option not found"));
+                .orElseThrow(() -> new EntityNotFoundException(OPTION_NOT_FOUND));
         opt.setOrd(ord);
         return toDto(optionRepo.save(opt));
     }
@@ -70,7 +77,7 @@ public class OptionServiceImpl implements OptionService {
     @Override
     public List<OptionDto> getByQuestionLocalized(Integer questionId, String locale) {
         questionRepo.findById(questionId)
-                .orElseThrow(() -> new EntityNotFoundException("Question not found"));
+                .orElseThrow(() -> new EntityNotFoundException(QUESTION_NOT_FOUND));
 
         return optionRepo.findByQuestionIdOrderByOrd(questionId)
                 .stream()

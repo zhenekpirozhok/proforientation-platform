@@ -3,13 +3,13 @@ package com.diploma.proforientation.service;
 import com.diploma.proforientation.dto.QuizDto;
 import com.diploma.proforientation.dto.request.create.CreateQuizRequest;
 import com.diploma.proforientation.dto.request.update.UpdateQuizRequest;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface QuizService {
 
-    List<QuizDto> getAll();
-    List<QuizDto> getAllLocalized(String locale);
+    Page<QuizDto> getAll(Pageable pageable);
+    Page<QuizDto> getAllLocalized(String locale, Pageable pageable);
     QuizDto getById(Integer id);
     QuizDto getByIdLocalized(Integer id, String locale);
     QuizDto create(CreateQuizRequest req);

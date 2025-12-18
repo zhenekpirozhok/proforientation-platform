@@ -25,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static com.diploma.proforientation.util.ErrorMessages.*;
+
 @Service
 @Slf4j
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -54,6 +56,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.googleIdTokenVerifier = googleIdTokenVerifier;
     }
 
+    @Transactional
     public User signup(RegisterUserDto input) {
         User user = new User(input.getEmail(), passwordEncoder.encode(input.getPassword()),
                 input.getDisplayName(), UserRole.USER);
@@ -72,7 +75,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return user;
         }
 
-        throw new BadCredentialsException("Invalid email or password");
+        throw new BadCredentialsException(INVALID_CRED);
     }
 
     public void sendResetToken(String email) {
@@ -102,7 +105,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         User user = resetToken.getUser();
 
         if (user == null) {
-            throw new UserNotFoundForPasswordResetException("Unknown user");
+            throw new UserNotFoundForPasswordResetException(UNKNOWN_USER);
         }
 
         user.setPasswordHash(passwordEncoder.encode(newPassword));
@@ -115,7 +118,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         try {
             GoogleIdToken idToken = googleIdTokenVerifier.verify(idTokenString);
             if (idToken == null) {
-                throw new RuntimeException("Invalid Google ID token");
+                throw new RuntimeException(INVALID_GOOGLE_ID);
             }
 
             String email = idToken.getPayload().getEmail();
@@ -130,7 +133,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         return userRepository.save(newUser);
                     });
         } catch (Exception e) {
-            throw new RuntimeException("Failed to verify Google token", e);
+            throw new RuntimeException(FAILED_GOOGLE_TOKEN, e);
         }
     }
 
@@ -155,7 +158,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         );
 
         if (!authentication.isAuthenticated()) {
-            throw new BadCredentialsException("Password verification failed");
+            throw new BadCredentialsException(INVALID_PASS);
         }
 
         log.info("Deleting account for user: {}", email);

@@ -11,8 +11,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.diploma.proforientation.util.ErrorMessages.TRANSLATION_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ public class TranslationServiceImpl implements TranslationService {
             value = CACHE_VALUE,
             key = "T(String).format('%s:%d:%s:%s', #req.entityType(), #req.entityId(), #req.field(), #req.locale())"
     )
+    @Transactional
     public TranslationDto create(CreateTranslationRequest req) {
         Translation t = new Translation();
         t.setEntityType(req.entityType());
@@ -40,9 +44,10 @@ public class TranslationServiceImpl implements TranslationService {
 
     @Override
     @CacheEvict(value = CACHE_VALUE, allEntries = true)
+    @Transactional
     public TranslationDto update(Integer id, UpdateTranslationRequest req) {
         Translation t = repo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Translation not found"));
+                .orElseThrow(() -> new EntityNotFoundException(TRANSLATION_NOT_FOUND));
 
         t.setText(req.text());
         return toDto(repo.save(t));
@@ -50,9 +55,10 @@ public class TranslationServiceImpl implements TranslationService {
 
     @Override
     @CacheEvict(value = CACHE_VALUE, allEntries = true)
+    @Transactional
     public void delete(Integer id) {
         if (!repo.existsById(id)) {
-            throw new EntityNotFoundException("Translation not found");
+            throw new EntityNotFoundException(TRANSLATION_NOT_FOUND);
         }
         repo.deleteById(id);
     }
@@ -61,7 +67,7 @@ public class TranslationServiceImpl implements TranslationService {
     public TranslationDto getById(Integer id) {
         return repo.findById(id)
                 .map(this::toDto)
-                .orElseThrow(() -> new EntityNotFoundException("Translation not found"));
+                .orElseThrow(() -> new EntityNotFoundException(TRANSLATION_NOT_FOUND));
     }
 
     @Override
