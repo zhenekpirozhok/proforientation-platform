@@ -1,5 +1,6 @@
 package com.diploma.proforientation.controller;
 
+import com.diploma.proforientation.dto.ExceptionDto;
 import com.diploma.proforientation.dto.request.GoogleOneTapLoginRequest;
 import com.diploma.proforientation.dto.LoginUserDto;
 import com.diploma.proforientation.dto.request.RefreshTokenRequest;
@@ -10,6 +11,10 @@ import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.dto.response.LoginResponse;
 import com.diploma.proforientation.service.AuthenticationService;
 import com.diploma.proforientation.service.JwtService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +55,17 @@ public class AuthenticationController {
      * @return a ResponseEntity containing the registered User object on success
      */
     @PostMapping("/signup")
+    @Operation(
+            summary = "Register a new user",
+            description = "Creates a new user account using email and password."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "User successfully registered",
+            content = @Content(schema = @Schema(implementation = User.class))
+    )
+    @ApiResponse(responseCode = "400", description = "Validation error",
+            content = @Content(schema = @Schema(implementation = ExceptionDto.class)))
     public ResponseEntity<User> register(@Valid @RequestBody RegisterUserDto registerUserDto) {
         User registeredUser = authenticationService.signup(registerUserDto);
         return ResponseEntity.ok(registeredUser);
@@ -62,6 +78,17 @@ public class AuthenticationController {
      * @return a ResponseEntity containing LoginResponse with JWT tokens and expiration
      */
     @PostMapping("/login")
+    @Operation(
+            summary = "Authenticate user",
+            description = "Authenticates a user and returns JWT access and refresh tokens."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Authentication successful",
+            content = @Content(schema = @Schema(implementation = LoginResponse.class))
+    )
+    @ApiResponse(responseCode = "401", description = "Invalid credentials",
+            content = @Content(schema = @Schema(implementation = ExceptionDto.class)))
     public ResponseEntity<LoginResponse> authenticate(@Valid @RequestBody LoginUserDto loginUserDto){
         User user = authenticationService.authenticate(loginUserDto);
         String accessToken = jwtService.generateToken(user);
@@ -80,6 +107,16 @@ public class AuthenticationController {
      *         or 401 Unauthorized if invalid
      */
     @PostMapping("/refresh")
+    @Operation(
+            summary = "Refresh access token",
+            description = "Generates a new access token using a valid refresh token."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Token refreshed",
+            content = @Content(schema = @Schema(implementation = LoginResponse.class))
+    )
+    @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
     public ResponseEntity<LoginResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -103,6 +140,11 @@ public class AuthenticationController {
      * @return a ResponseEntity with a success message indicating a reset link was sent
      */
     @PostMapping("/request-password-reset")
+    @Operation(
+            summary = "Request password reset",
+            description = "Sends a password reset link to the user's email address if it exists."
+    )
+    @ApiResponse(responseCode = "200", description = "Reset link sent (if email exists)")
     public ResponseEntity<?> requestReset(@Valid @RequestBody RequestResetPasswordDto requestResetPasswordDto) {
         String email = requestResetPasswordDto.getEmail();
         authenticationService.sendResetToken(email);
@@ -116,6 +158,13 @@ public class AuthenticationController {
      * @return a ResponseEntity with a success message upon successful password reset
      */
     @PostMapping("/reset-password")
+    @Operation(
+            summary = "Reset password",
+            description = "Resets a user's password using a valid reset token."
+    )
+    @ApiResponse(responseCode = "200", description = "Password reset successful")
+    @ApiResponse(responseCode = "400", description = "Invalid or expired token",
+            content = @Content(schema = @Schema(implementation = ExceptionDto.class)))
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDto resetPasswordDto) {
         String token = resetPasswordDto.getToken();
         String newPassword = resetPasswordDto.getNewPassword();
@@ -124,6 +173,16 @@ public class AuthenticationController {
     }
 
     @PostMapping("/google-onetap")
+    @Operation(
+            summary = "Google One Tap login",
+            description = "Authenticates a user using Google One Tap ID token."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Authentication successful",
+            content = @Content(schema = @Schema(implementation = LoginResponse.class))
+    )
+    @ApiResponse(responseCode = "401", description = "Invalid Google token")
     public ResponseEntity<?> handleGoogleOneTap(@Valid @RequestBody GoogleOneTapLoginRequest request) {
         try {
             User user = authenticationService.authenticateWithGoogleIdToken(request.getToken());
@@ -139,6 +198,12 @@ public class AuthenticationController {
 
     @DeleteMapping("/account")
     @PreAuthorize("isAuthenticated()")
+    @Operation(
+            summary = "Delete user account",
+            description = "Deletes the authenticated user's account after password confirmation."
+    )
+    @ApiResponse(responseCode = "204", description = "Account deleted")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
     public ResponseEntity<Void> deleteAccount(
             @RequestParam String password,
             Principal principal) {
