@@ -8,17 +8,17 @@ import java.math.BigDecimal;
 public record RecommendationDto(
         @Schema(
                 description = "Identifier of the recommended profession",
-                example = "42"
+                examples = "42"
         )
         Integer professionId,
         @Schema(
                 description = "Identifier of the recommended profession",
-                example = "42"
+                examples = "42"
         )
         BigDecimal score,
         @Schema(
                 description = "Human-readable explanation of why this profession was recommended",
-                example = "Predicted as: Software Engineer"
+                examples = "Predicted as: Software Engineer"
         )
         String explanation
 ) {}

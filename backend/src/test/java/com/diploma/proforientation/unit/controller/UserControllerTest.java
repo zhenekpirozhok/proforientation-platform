@@ -1,17 +1,16 @@
 package com.diploma.proforientation.unit.controller;
 
 import com.diploma.proforientation.controller.UserController;
+import com.diploma.proforientation.dto.UserDto;
 import com.diploma.proforientation.model.User;
+import com.diploma.proforientation.model.enumeration.UserRole;
 import com.diploma.proforientation.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,7 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 class UserControllerTest {
@@ -38,16 +37,20 @@ class UserControllerTest {
         MockitoAnnotations.openMocks(this);
 
         user = new User();
+        user.setId(1);
         user.setEmail("user@example.com");
         user.setDisplayName("User");
+        user.setRole(UserRole.USER);
 
         admin = new User();
+        admin.setId(2);
         admin.setEmail("admin@example.com");
         admin.setDisplayName("Admin");
+        admin.setRole(UserRole.ADMIN);
     }
 
     @Test
-    void shouldReturnAuthenticatedUser() {
+    void shouldReturnAuthenticatedUserAsDto() {
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(
                         user,
@@ -57,34 +60,46 @@ class UserControllerTest {
 
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        ResponseEntity<User> response = userController.authenticatedUser();
+        ResponseEntity<UserDto> response = userController.authenticatedUser();
 
-        assertEquals(200, response.getStatusCode().value());
-        assertEquals(user, response.getBody());
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getBody()).isNotNull();
+
+        UserDto dto = response.getBody();
+
+        assertThat(dto.id()).isEqualTo(1);
+        assertThat(dto.email()).isEqualTo("user@example.com");
+        assertThat(dto.displayName()).isEqualTo("User");
+        assertThat(dto.role()).isEqualTo("USER");
     }
 
     @Test
-    void shouldReturnUsersForAdminWithPagination() {
+    void shouldReturnUsersForAdminWithPaginationAsDto() {
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(
                         admin,
                         null,
                         List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
                 );
-
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        Pageable pageable = PageRequest.of(0, 20);
-        List<User> users = List.of(user, admin);
-        Page<User> page = new PageImpl<>(users, pageable, users.size());
+        int page = 1; // controller param (1-based)
+        int size = 20;
+        String sort = "id";
 
-        when(userService.getAllUsers(pageable)).thenReturn(page);
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
+        Page<User> userPage = new PageImpl<>(List.of(user, admin), pageable, 2);
 
-        ResponseEntity<Page<User>> response = userController.allUsers(pageable);
+        when(userService.getAllUsers(pageable)).thenReturn(userPage);
 
-        assertEquals(200, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals(2, response.getBody().getContent().size());
+        ResponseEntity<Page<UserDto>> response = userController.allUsers(page, size, sort);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getContent()).hasSize(2);
+
+        UserDto first = response.getBody().getContent().get(0);
+        assertThat(first.email()).isEqualTo("user@example.com");
 
         verify(userService, times(1)).getAllUsers(pageable);
     }

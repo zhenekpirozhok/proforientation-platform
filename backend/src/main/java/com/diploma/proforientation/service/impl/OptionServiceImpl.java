@@ -74,41 +74,12 @@ public class OptionServiceImpl implements OptionService {
         return toDto(optionRepo.save(opt));
     }
 
-    @Override
-    public List<OptionDto> getByQuestionLocalized(Integer questionId, String locale) {
-        questionRepo.findById(questionId)
-                .orElseThrow(() -> new EntityNotFoundException(QUESTION_NOT_FOUND));
-
-        return optionRepo.findByQuestionIdOrderByOrd(questionId)
-                .stream()
-                .map(o -> toDtoLocalized(o, locale))
-                .toList();
-    }
-
     private OptionDto toDto(QuestionOption opt) {
         return new OptionDto(
                 opt.getId(),
                 opt.getQuestion().getId(),
                 opt.getOrd(),
                 opt.getLabelDefault()
-        );
-    }
-
-    private OptionDto toDtoLocalized(QuestionOption option, String locale) {
-
-        String label = translationResolver.resolve(
-                ENTITY_TYPE_OPTION,
-                option.getId(),
-                FIELD_TEXT,
-                locale,
-                option.getLabelDefault()
-        );
-
-        return new OptionDto(
-                option.getId(),
-                option.getQuestion().getId(),
-                option.getOrd(),
-                label
         );
     }
 }

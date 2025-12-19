@@ -14,7 +14,7 @@ import lombok.Setter;
 public class RefreshTokenRequest {
     @Schema(
             description = "Refresh token previously issued during authentication",
-            example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            examples = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String refreshToken;

@@ -7,19 +7,19 @@ import jakarta.validation.constraints.Min;
 public record CreateOptionRequest(
         @Schema(
                 description = "Identifier of the question this option belongs to",
-                example = "101"
+                examples = "101"
         )
         Integer questionId,
         @Min(value = 1, message = "ord must be >= 1")
         @Schema(
                 description = "Display order of the option within the question",
-                example = "1",
+                examples = "1",
                 minimum = "1"
         )
         Integer ord,
         @Schema(
                 description = "Displayed label of the option",
-                example = "Strongly agree"
+                examples = "Strongly agree"
         )
         String label
 ) {}

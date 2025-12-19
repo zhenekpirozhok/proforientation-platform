@@ -6,27 +6,27 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record TraitDto(
         @Schema(
                 description = "Unique identifier of the trait",
-                example = "1"
+                examples = "1"
         )
         Integer id,
         @Schema(
                 description = "Short code representing the trait (e.g. RIASEC dimension)",
-                example = "R"
+                examples = "R"
         )
         String code,
         @Schema(
                 description = "Human-readable name of the trait",
-                example = "Realistic"
+                examples = "Realistic"
         )
         String name,
         @Schema(
                 description = "Detailed description of the trait",
-                example = "Preference for hands-on activities and practical problem solving"
+                examples = "Preference for hands-on activities and practical problem solving"
         )
         String description,
         @Schema(
                 description = "Code of the opposing trait in a bipolar pair",
-                example = "S"
+                examples = "S"
         )
         String bipolarPairCode
 ) {}

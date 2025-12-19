@@ -55,23 +55,24 @@ class QuizControllerTest {
 
     @Test
     void getAll_shouldCallServiceWithLocaleAndPageable() {
-        Pageable pageable = PageRequest.of(0, 20);
+        int page = 1;
+        int size = 20;
+        String sort = "id";
+        String locale = "ru";
 
-        QuizDto dto =
-                new QuizDto(1, "quiz1", "Тест 1", "published", "ml", 3, 2);
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
 
-        Page<QuizDto> page =
-                new PageImpl<>(List.of(dto), pageable, 1);
+        QuizDto dto = new QuizDto(1, "quiz1", "Тест 1", "published", "ml", 3, 2);
+        Page<QuizDto> pageResult = new PageImpl<>(List.of(dto), pageable, 1);
 
-        when(quizService.getAllLocalized("ru", pageable))
-                .thenReturn(page);
+        when(quizService.getAllLocalized(locale, pageable)).thenReturn(pageResult);
 
-        Page<QuizDto> result = controller.getAll(pageable);
+        Page<QuizDto> result = controller.getAll(page, size, sort);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().title()).isEqualTo("Тест 1");
 
-        verify(quizService).getAllLocalized("ru", pageable);
+        verify(quizService).getAllLocalized(locale, pageable);
     }
 
     @Test

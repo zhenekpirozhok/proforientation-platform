@@ -33,7 +33,7 @@ public class LoginUserDto {
     @Email(message = "Invalid email format")
     @Schema(
             description = "Email address used for user authentication",
-            example = "user@example.com",
+            examples = "user@example.com",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String email;
@@ -48,7 +48,7 @@ public class LoginUserDto {
     @Size(min=6)
     @Schema(
             description = "User password (minimum 6 characters)",
-            example = "Password123",
+            examples = "pass123",
             requiredMode = Schema.RequiredMode.REQUIRED,
             minLength = 6
     )
@@ -62,7 +62,7 @@ public class LoginUserDto {
      */
     @Schema(
             description = "If true, a long-lived refresh token will be issued",
-            example = "false",
+            examples = "false",
             defaultValue = "false"
     )
     private boolean rememberMe;

@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record UpdateTranslationRequest(
         @Schema(
                 description = "Updated translated text value",
-                example = "Software Engineer"
+                examples = "Software Engineer"
         )
         String text
 ) {}

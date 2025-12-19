@@ -21,7 +21,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -70,7 +69,7 @@ class AttemptControllerTest {
     @Test
     void testSubmit() {
         AttemptResultDto mockResult = new AttemptResultDto(
-                Map.of("Logic", BigDecimal.TEN),
+                List.of(),
                 List.of()
         );
 
@@ -106,7 +105,7 @@ class AttemptControllerTest {
     @Test
     void testGetResult() {
         AttemptResultDto mockResult = new AttemptResultDto(
-                Map.of("Trait", BigDecimal.ONE),
+                List.of(),
                 List.of(new RecommendationDto(1, BigDecimal.valueOf(1.0), "smth"))
         );
 

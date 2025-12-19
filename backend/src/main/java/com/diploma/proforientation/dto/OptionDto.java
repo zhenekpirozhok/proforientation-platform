@@ -7,24 +7,24 @@ import jakarta.validation.constraints.Min;
 public record OptionDto(
         @Schema(
                 description = "Unique identifier of the option",
-                example = "54"
+                examples = "54"
         )
         Integer id,
         @Schema(
                 description = "Identifier of the question this option belongs to",
-                example = "7"
+                examples = "7"
         )
         Integer questionId,
         @Min(value = 1, message = "ord must be >= 1")
         @Schema(
                 description = "Order index of the option within the question (1-based)",
-                example = "1",
+                examples = "1",
                 minimum = "1"
         )
         Integer ord,
         @Schema(
                 description = "Text label shown to the user for this option",
-                example = "Strongly agree"
+                examples = "Strongly agree"
         )
         String label
 ) {}

@@ -7,19 +7,19 @@ import jakarta.validation.constraints.Min;
 public record CreateQuestionRequest(
         @Schema(
                 description = "Identifier of the quiz version this question belongs to",
-                example = "12"
+                examples = "12"
         )
         Integer quizVersionId,
         @Min(value = 1, message = "ord must be >= 1")
         @Schema(
                 description = "Order of the question within the quiz version",
-                example = "1",
+                examples = "1",
                 minimum = "1"
         )
         Integer ord,
         @Schema(
                 description = "Type of the question (e.g. single_choice, multi_choice, liker_scale_5)",
-                example = "single_choice",
+                examples = "single_choice",
                 allowableValues = {
                         "single_choice",
                         "multi_choice",
@@ -30,7 +30,7 @@ public record CreateQuestionRequest(
         String qtype,
         @Schema(
                 description = "Question text shown to the user",
-                example = "I enjoy solving complex technical problems."
+                examples = "I enjoy solving complex technical problems."
         )
         String text
 ) {}

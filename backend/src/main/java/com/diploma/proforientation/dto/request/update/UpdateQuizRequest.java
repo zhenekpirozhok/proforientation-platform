@@ -6,12 +6,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record UpdateQuizRequest(
         @Schema(
                 description = "Updated quiz title",
-                example = "Software Engineering Career Quiz"
+                examples = "Software Engineering Career Quiz"
         )
         String title,
         @Schema(
                 description = "Updated quiz processing mode",
-                example = "ml",
+                examples = "ml_riasec",
                 allowableValues = {
                         "ml_riasec",
                         "llm"
@@ -20,7 +20,7 @@ public record UpdateQuizRequest(
         String processingMode,
         @Schema(
                 description = "Identifier of the new quiz category",
-                example = "4"
+                examples = "4"
         )
         Integer categoryId
 ) {}

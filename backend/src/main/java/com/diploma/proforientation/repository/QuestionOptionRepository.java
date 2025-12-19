@@ -8,4 +8,5 @@ import java.util.List;
 public interface QuestionOptionRepository extends JpaRepository<QuestionOption, Integer> {
     List<QuestionOption> findByQuestionId(Integer questionId);
     List<QuestionOption> findByQuestionIdOrderByOrd(Integer questionId);
+    List<QuestionOption> findByQuestionIdOrderByOrdAsc(Integer questionId);
 }

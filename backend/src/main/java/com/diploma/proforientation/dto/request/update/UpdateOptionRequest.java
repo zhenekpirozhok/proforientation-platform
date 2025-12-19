@@ -8,12 +8,12 @@ public record UpdateOptionRequest(
         @Min(value = 1, message = "ord must be >= 1")
         @Schema(
                 description = "New display order of the option",
-                example = "2"
+                examples = "2"
         )
         Integer ord,
         @Schema(
                 description = "Updated label text of the option",
-                example = "Strongly agree"
+                examples = "Strongly agree"
         )
         String label
 ) {}

@@ -32,7 +32,7 @@ public class RequestResetPasswordDto {
     @Email(message = "Invalid email format")
     @Schema(
             description = "Email address associated with the user account",
-            example = "user@example.com",
+            examples = "user@example.com",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String email;

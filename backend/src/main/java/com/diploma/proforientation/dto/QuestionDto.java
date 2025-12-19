@@ -9,24 +9,24 @@ import java.util.List;
 public record QuestionDto(
         @Schema(
                 description = "Unique identifier of the question",
-                example = "101"
+                examples = "101"
         )
         Integer id,
         @Schema(
                 description = "Identifier of the quiz version this question belongs to",
-                example = "1"
+                examples = "1"
         )
         Integer quizVersionId,
         @Min(value = 1, message = "ord must be >= 1")
         @Schema(
                 description = "Order of the question within the quiz",
-                example = "3",
+                examples = "3",
                 minimum = "1"
         )
         Integer ord,
         @Schema(
                 description = "Type of question defining how the user should answer",
-                example = "single_choice",
+                examples = "single_choice",
                 allowableValues = {
                         "single_choice",
                         "multi_choice",
@@ -37,7 +37,7 @@ public record QuestionDto(
         String qtype,
         @Schema(
                 description = "Text displayed to the user for this question",
-                example = "I enjoy solving practical problems using my hands"
+                examples = "I enjoy solving practical problems using my hands"
         )
         String text,
         @Schema(

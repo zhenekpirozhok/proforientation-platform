@@ -1,22 +1,26 @@
 package com.diploma.proforientation.controller;
 
 import com.diploma.proforientation.dto.ExceptionDto;
+import com.diploma.proforientation.dto.UserDto;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("/users")
@@ -70,10 +74,17 @@ public class UserController {
                     """)
             )
     )
-    public ResponseEntity<User> authenticatedUser() {
+    public ResponseEntity<UserDto> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = (User) authentication.getPrincipal();
-        return ResponseEntity.ok(currentUser);
+        User user = (User) authentication.getPrincipal();
+        return ResponseEntity.ok(
+                new UserDto(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getDisplayName(),
+                        user.getRole().name()
+                )
+        );
     }
 
     @GetMapping
@@ -111,10 +122,23 @@ public class UserController {
                     """)
             )
     )
-    public ResponseEntity<Page<User>> allUsers(
-            @PageableDefault(size = 20, sort = "id") Pageable pageable
+    public ResponseEntity<Page<UserDto>> allUsers(
+            @Parameter(description = "Page number (0-based)", schema = @Schema(defaultValue = "1"))
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @Parameter(description = "Number of items per page", schema = @Schema(defaultValue = "20"))
+            @RequestParam(required = false, defaultValue = "20") int size,
+            @Parameter(description = "Sort by field", schema = @Schema(defaultValue = "id"))
+            @RequestParam(required = false, defaultValue = "id") String sort
     ) {
-        Page<User> users = userService.getAllUsers(pageable);
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
+        Page<UserDto> users = userService.getAllUsers(pageable)
+                .map(user -> new UserDto(
+                        user.getId(),
+                        user.getEmail(),
+                        user.getDisplayName(),
+                        user.getRole().name()
+                ));
+
         return ResponseEntity.ok(users);
     }
 }

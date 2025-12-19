@@ -8,12 +8,12 @@ public record UpdateQuestionRequest(
         @Min(value = 1, message = "ord must be >= 1")
         @Schema(
                 description = "New display order of the question",
-                example = "5"
+                examples = "5"
         )
         Integer ord,
         @Schema(
                 description = "Updated question type",
-                example = "single_choice",
+                examples = "single_choice",
                 allowableValues = {
                         "single_choice",
                         "multi_choice",
@@ -24,7 +24,7 @@ public record UpdateQuestionRequest(
         String qtype,
         @Schema(
                 description = "Updated question text",
-                example = "How interested are you in programming?"
+                examples = "How interested are you in programming?"
         )
         String text
 ) {}

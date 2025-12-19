@@ -2,9 +2,7 @@ package com.diploma.proforientation.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 @Schema(description = "Detailed result of a completed quiz attempt")
 public record AttemptResultDto(
@@ -13,7 +11,7 @@ public record AttemptResultDto(
                         Calculated trait scores.
                         The key represents the trait code, the value represents the score.
                         """,
-                example = """
+                examples = """
                         {
                           "R": 12.5,
                           "I": 9.0,
@@ -21,10 +19,10 @@ public record AttemptResultDto(
                         }
                         """
         )
-        Map<String, BigDecimal> traitScores,
+        List<TraitScoreDto> traitScores,
         @Schema(
                 description = "List of recommended professions based on ML prediction",
-                example = """
+                examples = """
                         [
                           {
                             "professionId": 42,

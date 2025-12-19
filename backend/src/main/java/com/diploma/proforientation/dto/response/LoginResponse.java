@@ -19,7 +19,7 @@ public class LoginResponse {
      */
     @Schema(
             description = "JWT access token used to authorize API requests",
-            example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            examples = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     )
     private String token;
 
@@ -28,7 +28,7 @@ public class LoginResponse {
      */
     @Schema(
             description = "Refresh token used to obtain a new access token",
-            example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            examples = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     )
     private String refreshToken;
 
@@ -37,7 +37,7 @@ public class LoginResponse {
      */
     @Schema(
             description = "Access token expiration time in seconds",
-            example = "3600"
+            examples = "3600"
     )
     private long expiresIn;
 

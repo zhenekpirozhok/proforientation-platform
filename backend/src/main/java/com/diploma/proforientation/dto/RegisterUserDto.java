@@ -34,7 +34,7 @@ public class RegisterUserDto {
     @Email(message = "Invalid email format")
     @Schema(
             description = "User email address used for authentication",
-            example = "user@example.com",
+            examples = "user@example.com",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String email;
@@ -44,7 +44,7 @@ public class RegisterUserDto {
      */
     @Schema(
             description = "Display name shown in the application UI",
-            example = "John Doe"
+            examples = "John Doe"
     )
     private String displayName;
 
@@ -52,7 +52,7 @@ public class RegisterUserDto {
      * The password for the user's account.
      * <p>
      * Must not be blank and must contain at least one numeric digit.
-     * Must contains at least 6 characters.
+     * Must contain at least 6 characters.
      * </p>
      */
     @NotBlank(message = "Password is required")
@@ -66,7 +66,7 @@ public class RegisterUserDto {
                     User password.
                     Must be at least 6 characters long and contain at least one numeric digit.
                     """,
-            example = "pass123",
+            examples = "pass123",
             minLength = 6,
             requiredMode = Schema.RequiredMode.REQUIRED
     )

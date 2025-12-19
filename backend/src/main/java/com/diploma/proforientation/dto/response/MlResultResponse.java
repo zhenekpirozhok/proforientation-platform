@@ -9,7 +9,7 @@ import java.util.List;
 public record MlResultResponse(
         @Schema(
                 description = "Primary predicted major produced by the ML model",
-                example = "Software Engineer"
+                examples = "Software Engineer"
         )
         String predicted_major,
         @Schema(
@@ -17,7 +17,7 @@ public record MlResultResponse(
                         Top 5 predicted majors with associated probabilities,
                         sorted in descending order by probability.
                         """,
-                example = """
+                examples = """
                         [
                           { "major": "SE", "probability": 0.82 },
                           { "major": "DS", "probability": 0.75 },

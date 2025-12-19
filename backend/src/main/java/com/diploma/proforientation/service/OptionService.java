@@ -12,5 +12,4 @@ public interface OptionService {
     OptionDto update(Integer id, UpdateOptionRequest req);
     void delete(Integer id);
     OptionDto updateOrder(Integer id, Integer ord);
-    List<OptionDto> getByQuestionLocalized(Integer questionId, String locale);
 }

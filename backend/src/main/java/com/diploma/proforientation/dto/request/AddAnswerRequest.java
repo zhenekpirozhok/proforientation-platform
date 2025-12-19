@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record AddAnswerRequest(
         @Schema(
                 description = "Identifier of the selected option",
-                example = "123",
+                examples = "123",
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
         Integer optionId) {}

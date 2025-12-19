@@ -105,25 +105,4 @@ public class OptionController {
                                  @PathVariable Integer ord) {
         return optionService.updateOrder(id, ord);
     }
-
-    @GetMapping("/question/{questionId}")
-    @Operation(
-            summary = "Get options for a question",
-            description = """
-                    Returns all answer options for a specific question.
-                    Option labels are localized according to the request locale.
-                    """
-    )
-    @ApiResponse(
-            responseCode = "200",
-            description = "List of options",
-            content = @Content(schema = @Schema(implementation = OptionDto.class))
-    )
-    @ApiResponse(responseCode = "404", description = "Question not found")
-    public List<OptionDto> getByQuestion(
-            @PathVariable Integer questionId
-    ) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
-        return optionService.getByQuestionLocalized(questionId, locale);
-    }
 }

@@ -7,12 +7,12 @@ import jakarta.validation.constraints.Pattern;
 public record CreateCategoryRequest(
         @Schema(
                 description = "Unique code of the category",
-                example = "IT"
+                examples = "IT"
         )
         String code,
         @Schema(
                 description = "Human-readable category name",
-                example = "Information Technology"
+                examples = "Information Technology"
         )
         String name,
         @Pattern(
@@ -21,7 +21,7 @@ public record CreateCategoryRequest(
         )
         @Schema(
                 description = "Hex color code associated with the category (used in UI)",
-                example = "#1E90FF"
+                examples = "#1E90FF"
         )
         String colorCode
 ) {}

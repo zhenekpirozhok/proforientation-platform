@@ -17,7 +17,7 @@ public class GoogleOneTapLoginRequest {
     @NotBlank(message = "Token must not be blank")
     @Schema(
             description = "Google ID token obtained from Google One Tap login",
-            example = "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...",
+            examples = "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String token;

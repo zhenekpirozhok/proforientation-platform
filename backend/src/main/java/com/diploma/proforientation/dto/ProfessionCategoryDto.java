@@ -7,17 +7,17 @@ import jakarta.validation.constraints.Pattern;
 public record ProfessionCategoryDto(
         @Schema(
                 description = "Unique identifier of the profession category",
-                example = "5"
+                examples = "5"
         )
         Integer id,
         @Schema(
                 description = "Short code identifying the category",
-                example = "IT"
+                examples = "IT"
         )
         String code,
         @Schema(
                 description = "Human-readable name of the category",
-                example = "Information Technology"
+                examples = "Information Technology"
         )
         String name,
         @Pattern(
@@ -26,7 +26,7 @@ public record ProfessionCategoryDto(
         )
         @Schema(
                 description = "Hex color code used for UI representation of the category",
-                example = "#FF8800",
+                examples = "#FF8800",
                 pattern = "^#[0-9A-Fa-f]{6}$"
         )
         String colorCode

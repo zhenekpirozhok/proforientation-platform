@@ -31,7 +31,7 @@ public class ResetPasswordDto {
      */
     @Schema(
             description = "Password reset token sent to the user's email",
-            example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.reset-token"
+            examples = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.reset-token"
     )
     private String token;
 
@@ -53,7 +53,7 @@ public class ResetPasswordDto {
                     New password for the user account.
                     Must contain at least one numeric digit and be at least 6 characters long.
                     """,
-            example = "NewPass123",
+            examples = "NewPass123",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String newPassword;

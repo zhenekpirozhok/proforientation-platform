@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 public record OptionTraitRequest(
         @Schema(
                 description = "Identifier of the trait profile",
-                example = "3",
+                examples = "3",
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
         Integer traitId,
@@ -17,7 +17,7 @@ public record OptionTraitRequest(
                         Weight applied to the trait when this option is selected.
                         Can be positive or negative depending on scoring logic.
                         """,
-                example = "1.25",
+                examples = "1.25",
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
         BigDecimal weight

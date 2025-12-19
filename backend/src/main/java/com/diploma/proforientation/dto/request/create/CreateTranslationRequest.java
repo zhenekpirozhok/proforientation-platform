@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Pattern;
 @Schema(description = "Request payload for creating or updating a translation")
 public record CreateTranslationRequest(
         @Schema(description = "Type of the translated entity",
-                example = "profession")
+                examples = "profession")
         String entityType,
         @Schema(
                 description = "Identifier of the entity being translated",
@@ -15,7 +15,7 @@ public record CreateTranslationRequest(
         Integer entityId,
         @Schema(
                 description = "Field of the entity to translate",
-                example = "title"
+                examples = "title"
         )
         String field,
         @Pattern(
@@ -24,13 +24,13 @@ public record CreateTranslationRequest(
         )
         @Schema(
                 description = "Language or locale code",
-                example = "en",
+                examples = "en",
                 pattern = "^[a-zA-Z]{2,3}(-[a-zA-Z]{2,3})?$"
         )
         String locale,
         @Schema(
                 description = "Translated text value",
-                example = "Software Engineer"
+                examples = "Software Engineer"
         )
         String text
 ) {}

@@ -1,7 +1,7 @@
 package com.diploma.proforientation.unit.scoring;
 
 import com.diploma.proforientation.dto.response.MlResultResponse;
-import com.diploma.proforientation.service.scoring.ml.impl.MlClientImpl;
+import com.diploma.proforientation.scoring.ml.impl.MlClientImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

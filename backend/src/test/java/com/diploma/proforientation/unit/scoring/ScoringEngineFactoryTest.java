@@ -1,10 +1,10 @@
 package com.diploma.proforientation.unit.scoring;
 
 import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
-import com.diploma.proforientation.service.scoring.ScoringEngine;
-import com.diploma.proforientation.service.scoring.ScoringEngineFactory;
-import com.diploma.proforientation.service.scoring.llm.LlmScoringEngine;
-import com.diploma.proforientation.service.scoring.ml.MlScoringEngine;
+import com.diploma.proforientation.scoring.ScoringEngine;
+import com.diploma.proforientation.scoring.ScoringEngineFactory;
+import com.diploma.proforientation.scoring.llm.LlmScoringEngine;
+import com.diploma.proforientation.scoring.ml.MlScoringEngine;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

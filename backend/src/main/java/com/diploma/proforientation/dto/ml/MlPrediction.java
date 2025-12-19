@@ -8,12 +8,12 @@ import java.math.BigDecimal;
 public record MlPrediction(
         @Schema(
                 description = "ML class or major predicted by the model",
-                example = "Software Engineer"
+                examples = "Software Engineer"
         )
         String major,
         @Schema(
                 description = "Probability score assigned by the ML model (range 0.0 – 1.0)",
-                example = "0.82",
+                examples = "0.82",
                 minimum = "0.0",
                 maximum = "1.0"
         )

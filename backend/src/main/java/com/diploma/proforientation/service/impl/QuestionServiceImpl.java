@@ -11,8 +11,8 @@ import com.diploma.proforientation.model.enumeration.QuestionType;
 import com.diploma.proforientation.repository.QuestionOptionRepository;
 import com.diploma.proforientation.repository.QuestionRepository;
 import com.diploma.proforientation.repository.QuizVersionRepository;
-import com.diploma.proforientation.repository.TranslationRepository;
 import com.diploma.proforientation.service.QuestionService;
+import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,11 +32,12 @@ import static com.diploma.proforientation.util.ErrorMessages.QUIZ_VERSION_NOT_FO
 public class QuestionServiceImpl implements QuestionService {
 
     private static final String ENTITY_TYPE_QUESTION = "question";
+    public static final String FIELD_LABEL = "label";
 
     private final QuestionRepository questionRepo;
     private final QuizVersionRepository quizVersionRepo;
     private final QuestionOptionRepository optionRepo;
-    private final TranslationRepository translationRepo;
+    private final TranslationResolver translationResolver;
 
     @Override
     @Transactional
@@ -110,6 +111,41 @@ public class QuestionServiceImpl implements QuestionService {
         return loadQuestions(version.getId(), locale, pageable);
     }
 
+    @Override
+    public List<OptionDto> getOptionsForQuestionLocalized(
+            Integer questionId,
+            String locale
+    ) {
+        questionRepo.findById(questionId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Question not found")
+                );
+
+        List<QuestionOption> options =
+                optionRepo.findByQuestionIdOrderByOrdAsc(questionId);
+
+        return options.stream()
+                .map(option -> optionToDto(option, locale))
+                .toList();
+    }
+
+    private OptionDto optionToDto(QuestionOption option, String locale) {
+        String label = translationResolver.resolve(
+                ENTITY_TYPE_OPTION,
+                option.getId(),
+                FIELD_LABEL,
+                locale,
+                option.getLabelDefault()
+        );
+
+        return new OptionDto(
+                option.getId(),
+                option.getQuestion().getId(),
+                option.getOrd(),
+                label
+        );
+    }
+
     private Page<QuestionDto> loadQuestions(
             Integer quizVersionId,
             String locale,
@@ -133,29 +169,19 @@ public class QuestionServiceImpl implements QuestionService {
 
     private QuestionDto toLocalizedDto(Question q, String locale) {
 
-        String localized = translationRepo
-                .findByEntityTypeAndEntityIdAndFieldAndLocale(ENTITY_TYPE_QUESTION, q.getId(),
-                        FIELD_TEXT, locale)
-                .map(t -> t.getText())
-                .orElse(q.getTextDefault());
+        String localized = translationResolver.resolve(
+                ENTITY_TYPE_QUESTION,
+                q.getId(),
+                FIELD_TEXT,
+                locale,
+                q.getTextDefault()
+        );
 
-        List<QuestionOption> options = optionRepo.findByQuestionIdOrderByOrd(q.getId());
+        List<QuestionOption> options =
+                optionRepo.findByQuestionIdOrderByOrd(q.getId());
 
         List<OptionDto> optionDtos = options.stream()
-                .map(opt -> {
-                    String label = translationRepo
-                            .findByEntityTypeAndEntityIdAndFieldAndLocale(ENTITY_TYPE_OPTION, opt.getId(),
-                                    FIELD_TEXT, locale)
-                            .map(t -> t.getText())
-                            .orElse(opt.getLabelDefault());
-
-                    return new OptionDto(
-                            opt.getId(),
-                            opt.getQuestion().getId(),
-                            opt.getOrd(),
-                            label
-                    );
-                })
+                .map(opt -> optionToDto(opt, locale))
                 .toList();
 
         return new QuestionDto(
