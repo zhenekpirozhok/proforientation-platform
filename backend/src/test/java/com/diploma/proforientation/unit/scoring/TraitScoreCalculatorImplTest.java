@@ -1,7 +1,7 @@
 package com.diploma.proforientation.unit.scoring;
 
 import com.diploma.proforientation.model.TraitProfile;
-import com.diploma.proforientation.service.scoring.ml.impl.TraitScoreCalculatorImpl;
+import com.diploma.proforientation.scoring.ml.impl.TraitScoreCalculatorImpl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.junit.jupiter.api.BeforeEach;

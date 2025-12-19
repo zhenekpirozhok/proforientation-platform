@@ -1,0 +1,4077 @@
+openapi: 3.1.0
+info:
+  title: OpenAPI definition
+  version: "1.0.0"
+  description: |
+      API for profession orientation and quiz-based assessment.
+
+      ## Versioning Strategy
+      This API follows URI-based semantic versioning:
+      - Major versions are encoded in the base path: /api/v1.0
+      - Backward-incompatible changes trigger a new major version (v2.0)
+      - Backward-compatible changes are released within the same version
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+- url: http://localhost:8082
+  description: Generated server url
+security:
+- BearerAuth: []
+paths:
+  /translations/{id}:
+    put:
+      tags:
+      - translation-controller
+      summary: Update translation
+      description: Updates the text of an existing translation
+      operationId: update
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTranslationRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Translation updated successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TranslationDto"
+        "403":
+          description: Access denied (ADMIN role required)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+    delete:
+      tags:
+      - translation-controller
+      summary: Delete translation
+      description: Deletes a translation by its identifier
+      operationId: delete
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "204":
+          description: Translation deleted successfully
+        "403":
+          description: Access denied (ADMIN role required)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+  /traits/{id}:
+    get:
+      tags:
+      - trait-controller
+      summary: Get trait by ID
+      description: Returns a single trait localized according to the current request
+        locale
+      operationId: getById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Trait not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Trait found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TraitDto"
+    put:
+      tags:
+      - trait-controller
+      summary: Update trait
+      description: Updates an existing trait (ADMIN only)
+      operationId: update_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTraitRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Trait not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Trait updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TraitDto"
+        "403":
+          description: Access denied (ADMIN role required)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+    delete:
+      tags:
+      - trait-controller
+      summary: Delete trait
+      description: Deletes a trait by its ID (ADMIN only)
+      operationId: delete_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "204":
+          description: Trait deleted successfully
+        "403":
+          description: Access denied (ADMIN role required)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+  /quizzes/{id}:
+    get:
+      tags:
+      - quiz-controller
+      summary: Get quiz by ID
+      description: Returns a single quiz localized according to the current request
+        locale
+      operationId: getById_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Quiz not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Quiz found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizDto"
+    put:
+      tags:
+      - quiz-controller
+      summary: Update quiz
+      description: Updates an existing quiz (ADMIN only)
+      operationId: update_2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateQuizRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Quiz not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Quiz updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizDto"
+        "403":
+          description: Access denied
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+    delete:
+      tags:
+      - quiz-controller
+      summary: Delete quiz
+      description: Deletes a quiz by its ID (ADMIN only)
+      operationId: delete_2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "204":
+          description: Quiz deleted
+        "403":
+          description: Access denied
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+  /questions/{id}:
+    put:
+      tags:
+      - question-controller
+      summary: Update a question
+      description: "Updates question text, type, or order. Only administrators are\
+        \ allowed."
+      operationId: update_3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateQuestionRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Question not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Question updated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/QuestionDto"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/QuestionDto"
+    delete:
+      tags:
+      - question-controller
+      summary: Delete a question
+      description: Deletes a question by ID. Only administrators are allowed.
+      operationId: delete_3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Question not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Question deleted
+        "403":
+          description: Forbidden
+  /questions/{id}/order/{ord}:
+    put:
+      tags:
+      - question-controller
+      summary: Update question order
+      description: Changes the display order of a question within a quiz version.
+      operationId: updateOrder
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: ord
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Question not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Order updated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/QuestionDto"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/QuestionDto"
+  /professions/{id}:
+    get:
+      tags:
+      - profession-controller
+      summary: Get profession by ID
+      description: Returns a single profession by its ID with localized fields.
+      operationId: getById_2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Profession not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Profession found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionDto"
+    put:
+      tags:
+      - profession-controller
+      summary: Update a profession
+      description: Updates an existing profession. Only administrators are allowed.
+      operationId: update_4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProfessionRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Profession not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Profession updated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionDto"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionDto"
+    delete:
+      tags:
+      - profession-controller
+      summary: Delete a profession
+      description: Deletes a profession by ID. Only administrators are allowed.
+      operationId: delete_4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Profession not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Profession deleted
+        "403":
+          description: Forbidden
+  /options/{optionId}/traits:
+    put:
+      tags:
+      - option-trait-controller
+      summary: Update traits for an option
+      description: |
+        Updates the list of traits associated with a specific option.
+        Traits not present in the request will be removed.
+        Accessible only to administrators.
+      operationId: updateTraits
+      parameters:
+      - name: optionId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OptionTraitListRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid request payload
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Option not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Traits successfully updated
+        "403":
+          description: Forbidden
+    post:
+      tags:
+      - option-trait-controller
+      summary: Assign traits to an option
+      description: |
+        Assigns a list of traits with weights to a specific option.
+        Existing trait assignments (if any) will be replaced.
+        Accessible only to administrators.
+      operationId: assignTraits
+      parameters:
+      - name: optionId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OptionTraitListRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid request payload
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Option not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Traits successfully assigned
+        "403":
+          description: Forbidden
+  /options/{id}:
+    put:
+      tags:
+      - option-controller
+      summary: Update an option
+      description: |
+        Updates an existing answer option.
+        Only administrators can modify options.
+      operationId: update_5
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOptionRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Option not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Option updated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OptionDto"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OptionDto"
+    delete:
+      tags:
+      - option-controller
+      summary: Delete an option
+      description: |
+        Deletes an answer option permanently.
+        This operation cannot be undone.
+      operationId: delete_5
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Option not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Option deleted
+        "403":
+          description: Forbidden
+  /options/{id}/order/{ord}:
+    put:
+      tags:
+      - option-controller
+      summary: Update option order
+      description: |
+        Updates the display order of an option within a question.
+        Order must be a non-negative integer.
+      operationId: updateOrder_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: ord
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid order value
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Option not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Option order updated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OptionDto"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OptionDto"
+  /categories/{id}:
+    put:
+      tags:
+      - profession-category-controller
+      summary: Update a profession category
+      description: Updates an existing profession category by ID. Accessible only
+        to administrators.
+      operationId: update_6
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Category not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Category updated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionCategoryDto"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionCategoryDto"
+    delete:
+      tags:
+      - profession-category-controller
+      summary: Delete a profession category
+      description: Deletes a profession category by ID. Accessible only to administrators.
+      operationId: delete_6
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Category not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Category deleted
+        "403":
+          description: Forbidden
+  /translations:
+    get:
+      tags:
+      - translation-controller
+      summary: Search translations
+      description: "Returns translations for a given entity, entity ID, and locale"
+      operationId: search
+      parameters:
+      - name: entityType
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: entityId
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: locale
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid request parameters
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Translations found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranslationDto"
+    post:
+      tags:
+      - translation-controller
+      summary: Create translation
+      description: Creates a new translation entry for a specific entity field and
+        locale
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTranslationRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+              example:
+                code: 400
+                time: 2025-05-20T15:00:00Z
+                message:
+                  locale: "locale must be a valid language code (e.g., en, en-US)"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Translation created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranslationDto"
+        "403":
+          description: Access denied (ADMIN role required)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+  /traits:
+    get:
+      tags:
+      - trait-controller
+      summary: Get all traits
+      description: Returns all traits localized according to the current request locale
+      operationId: getAll
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: List of traits
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TraitDto"
+    post:
+      tags:
+      - trait-controller
+      summary: Create trait
+      description: Creates a new trait (ADMIN only)
+      operationId: create_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTraitRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid request payload
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Trait created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TraitDto"
+        "403":
+          description: Access denied (ADMIN role required)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+  /quizzes:
+    get:
+      tags:
+      - quiz-controller
+      summary: Get all quizzes (paginated)
+      description: |
+        Returns a paginated list of quizzes localized according to the current request locale.
+
+        Pagination is supported via standard Spring Data parameters:
+        - `page` (0-based page index, default: 0)
+        - `size` (number of items per page, default: 20)
+        - `sort` (sorting criteria, e.g. `id,asc` or `title,desc`)
+
+        Example:
+        `/quizzes?page=0&size=10&sort=title,asc`
+      operationId: getAll_1
+      parameters:
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Page of quizzes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizDto"
+    post:
+      tags:
+      - quiz-controller
+      summary: Create quiz
+      description: Creates a new quiz (ADMIN only)
+      operationId: create_2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQuizRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid request payload
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Quiz created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizDto"
+        "403":
+          description: Access denied
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+  /quizzes/{id}/publish:
+    post:
+      tags:
+      - quiz-controller
+      summary: Publish quiz
+      description: Publishes a quiz and creates a new current quiz version (ADMIN
+        only)
+      operationId: publish
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Quiz published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizVersionDto"
+  /quizzes/{id}/copy:
+    post:
+      tags:
+      - quiz-controller
+      summary: Copy latest quiz version
+      description: Creates a new draft version by copying the latest version (ADMIN
+        only)
+      operationId: copyLatest
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Quiz version copied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizVersionDto"
+  /questions:
+    post:
+      tags:
+      - question-controller
+      summary: Create a question
+      description: Creates a new question for a quiz version. Only administrators
+        are allowed.
+      operationId: create_3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQuestionRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Question successfully created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/QuestionDto"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/QuestionDto"
+  /professions:
+    get:
+      tags:
+      - profession-controller
+      summary: Get all professions (paginated)
+      description: |
+        Returns a paginated list of professions with localized fields.
+
+        Pagination parameters:
+        - `page` (0-based index, default: 0)
+        - `size` (page size, default: 20)
+        - `sort` (sorting field, default: id)
+
+        Example:
+        `/professions?page=0&size=10&sort=id,asc`
+      operationId: getAll_2
+      parameters:
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Page of professions
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionDto"
+    post:
+      tags:
+      - profession-controller
+      summary: Create a profession
+      description: Creates a new profession. Only administrators are allowed.
+      operationId: create_4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProfessionRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Profession created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionDto"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionDto"
+  /options:
+    post:
+      tags:
+      - option-controller
+      summary: Create an answer option
+      description: |
+        Creates a new answer option for a question.
+        Only administrators are allowed to perform this operation.
+      operationId: create_5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOptionRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Option successfully created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OptionDto"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/OptionDto"
+  /demo/ml:
+    post:
+      tags:
+      - demo-controller
+      summary: Run ML scoring demo
+      description: |
+        Executes the machine-learning scoring engine using a raw set of demo answers.
+        This endpoint is intended for testing and demonstration purposes only.
+      operationId: testMl
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DemoRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: ML scoring result successfully calculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScoringResult"
+  /demo/llm:
+    post:
+      tags:
+      - demo-controller
+      summary: Run LLM scoring demo
+      description: |
+        Executes the LLM-based scoring engine using a raw set of demo answers.
+        Returns recommendations and explanations generated by the LLM.
+      operationId: testLlm
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DemoRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: LLM scoring result successfully generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScoringResult"
+  /categories:
+    get:
+      tags:
+      - profession-category-controller
+      summary: Get all profession categories
+      description: Returns a list of all profession categories. Accessible only to
+        administrators.
+      operationId: getAll_3
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: List of profession categories
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionCategoryDto"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProfessionCategoryDto"
+    post:
+      tags:
+      - profession-category-controller
+      summary: Create a profession category
+      description: Creates a new profession category. Accessible only to administrators.
+      operationId: create_6
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Category created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionCategoryDto"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionCategoryDto"
+  /auth/signup:
+    post:
+      tags:
+      - authentication-controller
+      summary: Register a new user
+      description: Creates a new user account using email and password.
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterUserDto"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: User successfully registered
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/User"
+  /auth/reset-password:
+    post:
+      tags:
+      - authentication-controller
+      summary: Reset password
+      description: Resets a user's password using a valid reset token.
+      operationId: resetPassword
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordDto"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid or expired token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Password reset successful
+          content:
+            '*/*':
+              schema:
+                type: object
+  /auth/request-password-reset:
+    post:
+      tags:
+      - authentication-controller
+      summary: Request password reset
+      description: Sends a password reset link to the user's email address if it exists.
+      operationId: requestReset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestResetPasswordDto"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Reset link sent (if email exists)
+          content:
+            '*/*':
+              schema:
+                type: object
+  /auth/refresh:
+    post:
+      tags:
+      - authentication-controller
+      summary: Refresh access token
+      description: Generates a new access token using a valid refresh token.
+      operationId: refreshToken
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+        required: true
+      responses:
+        "401":
+          description: Invalid or expired refresh token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Token refreshed
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+  /auth/login:
+    post:
+      tags:
+      - authentication-controller
+      summary: Authenticate user
+      description: Authenticates a user and returns JWT access and refresh tokens.
+      operationId: authenticate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginUserDto"
+        required: true
+      responses:
+        "401":
+          description: Invalid credentials
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Authentication successful
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+  /auth/google-onetap:
+    post:
+      tags:
+      - authentication-controller
+      summary: Google One Tap login
+      description: Authenticates a user using Google One Tap ID token.
+      operationId: handleGoogleOneTap
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoogleOneTapLoginRequest"
+        required: true
+      responses:
+        "401":
+          description: Invalid Google token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Authentication successful
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+  /attempts/{attemptId}/submit:
+    post:
+      tags:
+      - attempt-controller
+      summary: Submit attempt
+      description: |
+        Finalizes an attempt and triggers scoring logic.
+
+        - Calculates trait scores
+        - Calls external ML service
+        - Produces profession recommendations
+      operationId: submit
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Attempt already submitted or incomplete
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Attempt successfully submitted and scored
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AttemptResultDto"
+  /attempts/{attemptId}/answers:
+    post:
+      tags:
+      - attempt-controller
+      summary: Submit a single answer
+      description: Adds a single answer to an active attempt.
+      operationId: addAnswer
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddAnswerRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Attempt already submitted or invalid option
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Answer added successfully
+  /attempts/{attemptId}/answers/bulk:
+    post:
+      tags:
+      - attempt-controller
+      summary: Submit multiple answers at once
+      description: Adds multiple answers to an active attempt in a single request.
+      operationId: addAnswersBulk
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddAnswersBulkRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid request or attempt state
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Answers added successfully
+  /attempts/start:
+    post:
+      tags:
+      - attempt-controller
+      summary: Start a quiz attempt
+      description: |
+        Starts a new quiz attempt for a given quiz version.
+
+        - If the user is authenticated, the attempt is linked to the user
+        - If the user is anonymous, a guest token is generated and returned
+      operationId: startAttempt
+      parameters:
+      - name: quizVersionId
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid quiz version
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Attempt successfully started
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AttemptStartResponse"
+  /users:
+    get:
+      tags:
+      - user-controller
+      summary: Get all users (admin only)
+      description: |2
+            Returns a paginated list of users.
+
+            Pagination parameters:
+            - page: page number (0-based)
+            - size: page size
+            - sort: sorting criteria (e.g. id,asc)
+      operationId: allUsers
+      parameters:
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Page"
+        "403":
+          description: Access denied (admin role required)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+              example:
+                code: 403
+                time: 2025-05-20T14:52:00Z
+                message: "Access denied: insufficient permissions"
+  /users/me:
+    get:
+      tags:
+      - user-controller
+      summary: Get current authenticated user
+      description: Returns the profile of the currently authenticated user
+      operationId: authenticatedUser
+      responses:
+        "401":
+          description: User is not authenticated
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+              example:
+                code: 401
+                time: 2025-05-20T14:50:00Z
+                message: Unauthorized
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Authenticated user returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "403":
+          description: Authenticated but insufficient permissions
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+              example:
+                code: 403
+                time: 2025-05-20T14:50:10Z
+                message: "Access denied: insufficient permissions"
+  /translations/entity/{entityType}:
+    get:
+      tags:
+      - translation-controller
+      summary: Get all translations for entity type
+      description: Returns all translations for a given entity type across all locales
+      operationId: getAllForEntityType
+      parameters:
+      - name: entityType
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Translations returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TranslationDto"
+  /quizzes/{id}/versions:
+    get:
+      tags:
+      - quiz-controller
+      summary: Get quiz versions
+      description: Returns all versions of a quiz
+      operationId: getVersions
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: List of quiz versions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizVersionDto"
+  /quizzes/{id}/versions/{version}:
+    get:
+      tags:
+      - quiz-controller
+      summary: Get specific quiz version
+      description: Returns a specific version of a quiz by version number
+      operationId: getVersion
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Quiz version not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Quiz version found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizVersionDto"
+  /quizzes/{id}/versions/current:
+    get:
+      tags:
+      - quiz-controller
+      summary: Get current quiz version
+      description: Returns the currently published quiz version
+      operationId: getCurrentVersion
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Current quiz version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizVersionDto"
+  /questions/{questionId}/options:
+    get:
+      tags:
+      - question-controller
+      summary: Get options for a question
+      description: |
+        Returns all answer options for a specific question.
+        Option labels are localized according to the request locale.
+      operationId: getOptionsForQuestion
+      parameters:
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Question not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: List of options for the question
+          content:
+            application/json:
+              schema:
+                type: array
+                $ref: "#/components/schemas/OptionDto"
+  /questions/quiz/{quizId}:
+    get:
+      tags:
+      - question-controller
+      summary: Get questions for current quiz version (paginated)
+      description: |
+        Returns questions for the current published version of a quiz.
+
+        Pagination parameters:
+        - `page` (0-based index, default: 0)
+        - `size` (page size, default: 20)
+        - `sort` (sorting field, default: ord)
+
+        Example:
+        `/questions/quiz/5?page=0&size=10&sort=ord,asc`
+      operationId: getQuestionsForQuiz
+      parameters:
+      - name: quizId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: locale
+        in: query
+        required: false
+        schema:
+          type: string
+          default: en
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Page of questions
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/QuestionDto"
+  /questions/quiz/{quizId}/version/{version}:
+    get:
+      tags:
+      - question-controller
+      summary: Get questions for a specific quiz version (paginated)
+      description: |
+        Returns questions for a specific quiz version.
+
+        Pagination parameters:
+        - `page` (0-based index)
+        - `size` (page size)
+        - `sort` (sorting field)
+
+        Example:
+        `/questions/quiz/5/version/2?page=1&size=10`
+      operationId: getQuestionsForQuizVersion
+      parameters:
+      - name: quizId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      - name: locale
+        in: query
+        required: false
+        schema:
+          type: string
+          default: en
+      - name: pageable
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/Pageable"
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Quiz version not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Page of questions
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/QuestionDto"
+  /attempts:
+    get:
+      tags:
+      - attempt-controller
+      summary: Get user's attempts
+      description: |
+        Returns all attempts for the current user.
+
+        - Authenticated users: attempts linked to user account
+        - Guest users: attempts linked via guest token
+      operationId: myAttempts
+      parameters:
+      - name: guestToken
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: List of attempt summaries
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AttemptSummaryDto"
+  /attempts/{id}/result:
+    get:
+      tags:
+      - attempt-controller
+      summary: Get attempt result
+      description: Returns final scoring results and recommendations for a submitted
+        attempt.
+      operationId: getResult
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Attempt not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Attempt result
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AttemptResultDto"
+  /attempts/search:
+    get:
+      tags:
+      - attempt-controller
+      summary: Admin search attempts
+      description: |
+        Administrative search over attempts.
+
+        Supports filtering by:
+        - user
+        - quiz
+        - date range
+      operationId: search_1
+      parameters:
+      - name: userId
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: quizId
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: from
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Filtered list of attempts
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AttemptSummaryDto"
+        "403":
+          description: Access denied
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+  /auth/account:
+    delete:
+      tags:
+      - authentication-controller
+      summary: Delete user account
+      description: Deletes the authenticated user's account after password confirmation.
+      operationId: deleteAccount
+      parameters:
+      - name: password
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "204":
+          description: Account deleted
+components:
+  schemas:
+    ExceptionDto:
+      type: object
+      description: Standardized API error response returned for all handled exceptions
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: HTTP status code representing the error type
+          examples:
+          - 400
+        time:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the error occurred (ISO-8601 format)
+          examples:
+          - 2025-01-15T14:32:10Z
+        message:
+          type: object
+          description: |
+            Error details. May be:
+            - a string message (e.g. 'Invalid credentials')
+            - a structured object containing validation errors
+          examples:
+          - Invalid email or password
+          oneOf:
+          - type: string
+          - {}
+    UpdateTranslationRequest:
+      type: object
+      description: Request payload for updating a localized translation value
+      properties:
+        text:
+          type: string
+          description: Updated translated text value
+          examples:
+          - Software Engineer
+    TranslationDto:
+      type: object
+      description: Translation data transfer object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique translation identifier
+          examples:
+          - 1
+        entityType:
+          type: string
+          description: Type of the translated entity
+          examples:
+          - profession
+        entityId:
+          type: integer
+          format: int32
+          description: Identifier of the related entity
+          examples:
+          - 1
+        field:
+          type: string
+          description: Translated field name
+          examples:
+          - title
+        locale:
+          type: string
+          description: Language code (ISO 639-1)
+          examples:
+          - en
+        text:
+          type: string
+          description: Localized text value
+          examples:
+          - Software Engineer
+    CreateTraitRequest:
+      type: object
+      description: Request payload for creating a psychological trait
+      properties:
+        code:
+          type: string
+          description: "Unique trait code (e.g. R, I, A)"
+          examples:
+          - R
+        name:
+          type: string
+          description: Human-readable trait name
+          examples:
+          - Realistic
+        description:
+          type: string
+          description: Description explaining the trait meaning
+          examples:
+          - "Preference for practical, hands-on activities"
+        bipolarPairCode:
+          type: string
+          description: Code of the opposite trait in a bipolar pair
+          examples:
+          - S
+    TraitDto:
+      type: object
+      description: Represents a psychological trait used in assessment scoring
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier of the trait
+          examples:
+          - 1
+        code:
+          type: string
+          description: Short code representing the trait (e.g. RIASEC dimension)
+          examples:
+          - R
+        name:
+          type: string
+          description: Human-readable name of the trait
+          examples:
+          - Realistic
+        description:
+          type: string
+          description: Detailed description of the trait
+          examples:
+          - Preference for hands-on activities and practical problem solving
+        bipolarPairCode:
+          type: string
+          description: Code of the opposing trait in a bipolar pair
+          examples:
+          - S
+    UpdateQuizRequest:
+      type: object
+      description: Request payload for updating quiz metadata
+      properties:
+        title:
+          type: string
+          description: Updated quiz title
+          examples:
+          - Software Engineering Career Quiz
+        processingMode:
+          type: string
+          description: Updated quiz processing mode
+          enum:
+          - ml_riasec
+          - llm
+          examples:
+          - ml_riasec
+        categoryId:
+          type: integer
+          format: int32
+          description: Identifier of the new quiz category
+          examples:
+          - 4
+    QuizDto:
+      type: object
+      description: Represents a quiz definition and its metadata
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier of the quiz
+          examples:
+          - 1
+        code:
+          type: string
+          description: Short unique code used to reference the quiz
+          examples:
+          - riasec_main
+        title:
+          type: string
+          description: Human-readable title of the quiz
+          examples:
+          - RIASEC Career Orientation Test
+        status:
+          type: string
+          description: Current lifecycle status of the quiz
+          enum:
+          - published
+          - draft
+          - archived
+          examples:
+          - published
+        processingMode:
+          type: string
+          description: Processing mode used to evaluate quiz results
+          enum:
+          - ml_riasec
+          - llm
+          examples:
+          - ml_riasec
+        categoryId:
+          type: integer
+          format: int32
+          description: Identifier of the category this quiz belongs to
+          examples:
+          - 5
+        authorId:
+          type: integer
+          format: int32
+          description: Identifier of the user who authored the quiz
+          examples:
+          - 1
+    UpdateQuestionRequest:
+      type: object
+      description: Request payload for updating a quiz question
+      properties:
+        ord:
+          type: integer
+          format: int32
+          description: New display order of the question
+          examples:
+          - 5
+          minimum: 1
+        qtype:
+          type: string
+          description: Updated question type
+          enum:
+          - single_choice
+          - multi_choice
+          - liker_scale_5
+          - liker_scale_7
+          examples:
+          - single_choice
+        text:
+          type: string
+          description: Updated question text
+          examples:
+          - How interested are you in programming?
+    OptionDto:
+      type: object
+      description: Represents a selectable option for a quiz question
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier of the option
+          examples:
+          - 54
+        questionId:
+          type: integer
+          format: int32
+          description: Identifier of the question this option belongs to
+          examples:
+          - 7
+        ord:
+          type: integer
+          format: int32
+          description: Order index of the option within the question (1-based)
+          examples:
+          - 1
+          minimum: 1
+        label:
+          type: string
+          description: Text label shown to the user for this option
+          examples:
+          - Strongly agree
+    QuestionDto:
+      type: object
+      description: Represents a question within a quiz version
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier of the question
+          examples:
+          - 101
+        quizVersionId:
+          type: integer
+          format: int32
+          description: Identifier of the quiz version this question belongs to
+          examples:
+          - 1
+        ord:
+          type: integer
+          format: int32
+          description: Order of the question within the quiz
+          examples:
+          - 3
+          minimum: 1
+        qtype:
+          type: string
+          description: Type of question defining how the user should answer
+          enum:
+          - single_choice
+          - multi_choice
+          - liker_scale_5
+          - liker_scale_7
+          examples:
+          - single_choice
+        text:
+          type: string
+          description: Text displayed to the user for this question
+          examples:
+          - I enjoy solving practical problems using my hands
+        options:
+          type: array
+          description: List of selectable answer options for the question
+          items:
+            $ref: "#/components/schemas/OptionDto"
+    CreateProfessionRequest:
+      type: object
+      description: Request payload for creating a new profession
+      properties:
+        code:
+          type: string
+          description: Unique profession code used internally
+          examples:
+          - software_engineer
+        title:
+          type: string
+          description: Human-readable profession title
+          examples:
+          - Software Engineer
+        description:
+          type: string
+          description: Detailed description of the profession
+          examples:
+          - "Designs, builds, and maintains software systems and applications."
+        mlClassCode:
+          type: string
+          description: ML classification code returned by the ML model
+          examples:
+          - SE
+        categoryId:
+          type: integer
+          format: int32
+          description: Identifier of the profession category
+          examples:
+          - 3
+    ProfessionDto:
+      type: object
+      description: Represents a profession that can be recommended to users based
+        on quiz results
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier of the profession
+          examples:
+          - 42
+        code:
+          type: string
+          description: Short internal code of the profession
+          examples:
+          - software_engineer
+        title:
+          type: string
+          description: Human-readable title of the profession
+          examples:
+          - Software Engineer
+        description:
+          type: string
+          description: "Detailed description of the profession, shown to end users"
+          examples:
+          - "Software engineers design, develop, and maintain software systems and\
+            \ applications."
+        mlClassCode:
+          type: string
+          description: Machine Learning class code used to map ML predictions to this
+            profession
+          examples:
+          - SE
+        categoryId:
+          type: integer
+          format: int32
+          description: Identifier of the profession category
+          examples:
+          - 3
+    OptionTraitListRequest:
+      type: object
+      description: Request payload for assigning multiple trait weights to a question
+        option
+      properties:
+        traits:
+          type: array
+          description: List of trait-weight associations for the option
+          items:
+            $ref: "#/components/schemas/OptionTraitRequest"
+      required:
+      - traits
+    OptionTraitRequest:
+      type: object
+      description: Represents the association between an option and a trait with a
+        weighted contribution
+      properties:
+        traitId:
+          type: integer
+          format: int32
+          description: Identifier of the trait profile
+          examples:
+          - 3
+        weight:
+          type: number
+          description: |
+            Weight applied to the trait when this option is selected.
+            Can be positive or negative depending on scoring logic.
+          examples:
+          - 1.25
+      required:
+      - traitId
+      - weight
+    UpdateOptionRequest:
+      type: object
+      description: Request payload for updating a quiz option
+      properties:
+        ord:
+          type: integer
+          format: int32
+          description: New display order of the option
+          examples:
+          - 2
+          minimum: 1
+        label:
+          type: string
+          description: Updated label text of the option
+          examples:
+          - Strongly agree
+    CreateCategoryRequest:
+      type: object
+      description: Request payload for creating a new profession category
+      properties:
+        code:
+          type: string
+          description: Unique code of the category
+          examples:
+          - IT
+        name:
+          type: string
+          description: Human-readable category name
+          examples:
+          - Information Technology
+        colorCode:
+          type: string
+          description: Hex color code associated with the category (used in UI)
+          examples:
+          - "#1E90FF"
+          pattern: "^#[0-9A-Fa-f]{6}$"
+    ProfessionCategoryDto:
+      type: object
+      description: Represents a category used to group professions
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier of the profession category
+          examples:
+          - 5
+        code:
+          type: string
+          description: Short code identifying the category
+          examples:
+          - IT
+        name:
+          type: string
+          description: Human-readable name of the category
+          examples:
+          - Information Technology
+        colorCode:
+          type: string
+          description: Hex color code used for UI representation of the category
+          examples:
+          - "#FF8800"
+          pattern: "^#[0-9A-Fa-f]{6}$"
+    CreateTranslationRequest:
+      type: object
+      description: Request payload for creating or updating a translation
+      properties:
+        entityType:
+          type: string
+          description: Type of the translated entity
+          examples:
+          - profession
+        entityId:
+          type: integer
+          format: int32
+          description: Identifier of the entity being translated
+          example: 15
+        field:
+          type: string
+          description: Field of the entity to translate
+          examples:
+          - title
+        locale:
+          type: string
+          description: Language or locale code
+          examples:
+          - en
+          pattern: "^[a-zA-Z]{2,3}(-[a-zA-Z]{2,3})?$"
+        text:
+          type: string
+          description: Translated text value
+          examples:
+          - Software Engineer
+    CreateQuizRequest:
+      type: object
+      description: Request payload for creating a new quiz
+      properties:
+        code:
+          type: string
+          description: Unique quiz code used internally
+          examples:
+          - riasec_main
+        title:
+          type: string
+          description: Human-readable quiz title
+          examples:
+          - Career Orientation Test (RIASEC)
+        processingMode:
+          type: string
+          description: Processing mode defining how results are calculated
+          enum:
+          - ml_riasec
+          - llm
+          examples:
+          - ml_riasec
+        categoryId:
+          type: integer
+          format: int32
+          description: Identifier of the quiz category
+          examples:
+          - 2
+        authorId:
+          type: integer
+          format: int32
+          description: Identifier of the quiz author (admin user)
+          examples:
+          - 1
+    QuizVersionDto:
+      type: object
+      description: Represents a specific published version of a quiz
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier of the quiz version
+          examples:
+          - 1
+        quizId:
+          type: integer
+          format: int32
+          description: Identifier of the quiz this version belongs to
+          examples:
+          - 1
+        version:
+          type: integer
+          format: int32
+          description: Sequential version number of the quiz
+          examples:
+          - 1
+        isCurrent:
+          type: boolean
+          description: Indicates whether this is the currently active quiz version
+          examples:
+          - true
+        publishedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the quiz version was published
+          examples:
+          - 2025-01-10T12:30:00Z
+    CreateQuestionRequest:
+      type: object
+      description: Request payload for creating a quiz question
+      properties:
+        quizVersionId:
+          type: integer
+          format: int32
+          description: Identifier of the quiz version this question belongs to
+          examples:
+          - 12
+        ord:
+          type: integer
+          format: int32
+          description: Order of the question within the quiz version
+          examples:
+          - 1
+          minimum: 1
+        qtype:
+          type: string
+          description: "Type of the question (e.g. single_choice, multi_choice, liker_scale_5)"
+          enum:
+          - single_choice
+          - multi_choice
+          - liker_scale_5
+          - liker_scale_7
+          examples:
+          - single_choice
+        text:
+          type: string
+          description: Question text shown to the user
+          examples:
+          - I enjoy solving complex technical problems.
+    CreateOptionRequest:
+      type: object
+      description: Request payload for creating a new question option
+      properties:
+        questionId:
+          type: integer
+          format: int32
+          description: Identifier of the question this option belongs to
+          examples:
+          - 101
+        ord:
+          type: integer
+          format: int32
+          description: Display order of the option within the question
+          examples:
+          - 1
+          minimum: 1
+        label:
+          type: string
+          description: Displayed label of the option
+          examples:
+          - Strongly agree
+    DemoRequest:
+      type: object
+      properties:
+        answers:
+          type: array
+          items:
+            type: integer
+            format: int32
+    RecommendationDto:
+      type: object
+      description: Career recommendation generated by the scoring engine
+      properties:
+        professionId:
+          type: integer
+          format: int32
+          description: Identifier of the recommended profession
+          examples:
+          - 42
+        score:
+          type: number
+          description: Identifier of the recommended profession
+          examples:
+          - 42
+        explanation:
+          type: string
+          description: Human-readable explanation of why this profession was recommended
+          examples:
+          - "Predicted as: Software Engineer"
+    ScoringResult:
+      type: object
+      description: Final scoring result produced after evaluating a quiz attempt
+      properties:
+        traitScores:
+          type: object
+          additionalProperties:
+            type: number
+          description: |
+            Calculated trait scores based on quiz answers.
+            Each entry maps a trait profile to its aggregated score.
+          examples:
+          - |
+            {
+              "R": 12.5,
+              "I": 9.0,
+              "A": 7.5
+            }
+        recommendations:
+          type: array
+          description: List of profession recommendations generated by the ML scoring
+            engine
+          examples:
+          - |
+            [
+              {
+                "professionId": 42,
+                "score": 0.82,
+                "explanation": "Predicted as: Software Engineer"
+              }
+            ]
+          items:
+            $ref: "#/components/schemas/RecommendationDto"
+    RegisterUserDto:
+      type: object
+      description: Request payload for user registration
+      properties:
+        email:
+          type: string
+          description: User email address used for authentication
+          examples:
+          - user@example.com
+          minLength: 1
+        displayName:
+          type: string
+          description: Display name shown in the application UI
+          examples:
+          - John Doe
+        password:
+          type: string
+          description: |
+            User password.
+            Must be at least 6 characters long and contain at least one numeric digit.
+          examples:
+          - pass123
+          maxLength: 2147483647
+          minLength: 6
+          pattern: .*\d.*
+      required:
+      - email
+      - password
+    GrantedAuthority:
+      type: object
+      properties:
+        authority:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        email:
+          type: string
+        passwordHash:
+          type: string
+        displayName:
+          type: string
+        role:
+          type: string
+          enum:
+          - USER
+          - ADMIN
+        createdAt:
+          type: string
+          format: date-time
+        enabled:
+          type: boolean
+        active:
+          type: boolean
+        authorities:
+          type: array
+          items:
+            $ref: "#/components/schemas/GrantedAuthority"
+        username:
+          type: string
+        accountNonExpired:
+          type: boolean
+        accountNonLocked:
+          type: boolean
+        credentialsNonExpired:
+          type: boolean
+        password:
+          type: string
+    ResetPasswordDto:
+      type: object
+      description: Request payload for completing a password reset using a reset token
+      properties:
+        token:
+          type: string
+          description: Password reset token sent to the user's email
+          examples:
+          - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.reset-token
+        newPassword:
+          type: string
+          description: |
+            New password for the user account.
+            Must contain at least one numeric digit and be at least 6 characters long.
+          examples:
+          - NewPass123
+          maxLength: 2147483647
+          minLength: 6
+          pattern: .*\d.*
+      required:
+      - newPassword
+    RequestResetPasswordDto:
+      type: object
+      description: Request payload for initiating a password reset process
+      properties:
+        email:
+          type: string
+          description: Email address associated with the user account
+          examples:
+          - user@example.com
+          minLength: 1
+      required:
+      - email
+    RefreshTokenRequest:
+      type: object
+      description: Request payload used to refresh an expired access token
+      properties:
+        refreshToken:
+          type: string
+          description: Refresh token previously issued during authentication
+          examples:
+          - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      required:
+      - refreshToken
+    LoginResponse:
+      type: object
+      description: Response returned after successful authentication or token refresh
+      properties:
+        token:
+          type: string
+          description: JWT access token used to authorize API requests
+          examples:
+          - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refreshToken:
+          type: string
+          description: Refresh token used to obtain a new access token
+          examples:
+          - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        expiresIn:
+          type: integer
+          format: int64
+          description: Access token expiration time in seconds
+          examples:
+          - 3600
+    LoginUserDto:
+      type: object
+      description: Request payload used for authenticating a user
+      properties:
+        email:
+          type: string
+          description: Email address used for user authentication
+          examples:
+          - user@example.com
+          minLength: 1
+        password:
+          type: string
+          description: User password (minimum 6 characters)
+          examples:
+          - Password123
+          maxLength: 2147483647
+          minLength: 6
+        rememberMe:
+          type: boolean
+          default: false
+          description: "If true, a long-lived refresh token will be issued"
+          examples:
+          - false
+      required:
+      - email
+      - password
+    GoogleOneTapLoginRequest:
+      type: object
+      description: Request payload for Google One Tap authentication
+      properties:
+        token:
+          type: string
+          description: Google ID token obtained from Google One Tap login
+          examples:
+          - eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...
+          minLength: 1
+      required:
+      - token
+    AttemptResultDto:
+      type: object
+      description: Detailed result of a completed quiz attempt
+      properties:
+        traitScores:
+          type: array
+          description: |
+            Calculated trait scores.
+            The key represents the trait code, the value represents the score.
+          examples:
+          - |
+            {
+              "R": 12.5,
+              "I": 9.0,
+              "A": 7.5
+            }
+          items:
+            $ref: "#/components/schemas/TraitScoreDto"
+        recommendations:
+          type: array
+          description: List of recommended professions based on ML prediction
+          examples:
+          - |
+            [
+              {
+                "professionId": 42,
+                "score": 0.82,
+                "explanation": "Predicted as: Software Engineer"
+              }
+            ]
+          items:
+            $ref: "#/components/schemas/RecommendationDto"
+    TraitScoreDto:
+      type: object
+      description: Trait score entry
+      properties:
+        traitCode:
+          type: string
+          description: Short code representing the trait (e.g. RIASEC dimension)
+          examples:
+          - R
+        score:
+          type: number
+          description: Probability score assigned by the ML model (range 0.0 – 1.0)
+          examples:
+          - 0.75
+    AddAnswerRequest:
+      type: object
+      description: Request payload for submitting a single answer to a quiz attempt
+      properties:
+        optionId:
+          type: integer
+          format: int32
+          description: Identifier of the selected option
+          examples:
+          - 123
+      required:
+      - optionId
+    AddAnswersBulkRequest:
+      type: object
+      description: Request payload for submitting multiple answers in a single operation
+      properties:
+        optionIds:
+          type: array
+          description: List of selected option IDs
+          examples:
+          - [101, 102, 103]
+          items:
+            type: integer
+            format: int32
+          minItems: 1
+      required:
+      - optionIds
+    AttemptStartResponse:
+      type: object
+      description: Response returned when a quiz attempt is started
+      properties:
+        attemptId:
+          type: integer
+          format: int32
+          description: Unique identifier of the created attempt
+          examples:
+          - 123
+        guestToken:
+          type: string
+          description: |
+            Guest access token used to continue the attempt without authentication.
+            Null for authenticated users.
+          examples:
+          - f7c1a2e9-8a9d-4b2e-9b61-1a2f8c123abc
+    Pageable:
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int32
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+        sort:
+          type: array
+          items:
+            type: string
+    Page:
+      type: object
+      properties:
+        totalPages:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            type: object
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        empty:
+          type: boolean
+    PageableObject:
+      type: object
+      properties:
+        offset:
+          type: integer
+          format: int64
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        unpaged:
+          type: boolean
+        paged:
+          type: boolean
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+    SortObject:
+      type: object
+      properties:
+        empty:
+          type: boolean
+        unsorted:
+          type: boolean
+        sorted:
+          type: boolean
+    AttemptSummaryDto:
+      type: object
+      description: Summary information about a quiz attempt
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: Unique identifier of the attempt
+          examples:
+          - 101
+        quizVersionId:
+          type: integer
+          format: int32
+          description: Identifier of the quiz version associated with this attempt
+          examples:
+          - 12
+        quizTitle:
+          type: string
+          description: Title of the quiz
+          examples:
+          - RIASEC Career Orientation Test
+        status:
+          type: string
+          description: Current status of the attempt
+          enum:
+          - in_progress
+          - completed
+          examples:
+          - in_progress
+        startedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the attempt was started (ISO-8601)
+          examples:
+          - 2025-01-15T10:05:00Z
+        submittedAt:
+          type: string
+          format: date-time
+          description: "Timestamp when the attempt was submitted, null if not completed"
+          examples:
+          - 2025-01-15T10:20:30Z
+        isCompleted:
+          type: boolean
+          description: Indicates whether the attempt has been completed
+          examples:
+          - true
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -81,21 +81,4 @@ class OptionControllerTest {
         controller.delete(7);
         verify(service).delete(7);
     }
-
-    @Test
-    void getByQuestion_shouldPassLocalizedCallToService() {
-        List<OptionDto> expected = List.of(
-                new OptionDto(10, 5, 1, "Лейбл")
-        );
-
-        when(service.getByQuestionLocalized(5, "ru"))
-                .thenReturn(expected);
-
-        List<OptionDto> result = controller.getByQuestion(5);
-
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().label()).isEqualTo("Лейбл");
-
-        verify(service).getByQuestionLocalized(5, "ru");
-    }
 }

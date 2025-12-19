@@ -1,5 +1,6 @@
 package com.diploma.proforientation.dto.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,21 +11,34 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@Schema(description = "Response returned after successful authentication or token refresh")
 public class LoginResponse {
 
     /**
      * The JWT access token used for authenticating requests.
      */
+    @Schema(
+            description = "JWT access token used to authorize API requests",
+            examples = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    )
     private String token;
 
     /**
      * The refresh token used to obtain new access tokens.
      */
+    @Schema(
+            description = "Refresh token used to obtain a new access token",
+            examples = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    )
     private String refreshToken;
 
     /**
-     * The expiration time of the access token in milliseconds.
+     * The expiration time of the access token in seconds.
      */
+    @Schema(
+            description = "Access token expiration time in seconds",
+            examples = "3600"
+    )
     private long expiresIn;
 
     /**
@@ -32,7 +46,7 @@ public class LoginResponse {
      *
      * @param token the JWT access token
      * @param refreshToken the refresh token
-     * @param expiresIn the expiration time of the access token in milliseconds
+     * @param expiresIn the expiration time of the access token in seconds
      */
     public LoginResponse(String token, String refreshToken, long expiresIn) {
         this.token = token;

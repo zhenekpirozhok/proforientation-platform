@@ -1,5 +1,6 @@
 package com.diploma.proforientation.unit.service;
 
+import com.diploma.proforientation.dto.OptionDto;
 import com.diploma.proforientation.dto.QuestionDto;
 import com.diploma.proforientation.dto.request.create.CreateQuestionRequest;
 import com.diploma.proforientation.dto.request.update.UpdateQuestionRequest;
@@ -7,6 +8,7 @@ import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.model.enumeration.QuestionType;
 import com.diploma.proforientation.repository.*;
 import com.diploma.proforientation.service.impl.QuestionServiceImpl;
+import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +20,8 @@ import org.springframework.data.domain.*;
 import java.util.List;
 import java.util.Optional;
 
+import static com.diploma.proforientation.service.impl.OptionServiceImpl.ENTITY_TYPE_OPTION;
+import static com.diploma.proforientation.service.impl.QuestionServiceImpl.FIELD_LABEL;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -26,7 +30,7 @@ class QuestionServiceTest {
     @Mock private QuestionRepository questionRepo;
     @Mock private QuizVersionRepository versionRepo;
     @Mock private QuestionOptionRepository optionRepo;
-    @Mock private TranslationRepository translationRepo;
+    @Mock private TranslationResolver translationResolver;
 
     @InjectMocks private QuestionServiceImpl service;
 
@@ -159,11 +163,9 @@ class QuestionServiceTest {
         when(questionRepo.findByQuizVersionIdOrderByOrd(5, pageable))
                 .thenReturn(page);
 
-        when(translationRepo.findByEntityTypeAndEntityIdAndFieldAndLocale(
-                "question", 100, "text", "ru"))
-                .thenReturn(Optional.of(
-                        new Translation(1, "question", 100, "ru", "text", "Перевод вопроса")
-                ));
+        when(translationResolver.resolve(
+                "question", 100, "text", "ru", "Default Q"
+        )).thenReturn("Перевод вопроса");
 
         QuestionOption opt = new QuestionOption();
         opt.setId(200);
@@ -174,11 +176,9 @@ class QuestionServiceTest {
         when(optionRepo.findByQuestionIdOrderByOrd(100))
                 .thenReturn(List.of(opt));
 
-        when(translationRepo.findByEntityTypeAndEntityIdAndFieldAndLocale(
-                "question_option", 200, "text", "ru"))
-                .thenReturn(Optional.of(
-                        new Translation(1, "question_option", 200, "ru", "text", "Перевод ответа")
-                ));
+        when(translationResolver.resolve(
+                ENTITY_TYPE_OPTION, 200, FIELD_LABEL, "ru", "Default option"
+        )).thenReturn("Перевод ответа");
 
         Page<QuestionDto> result =
                 service.getQuestionsForCurrentVersion(7, "ru", pageable);
@@ -216,13 +216,53 @@ class QuestionServiceTest {
         when(optionRepo.findByQuestionIdOrderByOrd(77))
                 .thenReturn(List.of());
 
-        when(translationRepo.findByEntityTypeAndEntityIdAndFieldAndLocale(any(), any(), any(), any()))
-                .thenReturn(Optional.empty());
+        when(translationResolver.resolve(any(), any(), any(), any(), any()))
+                .thenAnswer(inv -> inv.getArgument(4));
 
         Page<QuestionDto> result =
                 service.getQuestionsForVersion(3, 1, "en", pageable);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().text()).isEqualTo("Default");
+    }
+
+    @Test
+    void getOptionsForQuestionLocalized_shouldReturnLocalizedOptions() {
+
+        Question question = new Question();
+        question.setId(15);
+
+        when(questionRepo.findById(15))
+                .thenReturn(Optional.of(question));
+
+        QuestionOption option = new QuestionOption();
+        option.setId(100);
+        option.setOrd(1);
+        option.setQuestion(question);
+        option.setLabelDefault("Default option");
+
+        when(optionRepo.findByQuestionIdOrderByOrdAsc(15))
+                .thenReturn(List.of(option));
+
+        when(translationResolver.resolve(
+                ENTITY_TYPE_OPTION, 100, FIELD_LABEL, "en", "Default option"
+        )).thenReturn("Localized option");
+
+        List<OptionDto> result =
+                service.getOptionsForQuestionLocalized(15, "en");
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().label()).isEqualTo("Localized option");
+    }
+
+    @Test
+    void getOptionsForQuestionLocalized_shouldFailWhenQuestionNotFound() {
+
+        when(questionRepo.findById(999))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+                service.getOptionsForQuestionLocalized(999, "en")
+        ).isInstanceOf(EntityNotFoundException.class);
     }
 }

@@ -6,8 +6,8 @@ import com.diploma.proforientation.repository.AnswerRepository;
 import com.diploma.proforientation.repository.AttemptRepository;
 import com.diploma.proforientation.repository.ProfessionRepository;
 import com.diploma.proforientation.repository.TraitProfileRepository;
-import com.diploma.proforientation.service.scoring.ScoringResult;
-import com.diploma.proforientation.service.scoring.llm.LlmScoringEngineImpl;
+import com.diploma.proforientation.dto.ml.ScoringResult;
+import com.diploma.proforientation.scoring.llm.LlmScoringEngineImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

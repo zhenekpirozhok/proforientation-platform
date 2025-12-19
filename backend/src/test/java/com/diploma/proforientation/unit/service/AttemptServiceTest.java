@@ -3,14 +3,15 @@ package com.diploma.proforientation.unit.service;
 import com.diploma.proforientation.dto.AttemptResultDto;
 import com.diploma.proforientation.dto.AttemptSummaryDto;
 import com.diploma.proforientation.dto.RecommendationDto;
+import com.diploma.proforientation.dto.TraitScoreDto;
 import com.diploma.proforientation.dto.response.AttemptStartResponse;
 import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
 import com.diploma.proforientation.repository.*;
 import com.diploma.proforientation.service.impl.AttemptServiceImpl;
-import com.diploma.proforientation.service.scoring.ScoringEngine;
-import com.diploma.proforientation.service.scoring.ScoringEngineFactory;
-import com.diploma.proforientation.service.scoring.ScoringResult;
+import com.diploma.proforientation.scoring.ScoringEngine;
+import com.diploma.proforientation.scoring.ScoringEngineFactory;
+import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.diploma.proforientation.util.TranslationResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,7 @@ import java.time.Instant;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -144,7 +146,11 @@ class AttemptServiceTest {
 
         AttemptResultDto dto = service.submitAttempt(10);
 
-        assertThat(dto.traitScores()).containsEntry("R", BigDecimal.TEN);
+        assertThat(dto.traitScores())
+                .extracting(TraitScoreDto::traitCode, TraitScoreDto::score)
+                .containsExactly(
+                        tuple("R", BigDecimal.TEN)
+                );
         assertThat(dto.recommendations()).hasSize(1);
 
         verify(traitScoreRepo, times(1)).deleteByAttempt_Id(10);
@@ -238,7 +244,11 @@ class AttemptServiceTest {
 
         AttemptResultDto dto = service.getResult(10);
 
-        assertThat(dto.traitScores()).containsEntry("I", BigDecimal.TEN);
+        assertThat(dto.traitScores())
+                .extracting(TraitScoreDto::traitCode, TraitScoreDto::score)
+                .containsExactly(
+                        tuple("I", BigDecimal.TEN)
+                );
         assertThat(dto.recommendations()).hasSize(1);
     }
 

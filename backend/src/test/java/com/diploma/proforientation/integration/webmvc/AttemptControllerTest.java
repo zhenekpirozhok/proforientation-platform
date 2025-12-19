@@ -25,7 +25,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -98,7 +97,7 @@ class AttemptControllerTest {
     @Test
     void submitReturnsResult() throws Exception {
         AttemptResultDto result = new AttemptResultDto(
-                Map.of(),
+                List.of(),
                 List.of()
         );
 
@@ -133,7 +132,7 @@ class AttemptControllerTest {
     @Test
     void getResultReturnsDto() throws Exception {
         AttemptResultDto result = new AttemptResultDto(
-                Map.of(),
+                List.of(),
                 List.of()
         );
 

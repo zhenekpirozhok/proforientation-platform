@@ -1,10 +1,10 @@
 package com.diploma.proforientation.unit.scoring;
 
-import com.diploma.proforientation.service.scoring.MlPrediction;
+import com.diploma.proforientation.dto.ml.MlPrediction;
 import com.diploma.proforientation.dto.RecommendationDto;
 import com.diploma.proforientation.dto.response.MlResultResponse;
 import com.diploma.proforientation.repository.ProfessionRepository;
-import com.diploma.proforientation.service.scoring.ml.impl.MlResultMapper;
+import com.diploma.proforientation.scoring.ml.impl.MlResultMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

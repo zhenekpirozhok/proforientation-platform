@@ -1,22 +1,25 @@
 package com.diploma.proforientation.unit.controller;
 
 import com.diploma.proforientation.controller.QuestionController;
+import com.diploma.proforientation.dto.OptionDto;
 import com.diploma.proforientation.dto.QuestionDto;
 import com.diploma.proforientation.dto.request.create.CreateQuestionRequest;
 import com.diploma.proforientation.dto.request.update.UpdateQuestionRequest;
 import com.diploma.proforientation.service.QuestionService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.List;
+import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -33,6 +36,11 @@ class QuestionControllerTest {
     void setup() {
         MockitoAnnotations.openMocks(this);
         SecurityContextHolder.clearContext();
+    }
+
+    @AfterEach
+    void cleanup() {
+        LocaleContextHolder.resetLocaleContext();
     }
 
     private void setAdmin() {
@@ -107,25 +115,54 @@ class QuestionControllerTest {
 
     @Test
     void getQuestionsForQuizVersion_shouldReturnPaginatedQuestions() {
-        Pageable pageable = PageRequest.of(0, 5);
+        int quizId = 3;
+        int version = 2;
+        String locale = "ru";
+        int page = 1;
+        int size = 5;
+        String sort = "id";
+
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
 
         QuestionDto dto = new QuestionDto(
                 10, 1, 2, "multi_choice", "Versioned question", null
         );
 
-        Page<QuestionDto> page =
-                new PageImpl<>(java.util.List.of(dto), pageable, 1);
+        Page<QuestionDto> pageResult = new PageImpl<>(List.of(dto), pageable, 1);
 
-        when(service.getQuestionsForVersion(3, 2, "ru", pageable))
-                .thenReturn(page);
+        when(service.getQuestionsForVersion(quizId, version, locale, pageable))
+                .thenReturn(pageResult);
 
-        Page<QuestionDto> result =
-                controller.getQuestionsForQuizVersion(3, 2, "ru", pageable);
+        Page<QuestionDto> result = controller.getQuestionsForQuizVersion(
+                quizId, version, locale, page, size, sort
+        );
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().qtype()).isEqualTo("multi_choice");
 
-        verify(service).getQuestionsForVersion(3, 2, "ru", pageable);
+        verify(service).getQuestionsForVersion(quizId, version, locale, pageable);
     }
 
+    @Test
+    void getOptionsForQuestion_shouldUseLocaleFromContext() {
+
+        LocaleContextHolder.setLocale(Locale.ENGLISH);
+
+        OptionDto option = new OptionDto(
+                100,
+                15,
+                1,
+                "Localized option"
+        );
+
+        when(service.getOptionsForQuestionLocalized(15, "en"))
+                .thenReturn(List.of(option));
+
+        List<OptionDto> result = controller.getOptionsForQuestion(15);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().label()).isEqualTo("Localized option");
+
+        verify(service).getOptionsForQuestionLocalized(15, "en");
+    }
 }

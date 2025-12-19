@@ -3,14 +3,15 @@ package com.diploma.proforientation.service.impl;
 import com.diploma.proforientation.dto.AttemptResultDto;
 import com.diploma.proforientation.dto.AttemptSummaryDto;
 import com.diploma.proforientation.dto.RecommendationDto;
+import com.diploma.proforientation.dto.TraitScoreDto;
 import com.diploma.proforientation.dto.response.AttemptStartResponse;
 import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.repository.*;
 import com.diploma.proforientation.service.AttemptService;
 
-import com.diploma.proforientation.service.scoring.ScoringEngine;
-import com.diploma.proforientation.service.scoring.ScoringEngineFactory;
-import com.diploma.proforientation.service.scoring.ScoringResult;
+import com.diploma.proforientation.scoring.ScoringEngine;
+import com.diploma.proforientation.scoring.ScoringEngineFactory;
+import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.diploma.proforientation.util.ErrorMessages.*;
 
@@ -137,7 +137,7 @@ public class AttemptServiceImpl implements AttemptService {
         saveRecommendations(attempt, result.recommendations());
 
         return new AttemptResultDto(
-                toSimpleTraitMap(result.traitScores()),
+                toTraitScoreDtos(result.traitScores()),
                 result.recommendations()
         );
     }
@@ -167,11 +167,13 @@ public class AttemptServiceImpl implements AttemptService {
         List<AttemptTraitScore> scores = traitScoreRepo.findByAttemptId(attemptId);
         List<AttemptRecommendation> recs = recRepo.findByAttemptId(attemptId);
 
-        Map<String, BigDecimal> traitMap = scores.stream()
-                .collect(Collectors.toMap(
-                        s -> s.getTrait().getCode(),
-                        AttemptTraitScore::getScore
-                ));
+        List<TraitScoreDto> traitScores = scores.stream()
+                .map(s -> new TraitScoreDto(
+                        s.getTrait().getCode(),
+                        s.getScore()
+                ))
+                .sorted(Comparator.comparing(TraitScoreDto::traitCode))
+                .toList();
 
         List<RecommendationDto> recDtos = recs.stream()
                 .map(r -> new RecommendationDto(
@@ -181,7 +183,7 @@ public class AttemptServiceImpl implements AttemptService {
                 ))
                 .toList();
 
-        return new AttemptResultDto(traitMap, recDtos);
+        return new AttemptResultDto(traitScores, recDtos);
     }
 
     @Override
@@ -198,11 +200,18 @@ public class AttemptServiceImpl implements AttemptService {
                 .toList();
     }
 
-
-    private Map<String, BigDecimal> toSimpleTraitMap(Map<TraitProfile, BigDecimal> map) {
-        return map.entrySet().stream()
-                .collect(Collectors.toMap(e -> e.getKey().getCode(), Map.Entry::getValue));
+    private List<TraitScoreDto> toTraitScoreDtos(
+            Map<TraitProfile, BigDecimal> scores
+    ) {
+        return scores.entrySet().stream()
+                .map(e -> new TraitScoreDto(
+                        e.getKey().getCode(),
+                        e.getValue()
+                ))
+                .sorted(Comparator.comparing(TraitScoreDto::traitCode))
+                .toList();
     }
+
 
     private void saveTraitScores(Attempt attempt, Map<TraitProfile, BigDecimal> scores) {
         for (var entry : scores.entrySet()) {

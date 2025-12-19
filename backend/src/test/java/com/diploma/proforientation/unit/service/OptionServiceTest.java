@@ -97,32 +97,4 @@ class OptionServiceTest {
         service.delete(7);
         verify(optionRepo).deleteById(7);
     }
-
-    @Test
-    void getByQuestionLocalized_shouldReturnLocalizedOptions() {
-        when(questionRepo.findById(5)).thenReturn(Optional.of(question));
-
-        when(optionRepo.findByQuestionIdOrderByOrd(5))
-                .thenReturn(List.of(opt));
-
-        when(translationResolver.resolve("question_option", 10, "text", "ru", "Default Label"))
-                .thenReturn("Локализованный текст");
-
-        List<OptionDto> result = service.getByQuestionLocalized(5, "ru");
-
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().label()).isEqualTo("Локализованный текст");
-
-        verify(optionRepo).findByQuestionIdOrderByOrd(5);
-        verify(translationResolver).resolve("question_option", 10, "text", "ru", "Default Label");
-    }
-
-    @Test
-    void getByQuestionLocalized_shouldThrowIfQuestionNotFound() {
-        when(questionRepo.findById(5)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> service.getByQuestionLocalized(5, "en"))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessage("Question not found");
-    }
 }
