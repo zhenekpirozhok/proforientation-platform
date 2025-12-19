@@ -4,8 +4,6 @@ import com.diploma.proforientation.dto.OptionDto;
 import com.diploma.proforientation.dto.request.create.CreateOptionRequest;
 import com.diploma.proforientation.dto.request.update.UpdateOptionRequest;
 
-import java.util.List;
-
 public interface OptionService {
 
     OptionDto create(CreateOptionRequest req);
