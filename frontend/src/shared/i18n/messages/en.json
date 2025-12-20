@@ -1,0 +1,13 @@
+{
+  "Common": {
+    "language": "Language",
+    "russian": "Russian",
+    "english": "English"
+  },
+  "Quizzes": {
+    "title": "Quizzes",
+    "loading": "Loading…",
+    "error": "Failed to load quizzes",
+    "fallbackTitle": "Quiz #{id}"
+  }
+}

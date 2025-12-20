@@ -1,0 +1,13 @@
+{
+  "Common": {
+    "language": "Язык",
+    "russian": "Русский",
+    "english": "Английский"
+  },
+  "Quizzes": {
+    "title": "Тесты",
+    "loading": "Загрузка…",
+    "error": "Не удалось загрузить тесты",
+    "fallbackTitle": "Тест №{id}"
+  }
+}
