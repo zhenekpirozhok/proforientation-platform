@@ -3,11 +3,13 @@ name: Backend CI/CD
 on:
   push:
     branches: ["main"]
-    paths: ["backend/**"]
+    paths:
+      - "backend/**"
+      - "documentation/api-docs/reference/openapi.yaml"
   pull_request:
     paths:
       - "backend/**"
-      - "contracts/openapi.json"
+      - "documentation/api-docs/reference/openapi.yaml"
   workflow_dispatch: {}
 
 concurrency:
@@ -16,7 +18,7 @@ concurrency:
 
 jobs:
   backend:
-    name: Backend - Test, Lint, Build, Smoke, Image
+    name: Backend - Test, Lint, Build, Smoke, Export OpenAPI (YAML), Image
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
@@ -79,7 +81,7 @@ jobs:
           path: backend/target/surefire-reports/*.xml
           reporter: java-junit
 
-      - name: Smoke test + Export OpenAPI spec
+      - name: Smoke test + Export OpenAPI spec (YAML)
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: "5432"
@@ -119,10 +121,10 @@ jobs:
             exit 1
           fi
 
-          echo "Exporting OpenAPI..."
-          curl -fsS http://localhost:8082/api/v1.0/docs -o openapi.json
-          test -s openapi.json
-          grep -q '"paths"' openapi.json
+          echo "Exporting OpenAPI (YAML)..."
+          curl -fsS http://localhost:8082/api/v1.0/docs.yaml -o openapi.yaml
+          test -s openapi.yaml
+          grep -q "^paths:" openapi.yaml
 
           kill $PID || true
 
@@ -130,30 +132,30 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: openapi-spec
-          path: backend/openapi.json
+          path: backend/openapi.yaml
 
-      - name: Move OpenAPI to repo contracts/
+      - name: Move OpenAPI to repo documentation/
         run: |
           set -euo pipefail
-          mkdir -p ../contracts
-          cp -f openapi.json ../contracts/openapi.json
-          test -s ../contracts/openapi.json
-          echo "contracts/openapi.json sha256:"
-          sha256sum ../contracts/openapi.json
+          mkdir -p ../documentation/api-docs/reference
+          cp -f openapi.yaml ../documentation/api-docs/reference/openapi.yaml
+          test -s ../documentation/api-docs/reference/openapi.yaml
+          echo "documentation/api-docs/reference/openapi.yaml sha256:"
+          sha256sum ../documentation/api-docs/reference/openapi.yaml
 
-      - name: Create or update PR with contracts/openapi.json (main only)
+      - name: Create or update PR with openapi.yaml (main only)
         id: cpr_openapi
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "chore(contract): update OpenAPI spec"
-          title: "chore(contract): update OpenAPI spec"
+          commit-message: "chore(contract): update OpenAPI spec (yaml)"
+          title: "chore(contract): update OpenAPI spec (yaml)"
           body: |
-            Автоматически обновлён contracts/openapi.json после smoke/export из backend.
+            Автоматически обновлён documentation/api-docs/reference/openapi.yaml после smoke/export из backend.
           branch: chore/auto-update-openapi
           delete-branch: true
           add-paths: |
-            contracts/openapi.json
+            documentation/api-docs/reference/openapi.yaml
 
       - name: Install bc (for coverage gate)
         run: sudo apt-get update && sudo apt-get install -y bc

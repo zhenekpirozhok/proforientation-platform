@@ -4,7 +4,7 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "contracts/openapi.json"
+      - "documentation/api-docs/reference/openapi.yaml"
       - "frontend/**"
   workflow_dispatch: {}
 
@@ -37,10 +37,10 @@ jobs:
       - name: Verify OpenAPI in repo
         run: |
           set -euo pipefail
-          test -s contracts/openapi.json
-          grep -q '"paths"' contracts/openapi.json
+          test -s documentation/api-docs/reference/openapi.yaml
+          grep -q "^paths:" documentation/api-docs/reference/openapi.yaml
           echo "OpenAPI sha256:"
-          sha256sum contracts/openapi.json
+          sha256sum documentation/api-docs/reference/openapi.yaml
 
       - name: Install frontend deps
         working-directory: frontend
@@ -50,7 +50,7 @@ jobs:
         working-directory: frontend
         run: |
           set -euo pipefail
-          test -s ../contracts/openapi.json
+          test -s ../documentation/api-docs/reference/openapi.yaml
           npm run gen:api
 
       - name: Format generated API types
@@ -78,7 +78,7 @@ jobs:
           commit-message: "chore(contract): regenerate frontend API types"
           title: "chore(contract): regenerate frontend API types"
           body: |
-            Автоматически обновлены сгенерированные API types после изменения contracts/openapi.json.
+            Автоматически обновлены сгенерированные API types после изменения documentation/api-docs/reference/openapi.yaml.
           branch: chore/auto-regenerate-api-types
           delete-branch: true
           add-paths: |
