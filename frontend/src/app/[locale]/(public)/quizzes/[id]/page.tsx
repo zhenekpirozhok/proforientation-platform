@@ -33,7 +33,7 @@ export default function QuizDetailsPage() {
       </section>
 
       <div style={{ marginTop: 32, display: "flex", gap: 12 }}>
-        <Link href={`/quizzes/${quizId}/start`}>{t("start")}</Link>
+        <Link href={`/quizzes/${quizId}/play`}>{t("start")}</Link>
         <Link href="/quizzes">{t("back")}</Link>
       </div>
     </main>
