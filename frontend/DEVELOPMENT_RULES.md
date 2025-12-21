@@ -1,313 +1,186 @@
-# Frontend Development Rules (Next.js + BFF + i18n + JWT)
+# DEVELOPMENT_RULES
 
-Дата: 2025-12-15  
-Проект: Career Path Platform (public SEO + /me + /admin)  
-Frontend: Next.js (App Router) + TypeScript  
-Backend: отдельно (Java) + JWT (access/refresh)
+Документ фиксирует инженерные правила для Frontend части профориентационной платформы.
+Цель: единая архитектура, предсказуемость кода, минимизация регрессий, быстрый onboarding.
 
 ---
 
-## 1) Цели архитектуры
+## 1) Технологический стек
 
-1. **SEO и шаринг** для публичной части (лендинг/каталог/страницы квизов).
-2. **BFF (Backend-for-Frontend)**: браузер общается только с Next.js `/api/*`, Next проксирует в Java.
-3. **Безопасная авторизация**: refresh в httpOnly cookies, access короткий.
-4. **RBAC**: user / admin / superadmin.
-5. **Обязательная мультиязычность** (RU/EN) для UI и SEO.
-6. **Тестируемость**: покрываем юнит-тестами критическую логику (auth, quiz-player, api-клиент).
-
----
-
-## 2) Технологии
-
-- **Next.js** (App Router), **TypeScript**
-- UI: допускается AntD или свой `shared/ui`.
-- State:
-  - серверные данные: **TanStack Query** _или_ **RTK Query** (выбрать один и придерживаться)
-  - локальный UI-state: React state / Zustand (по необходимости)
-- Валидация форм: Zod / Yup (выбрать один).
-- i18n: **next-intl** (рекомендуется) или next-i18next (выбрать один).
-- Тесты: **Jest + React Testing Library**, моки: **MSW**
-- Форматирование/качество:
-  - ESLint + Prettier
-  - Husky + lint-staged (pre-commit)
-  - TypeScript strict = true
+- **Next.js (App Router)** — основной фреймворк.
+- **TypeScript** — везде, без `any` (допускается временно в точечных местах с TODO).
+- **OpenAPI → генерация типов и клиента**
+  - `openapi-typescript` → типы схемы
+  - `orval` → типизированные методы + React Query hooks
+- **TanStack Query (React Query)** — server-state (кеш, loading, ошибки, рефетч).
+- **next-intl** — UI i18n (тексты интерфейса).
+- **BFF в Next** — все браузерные запросы идут **только** в `/api/*`.
 
 ---
 
-## 3) Роли и доступы (RBAC)
+## 2) OpenAPI: генерация и дисциплина
 
-Роли:
+### 2.1 Источник схемы
+OpenAPI схема лежит в репозитории:
+`documentation/api-docs/reference/openapi.yaml`
 
-- **superadmin**: управление квизами + управление пользователями
-- **admin**: управление квизами
-- **user**: прохождение, личный кабинет
-
-Правила:
-
-- **Backend — источник правды** по авторизации/ролям.
-- Frontend:
-  - прячет/показывает элементы UI по ролям (удобство),
-  - но **не** считается “защитой” (защита всегда на API).
-
-Маршруты:
-
-- Public: `/`, `/quizzes`, `/quizzes/[slug]`
-- User: `/me/**`
-- Admin: `/admin/**`
-  - супер-админские разделы: `/admin/users/**` (или отдельный layout)
-
----
-
-## 4) i18n (обязательная)
-
-### 4.1 Языковые маршруты
-
-Используем префикс локали в URL:
-
-- `/ru/...`
-- `/en/...`
-
-Требования:
-
-- Локаль по умолчанию: настраивается (например, `ru`).
-- `hreflang` и canonical формируются корректно (важно для SEO).
-
-### 4.2 Переводы
-
-- Все пользовательские строки — только через i18n словари.
-- Ключи переводов стабильные, без «склейки» строк.
-- Словари: `messages/ru.json`, `messages/en.json` (или аналогично).
-
----
-
-## 5) BFF (Next `/api/*` → Java backend)
-
-### 5.1 Принцип
-
-Браузер **не вызывает Java API напрямую**.  
-Все запросы идут в:
-
-- `GET/POST /api/...` (Next Route Handlers)
-
-А Next уже вызывает backend по `JAVA_API_URL`.
-
-### 5.2 Причины
-
-- меньше CORS проблем,
-- безопаснее для токенов,
-- удобнее SSR/Server Components,
-- единый контроль ошибок и трейсинга.
-
-### 5.3 Единый API клиент (server-side)
-
-Создаём `shared/lib/serverApi.ts`:
-
-- добавляет access token (из cookies),
-- при 401 → делает refresh → повторяет запрос 1 раз,
-- логирует ошибки (без утечек токенов).
-
-**Нельзя**:
-
-- хранить токены в `localStorage` (XSS риск),
-- прокидывать refresh token в клиентский JS.
-
----
-
-## 6) JWT, cookies и обновление токена
-
-Рекомендуемая схема:
-
-- **access token**: короткий (5–15 минут)
-- **refresh token**: длинный (7–30 дней)
-- хранение: **httpOnly Secure cookies**
-
-Cookies (пример):
-
-- `access_token` (httpOnly, Secure, SameSite=Lax, Path=/)
-- `refresh_token` (httpOnly, Secure, SameSite=Lax, Path=/api/auth или /)
-
-BFF endpoints:
-
-- `POST /api/auth/login`
-- `POST /api/auth/refresh`
-- `POST /api/auth/logout`
-
-Правила:
-
-- refresh вызывается только сервером (Route Handler / serverApi).
-- при logout очищаем обе cookies.
-
----
-
-## 7) SEO: обязательный минимум
-
-### 7.1 Рендеринг
-
-- Ленд/каталог: SSG + `revalidate` (ISR) где уместно.
-- Детали квиза: SSR или SSG (зависит от объёма и частоты обновлений).
-
-### 7.2 Метаданные
-
-На страницах каталога и квиза:
-
-- `generateMetadata()` (title, description, OpenGraph, twitter)
-- canonical
-- `robots` (index/follow там, где нужно)
-
-### 7.3 Sitemap/robots
-
-- `/sitemap.xml` генерируется автоматически
-- `/robots.txt` настраивается
-
-### 7.4 JSON-LD (опционально, но желательно)
-
-Для страниц квизов/каталога — структурированные данные (если есть смысл).
-
----
-
-## 8) Структура репозитория (рекомендуемая)
+### 2.2 Скрипты генерации
+Единая точка входа — `gen:api`.
 
 Пример:
+- `gen:api:types` — обновляет `schema.d.ts`
+- `gen:api:client` — генерирует Orval client/hooks
+- `gen:api` — запускает оба
 
-- `app/`
-  - `[locale]/`
-    - `(public)/`
-    - `(protected)/me/`
-    - `(admin)/admin/`
-    - `layout.tsx`
-    - `page.tsx`
-  - `api/` ← BFF (route handlers)
-- `features/`
-  - `auth/`
-  - `quiz-player/`
-  - `quiz-admin/`
-  - `user-admin/` (superadmin)
-- `entities/`
-  - `quiz/`
-  - `attempt/`
-  - `user/`
-- `shared/`
-  - `ui/`
-  - `lib/`
-  - `api/` (generated types + fetch clients)
-  - `config/`
-  - `types/`
+> В CI используется `npm run gen:api`. Не менять контракт с CI.
 
-Правило: **не** смешиваем “страницы” и “бизнес-логику”.  
-Компоненты страниц тонкие, логика в features/entities.
+### 2.3 Generated-код
+Папка: `frontend/src/shared/api/generated/**`
+
+Правила:
+- **НЕ редактировать** вручную содержимое `generated/**`.
+- Любые улучшения — через `orval.config.ts` или слой-обёртки в `entities/*/api`.
 
 ---
 
-## 9) Генерация типов из backend (обязательно)
+## 3) BFF: обязательная прокси-архитектура
 
-Цель: типы и клиенты генерируются из спецификации backend (предпочтительно OpenAPI).
+### 3.1 Правило
+Frontend (браузер) не обращается напрямую к backend URL.
+Все запросы из UI выполняются на `/api/*` (Next.js route handlers).
 
-### 9.1 Вариант A (рекомендуется): OpenAPI → types + client
+### 3.2 Где живёт BFF
+- Route handlers: `frontend/src/app/api/**/route.ts`
+- Общие helper’ы BFF: `frontend/src/shared/api/bff/*`
 
-Инструменты:
+### 3.3 Backend URL
+Переменная окружения (server-only):
+- `BACKEND_URL`
 
-- `openapi-typescript` (генерация типов)
-- `openapi-typescript-codegen` или `orval` (генерация клиента)
+Примеры:
+- локально: `http://localhost:8080`
+- прод: `https://api.example.com`
 
-Процесс:
-
-1. Backend отдаёт `openapi.json` (URL или файл в репо).
-2. В frontend добавляем скрипт:
-   - `pnpm gen:api` / `npm run gen:api`
-3. Сгенерированное попадает в `shared/api/generated/**`
-4. Вручную не правим generated файлы.
-
-Требования к CI:
-
-- генерация должна быть воспроизводимой
-- по возможности проверяем, что generated актуален (diff)
-
-### 9.2 Вариант B: если нет OpenAPI
-
-- договориться о контракте (JSON schema / protobuf / вручную)
-- но всё равно стремиться к OpenAPI
+**Важно**
+- Не использовать `NEXT_PUBLIC_BACKEND_URL`.
+- Значения окружения в проде задаются хостингом или через GitHub Actions/Secrets в процессе деплоя.
 
 ---
 
-## 10) Ошибки, загрузки, пустые состояния
+## 4) Локализация
 
-Единые правила UX:
+### 4.1 UI i18n
+- Используем `next-intl`.
+- Строки интерфейса — только через словари (`messages/*.json`).
+- URL содержит locale: `/ru/...`, `/en/...`.
 
-- Loading: skeleton/spinner (без “скачков” layout)
-- Empty state: отдельный компонент
-- Errors:
-  - 401 → попытка refresh, затем logout/редирект на login
-  - 403 → страница 403
-  - 404 → страница 404
-  - 5xx → “что-то пошло не так” + retry
+### 4.2 Контент (локализация данных от backend)
+Backend локализует данные по `Accept-Language`.
+BFF прокидывает локаль из заголовка `x-locale` → `accept-language`.
 
----
+Принцип:
+- UI/Orval запросы должны отправлять `x-locale`.
+- BFF гарантирует `accept-language` на upstream.
 
-## 11) Тестирование (юнит-тесты обязательны)
-
-### 11.1 Стек
-
-- Jest + React Testing Library
-- MSW для моков API
-- (опционально) Playwright для 1–2 e2e сценариев
-
-### 11.2 Что обязательно покрыть
-
-1. `auth`:
-   - успешный логин (мок)
-   - ошибка логина
-   - logout
-2. `serverApi`:
-   - подставляет токен
-   - refresh при 401 и повтор запроса
-3. `quiz-player`:
-   - переходы по шагам
-   - валидация ответов
-   - отправка результата (мок)
-
-Правило: тесты должны быть быстрыми и независимыми (не требуют реальный backend).
+Если английских переводов в БД нет — backend возвращает fallback (обычно RU). Это корректно.
 
 ---
 
-## 12) Code style и дисциплина
+## 5) Архитектура модулей
 
-- `strict` TS включён.
-- Любые `any` запрещены (кроме edge-case и с комментом).
-- Общие утилиты только в `shared/lib`.
-- Дублирование переводов/ключей не допускается.
-- Никаких секретов в репозитории. Все URL/ключи — только через `.env` + schema.
+Проект делится на слои:
 
----
+- `app/` — роутинг, layout’ы, страницы (тонкие).
+- `features/` — фичи/процессы (например quiz-player).
+- `entities/` — доменные сущности (quiz, attempt, user).
+- `shared/` — переиспользуемые утилиты, ui-kit, api инфраструктура.
 
-## 13) Env переменные (пример)
-
-- `JAVA_API_URL=https://api.example.com`
-- `NEXT_PUBLIC_APP_URL=https://app.example.com`
-
-Важно:
-
-- всё, что начинается с `NEXT_PUBLIC_` видно браузеру — токены/секреты туда не класть.
+Правило:
+- Страницы не должны содержать бизнес-логику.
+- Страницы вызывают `features`/`entities`, а не `generated` напрямую.
 
 ---
 
-## 14) Definition of Done (DoD) для фичи
+## 6) Доступ к API: как работать с Orval
 
-Фича считается готовой, если:
+### 6.1 “Generated” не импортируется в UI
+UI не должен импортировать `shared/api/generated/api.ts` напрямую.
 
-- реализованы UI + состояние загрузки/ошибок/empty,
-- эндпоинты через BFF,
-- типы используются строго,
-- добавлены/обновлены переводы RU/EN,
-- добавлены юнит-тесты на критическую логику,
-- линтер/форматтер проходят,
-- нет утечек токенов в клиентский JS.
+Правильно:
+- `entities/quiz/api/useQuizzes.ts` оборачивает `useGetAll1(...)`
+- UI использует `useQuizzes(...)`
+
+### 6.2 Обёртки для читабельности
+Причина: сгенерённые имена могут быть несемантичны (`useGetAll1`, `getAll1`).
+Мы прячем их за доменными именами:
+- `useQuizzes`
+- `useQuiz`
+- `useCurrentQuizVersion`
+- `useStartAttempt`
+- `useSubmitAttempt`
+- `useAttemptResult`
 
 ---
 
-## 15) Открытые решения (зафиксировать при старте)
+## 7) State management
 
-1. Выбор библиотеки i18n: `next-intl` vs `next-i18next`
-2. Выбор data fetching слоя: TanStack Query vs RTK Query
-3. Чем генерируем API клиент: orval vs openapi-typescript-codegen
-4. Где хранится access token: httpOnly cookie (рекомендуется) или в памяти (не рекомендуется для SSR)
+### 7.1 Server state
+Используем React Query (через Orval hooks). Это основной state management для данных с сервера.
+
+### 7.2 Client/UI state
+Для процессов (например прохождение квиза) допускается и рекомендуется локальный state management:
+- Zustand (предпочтительно) или `useReducer` внутри feature
+
+Где нужен клиентский state:
+- текущий шаг квиза
+- ответы пользователя
+- валидация шага
+- прогресс прохождения
+- логика “Next disabled until answered”
+
+---
+
+## 8) Ошибки, loading, пустые состояния
+
+- Любой запрос должен иметь UI для:
+  - loading
+  - error
+  - empty state (если применимо)
+- Route handlers BFF должны корректно возвращать статус backend (не “съедать” ошибки).
+
+---
+
+## 9) Качество кода
+
+### 9.1 TypeScript
+- `any` запрещён. Временный `any` допускается только с комментариями `// TODO: type`.
+
+### 9.2 Форматирование
+- Prettier обязателен.
+- Generated-вывод форматируется (CI может переформатировать).
+
+### 9.3 Имена
+- Доменные названия: `useQuizzes`, `useQuiz`, `QuizDetailsPage`.
+- Не тянуть `useGetAll1` в UI.
+
+---
+
+## 10) Тестирование (минимальный стандарт)
+
+- Unit/Integration: тесты на ключевую логику (quiz-player reducer/store, валидация, UI состояния).
+- E2E (по возможности): базовый guest flow “open quiz → answer → submit → results”.
+
+---
+
+## 11) GitHub Actions (контракты)
+
+В репозитории настроен workflow, который:
+- проверяет наличие `documentation/api-docs/reference/openapi.yaml`
+- запускает `npm ci` в `frontend`
+- запускает `npm run gen:api`
+- форматирует `frontend/src/shared/api/generated/**`
+- создаёт PR при изменениях generated
+
+Правило:
+- `gen:api` — стабильное имя скрипта
+- generated файлы не править руками, только через генерацию

@@ -5,9 +5,20 @@
     "english": "English"
   },
   "Quizzes": {
-    "title": "Quizzes",
-    "loading": "Loading…",
+    "title": "Available quizzes",
+    "loading": "Loading quizzes…",
     "error": "Failed to load quizzes",
+    "details": "Details",
+    "start": "Start quiz",
     "fallbackTitle": "Quiz #{id}"
+  },
+  "QuizDetails": {
+    "loading": "Loading quiz…",
+    "error": "Failed to load quiz",
+    "questions": "Questions",
+    "duration": "Estimated duration",
+    "minutes": "{count} minutes",
+    "start": "Start quiz",
+    "back": "Back to quizzes"
   }
 }

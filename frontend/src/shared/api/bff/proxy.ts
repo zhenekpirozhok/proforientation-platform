@@ -1,27 +1,44 @@
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 
 const BACKEND_URL = process.env.BACKEND_URL;
-
 if (!BACKEND_URL) throw new Error("BACKEND_URL is not defined");
 
+const FORWARD_HEADERS = new Set([
+    "authorization",
+    "cookie",
+    "accept-language",
+    "user-agent",
+    "x-locale",
+    "x-request-id",
+]);
+
 export async function bffFetch(path: string, init: RequestInit = {}): Promise<Response> {
-    const incomingHeaders = await headers();
+    const h = await headers();
+    const c = await cookies();
 
-    const xLocale = incomingHeaders.get("x-locale");
+    const xLocale = h.get("x-locale")?.trim();
 
-    const acceptLanguage = incomingHeaders.get("accept-language");
+    const cookieLocale = c.get("NEXT_LOCALE")?.value?.trim();
 
-    const locale = xLocale ?? acceptLanguage;
+    const acceptLanguage = h.get("accept-language")?.trim();
 
-    const res = await fetch(`${BACKEND_URL}${path}`, {
+    const locale = xLocale || cookieLocale || acceptLanguage?.split(",")[0];
+
+    const safeHeaders: Record<string, string> = {};
+    for (const [k, v] of h.entries()) {
+        const key = k.toLowerCase();
+        if (FORWARD_HEADERS.has(key)) safeHeaders[key] = v;
+    }
+
+    if (locale) safeHeaders["accept-language"] = locale;
+
+    const initHeaders = init.headers
+        ? Object.fromEntries(new Headers(init.headers).entries())
+        : {};
+
+    return fetch(`${BACKEND_URL}${path}`, {
         ...init,
-        headers: {
-            ...Object.fromEntries(incomingHeaders),
-            ...(locale ? { "accept-language": locale } : {}),
-            ...init.headers,
-        },
+        headers: { ...safeHeaders, ...initHeaders },
         cache: "no-store",
     });
-
-    return res;
 }
