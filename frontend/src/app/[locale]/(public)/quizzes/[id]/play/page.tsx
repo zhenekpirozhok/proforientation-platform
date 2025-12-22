@@ -5,7 +5,7 @@ type Props = {
 };
 
 export default async function QuizPlayPage(props: Props) {
-  const params = await props.params; 
+  const params = await props.params;
   const quizId = Number(params.id);
 
   if (!Number.isFinite(quizId)) return <p>Некорректный id теста</p>;

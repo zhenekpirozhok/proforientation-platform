@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { parseResponse } from "@/shared/api/parseResponse";
+import type { AttemptResult } from "@/features/quiz-player/model/types";
 
 type Args = {
     attemptId: number | string;
@@ -18,7 +19,7 @@ export function useSubmitAttemptMutation() {
                 },
             });
 
-            return parseResponse<unknown>(res);
+            return parseResponse<AttemptResult>(res);
         },
     });
 }

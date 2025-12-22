@@ -1,10 +1,9 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { QuizPlayerState, QuizPlayerStatus } from "./types";
+import type { QuizPlayerState, QuizPlayerStatus, AttemptResult } from "./types";
 
 type QuizPlayerActions = {
     startFresh(quizId: number, quizVersionId: number): void;
-
     resumeOrStart(quizId: number, quizVersionId: number): void;
 
     setAttempt(attemptId: number, guestToken: string): void;
@@ -19,6 +18,9 @@ type QuizPlayerActions = {
     setTotalQuestions(total: number | null): void;
 
     selectOption(questionId: number, optionId: number): void;
+
+    // ✅ новый экшен: записать результат submit
+    setResult(result: AttemptResult | null): void;
 
     resetAll(): void;
 };
@@ -38,6 +40,8 @@ const initialState: QuizPlayerState = {
     currentIndex: 0,
     totalQuestions: null,
     answersByQuestionId: {},
+
+    result: null,
 };
 
 function clampIndex(index: number, total: number | null) {
@@ -62,6 +66,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
                     currentIndex: 0,
                     totalQuestions: null,
                     answersByQuestionId: {},
+                    result: null,
                 }),
 
             resumeOrStart: (quizId, quizVersionId) => {
@@ -80,6 +85,8 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
                         status: "in-progress",
                         error: null,
                         currentIndex: clampIndex(s.currentIndex, s.totalQuestions),
+                        // result сохраняем, если он уже есть (например, пользователь вернулся на /results)
+                        result: s.result ?? null,
                     });
                     return;
                 }
@@ -94,6 +101,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
                     currentIndex: 0,
                     totalQuestions: null,
                     answersByQuestionId: {},
+                    result: null,
                 });
             },
 
@@ -106,21 +114,13 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
                 }),
 
             setStatus: (status) => set({ status }),
-
             setError: (error) => set({ error, status: "error" }),
 
-            setIndex: (index) =>
-                set((s) => ({ currentIndex: clampIndex(index, s.totalQuestions) })),
-
+            setIndex: (index) => set((s) => ({ currentIndex: clampIndex(index, s.totalQuestions) })),
             goNext: () =>
-                set((s) => ({
-                    currentIndex: clampIndex(s.currentIndex + 1, s.totalQuestions),
-                })),
-
+                set((s) => ({ currentIndex: clampIndex(s.currentIndex + 1, s.totalQuestions) })),
             goPrev: () =>
-                set((s) => ({
-                    currentIndex: clampIndex(s.currentIndex - 1, s.totalQuestions),
-                })),
+                set((s) => ({ currentIndex: clampIndex(s.currentIndex - 1, s.totalQuestions) })),
 
             setTotalQuestions: (total) =>
                 set((s) => ({
@@ -132,6 +132,8 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
                 set((s) => ({
                     answersByQuestionId: { ...s.answersByQuestionId, [questionId]: optionId },
                 })),
+
+            setResult: (result) => set({ result }),
 
             resetAll: () => set(initialState),
         }),
@@ -149,6 +151,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
                 answersByQuestionId: s.answersByQuestionId,
                 status: s.status,
                 error: s.error,
+                result: s.result,
             }),
         }
     )

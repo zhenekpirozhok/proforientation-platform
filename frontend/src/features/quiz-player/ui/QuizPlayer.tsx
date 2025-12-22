@@ -38,7 +38,7 @@ const quizQuestionBatchKey = (quizId: number, batch: number, locale: string) =>
 
 async function fetchQuestionBatch(params: {
   quizId: number;
-  batch: number; // 0-based batch index
+  batch: number;
   locale: string;
   signal?: AbortSignal;
 }) {
@@ -89,7 +89,7 @@ export function QuizPlayer({ quizId }: Props) {
     goPrev,
     selectOption,
     setIndex,
-    resetAll,
+    setResult,
   } = useQuizPlayerStore();
 
   const versionQuery = useCurrentQuizVersionIdQuery(quizId);
@@ -107,6 +107,7 @@ export function QuizPlayer({ quizId }: Props) {
     if (startedForRef.current === vId) return;
     startedForRef.current = vId;
 
+    // важно: не трогаем result тут — он может понадобиться на /results
     resumeOrStart(quizId, vId);
 
     const s = useQuizPlayerStore.getState();
@@ -138,7 +139,7 @@ export function QuizPlayer({ quizId }: Props) {
   const canNext = !hasTotal || !isLast;
   const canSubmit = hasTotal && isLast;
 
-  // bulk-only: нет "saving"
+  // bulk-only: busy только когда сабмитим/уже сабмитнули
   const isBusy = status === "submitting" || status === "finished";
 
   const batch = batchIndexFromQuestionIndex(currentIndex);
@@ -185,7 +186,6 @@ export function QuizPlayer({ quizId }: Props) {
     }).catch(() => {});
   }, [question?.id, currentIndex, batch, hasTotal, totalQuestions, quizId, locale, qc]);
 
-  // ✅ bulk-only: просто идём дальше, ответ уже в zustand
   async function onNext() {
     if (isBusy) return;
     if (!question || !selectedOptionId) return;
@@ -200,10 +200,10 @@ export function QuizPlayer({ quizId }: Props) {
     try {
       const s = useQuizPlayerStore.getState();
 
-      // ответы из стора
+      // собираем ответы
       const optionIdsRaw = Object.values(s.answersByQuestionId);
 
-      // защита от дублей (иначе uq_answers_attempt_option)
+      // защита от дублей, иначе uq_answers_attempt_option
       const optionIds = Array.from(new Set(optionIdsRaw));
 
       if (optionIds.length !== s.totalQuestions) {
@@ -219,13 +219,12 @@ export function QuizPlayer({ quizId }: Props) {
         locale,
       });
 
-      await submitAttempt.mutateAsync({ attemptId, guestToken, locale });
+      // submit возвращает результат — сохраняем
+      const result = await submitAttempt.mutateAsync({ attemptId, guestToken, locale });
+      setResult(result);
 
       setStatus("finished");
-
-      // не сбрасываем store тут — ResultPage читает guestToken из него
       router.push(`/${locale}/results/${attemptId}`);
-
     } catch (e) {
       setStatus("in-progress");
       setError(safeErrorMessage(e));
@@ -269,11 +268,7 @@ export function QuizPlayer({ quizId }: Props) {
   const nextDisabled = !canNext || !selectedOptionId || isBusy;
 
   const submitDisabled =
-    !canSubmit ||
-    !selectedOptionId ||
-    submitAttempt.isPending ||
-    sendBulk.isPending ||
-    isBusy;
+    !canSubmit || !selectedOptionId || sendBulk.isPending || submitAttempt.isPending || isBusy;
 
   return (
     <div style={{ maxWidth: 900 }}>
