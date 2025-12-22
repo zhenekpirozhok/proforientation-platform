@@ -4,9 +4,7 @@ export type StartAttemptResponse = {
 };
 
 export type AnswerPayload = {
-    questionId: number;
-    optionId?: number;
-    value?: string | number | boolean;
+    optionId: number;
 };
 
 export type AttemptResult = {

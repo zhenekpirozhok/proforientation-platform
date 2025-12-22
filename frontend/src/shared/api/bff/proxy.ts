@@ -10,6 +10,7 @@ const FORWARD_HEADERS = new Set([
     "user-agent",
     "x-locale",
     "x-request-id",
+    "x-guest-token",
 ]);
 
 export async function bffFetch(path: string, init: RequestInit = {}): Promise<Response> {
@@ -17,9 +18,7 @@ export async function bffFetch(path: string, init: RequestInit = {}): Promise<Re
     const c = await cookies();
 
     const xLocale = h.get("x-locale")?.trim();
-
     const cookieLocale = c.get("NEXT_LOCALE")?.value?.trim();
-
     const acceptLanguage = h.get("accept-language")?.trim();
 
     const locale = xLocale || cookieLocale || acceptLanguage?.split(",")[0];

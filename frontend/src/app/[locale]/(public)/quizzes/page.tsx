@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useQuizzes } from "@/entities/quiz/api/useQuizzes";
 
 export default function QuizzesPage() {
   const t = useTranslations("Quizzes");
+  const { locale } = useParams<{ locale: string }>();
+
   const { data, isLoading, error } = useQuizzes({ page: 1, size: 20 });
 
   if (isLoading) return <div>{t("loading")}</div>;
@@ -22,7 +25,7 @@ export default function QuizzesPage() {
       <ul>
         {items.map((q: any) => (
           <li key={q.id}>
-            <Link href={`/quizzes/${q.id}`}>
+            <Link href={`/${locale}/quizzes/${q.id}`}>
               {q.title ?? q.name ?? t("fallbackTitle", { id: q.id })}
             </Link>
           </li>

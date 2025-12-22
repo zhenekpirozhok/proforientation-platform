@@ -18,5 +18,29 @@
     "minutes": "{count} минут(ы)",
     "start": "Начать тест",
     "back": "Назад к тестам"
+  },
+  "QuizPlayer": {
+    "title": "Прохождение теста",
+    "loading": "Подготовка теста…",
+    "loadingQuestion": "Загрузка вопроса…",
+    "noToken": "Инициализация попытки…",
+    "finishedQuestions": "Вопросы закончились.",
+    "toResults": "К результатам",
+
+    "attempt": "Попытка #{id}",
+    "questionProgress": "Вопрос {current} / {total}",
+    "questionProgressShort": "Вопрос {current}",
+    "questionTitleOrd": "Вопрос #{ord}",
+    "questionTitleId": "Вопрос #{id}",
+
+    "back": "Назад",
+    "next": "Далее",
+    "submit": "Завершить тест",
+    "selectToContinue": "Выбери вариант ответа, чтобы продолжить.",
+    "noOptions": "У этого вопроса нет вариантов ответа.",
+
+    "errorVersion": "Ошибка версии: {message}",
+    "errorQuestion": "Ошибка вопроса: {message}",
+    "errorGeneric": "Ошибка: {message}"
   }
 }

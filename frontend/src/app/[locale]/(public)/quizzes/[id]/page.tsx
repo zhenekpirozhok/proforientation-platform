@@ -6,12 +6,12 @@ import { useTranslations } from "next-intl";
 import { useQuizDetails } from "@/entities/quiz/api/useQuizDetails";
 
 export default function QuizDetailsPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id, locale } = useParams<{ id: string; locale: string }>();
   const quizId = Number(id);
 
   const t = useTranslations("QuizDetails");
 
-  const { data, isLoading, error } = useQuizDetails(quizId); 
+  const { data, isLoading, error } = useQuizDetails(quizId);
 
   if (!Number.isFinite(quizId)) return <div>Invalid quiz id</div>;
   if (isLoading) return <div>{t("loading")}</div>;
@@ -33,8 +33,8 @@ export default function QuizDetailsPage() {
       </section>
 
       <div style={{ marginTop: 32, display: "flex", gap: 12 }}>
-        <Link href={`/quizzes/${quizId}/play`}>{t("start")}</Link>
-        <Link href="/quizzes">{t("back")}</Link>
+        <Link href={`/${locale}/quizzes/${quizId}/play`}>{t("start")}</Link>
+        <Link href={`/${locale}/quizzes`}>{t("back")}</Link>
       </div>
     </main>
   );
