@@ -6,10 +6,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 
 import { useStartAttemptMutation } from "@/entities/attempt/api/useStartAttemptMutation";
-import { useSendAnswerMutation } from "@/entities/attempt/api/useSendAnswerMutation";
 import { useSendAnswersBulkMutation } from "@/entities/attempt/api/useSendAnswersBulkMutation";
 import { useSubmitAttemptMutation } from "@/entities/attempt/api/useSubmitAttemptMutation";
-import type { AnswerPayload } from "@/entities/attempt/model/types";
 
 import { useCurrentQuizVersionIdQuery } from "../model/useCurrentQuizVersionIdQuery";
 import { useQuizPlayerStore } from "../model/store";
@@ -78,7 +76,7 @@ export function QuizPlayer({ quizId }: Props) {
     guestToken,
     status,
     error,
-    currentIndex, // 0-based индекс вопроса
+    currentIndex,
     totalQuestions,
     answersByQuestionId,
     quizVersionId,
@@ -91,12 +89,12 @@ export function QuizPlayer({ quizId }: Props) {
     goPrev,
     selectOption,
     setIndex,
+    resetAll,
   } = useQuizPlayerStore();
 
   const versionQuery = useCurrentQuizVersionIdQuery(quizId);
 
   const startAttempt = useStartAttemptMutation();
-  const sendAnswer = useSendAnswerMutation();
   const sendBulk = useSendAnswersBulkMutation();
   const submitAttempt = useSubmitAttemptMutation();
 
@@ -134,13 +132,14 @@ export function QuizPlayer({ quizId }: Props) {
   }, [quizId, versionQuery.data, locale]);
 
   const hasTotal = totalQuestions != null;
-  const isLast = hasTotal ? currentIndex === totalQuestions - 1 : false;
+  const isLast = hasTotal ? currentIndex === (totalQuestions ?? 1) - 1 : false;
 
   const canPrev = currentIndex > 0;
   const canNext = !hasTotal || !isLast;
   const canSubmit = hasTotal && isLast;
 
-  const isBusy = status === "saving" || status === "submitting";
+  // bulk-only: нет "saving"
+  const isBusy = status === "submitting" || status === "finished";
 
   const batch = batchIndexFromQuestionIndex(currentIndex);
 
@@ -149,14 +148,13 @@ export function QuizPlayer({ quizId }: Props) {
     enabled: Number.isFinite(quizId) && quizId > 0 && batch >= 0 && Boolean(locale),
     queryFn: ({ signal }) => fetchQuestionBatch({ quizId, batch, locale, signal }),
     staleTime: 30_000,
-    placeholderData: keepPreviousData, 
+    placeholderData: keepPreviousData,
   });
 
   useEffect(() => {
     const total = batchQuery.data?.total;
     if (typeof total === "number") setTotalQuestions(total);
   }, [batchQuery.data?.total, setTotalQuestions]);
-
 
   const question: Question | null = useMemo(() => {
     const qs = batchQuery.data?.questions ?? [];
@@ -187,40 +185,11 @@ export function QuizPlayer({ quizId }: Props) {
     }).catch(() => {});
   }, [question?.id, currentIndex, batch, hasTotal, totalQuestions, quizId, locale, qc]);
 
-  async function saveAnswerFrozen(optionId: number) {
-    if (!attemptId || !guestToken) throw new Error("Missing attempt/token");
-
-    setStatus("saving");
-    try {
-      const payload: AnswerPayload = { optionId };
-      await sendAnswer.mutateAsync({
-        attemptId,
-        guestToken,
-        answer: payload,
-        locale,
-      });
-      setStatus("in-progress");
-    } catch (e) {
-      setStatus("in-progress");
-      throw e;
-    }
-  }
-
-  // ✅ оптимистично переходим дальше, ответ сохраняем
+  // ✅ bulk-only: просто идём дальше, ответ уже в zustand
   async function onNext() {
     if (isBusy) return;
     if (!question || !selectedOptionId) return;
-
-    const prev = currentIndex;
-
     goNext();
-
-    try {
-      await saveAnswerFrozen(selectedOptionId);
-    } catch (e) {
-      setIndex(prev);
-      setError(safeErrorMessage(e));
-    }
   }
 
   async function onSubmit() {
@@ -229,13 +198,16 @@ export function QuizPlayer({ quizId }: Props) {
     if (!question || !selectedOptionId) return;
 
     try {
-      await saveAnswerFrozen(selectedOptionId);
-
       const s = useQuizPlayerStore.getState();
-      const optionIds = Object.values(s.answersByQuestionId);
+
+      // ответы из стора
+      const optionIdsRaw = Object.values(s.answersByQuestionId);
+
+      // защита от дублей (иначе uq_answers_attempt_option)
+      const optionIds = Array.from(new Set(optionIdsRaw));
 
       if (optionIds.length !== s.totalQuestions) {
-        throw new Error(`Need exactly ${s.totalQuestions} answers, got ${optionIds.length}`);
+        throw new Error(`Need exactly ${s.totalQuestions} distinct answers, got ${optionIds.length}`);
       }
 
       setStatus("submitting");
@@ -250,7 +222,10 @@ export function QuizPlayer({ quizId }: Props) {
       await submitAttempt.mutateAsync({ attemptId, guestToken, locale });
 
       setStatus("finished");
+
+      // не сбрасываем store тут — ResultPage читает guestToken из него
       router.push(`/${locale}/results/${attemptId}`);
+
     } catch (e) {
       setStatus("in-progress");
       setError(safeErrorMessage(e));
@@ -291,7 +266,8 @@ export function QuizPlayer({ quizId }: Props) {
     return <p>{t("loadingQuestion")}</p>;
   }
 
-  const nextDisabled = !canNext || !selectedOptionId || sendAnswer.isPending || isBusy;
+  const nextDisabled = !canNext || !selectedOptionId || isBusy;
+
   const submitDisabled =
     !canSubmit ||
     !selectedOptionId ||

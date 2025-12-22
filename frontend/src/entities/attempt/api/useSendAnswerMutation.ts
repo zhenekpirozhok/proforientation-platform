@@ -12,14 +12,19 @@ type Args = {
 export function useSendAnswerMutation() {
     return useMutation({
         mutationFn: async ({ attemptId, guestToken, answer, locale }: Args) => {
+            if (!guestToken) throw new Error("Missing guestToken");
+            if (!answer?.optionId) throw new Error("Missing optionId");
+
+            const headers: Record<string, string> = {
+                "content-type": "application/json",
+                "x-guest-token": guestToken,
+            };
+            if (locale) headers["x-locale"] = locale;
+
             const res = await fetch(`/api/attempts/${attemptId}/answers`, {
                 method: "POST",
-                headers: {
-                    "content-type": "application/json",
-                    "x-guest-token": guestToken,
-                    ...(locale ? { "x-locale": locale } : {}),
-                },
-                body: JSON.stringify({ optionId: answer.optionId }),
+                headers,
+                body: JSON.stringify(answer),
             });
 
             return parseResponse<unknown>(res);

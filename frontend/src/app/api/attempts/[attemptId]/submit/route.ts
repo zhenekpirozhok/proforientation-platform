@@ -1,7 +1,12 @@
 import { bffFetch } from "@/shared/api/bff/proxy";
 
-export async function POST(_: Request, ctx: { params: Promise<{ attemptId: string }> }) {
+export async function POST(
+    req: Request,
+    ctx: { params: Promise<{ attemptId: string }> }
+) {
     const { attemptId } = await ctx.params;
+
+    req.headers.get("x-guest-token");
 
     const upstreamRes = await bffFetch(
         `/attempts/${encodeURIComponent(attemptId)}/submit`,
@@ -13,7 +18,8 @@ export async function POST(_: Request, ctx: { params: Promise<{ attemptId: strin
     return new Response(body, {
         status: upstreamRes.status,
         headers: {
-            "content-type": upstreamRes.headers.get("content-type") ?? "application/json",
+            "content-type":
+                upstreamRes.headers.get("content-type") ?? "application/json",
         },
     });
 }
