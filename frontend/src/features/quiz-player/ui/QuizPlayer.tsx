@@ -5,15 +5,17 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 
-import { useStartAttemptMutation } from "@/entities/attempt/api/useStartAttemptMutation";
-import { useSendAnswersBulkMutation } from "@/entities/attempt/api/useSendAnswersBulkMutation";
-import { useSubmitAttemptMutation } from "@/entities/attempt/api/useSubmitAttemptMutation";
-
 import { useCurrentQuizVersionIdQuery } from "../model/useCurrentQuizVersionIdQuery";
 import { useQuizPlayerStore } from "../model/store";
 
 import type { Question, PageLike } from "@/entities/question/model/types";
 import { parseResponse } from "@/shared/api/parseResponse";
+
+import {
+  useStartAttempt,
+  useAddAnswersBulk,
+  useSubmit,
+} from "@/shared/api/generated/api";
 
 type Props = { quizId: number };
 
@@ -88,15 +90,40 @@ export function QuizPlayer({ quizId }: Props) {
     goNext,
     goPrev,
     selectOption,
-    setIndex,
     setResult,
   } = useQuizPlayerStore();
 
   const versionQuery = useCurrentQuizVersionIdQuery(quizId);
 
-  const startAttempt = useStartAttemptMutation();
-  const sendBulk = useSendAnswersBulkMutation();
-  const submitAttempt = useSubmitAttemptMutation();
+  const startAttempt = useStartAttempt({
+  mutation: { retry: false },
+  request: {
+    headers: {
+      "x-locale": locale,
+    },
+  },
+});
+
+
+  const addAnswersBulk = useAddAnswersBulk({
+    mutation: { retry: false },
+    request: {
+      headers: {
+        "x-locale": locale,
+        ...(guestToken ? { "x-guest-token": guestToken } : {}),
+      },
+    },
+  });
+
+  const submitAttempt = useSubmit({
+    mutation: { retry: false },
+    request: {
+      headers: {
+        "x-locale": locale,
+        ...(guestToken ? { "x-guest-token": guestToken } : {}),
+      },
+    },
+  });
 
   const startedForRef = useRef<number | null>(null);
 
@@ -107,7 +134,6 @@ export function QuizPlayer({ quizId }: Props) {
     if (startedForRef.current === vId) return;
     startedForRef.current = vId;
 
-    // важно: не трогаем result тут — он может понадобиться на /results
     resumeOrStart(quizId, vId);
 
     const s = useQuizPlayerStore.getState();
@@ -117,9 +143,13 @@ export function QuizPlayer({ quizId }: Props) {
 
     (async () => {
       try {
-        const started = await startAttempt.mutateAsync({ quizVersionId: vId, locale });
+        const started = await startAttempt.mutateAsync({
+          params: { quizVersionId: vId },
+        });
+
         if (cancelled) return;
-        setAttempt(started.attemptId, started.guestToken);
+
+        setAttempt((started as any).attemptId, (started as any).guestToken);
       } catch (e) {
         if (cancelled) return;
         setError(safeErrorMessage(e));
@@ -139,7 +169,6 @@ export function QuizPlayer({ quizId }: Props) {
   const canNext = !hasTotal || !isLast;
   const canSubmit = hasTotal && isLast;
 
-  // bulk-only: busy только когда сабмитим/уже сабмитнули
   const isBusy = status === "submitting" || status === "finished";
 
   const batch = batchIndexFromQuestionIndex(currentIndex);
@@ -200,10 +229,7 @@ export function QuizPlayer({ quizId }: Props) {
     try {
       const s = useQuizPlayerStore.getState();
 
-      // собираем ответы
       const optionIdsRaw = Object.values(s.answersByQuestionId);
-
-      // защита от дублей, иначе uq_answers_attempt_option
       const optionIds = Array.from(new Set(optionIdsRaw));
 
       if (optionIds.length !== s.totalQuestions) {
@@ -212,16 +238,13 @@ export function QuizPlayer({ quizId }: Props) {
 
       setStatus("submitting");
 
-      await sendBulk.mutateAsync({
+      await addAnswersBulk.mutateAsync({
         attemptId,
-        guestToken,
-        optionIds,
-        locale,
+        data: { optionIds },
       });
 
-      // submit возвращает результат — сохраняем
-      const result = await submitAttempt.mutateAsync({ attemptId, guestToken, locale });
-      setResult(result);
+      const result = await submitAttempt.mutateAsync({ attemptId });
+      setResult(result as any);
 
       setStatus("finished");
       router.push(`/${locale}/results/${attemptId}`);
@@ -255,9 +278,7 @@ export function QuizPlayer({ quizId }: Props) {
         <div style={{ maxWidth: 900 }}>
           <h1>{t("title")}</h1>
           <p>{t("finishedQuestions")}</p>
-          <button onClick={() => router.push(`/${locale}/results/${attemptId}`)}>
-            {t("toResults")}
-          </button>
+          <button onClick={() => router.push(`/${locale}/results/${attemptId}`)}>{t("toResults")}</button>
         </div>
       );
     }
@@ -266,9 +287,8 @@ export function QuizPlayer({ quizId }: Props) {
   }
 
   const nextDisabled = !canNext || !selectedOptionId || isBusy;
-
   const submitDisabled =
-    !canSubmit || !selectedOptionId || sendBulk.isPending || submitAttempt.isPending || isBusy;
+    !canSubmit || !selectedOptionId || addAnswersBulk.isPending || submitAttempt.isPending || isBusy;
 
   return (
     <div style={{ maxWidth: 900 }}>
@@ -319,7 +339,7 @@ export function QuizPlayer({ quizId }: Props) {
       {!selectedOptionId && <p style={{ marginTop: 12, opacity: 0.8 }}>{t("selectToContinue")}</p>}
 
       <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
-        <button onClick={goPrev} disabled={!canPrev || isBusy}>
+        <button onClick={goPrev} disabled={currentIndex <= 0 || isBusy}>
           {t("back")}
         </button>
 
