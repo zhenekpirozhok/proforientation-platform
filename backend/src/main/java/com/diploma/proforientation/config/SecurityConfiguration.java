@@ -37,6 +37,7 @@ public class SecurityConfiguration {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
 
+                // --- public (no auth) ---
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/actuator/health/readiness").permitAll()
                 .requestMatchers("/error").permitAll()
@@ -44,19 +45,25 @@ public class SecurityConfiguration {
                 .requestMatchers("/demo/**").permitAll()
                 .requestMatchers("/reset-password", "/reset-password/**").permitAll()
 
+                // public read-only reference data
                 .requestMatchers(HttpMethod.GET, "/quizzes", "/quizzes/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/questions", "/questions/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/options", "/options/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/professions", "/professions/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/traits", "/traits/**").permitAll() // ✅ was missing
 
+                // public attempts write-flow (guest mode)
                 .requestMatchers(HttpMethod.POST, "/attempts", "/attempts/**").permitAll()
                 .requestMatchers(HttpMethod.PUT,  "/attempts", "/attempts/**").permitAll()
                 .requestMatchers(HttpMethod.PATCH,"/attempts", "/attempts/**").permitAll()
 
+                // --- protected ---
+                // reading attempts/results requires auth (JWT)
                 .requestMatchers(HttpMethod.GET, "/attempts", "/attempts/**").authenticated()
 
                 .anyRequest().authenticated()
             )
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -67,12 +74,14 @@ public class SecurityConfiguration {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(List.of(
-            "http://localhost:3000", 
+            "http://localhost:3000",
             "http://localhost:8082",
             "http://localhost:5173"
         ));
 
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedMethods(List.of(
+            "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+        ));
 
         configuration.setAllowedHeaders(List.of(
             "Authorization",
