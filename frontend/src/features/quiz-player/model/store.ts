@@ -19,7 +19,6 @@ type QuizPlayerActions = {
 
     selectOption(questionId: number, optionId: number): void;
 
-    // ✅ новый экшен: записать результат submit
     setResult(result: AttemptResult | null): void;
 
     resetAll(): void;
@@ -72,7 +71,10 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
             resumeOrStart: (quizId, quizVersionId) => {
                 const s = get();
 
+                const isCompleted = s.status === "finished" || s.result != null;
+
                 const canResume =
+                    !isCompleted &&
                     s.quizId === quizId &&
                     s.quizVersionId === quizVersionId &&
                     Boolean(s.attemptId) &&
@@ -85,7 +87,6 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
                         status: "in-progress",
                         error: null,
                         currentIndex: clampIndex(s.currentIndex, s.totalQuestions),
-                        // result сохраняем, если он уже есть (например, пользователь вернулся на /results)
                         result: s.result ?? null,
                     });
                     return;

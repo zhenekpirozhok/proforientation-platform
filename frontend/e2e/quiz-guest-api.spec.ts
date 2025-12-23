@@ -21,7 +21,6 @@ test("guest can complete quiz via API (bulk + submit)", async ({ request, baseUR
 
     expect(baseURL, "baseURL is empty (check playwright.config)").toBeTruthy();
 
-    // 1) current version
     const verRes = await request.get(`${baseURL}/api/quizzes/${quizId}/versions/current`, {
         headers: { "x-locale": locale },
     });
@@ -31,12 +30,10 @@ test("guest can complete quiz via API (bulk + submit)", async ({ request, baseUR
     const quizVersionId = Number(verJson?.id);
     expect(Number.isFinite(quizVersionId) && quizVersionId > 0).toBeTruthy();
 
-    // 2) start attempt (как ты описала: query + пустой body)
     const startRes = await request.post(
         `${baseURL}/api/attempts/start?quizVersionId=${quizVersionId}`,
         {
             headers: { "x-locale": locale },
-            // body не шлём вообще
         }
     );
 
@@ -50,7 +47,6 @@ test("guest can complete quiz via API (bulk + submit)", async ({ request, baseUR
     expect(typeof guestToken).toBe("string");
     expect((guestToken as string).length).toBeGreaterThan(0);
 
-    // 3) fetch ALL questions (page=0..)
     const optionIds: number[] = [];
     let page = 0;
     const size = 50;
@@ -86,7 +82,6 @@ test("guest can complete quiz via API (bulk + submit)", async ({ request, baseUR
 
     expect(optionIds.length).toBeGreaterThan(0);
 
-    // 4) bulk save answers — максимально “как Postman”: строгий JSON + content-type
     const bulkPayload = { optionIds };
 
     const bulkRes = await request.post(`${baseURL}/api/attempts/${attemptId}/answers/bulk`, {
@@ -94,14 +89,12 @@ test("guest can complete quiz via API (bulk + submit)", async ({ request, baseUR
             "x-locale": locale,
             "x-guest-token": guestToken,
             "content-type": "application/json",
-            // НЕ добавляем Authorization, чтобы не попасть на JWT-фильтр
         },
         data: JSON.stringify(bulkPayload),
     });
 
     expect(bulkRes.ok(), await dump(bulkRes, "bulk failed")).toBeTruthy();
 
-    // 5) submit — без body
     const submitRes = await request.post(`${baseURL}/api/attempts/${attemptId}/submit`, {
         headers: {
             "x-locale": locale,
@@ -112,7 +105,6 @@ test("guest can complete quiz via API (bulk + submit)", async ({ request, baseUR
     const submitText = await submitRes.text();
 
     if (!submitRes.ok()) {
-        // если хочешь валить тест — замени на expect(submitRes.ok(), ...).toBeTruthy();
         console.warn(`submit failed: ${submitRes.status()} ${submitText}`);
     } else {
         console.log("submit ok:", submitText);
