@@ -44,5 +44,29 @@
     "errorVersion": "Version error: {message}",
     "errorQuestion": "Question error: {message}",
     "errorGeneric": "Error: {message}"
+  },
+  "Results": {
+    "title": "Test Results",
+    "loading": "Loading…",
+    "attempt": "Attempt #{id}",
+
+    "invalidAttemptId": "Invalid attempt id.",
+    "noSessionResult": "Result is not available in this session.",
+
+    "goToQuiz": "Go to quiz",
+    "backToQuiz": "Back to quiz",
+    "retake": "Retake quiz",
+
+    "catalogLoading": "Loading trait/profession catalog…",
+    "catalogError": "Failed to load catalog",
+    "updating": "Updating…",
+
+    "traitsTitle": "Your Traits",
+    "recommendedTitle": "Recommended Fields",
+    "notInThisCategory": "(not in this category)",
+
+    "matchScore": "Match score: {score}%",
+
+    "fallbackProfessionTitle": "Profession #{id}"
   }
 }

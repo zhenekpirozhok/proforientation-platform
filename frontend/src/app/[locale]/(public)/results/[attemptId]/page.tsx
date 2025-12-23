@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 
 import { useQuizPlayerStore } from "@/features/quiz-player/model/store";
@@ -30,7 +30,8 @@ async function fetchCatalog(locale: string, quizId: number) {
 
 function safeProfessionTitle(
   rec: { professionId: number; explanation?: string },
-  prof: ProfessionDto | null
+  prof: ProfessionDto | null,
+  t: (key: string, values?: Record<string, any>) => string
 ) {
   const apiName = prof?.name?.trim();
   if (apiName) return apiName;
@@ -38,10 +39,12 @@ function safeProfessionTitle(
   const fromExplanation = (rec.explanation ?? "").replace("Predicted as: ", "").trim();
   if (fromExplanation) return fromExplanation;
 
-  return `Profession #${rec.professionId}`;
+  return t("Results.fallbackProfessionTitle", { id: rec.professionId });
 }
 
 export default function ResultPage() {
+  const t = useTranslations();
+
   const params = useParams<{ attemptId?: string }>();
   const attemptIdStr = params?.attemptId;
 
@@ -71,8 +74,7 @@ export default function ResultPage() {
     attemptIdValid && !!storedResult && storedAttemptId === attemptIdFromUrl;
 
   // useQuery должен вызываться ВСЕГДА
-  const catalogEnabled =
-    hasStoreResult && Number.isFinite(quizId) && quizId > 0;
+  const catalogEnabled = hasStoreResult && Number.isFinite(quizId) && quizId > 0;
 
   const catalogQuery = useQuery({
     queryKey: ["results", "catalog", "quizId", quizId, "locale", locale],
@@ -103,8 +105,8 @@ export default function ResultPage() {
   if (!attemptIdReady) {
     return (
       <div style={{ padding: 24, maxWidth: 720 }}>
-        <h1>Test Results</h1>
-        <p style={{ opacity: 0.7 }}>Loading…</p>
+        <h1>{t("Results.title")}</h1>
+        <p style={{ opacity: 0.7 }}>{t("Results.loading")}</p>
       </div>
     );
   }
@@ -112,9 +114,9 @@ export default function ResultPage() {
   if (!attemptIdValid) {
     return (
       <div style={{ padding: 24, maxWidth: 720 }}>
-        <h1>Test Results</h1>
-        <p>Invalid attempt id.</p>
-        <button onClick={goToQuiz}>Go to quiz</button>
+        <h1>{t("Results.title")}</h1>
+        <p>{t("Results.invalidAttemptId")}</p>
+        <button onClick={goToQuiz}>{t("Results.goToQuiz")}</button>
       </div>
     );
   }
@@ -122,12 +124,12 @@ export default function ResultPage() {
   if (!hasStoreResult) {
     return (
       <div style={{ padding: 24, maxWidth: 720 }}>
-        <h1>Test Results</h1>
-        <p>Result is not available in this session.</p>
+        <h1>{t("Results.title")}</h1>
+        <p>{t("Results.noSessionResult")}</p>
 
         <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
-          <button onClick={goToQuiz}>Go to quiz</button>
-          <button onClick={retake}>Retake quiz</button>
+          <button onClick={goToQuiz}>{t("Results.goToQuiz")}</button>
+          <button onClick={retake}>{t("Results.retake")}</button>
         </div>
       </div>
     );
@@ -138,30 +140,32 @@ export default function ResultPage() {
   return (
     <div style={{ padding: 24, maxWidth: 720 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <h1 style={{ margin: 0 }}>Test Results</h1>
-        <span style={{ opacity: 0.7, fontSize: 14 }}>Attempt #{attemptIdFromUrl}</span>
+        <h1 style={{ margin: 0 }}>{t("Results.title")}</h1>
+        <span style={{ opacity: 0.7, fontSize: 14 }}>
+          {t("Results.attempt", { id: attemptIdFromUrl })}
+        </span>
       </div>
 
       <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
-        <button onClick={retake}>Retake quiz</button>
-        <button onClick={goToQuiz}>Back to quiz</button>
+        <button onClick={retake}>{t("Results.retake")}</button>
+        <button onClick={goToQuiz}>{t("Results.backToQuiz")}</button>
       </div>
 
       {catalogQuery.isLoading ? (
-        <p style={{ marginTop: 16, opacity: 0.7 }}>Loading trait/profession catalog…</p>
+        <p style={{ marginTop: 16, opacity: 0.7 }}>{t("Results.catalogLoading")}</p>
       ) : null}
 
       {catalogQuery.isError ? (
         <p style={{ marginTop: 16, color: "crimson" }}>
           {catalogQuery.error instanceof Error
             ? catalogQuery.error.message
-            : "Failed to load catalog"}
+            : t("Results.catalogError")}
         </p>
       ) : null}
 
       {/* Traits */}
       <section style={{ marginTop: 24 }}>
-        <h2>Your Traits</h2>
+        <h2>{t("Results.traitsTitle")}</h2>
         <ul style={{ margin: 0, paddingLeft: 18 }}>
           {result.traitScores.map((ts) => {
             const tr = traitByCode.get(ts.traitCode) ?? null;
@@ -181,11 +185,11 @@ export default function ResultPage() {
 
       {/* Recommendations */}
       <section style={{ marginTop: 24 }}>
-        <h2>Recommended Fields</h2>
+        <h2>{t("Results.recommendedTitle")}</h2>
         <ol style={{ margin: 0, paddingLeft: 18 }}>
           {result.recommendations.map((rec) => {
             const prof = professionById.get(rec.professionId) ?? null;
-            const title = safeProfessionTitle(rec, prof);
+            const title = safeProfessionTitle(rec, prof, t);
 
             return (
               <li key={rec.professionId} style={{ marginBottom: 12 }}>
@@ -193,12 +197,14 @@ export default function ResultPage() {
                   <strong>{title}</strong>
                   {catalogQuery.data && prof == null ? (
                     <span style={{ marginLeft: 8, opacity: 0.7, fontSize: 12 }}>
-                      (not in this category)
+                      {t("Results.notInThisCategory")}
                     </span>
                   ) : null}
                 </div>
 
-                <div style={{ opacity: 0.8 }}>Match score: {(rec.score * 100).toFixed(1)}%</div>
+                <div style={{ opacity: 0.8 }}>
+                  {t("Results.matchScore", { score: (rec.score * 100).toFixed(1) })}
+                </div>
 
                 {prof?.description ? (
                   <div style={{ opacity: 0.75, marginTop: 4 }}>{prof.description}</div>
@@ -209,7 +215,9 @@ export default function ResultPage() {
         </ol>
       </section>
 
-      {catalogQuery.isFetching ? <p style={{ marginTop: 16, opacity: 0.6 }}>Updating…</p> : null}
+      {catalogQuery.isFetching ? (
+        <p style={{ marginTop: 16, opacity: 0.6 }}>{t("Results.updating")}</p>
+      ) : null}
     </div>
   );
 }
