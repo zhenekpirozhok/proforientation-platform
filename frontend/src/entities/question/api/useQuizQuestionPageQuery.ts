@@ -1,14 +1,17 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import type { Question } from '../model/types';
+import type { Question, PageLike } from '../model/types';
 import { quizQuestionPageKey } from './queryKeys';
 
 import { getQuestionsForQuiz } from '@/shared/api/generated/api';
+import type { GetQuestionsForQuizParams } from '@/shared/api/generated/model';
 
 type Params = {
   quizId: number;
   page: number;
   locale: string;
 };
+
+type QuizQuestionsResponse = PageLike<Question> | Question[];
 
 export function useQuizQuestionPageQuery({ quizId, page, locale }: Params) {
   return useQuery({
@@ -17,14 +20,19 @@ export function useQuizQuestionPageQuery({ quizId, page, locale }: Params) {
       Number.isFinite(quizId) && quizId > 0 && page >= 0 && Boolean(locale),
 
     queryFn: async ({ signal }) => {
-      const raw = await getQuestionsForQuiz(quizId, { page, size: 1 } as any, {
-        signal,
-        headers: {
-          'x-locale': locale,
+      const params: GetQuestionsForQuizParams = {
+        pageable: {
+          page,
+          size: 1,
         },
+      };
+
+      const raw: unknown = await getQuestionsForQuiz(quizId, params, {
+        signal,
+        headers: { 'x-locale': locale },
       });
 
-      const data = raw as any;
+      const data = raw as QuizQuestionsResponse;
 
       if (Array.isArray(data)) {
         return {
@@ -33,12 +41,11 @@ export function useQuizQuestionPageQuery({ quizId, page, locale }: Params) {
         };
       }
 
-      const content = Array.isArray(data?.content) ? data.content : [];
+      const content = Array.isArray(data.content) ? data.content : [];
       const question = (content[0] ?? null) as Question | null;
+
       const total =
-        typeof data?.totalElements === 'number'
-          ? data.totalElements
-          : undefined;
+        typeof data.totalElements === 'number' ? data.totalElements : undefined;
 
       return { question, total };
     },

@@ -13,6 +13,7 @@ import { useCurrentQuizVersionIdQuery } from '../model/useCurrentQuizVersionIdQu
 import { useQuizPlayerStore } from '../model/store';
 
 import type { Question, PageLike } from '@/entities/question/model/types';
+import type { AttemptResult } from '@/features/quiz-player/model/types';
 import { parseResponse } from '@/shared/api/parseResponse';
 
 import {
@@ -22,6 +23,22 @@ import {
 } from '@/shared/api/generated/api';
 
 type Props = { quizId: number };
+
+type StartAttemptResponse = {
+  attemptId: number;
+  guestToken: string;
+};
+
+function isStartAttemptResponse(v: unknown): v is StartAttemptResponse {
+  if (typeof v !== 'object' || v === null) return false;
+  const o = v as Record<string, unknown>;
+  return (
+    typeof o.attemptId === 'number' &&
+    Number.isFinite(o.attemptId) &&
+    typeof o.guestToken === 'string' &&
+    o.guestToken.length > 0
+  );
+}
 
 function safeErrorMessage(e: unknown): string {
   if (e instanceof Error) return e.message;
@@ -115,11 +132,7 @@ export function QuizPlayer({ quizId }: Props) {
 
   const startAttempt = useStartAttempt({
     mutation: { retry: false },
-    request: {
-      headers: {
-        'x-locale': locale,
-      },
-    },
+    request: { headers: { 'x-locale': locale } },
   });
 
   const addAnswersBulk = useAddAnswersBulk({
@@ -147,10 +160,9 @@ export function QuizPlayer({ quizId }: Props) {
   useEffect(() => {
     const vId = versionQuery.data;
     if (!vId) return;
-
     if (startedForRef.current === vId) return;
-    startedForRef.current = vId;
 
+    startedForRef.current = vId;
     resumeOrStart(quizId, vId);
 
     const s = useQuizPlayerStore.getState();
@@ -166,7 +178,11 @@ export function QuizPlayer({ quizId }: Props) {
 
         if (cancelled) return;
 
-        setAttempt((started as any).attemptId, (started as any).guestToken);
+        if (!isStartAttemptResponse(started)) {
+          throw new Error('Invalid start attempt response');
+        }
+
+        setAttempt(started.attemptId, started.guestToken);
       } catch (e) {
         if (cancelled) return;
         setError(safeErrorMessage(e));
@@ -176,13 +192,18 @@ export function QuizPlayer({ quizId }: Props) {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quizId, versionQuery.data, locale]);
+  }, [
+    quizId,
+    resumeOrStart,
+    setAttempt,
+    setError,
+    startAttempt,
+    versionQuery.data,
+  ]);
 
   const hasTotal = totalQuestions != null;
   const isLast = hasTotal ? currentIndex === (totalQuestions ?? 1) - 1 : false;
 
-  const canPrev = currentIndex > 0;
   const canNext = !hasTotal || !isLast;
   const canSubmit = hasTotal && isLast;
 
@@ -235,7 +256,7 @@ export function QuizPlayer({ quizId }: Props) {
       staleTime: 30_000,
     }).catch(() => {});
   }, [
-    question?.id,
+    question,
     currentIndex,
     batch,
     hasTotal,
@@ -276,7 +297,7 @@ export function QuizPlayer({ quizId }: Props) {
       });
 
       const result = await submitAttempt.mutateAsync({ attemptId });
-      setResult(result as any);
+      setResult(result as AttemptResult);
 
       setStatus('finished');
       router.push(`/${locale}/results/${attemptId}`);

@@ -16,7 +16,8 @@ This API follows URI-based semantic versioning:
 /**
  * Current lifecycle status of the quiz
  */
-export type QuizDtoStatus = (typeof QuizDtoStatus)[keyof typeof QuizDtoStatus];
+export type QuizDtoStatus = typeof QuizDtoStatus[keyof typeof QuizDtoStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const QuizDtoStatus = {

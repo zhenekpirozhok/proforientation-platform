@@ -18,4 +18,4 @@ This API follows URI-based semantic versioning:
 Each entry maps a trait profile to its aggregated score.
 
  */
-export type ScoringResultTraitScores = { [key: string]: number };
+export type ScoringResultTraitScores = {[key: string]: number};

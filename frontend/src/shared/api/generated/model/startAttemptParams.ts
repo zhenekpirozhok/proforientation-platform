@@ -14,5 +14,5 @@ This API follows URI-based semantic versioning:
  */
 
 export type StartAttemptParams = {
-  quizVersionId: number;
+quizVersionId: number;
 };

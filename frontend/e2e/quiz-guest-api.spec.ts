@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, APIResponse } from '@playwright/test';
 
 type QuestionOption = { id: number; ord?: number; label?: string };
 type Question = { id: number; ord?: number; options: QuestionOption[] };
@@ -9,7 +9,7 @@ type PageLike<T> = {
   number?: number;
 };
 
-async function dump(res: any, label: string) {
+async function dump(res: APIResponse, label: string) {
   const status = res.status();
   const text = await res.text().catch(() => '<no body>');
   return `${label}: ${status} ${text}`;

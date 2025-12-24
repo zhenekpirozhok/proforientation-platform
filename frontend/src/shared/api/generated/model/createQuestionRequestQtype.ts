@@ -16,8 +16,8 @@ This API follows URI-based semantic versioning:
 /**
  * Type of the question (e.g. single_choice, multi_choice, liker_scale_5)
  */
-export type CreateQuestionRequestQtype =
-  (typeof CreateQuestionRequestQtype)[keyof typeof CreateQuestionRequestQtype];
+export type CreateQuestionRequestQtype = typeof CreateQuestionRequestQtype[keyof typeof CreateQuestionRequestQtype];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateQuestionRequestQtype = {

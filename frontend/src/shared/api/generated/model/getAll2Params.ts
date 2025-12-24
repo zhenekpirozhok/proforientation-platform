@@ -15,5 +15,5 @@ This API follows URI-based semantic versioning:
 import type { Pageable } from './pageable';
 
 export type GetAll2Params = {
-  pageable: Pageable;
+pageable: Pageable;
 };

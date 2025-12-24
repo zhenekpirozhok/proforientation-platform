@@ -16,8 +16,8 @@ This API follows URI-based semantic versioning:
 /**
  * Type of question defining how the user should answer
  */
-export type QuestionDtoQtype =
-  (typeof QuestionDtoQtype)[keyof typeof QuestionDtoQtype];
+export type QuestionDtoQtype = typeof QuestionDtoQtype[keyof typeof QuestionDtoQtype];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const QuestionDtoQtype = {

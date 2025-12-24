@@ -14,7 +14,7 @@ This API follows URI-based semantic versioning:
  */
 
 export type SearchParams = {
-  entityType: string;
-  entityId: number;
-  locale: string;
+entityType: string;
+entityId: number;
+locale: string;
 };

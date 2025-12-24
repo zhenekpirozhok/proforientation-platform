@@ -14,5 +14,5 @@ This API follows URI-based semantic versioning:
  */
 
 export type DeleteAccountParams = {
-  password: string;
+password: string;
 };

@@ -15,6 +15,6 @@ This API follows URI-based semantic versioning:
 import type { Pageable } from './pageable';
 
 export type GetQuestionsForQuizParams = {
-  locale?: string;
-  pageable: Pageable;
+locale?: string;
+pageable: Pageable;
 };

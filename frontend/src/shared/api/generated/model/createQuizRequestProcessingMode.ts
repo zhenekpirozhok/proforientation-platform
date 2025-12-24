@@ -16,8 +16,8 @@ This API follows URI-based semantic versioning:
 /**
  * Processing mode defining how results are calculated
  */
-export type CreateQuizRequestProcessingMode =
-  (typeof CreateQuizRequestProcessingMode)[keyof typeof CreateQuizRequestProcessingMode];
+export type CreateQuizRequestProcessingMode = typeof CreateQuizRequestProcessingMode[keyof typeof CreateQuizRequestProcessingMode];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateQuizRequestProcessingMode = {

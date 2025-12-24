@@ -16,8 +16,8 @@ This API follows URI-based semantic versioning:
 /**
  * Current status of the attempt
  */
-export type AttemptSummaryDtoStatus =
-  (typeof AttemptSummaryDtoStatus)[keyof typeof AttemptSummaryDtoStatus];
+export type AttemptSummaryDtoStatus = typeof AttemptSummaryDtoStatus[keyof typeof AttemptSummaryDtoStatus];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const AttemptSummaryDtoStatus = {
