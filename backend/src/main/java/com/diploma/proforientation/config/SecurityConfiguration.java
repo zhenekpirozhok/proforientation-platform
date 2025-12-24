@@ -37,7 +37,6 @@ public class SecurityConfiguration {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
 
-                // --- public (no auth) ---
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/actuator/health/readiness").permitAll()
                 .requestMatchers("/error").permitAll()
@@ -45,20 +44,16 @@ public class SecurityConfiguration {
                 .requestMatchers("/demo/**").permitAll()
                 .requestMatchers("/reset-password", "/reset-password/**").permitAll()
 
-                // public read-only reference data
                 .requestMatchers(HttpMethod.GET, "/quizzes", "/quizzes/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/questions", "/questions/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/options", "/options/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/professions", "/professions/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/traits", "/traits/**").permitAll() // ✅ was missing
+                .requestMatchers(HttpMethod.GET, "/traits", "/traits/**").permitAll() 
 
-                // public attempts write-flow (guest mode)
                 .requestMatchers(HttpMethod.POST, "/attempts", "/attempts/**").permitAll()
                 .requestMatchers(HttpMethod.PUT,  "/attempts", "/attempts/**").permitAll()
                 .requestMatchers(HttpMethod.PATCH,"/attempts", "/attempts/**").permitAll()
 
-                // --- protected ---
-                // reading attempts/results requires auth (JWT)
                 .requestMatchers(HttpMethod.GET, "/attempts", "/attempts/**").authenticated()
 
                 .anyRequest().authenticated()
