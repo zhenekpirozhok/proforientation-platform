@@ -1,21 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-
-type CurrentVersionDto = { id?: number };
+import { getCurrentVersion } from "@/shared/api/generated/api";
 
 export function useCurrentQuizVersionIdQuery(quizId: number) {
     return useQuery<number, Error>({
         queryKey: ["quiz", "versions", "current", quizId],
         enabled: Number.isFinite(quizId) && quizId > 0,
-        queryFn: async () => {
-            const res = await fetch(`/api/quizzes/${quizId}/versions/current`, { method: "GET" });
-            const text = await res.text();
+        queryFn: async ({ signal }) => {
+            const dto = await getCurrentVersion(quizId, { signal });
 
-            if (!res.ok) throw new Error(text || "Failed to load current quiz version");
-
-            const json = text ? (JSON.parse(text) as CurrentVersionDto) : null;
-            const id = Number(json?.id);
-
+            const id = Number(dto?.id);
             if (!Number.isFinite(id)) throw new Error("Current quiz version id is missing");
+
             return id;
         },
         staleTime: 60_000,

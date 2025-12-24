@@ -1,5 +1,5 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import type { PageLike, Question } from "../model/types";
+import type { Question } from "../model/types";
 import { quizQuestionPageKey } from "./queryKeys";
 
 import { getQuestionsForQuiz } from "@/shared/api/generated/api";
