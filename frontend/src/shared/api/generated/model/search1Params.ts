@@ -14,8 +14,8 @@ This API follows URI-based semantic versioning:
  */
 
 export type Search1Params = {
-userId?: number;
-quizId?: number;
-from?: string;
-to?: string;
+  userId?: number;
+  quizId?: number;
+  from?: string;
+  to?: string;
 };

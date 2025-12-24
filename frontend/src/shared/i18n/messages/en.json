@@ -21,7 +21,7 @@
     "start": "Start quiz",
     "back": "Back to quizzes"
   },
- "QuizPlayer": {
+  "QuizPlayer": {
     "title": "Quiz",
     "loading": "Preparing quiz…",
     "loadingQuestion": "Loading question…",

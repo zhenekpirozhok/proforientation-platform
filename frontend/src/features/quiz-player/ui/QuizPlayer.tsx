@@ -1,28 +1,32 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
-import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
+import {
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from '@tanstack/react-query';
 
-import { useCurrentQuizVersionIdQuery } from "../model/useCurrentQuizVersionIdQuery";
-import { useQuizPlayerStore } from "../model/store";
+import { useCurrentQuizVersionIdQuery } from '../model/useCurrentQuizVersionIdQuery';
+import { useQuizPlayerStore } from '../model/store';
 
-import type { Question, PageLike } from "@/entities/question/model/types";
-import { parseResponse } from "@/shared/api/parseResponse";
+import type { Question, PageLike } from '@/entities/question/model/types';
+import { parseResponse } from '@/shared/api/parseResponse';
 
 import {
   useStartAttempt,
   useAddAnswersBulk,
   useSubmit,
-} from "@/shared/api/generated/api";
+} from '@/shared/api/generated/api';
 
 type Props = { quizId: number };
 
 function safeErrorMessage(e: unknown): string {
   if (e instanceof Error) return e.message;
-  if (typeof e === "string") return e;
-  return "Unknown error";
+  if (typeof e === 'string') return e;
+  return 'Unknown error';
 }
 
 const BATCH_SIZE = 10;
@@ -36,7 +40,17 @@ function indexInBatch(questionIndex0: number) {
 }
 
 const quizQuestionBatchKey = (quizId: number, batch: number, locale: string) =>
-  ["questions", "quiz", quizId, "batch", batch, "size", BATCH_SIZE, "locale", locale] as const;
+  [
+    'questions',
+    'quiz',
+    quizId,
+    'batch',
+    batch,
+    'size',
+    BATCH_SIZE,
+    'locale',
+    locale,
+  ] as const;
 
 async function fetchQuestionBatch(params: {
   quizId: number;
@@ -46,11 +60,14 @@ async function fetchQuestionBatch(params: {
 }) {
   const { quizId, batch, locale, signal } = params;
 
-  const sp = new URLSearchParams({ page: String(batch), size: String(BATCH_SIZE) });
+  const sp = new URLSearchParams({
+    page: String(batch),
+    size: String(BATCH_SIZE),
+  });
 
   const res = await fetch(`/api/questions/quiz/${quizId}?${sp.toString()}`, {
-    method: "GET",
-    headers: { "x-locale": locale },
+    method: 'GET',
+    headers: { 'x-locale': locale },
     signal,
   });
 
@@ -62,7 +79,8 @@ async function fetchQuestionBatch(params: {
 
   return {
     questions: Array.isArray(data.content) ? data.content : [],
-    total: typeof data.totalElements === "number" ? data.totalElements : undefined,
+    total:
+      typeof data.totalElements === 'number' ? data.totalElements : undefined,
     last: data.last === true,
   };
 }
@@ -71,7 +89,7 @@ export function QuizPlayer({ quizId }: Props) {
   const router = useRouter();
   const qc = useQueryClient();
   const locale = useLocale();
-  const t = useTranslations("QuizPlayer");
+  const t = useTranslations('QuizPlayer');
 
   const {
     attemptId,
@@ -96,21 +114,20 @@ export function QuizPlayer({ quizId }: Props) {
   const versionQuery = useCurrentQuizVersionIdQuery(quizId);
 
   const startAttempt = useStartAttempt({
-  mutation: { retry: false },
-  request: {
-    headers: {
-      "x-locale": locale,
+    mutation: { retry: false },
+    request: {
+      headers: {
+        'x-locale': locale,
+      },
     },
-  },
-});
-
+  });
 
   const addAnswersBulk = useAddAnswersBulk({
     mutation: { retry: false },
     request: {
       headers: {
-        "x-locale": locale,
-        ...(guestToken ? { "x-guest-token": guestToken } : {}),
+        'x-locale': locale,
+        ...(guestToken ? { 'x-guest-token': guestToken } : {}),
       },
     },
   });
@@ -119,8 +136,8 @@ export function QuizPlayer({ quizId }: Props) {
     mutation: { retry: false },
     request: {
       headers: {
-        "x-locale": locale,
-        ...(guestToken ? { "x-guest-token": guestToken } : {}),
+        'x-locale': locale,
+        ...(guestToken ? { 'x-guest-token': guestToken } : {}),
       },
     },
   });
@@ -169,21 +186,23 @@ export function QuizPlayer({ quizId }: Props) {
   const canNext = !hasTotal || !isLast;
   const canSubmit = hasTotal && isLast;
 
-  const isBusy = status === "submitting" || status === "finished";
+  const isBusy = status === 'submitting' || status === 'finished';
 
   const batch = batchIndexFromQuestionIndex(currentIndex);
 
   const batchQuery = useQuery({
     queryKey: quizQuestionBatchKey(quizId, batch, locale),
-    enabled: Number.isFinite(quizId) && quizId > 0 && batch >= 0 && Boolean(locale),
-    queryFn: ({ signal }) => fetchQuestionBatch({ quizId, batch, locale, signal }),
+    enabled:
+      Number.isFinite(quizId) && quizId > 0 && batch >= 0 && Boolean(locale),
+    queryFn: ({ signal }) =>
+      fetchQuestionBatch({ quizId, batch, locale, signal }),
     staleTime: 30_000,
     placeholderData: keepPreviousData,
   });
 
   useEffect(() => {
     const total = batchQuery.data?.total;
-    if (typeof total === "number") setTotalQuestions(total);
+    if (typeof total === 'number') setTotalQuestions(total);
   }, [batchQuery.data?.total, setTotalQuestions]);
 
   const question: Question | null = useMemo(() => {
@@ -200,7 +219,8 @@ export function QuizPlayer({ quizId }: Props) {
     if (!question) return;
 
     const nextIndex = currentIndex + 1;
-    if (hasTotal && totalQuestions != null && nextIndex >= totalQuestions) return;
+    if (hasTotal && totalQuestions != null && nextIndex >= totalQuestions)
+      return;
 
     const nextBatch = batchIndexFromQuestionIndex(nextIndex);
     if (nextBatch === batch) return;
@@ -210,10 +230,20 @@ export function QuizPlayer({ quizId }: Props) {
 
     qc.prefetchQuery({
       queryKey: key,
-      queryFn: ({ signal }) => fetchQuestionBatch({ quizId, batch: nextBatch, locale, signal }),
+      queryFn: ({ signal }) =>
+        fetchQuestionBatch({ quizId, batch: nextBatch, locale, signal }),
       staleTime: 30_000,
     }).catch(() => {});
-  }, [question?.id, currentIndex, batch, hasTotal, totalQuestions, quizId, locale, qc]);
+  }, [
+    question?.id,
+    currentIndex,
+    batch,
+    hasTotal,
+    totalQuestions,
+    quizId,
+    locale,
+    qc,
+  ]);
 
   async function onNext() {
     if (isBusy) return;
@@ -233,10 +263,12 @@ export function QuizPlayer({ quizId }: Props) {
       const optionIds = Array.from(new Set(optionIdsRaw));
 
       if (optionIds.length !== s.totalQuestions) {
-        throw new Error(`Need exactly ${s.totalQuestions} distinct answers, got ${optionIds.length}`);
+        throw new Error(
+          `Need exactly ${s.totalQuestions} distinct answers, got ${optionIds.length}`,
+        );
       }
 
-      setStatus("submitting");
+      setStatus('submitting');
 
       await addAnswersBulk.mutateAsync({
         attemptId,
@@ -246,79 +278,105 @@ export function QuizPlayer({ quizId }: Props) {
       const result = await submitAttempt.mutateAsync({ attemptId });
       setResult(result as any);
 
-      setStatus("finished");
+      setStatus('finished');
       router.push(`/${locale}/results/${attemptId}`);
     } catch (e) {
-      setStatus("in-progress");
+      setStatus('in-progress');
       setError(safeErrorMessage(e));
     }
   }
 
-  if (versionQuery.isLoading || status === "starting") return <p>{t("loading")}</p>;
+  if (versionQuery.isLoading || status === 'starting')
+    return <p>{t('loading')}</p>;
 
   if (versionQuery.isError) {
-    return <p>{t("errorVersion", { message: versionQuery.error?.message ?? "" })}</p>;
+    return (
+      <p>{t('errorVersion', { message: versionQuery.error?.message ?? '' })}</p>
+    );
   }
 
-  if (status === "error") {
-    return <p>{t("errorGeneric", { message: error ?? "" })}</p>;
+  if (status === 'error') {
+    return <p>{t('errorGeneric', { message: error ?? '' })}</p>;
   }
 
-  if (!attemptId || !guestToken || !quizVersionId) return <p>{t("noToken")}</p>;
+  if (!attemptId || !guestToken || !quizVersionId) return <p>{t('noToken')}</p>;
 
   if (batchQuery.isError) {
-    return <p>{t("errorQuestion", { message: safeErrorMessage(batchQuery.error) })}</p>;
+    return (
+      <p>
+        {t('errorQuestion', { message: safeErrorMessage(batchQuery.error) })}
+      </p>
+    );
   }
 
   if (!question) {
-    const isReallyFinished = hasTotal && totalQuestions != null && currentIndex >= totalQuestions;
+    const isReallyFinished =
+      hasTotal && totalQuestions != null && currentIndex >= totalQuestions;
 
     if (isReallyFinished) {
       return (
         <div style={{ maxWidth: 900 }}>
-          <h1>{t("title")}</h1>
-          <p>{t("finishedQuestions")}</p>
-          <button onClick={() => router.push(`/${locale}/results/${attemptId}`)}>{t("toResults")}</button>
+          <h1>{t('title')}</h1>
+          <p>{t('finishedQuestions')}</p>
+          <button
+            onClick={() => router.push(`/${locale}/results/${attemptId}`)}
+          >
+            {t('toResults')}
+          </button>
         </div>
       );
     }
 
-    return <p>{t("loadingQuestion")}</p>;
+    return <p>{t('loadingQuestion')}</p>;
   }
 
   const nextDisabled = !canNext || !selectedOptionId || isBusy;
   const submitDisabled =
-    !canSubmit || !selectedOptionId || addAnswersBulk.isPending || submitAttempt.isPending || isBusy;
+    !canSubmit ||
+    !selectedOptionId ||
+    addAnswersBulk.isPending ||
+    submitAttempt.isPending ||
+    isBusy;
 
   return (
     <div style={{ maxWidth: 900 }}>
-      <h1>{t("title")}</h1>
+      <h1>{t('title')}</h1>
 
       <p>
-        {t("attempt", { id: attemptId })} •{" "}
+        {t('attempt', { id: attemptId })} •{' '}
         {hasTotal
-          ? t("questionProgress", { current: currentIndex + 1, total: totalQuestions })
-          : t("questionProgressShort", { current: currentIndex + 1 })}
+          ? t('questionProgress', {
+              current: currentIndex + 1,
+              total: totalQuestions,
+            })
+          : t('questionProgressShort', { current: currentIndex + 1 })}
       </p>
 
-      {batchQuery.isFetching && <p style={{ marginTop: 8, opacity: 0.6 }}>{t("loadingQuestion")}</p>}
+      {batchQuery.isFetching && (
+        <p style={{ marginTop: 8, opacity: 0.6 }}>{t('loadingQuestion')}</p>
+      )}
 
-      <div style={{ marginTop: 16, padding: 12, border: "1px solid #ccc" }}>
+      <div style={{ marginTop: 16, padding: 12, border: '1px solid #ccc' }}>
         <h2 style={{ margin: 0 }}>
-          {typeof question.ord === "number"
-            ? t("questionTitleOrd", { ord: question.ord })
-            : t("questionTitleId", { id: question.id })}
+          {typeof question.ord === 'number'
+            ? t('questionTitleOrd', { ord: question.ord })
+            : t('questionTitleId', { id: question.id })}
         </h2>
 
         <p>{question.text}</p>
 
-        <div style={{ marginTop: 12, display: "grid", gap: 8 }}>
+        <div style={{ marginTop: 12, display: 'grid', gap: 8 }}>
           {(question.options ?? []).map((opt) => {
             const checked = selectedOptionId === opt.id;
             return (
               <label
                 key={opt.id}
-                style={{ display: "flex", gap: 8, alignItems: "center", cursor: "pointer" }}
+                style={{
+                  display: 'flex',
+                  gap: 8,
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                }}
               >
                 <input
                   type="radio"
@@ -333,22 +391,26 @@ export function QuizPlayer({ quizId }: Props) {
           })}
         </div>
 
-        {!(question.options?.length) && <p style={{ opacity: 0.8 }}>{t("noOptions")}</p>}
+        {!question.options?.length && (
+          <p style={{ opacity: 0.8 }}>{t('noOptions')}</p>
+        )}
       </div>
 
-      {!selectedOptionId && <p style={{ marginTop: 12, opacity: 0.8 }}>{t("selectToContinue")}</p>}
+      {!selectedOptionId && (
+        <p style={{ marginTop: 12, opacity: 0.8 }}>{t('selectToContinue')}</p>
+      )}
 
-      <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
+      <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
         <button onClick={goPrev} disabled={currentIndex <= 0 || isBusy}>
-          {t("back")}
+          {t('back')}
         </button>
 
         <button onClick={onNext} disabled={nextDisabled}>
-          {t("next")}
+          {t('next')}
         </button>
 
         <button onClick={onSubmit} disabled={submitDisabled}>
-          {t("submit")}
+          {t('submit')}
         </button>
       </div>
     </div>

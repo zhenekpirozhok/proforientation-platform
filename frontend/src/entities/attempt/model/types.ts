@@ -1,13 +1,13 @@
 export type StartAttemptResponse = {
-    attemptId: number;
-    guestToken: string;
+  attemptId: number;
+  guestToken: string;
 };
 
 export type AnswerPayload = {
-    optionId: number;
+  optionId: number;
 };
 
 export type AttemptResult = {
-    attemptId?: number;
-    [k: string]: unknown;
+  attemptId?: number;
+  [k: string]: unknown;
 };

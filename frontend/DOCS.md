@@ -6,6 +6,7 @@ The frontend of the career orientation platform is implemented as a Single Page 
 The application follows a **Backend For Frontend (BFF)** architectural pattern and communicates with the backend via a strictly typed API generated from an **OpenAPI specification**.
 
 The system supports:
+
 - guest quiz completion flow,
 - multilingual user interface (RU / EN),
 - scalable and maintainable modular architecture.
@@ -45,22 +46,27 @@ Backend API (Java, OpenAPI)
 ## 3. Architectural Approach
 
 ### 3.1 Component-Based Architecture
+
 The frontend follows a component-based React architecture:
+
 - UI is composed of independent reusable components.
 - Pages do not contain business logic.
 - Business logic is encapsulated in `entities` and `features`.
 
 ### 3.2 Backend For Frontend (BFF)
+
 The frontend **never communicates directly with the backend API**.  
 All browser requests are routed through Next.js API routes (`/api/*`).
 
 Benefits:
+
 - no CORS issues,
 - centralized handling of headers, cookies, and locale,
 - backend URL isolation from the client,
 - easy future integration of authentication and authorization.
 
 ### 3.3 State Management Strategy
+
 State is explicitly separated by responsibility:
 
 - **Server State**  
@@ -82,6 +88,7 @@ State is explicitly separated by responsibility:
 ## 4. API Documentation (Client Perspective)
 
 ### 4.1 API Contract Source
+
 The backend API contract is defined using OpenAPI:
 
 ```
@@ -91,11 +98,14 @@ documentation/api-docs/reference/openapi.yaml
 ```
 
 ### 4.2 API Client Generation
+
 The following tools are used:
+
 - `openapi-typescript` — schema type generation,
 - `orval` — API methods and React Query hooks generation.
 
 Generated code location:
+
 ```
 
 frontend/src/shared/api/generated/
@@ -107,21 +117,21 @@ Generated files are not edited manually.
 ### 4.3 Example API Endpoints
 
 #### Get list of quizzes
+
 ```
 
 GET /quizzes?page=0&size=20
 
-````
+```
 
 Response example:
+
 ```json
 {
-  "content": [
-    { "id": 1, "title": "Career Orientation Test" }
-  ],
+  "content": [{ "id": 1, "title": "Career Orientation Test" }],
   "totalElements": 10
 }
-````
+```
 
 #### Start quiz attempt
 
@@ -173,14 +183,14 @@ Response:
 
 ### 6.1 UI Localization
 
-* Implemented using `next-intl`.
-* Locale is determined by the URL segment (`/ru`, `/en`).
+- Implemented using `next-intl`.
+- Locale is determined by the URL segment (`/ru`, `/en`).
 
 ### 6.2 Content Localization
 
-* Quiz content is localized on the backend.
-* The BFF forwards the locale via the `Accept-Language` header.
-* If a translation is missing, a fallback (default locale) is used.
+- Quiz content is localized on the backend.
+- The BFF forwards the locale via the `Accept-Language` header.
+- If a translation is missing, a fallback (default locale) is used.
 
 ---
 
@@ -188,31 +198,30 @@ Response:
 
 ### Next.js (React)
 
-* Modern App Router architecture.
-* Built-in API routes enabling BFF pattern.
-* Good performance and scalability.
+- Modern App Router architecture.
+- Built-in API routes enabling BFF pattern.
+- Good performance and scalability.
 
 ### TypeScript
 
-* Strong type safety.
-* Seamless integration with OpenAPI-generated types.
-* Reduced runtime errors.
+- Strong type safety.
+- Seamless integration with OpenAPI-generated types.
+- Reduced runtime errors.
 
 ### TanStack Query (React Query)
 
-* Efficient server-state management.
-* Automatic caching and background refetching.
-* Clear separation between server and client state.
+- Efficient server-state management.
+- Automatic caching and background refetching.
+- Clear separation between server and client state.
 
 ### OpenAPI + Orval
 
-* Single source of truth for API contracts.
-* Fully typed client and hooks generation.
-* Eliminates manual API integration errors.
+- Single source of truth for API contracts.
+- Fully typed client and hooks generation.
+- Eliminates manual API integration errors.
 
-### Zustand 
+### Zustand
 
-* Minimal boilerplate.
-* Suitable for managing complex client-side flows.
-* Works well alongside React Query.
-
+- Minimal boilerplate.
+- Suitable for managing complex client-side flows.
+- Works well alongside React Query.

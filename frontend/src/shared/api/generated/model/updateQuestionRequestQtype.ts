@@ -16,8 +16,8 @@ This API follows URI-based semantic versioning:
 /**
  * Updated question type
  */
-export type UpdateQuestionRequestQtype = typeof UpdateQuestionRequestQtype[keyof typeof UpdateQuestionRequestQtype];
-
+export type UpdateQuestionRequestQtype =
+  (typeof UpdateQuestionRequestQtype)[keyof typeof UpdateQuestionRequestQtype];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const UpdateQuestionRequestQtype = {
