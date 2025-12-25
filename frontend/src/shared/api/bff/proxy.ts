@@ -1,8 +1,5 @@
 import { headers, cookies } from 'next/headers';
 
-const BACKEND_URL = process.env.BACKEND_URL;
-if (!BACKEND_URL) throw new Error('BACKEND_URL is not defined');
-
 const FORWARD_HEADERS = new Set([
   'authorization',
   'cookie',
@@ -13,10 +10,18 @@ const FORWARD_HEADERS = new Set([
   'x-guest-token',
 ]);
 
+function getBackendUrl(): string {
+  const url = process.env.BACKEND_URL;
+  if (!url) throw new Error('BACKEND_URL is not defined');
+  return url;
+}
+
 export async function bffFetch(
   path: string,
   init: RequestInit = {},
 ): Promise<Response> {
+  const backendUrl = getBackendUrl();
+
   const h = await headers();
   const c = await cookies();
 
@@ -38,7 +43,9 @@ export async function bffFetch(
     ? Object.fromEntries(new Headers(init.headers).entries())
     : {};
 
-  return fetch(`${BACKEND_URL}${path}`, {
+  const url = new URL(path, backendUrl).toString();
+
+  return fetch(url, {
     ...init,
     headers: { ...safeHeaders, ...initHeaders },
     cache: 'no-store',
