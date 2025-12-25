@@ -7,6 +7,9 @@ export default function PublicHomePage() {
       <p>
         <Link href="/en/quizzes">Go to quizzes</Link>
       </p>
+      <div className="p-4 bg-indigo-600 text-white rounded-xl">
+  Tailwind is alive 🚀
+</div>
     </main>
   );
 }

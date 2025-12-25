@@ -47,8 +47,6 @@ function buildQuizzesUrl(params?: QuizzesParams) {
 }
 
 export function useQuizzes(params?: QuizzesParams) {
-  console.log('useQuizzes raw params:', params);
-
   const norm = normalizeParams(params);
   const url = buildQuizzesUrl(params);
 
