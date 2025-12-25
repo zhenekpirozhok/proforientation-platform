@@ -1,23 +1,12 @@
 openapi: 3.1.0
 info:
   title: OpenAPI definition
-  version: "1.0.0"
-  description: |
-      API for profession orientation and quiz-based assessment.
-
-      ## Versioning Strategy
-      This API follows URI-based semantic versioning:
-      - Major versions are encoded in the base path: /api/v1.0
-      - Backward-incompatible changes trigger a new major version (v2.0)
-      - Backward-compatible changes are released within the same version
-  license:
-    name: MIT
-    url: https://opensource.org/licenses/MIT
+  version: v0
 servers:
 - url: http://localhost:8082
   description: Generated server url
 security:
-- BearerAuth: []
+- Bearer Authentication: []
 paths:
   /translations/{id}:
     put:
@@ -1289,7 +1278,7 @@ paths:
         Returns a paginated list of quizzes localized according to the current request locale.
 
         Pagination is supported via standard Spring Data parameters:
-        - `page` (0-based page index, default: 0)
+        - `page` (default: 1)
         - `size` (number of items per page, default: 20)
         - `sort` (sorting criteria, e.g. `id,asc` or `title,desc`)
 
@@ -1297,11 +1286,24 @@ paths:
         `/quizzes?page=0&size=10&sort=title,asc`
       operationId: getAll_1
       parameters:
-      - name: pageable
+      - name: page
         in: query
-        required: true
+        description: Page number (0-based)
+        required: false
         schema:
-          $ref: "#/components/schemas/Pageable"
+          type: string
+      - name: size
+        in: query
+        description: Number of items per page
+        required: false
+        schema:
+          type: string
+      - name: sort
+        in: query
+        description: Sort by field
+        required: false
+        schema:
+          type: string
       responses:
         "401":
           description: Unauthorized
@@ -2338,11 +2340,24 @@ paths:
             - sort: sorting criteria (e.g. id,asc)
       operationId: allUsers
       parameters:
-      - name: pageable
+      - name: page
         in: query
-        required: true
+        description: Page number (0-based)
+        required: false
         schema:
-          $ref: "#/components/schemas/Pageable"
+          type: string
+      - name: size
+        in: query
+        description: Number of items per page
+        required: false
+        schema:
+          type: string
+      - name: sort
+        in: query
+        description: Sort by field
+        required: false
+        schema:
+          type: string
       responses:
         "401":
           description: Unauthorized
@@ -2769,11 +2784,24 @@ paths:
         schema:
           type: string
           default: en
-      - name: pageable
+      - name: page
         in: query
-        required: true
+        description: Page number (0-based)
+        required: false
         schema:
-          $ref: "#/components/schemas/Pageable"
+          type: string
+      - name: size
+        in: query
+        description: Number of items per page
+        required: false
+        schema:
+          type: string
+      - name: sort
+        in: query
+        description: Sort by field
+        required: false
+        schema:
+          type: string
       responses:
         "401":
           description: Unauthorized
@@ -3025,7 +3053,7 @@ components:
           format: int32
           description: HTTP status code representing the error type
           examples:
-          - 400
+          - "400"
         time:
           type: string
           format: date-time
@@ -3061,7 +3089,7 @@ components:
           format: int32
           description: Unique translation identifier
           examples:
-          - 1
+          - "1"
         entityType:
           type: string
           description: Type of the translated entity
@@ -3072,7 +3100,7 @@ components:
           format: int32
           description: Identifier of the related entity
           examples:
-          - 1
+          - "1"
         field:
           type: string
           description: Translated field name
@@ -3121,7 +3149,7 @@ components:
           format: int32
           description: Unique identifier of the trait
           examples:
-          - 1
+          - "1"
         code:
           type: string
           description: Short code representing the trait (e.g. RIASEC dimension)
@@ -3164,7 +3192,7 @@ components:
           format: int32
           description: Identifier of the new quiz category
           examples:
-          - 4
+          - "4"
     QuizDto:
       type: object
       description: Represents a quiz definition and its metadata
@@ -3174,7 +3202,7 @@ components:
           format: int32
           description: Unique identifier of the quiz
           examples:
-          - 1
+          - "1"
         code:
           type: string
           description: Short unique code used to reference the quiz
@@ -3207,13 +3235,13 @@ components:
           format: int32
           description: Identifier of the category this quiz belongs to
           examples:
-          - 5
+          - "5"
         authorId:
           type: integer
           format: int32
           description: Identifier of the user who authored the quiz
           examples:
-          - 1
+          - "1"
     UpdateQuestionRequest:
       type: object
       description: Request payload for updating a quiz question
@@ -3223,7 +3251,7 @@ components:
           format: int32
           description: New display order of the question
           examples:
-          - 5
+          - "5"
           minimum: 1
         qtype:
           type: string
@@ -3249,19 +3277,19 @@ components:
           format: int32
           description: Unique identifier of the option
           examples:
-          - 54
+          - "54"
         questionId:
           type: integer
           format: int32
           description: Identifier of the question this option belongs to
           examples:
-          - 7
+          - "7"
         ord:
           type: integer
           format: int32
           description: Order index of the option within the question (1-based)
           examples:
-          - 1
+          - "1"
           minimum: 1
         label:
           type: string
@@ -3277,19 +3305,19 @@ components:
           format: int32
           description: Unique identifier of the question
           examples:
-          - 101
+          - "101"
         quizVersionId:
           type: integer
           format: int32
           description: Identifier of the quiz version this question belongs to
           examples:
-          - 1
+          - "1"
         ord:
           type: integer
           format: int32
           description: Order of the question within the quiz
           examples:
-          - 3
+          - "3"
           minimum: 1
         qtype:
           type: string
@@ -3340,7 +3368,7 @@ components:
           format: int32
           description: Identifier of the profession category
           examples:
-          - 3
+          - "3"
     ProfessionDto:
       type: object
       description: Represents a profession that can be recommended to users based
@@ -3351,7 +3379,7 @@ components:
           format: int32
           description: Unique identifier of the profession
           examples:
-          - 42
+          - "42"
         code:
           type: string
           description: Short internal code of the profession
@@ -3379,7 +3407,7 @@ components:
           format: int32
           description: Identifier of the profession category
           examples:
-          - 3
+          - "3"
     OptionTraitListRequest:
       type: object
       description: Request payload for assigning multiple trait weights to a question
@@ -3402,14 +3430,14 @@ components:
           format: int32
           description: Identifier of the trait profile
           examples:
-          - 3
+          - "3"
         weight:
           type: number
           description: |
             Weight applied to the trait when this option is selected.
             Can be positive or negative depending on scoring logic.
           examples:
-          - 1.25
+          - "1.25"
       required:
       - traitId
       - weight
@@ -3422,7 +3450,7 @@ components:
           format: int32
           description: New display order of the option
           examples:
-          - 2
+          - "2"
           minimum: 1
         label:
           type: string
@@ -3458,7 +3486,7 @@ components:
           format: int32
           description: Unique identifier of the profession category
           examples:
-          - 5
+          - "5"
         code:
           type: string
           description: Short code identifying the category
@@ -3532,13 +3560,13 @@ components:
           format: int32
           description: Identifier of the quiz category
           examples:
-          - 2
+          - "2"
         authorId:
           type: integer
           format: int32
           description: Identifier of the quiz author (admin user)
           examples:
-          - 1
+          - "1"
     QuizVersionDto:
       type: object
       description: Represents a specific published version of a quiz
@@ -3548,24 +3576,24 @@ components:
           format: int32
           description: Unique identifier of the quiz version
           examples:
-          - 1
+          - "1"
         quizId:
           type: integer
           format: int32
           description: Identifier of the quiz this version belongs to
           examples:
-          - 1
+          - "1"
         version:
           type: integer
           format: int32
           description: Sequential version number of the quiz
           examples:
-          - 1
+          - "1"
         isCurrent:
           type: boolean
           description: Indicates whether this is the currently active quiz version
           examples:
-          - true
+          - "true"
         publishedAt:
           type: string
           format: date-time
@@ -3581,13 +3609,13 @@ components:
           format: int32
           description: Identifier of the quiz version this question belongs to
           examples:
-          - 12
+          - "12"
         ord:
           type: integer
           format: int32
           description: Order of the question within the quiz version
           examples:
-          - 1
+          - "1"
           minimum: 1
         qtype:
           type: string
@@ -3613,13 +3641,13 @@ components:
           format: int32
           description: Identifier of the question this option belongs to
           examples:
-          - 101
+          - "101"
         ord:
           type: integer
           format: int32
           description: Display order of the option within the question
           examples:
-          - 1
+          - "1"
           minimum: 1
         label:
           type: string
@@ -3631,6 +3659,19 @@ components:
       properties:
         answers:
           type: array
+          description: List of selected answer IDs
+          examples:
+          - |-
+            {
+              "answers": [
+                3,3,3,3,3,3,3,3,
+                3,3,3,3,3,3,3,3,
+                3,3,3,3,3,3,3,3,
+                3,3,3,3,3,3,3,3,
+                3,3,3,3,3,3,3,3,
+                3,3,3,3,3,3,3,3
+              ]
+            }
           items:
             type: integer
             format: int32
@@ -3643,12 +3684,12 @@ components:
           format: int32
           description: Identifier of the recommended profession
           examples:
-          - 42
+          - "42"
         score:
           type: number
           description: Identifier of the recommended profession
           examples:
-          - 42
+          - "42"
         explanation:
           type: string
           description: Human-readable explanation of why this profession was recommended
@@ -3740,6 +3781,10 @@ components:
         createdAt:
           type: string
           format: date-time
+        password:
+          type: string
+        username:
+          type: string
         enabled:
           type: boolean
         active:
@@ -3748,16 +3793,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/GrantedAuthority"
-        username:
-          type: string
         accountNonExpired:
           type: boolean
         accountNonLocked:
           type: boolean
         credentialsNonExpired:
           type: boolean
-        password:
-          type: string
     ResetPasswordDto:
       type: object
       description: Request payload for completing a password reset using a reset token
@@ -3821,7 +3862,7 @@ components:
           format: int64
           description: Access token expiration time in seconds
           examples:
-          - 3600
+          - "3600"
     LoginUserDto:
       type: object
       description: Request payload used for authenticating a user
@@ -3836,15 +3877,15 @@ components:
           type: string
           description: User password (minimum 6 characters)
           examples:
-          - Password123
+          - pass123
           maxLength: 2147483647
           minLength: 6
         rememberMe:
           type: boolean
-          default: false
+          default: "false"
           description: "If true, a long-lived refresh token will be issued"
           examples:
-          - false
+          - "false"
       required:
       - email
       - password
@@ -3905,7 +3946,7 @@ components:
           type: number
           description: Probability score assigned by the ML model (range 0.0 – 1.0)
           examples:
-          - 0.75
+          - "0.75"
     AddAnswerRequest:
       type: object
       description: Request payload for submitting a single answer to a quiz attempt
@@ -3915,7 +3956,7 @@ components:
           format: int32
           description: Identifier of the selected option
           examples:
-          - 123
+          - "123"
       required:
       - optionId
     AddAnswersBulkRequest:
@@ -3926,7 +3967,15 @@ components:
           type: array
           description: List of selected option IDs
           examples:
-          - [101, 102, 103]
+          - |-
+            [
+                                        1,6,11,16,21,26,31,36,
+                                        41,46,51,56,61,66,71,76,
+                                        81,86,91,96,101,106,111,116,
+                                        121,126,131,136,141,146,151,156,
+                                        161,166,171,176,181,186,191,196,
+                                        201,206,211,216,221,226,231,236
+                                      ]
           items:
             type: integer
             format: int32
@@ -3942,7 +3991,7 @@ components:
           format: int32
           description: Unique identifier of the created attempt
           examples:
-          - 123
+          - "123"
         guestToken:
           type: string
           description: |
@@ -3950,6 +3999,65 @@ components:
             Null for authenticated users.
           examples:
           - f7c1a2e9-8a9d-4b2e-9b61-1a2f8c123abc
+    Page:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            type: object
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        first:
+          type: boolean
+        last:
+          type: boolean
+        empty:
+          type: boolean
+    PageableObject:
+      type: object
+      properties:
+        offset:
+          type: integer
+          format: int64
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        paged:
+          type: boolean
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        unpaged:
+          type: boolean
+    SortObject:
+      type: object
+      properties:
+        empty:
+          type: boolean
+        sorted:
+          type: boolean
+        unsorted:
+          type: boolean
     Pageable:
       type: object
       properties:
@@ -3965,65 +4073,6 @@ components:
           type: array
           items:
             type: string
-    Page:
-      type: object
-      properties:
-        totalPages:
-          type: integer
-          format: int32
-        totalElements:
-          type: integer
-          format: int64
-        size:
-          type: integer
-          format: int32
-        content:
-          type: array
-          items:
-            type: object
-        number:
-          type: integer
-          format: int32
-        sort:
-          $ref: "#/components/schemas/SortObject"
-        pageable:
-          $ref: "#/components/schemas/PageableObject"
-        numberOfElements:
-          type: integer
-          format: int32
-        first:
-          type: boolean
-        last:
-          type: boolean
-        empty:
-          type: boolean
-    PageableObject:
-      type: object
-      properties:
-        offset:
-          type: integer
-          format: int64
-        sort:
-          $ref: "#/components/schemas/SortObject"
-        unpaged:
-          type: boolean
-        paged:
-          type: boolean
-        pageNumber:
-          type: integer
-          format: int32
-        pageSize:
-          type: integer
-          format: int32
-    SortObject:
-      type: object
-      properties:
-        empty:
-          type: boolean
-        unsorted:
-          type: boolean
-        sorted:
-          type: boolean
     AttemptSummaryDto:
       type: object
       description: Summary information about a quiz attempt
@@ -4033,13 +4082,13 @@ components:
           format: int32
           description: Unique identifier of the attempt
           examples:
-          - 101
+          - "101"
         quizVersionId:
           type: integer
           format: int32
           description: Identifier of the quiz version associated with this attempt
           examples:
-          - 12
+          - "12"
         quizTitle:
           type: string
           description: Title of the quiz
@@ -4069,9 +4118,9 @@ components:
           type: boolean
           description: Indicates whether the attempt has been completed
           examples:
-          - true
+          - "true"
   securitySchemes:
-    BearerAuth:
+    Bearer Authentication:
       type: http
       scheme: bearer
       bearerFormat: JWT
