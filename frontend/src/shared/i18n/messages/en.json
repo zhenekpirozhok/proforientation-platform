@@ -1,0 +1,72 @@
+{
+  "Common": {
+    "language": "Language",
+    "russian": "Russian",
+    "english": "English"
+  },
+  "Quizzes": {
+    "title": "Available quizzes",
+    "loading": "Loading quizzes…",
+    "error": "Failed to load quizzes",
+    "details": "Details",
+    "start": "Start quiz",
+    "fallbackTitle": "Quiz #{id}"
+  },
+  "QuizDetails": {
+    "loading": "Loading quiz…",
+    "error": "Failed to load quiz",
+    "questions": "Questions",
+    "duration": "Estimated duration",
+    "minutes": "{count} minutes",
+    "start": "Start quiz",
+    "back": "Back to quizzes"
+  },
+  "QuizPlayer": {
+    "title": "Quiz",
+    "loading": "Preparing quiz…",
+    "loadingQuestion": "Loading question…",
+    "noToken": "Initializing attempt…",
+    "finishedQuestions": "No more questions.",
+    "toResults": "View results",
+
+    "attempt": "Attempt #{id}",
+    "questionProgress": "Question {current} / {total}",
+    "questionProgressShort": "Question {current}",
+    "questionTitleOrd": "Question #{ord}",
+    "questionTitleId": "Question #{id}",
+
+    "back": "Back",
+    "next": "Next",
+    "submit": "Finish",
+    "selectToContinue": "Select an option to continue.",
+    "noOptions": "This question has no options.",
+
+    "errorVersion": "Version error: {message}",
+    "errorQuestion": "Question error: {message}",
+    "errorGeneric": "Error: {message}"
+  },
+  "Results": {
+    "title": "Test Results",
+    "loading": "Loading…",
+    "attempt": "Attempt #{id}",
+
+    "invalidAttemptId": "Invalid attempt id.",
+    "noSessionResult": "Result is not available in this session.",
+
+    "goToQuiz": "Go to quiz",
+    "backToQuiz": "Back to quiz",
+    "retake": "Retake quiz",
+
+    "catalogLoading": "Loading trait/profession catalog…",
+    "catalogError": "Failed to load catalog",
+    "updating": "Updating…",
+
+    "traitsTitle": "Your Traits",
+    "recommendedTitle": "Recommended Fields",
+    "notInThisCategory": "(not in this category)",
+
+    "matchScore": "Match score: {score}%",
+
+    "fallbackProfessionTitle": "Profession #{id}"
+  }
+}
