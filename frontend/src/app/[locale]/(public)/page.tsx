@@ -10,6 +10,7 @@ export default function PublicHomePage() {
       <div className="p-4 bg-indigo-600 text-white rounded-xl">
   Tailwind is alive 🚀
 </div>
+<div className="p-2 bg-white dark:bg-red-500">dark test</div>
     </main>
   );
 }

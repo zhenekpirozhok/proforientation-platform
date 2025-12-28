@@ -66,5 +66,29 @@
     "matchScore": "Совпадение: {score}%",
 
     "fallbackProfessionTitle": "Профессия №{id}"
+  },
+  "Header": {
+    "brand": "CareerPath",
+    "quizzes": "Тесты",
+    "profile": "Мой профиль",
+    "admin": "Панель администратора",
+    "results": "Результаты",
+    "settings": "Настройки",
+    "signIn": "Войти",
+    "userMenu": "Аккаунт"
+  },
+  "Footer": {
+    "privacy": "Конфиденциальность",
+    "terms": "Условия"
+  },
+  "Drawer": {
+    "menuTitle": "Меню",
+    "quizzes": "Тесты",
+    "profile": "Мой профиль",
+    "admin": "Панель администратора",
+    "results": "Результаты",
+    "settings": "Настройки",
+    "language": "Язык",
+    "signIn": "Войти"
   }
 }

@@ -1,40 +1,28 @@
 "use client";
 
 import { ConfigProvider } from "antd";
-import { useEffect, useMemo } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import { darkTheme, lightTheme } from "@/shared/config/theme";
 import { useThemeStore } from "@/shared/model/theme/store";
-
-function getSystemTheme(): "light" | "dark" {
-  if (typeof window === "undefined") return "light";
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
+import { useEffectiveTheme } from "@/shared/model/theme/useEffectiveTheme";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const theme = useThemeStore((s) => s.theme);
   const hydrated = useThemeStore((s) => s.hydrated);
-  const setTheme = useThemeStore((s) => s.setTheme);
+  const theme = useEffectiveTheme();
+  const [ready, setReady] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!hydrated) return;
-    const storageTheme = localStorage.getItem("app-theme");
-    if (!storageTheme) {
-      setTheme(getSystemTheme());
-    }
-  }, [hydrated, setTheme]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === "dark") root.classList.add("dark");
-    else root.classList.remove("dark");
-  }, [theme]);
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    setReady(true);
+  }, [theme, hydrated]);
 
   const antdTheme = useMemo(
     () => (theme === "dark" ? darkTheme : lightTheme),
     [theme]
   );
+
+  if (!ready) return null;
 
   return <ConfigProvider theme={antdTheme}>{children}</ConfigProvider>;
 }

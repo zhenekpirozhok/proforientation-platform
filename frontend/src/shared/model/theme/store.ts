@@ -2,11 +2,13 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export type AppTheme = "light" | "dark";
+export type ThemeMode = AppTheme | "system";
 
 type ThemeState = {
-    theme: AppTheme;
+    themeMode: ThemeMode;
     hydrated: boolean;
-    setTheme: (theme: AppTheme) => void;
+
+    setThemeMode: (mode: ThemeMode) => void;
     toggleTheme: () => void;
     setHydrated: (v: boolean) => void;
 };
@@ -14,17 +16,32 @@ type ThemeState = {
 export const useThemeStore = create<ThemeState>()(
     persist(
         (set, get) => ({
-            theme: "light",
+            themeMode: "system",
             hydrated: false,
-            setTheme: (theme) => set({ theme }),
-            toggleTheme: () =>
-                set({ theme: get().theme === "light" ? "dark" : "light" }),
+
+            setThemeMode: (mode) => set({ themeMode: mode }),
+
+            toggleTheme: () => {
+                const mode = get().themeMode;
+
+                if (mode === "system") {
+                    const isSystemDark =
+                        typeof window !== "undefined" &&
+                        window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
+
+                    set({ themeMode: isSystemDark ? "light" : "dark" });
+                    return;
+                }
+
+                set({ themeMode: mode === "light" ? "dark" : "light" });
+            },
+
             setHydrated: (v) => set({ hydrated: v }),
         }),
         {
             name: "app-theme",
-            version: 1,
-            partialize: (s) => ({ theme: s.theme }),
+            version: 2,
+            partialize: (s) => ({ themeMode: s.themeMode }),
             onRehydrateStorage: () => (state) => {
                 state?.setHydrated(true);
             },

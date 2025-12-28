@@ -21,5 +21,12 @@ export const darkTheme: ThemeConfig = {
             fontFamily:
                 "var(--font-poppins), var(--font-inter), system-ui",
         },
+        Button: {
+            boxShadow: "none",
+            boxShadowSecondary: "none",
+            boxShadowTertiary: "none",
+            defaultShadow: "none",
+            primaryShadow: "none",
+        },
     },
 };

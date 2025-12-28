@@ -12,10 +12,10 @@ type Props = {
 
 export function AppShell({ children }: Props) {
   return (
-    <Layout className="min-h-screen">
+    <Layout className="h-full min-h-screen flex flex-col">
       <AppHeader />
 
-      <Content className="flex justify-center px-4 py-6 md:px-6">
+      <Content className="flex flex-1 justify-center px-4 py-6 md:px-6">
         <div className="w-full max-w-[1200px]">{children}</div>
       </Content>
 
@@ -23,3 +23,4 @@ export function AppShell({ children }: Props) {
     </Layout>
   );
 }
+

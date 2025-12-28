@@ -3,9 +3,10 @@
 import { Button } from "antd";
 import { MoonOutlined, SunOutlined } from "@ant-design/icons";
 import { useThemeStore } from "@/shared/model/theme/store";
+import { useEffectiveTheme } from "@/shared/model/theme/useEffectiveTheme";
 
 export function ThemeToggle() {
-  const theme = useThemeStore((s) => s.theme);
+  const theme = useEffectiveTheme();
   const toggleTheme = useThemeStore((s) => s.toggleTheme);
 
   return (

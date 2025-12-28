@@ -68,5 +68,29 @@
     "matchScore": "Match score: {score}%",
 
     "fallbackProfessionTitle": "Profession #{id}"
+  },
+  "Header": {
+    "brand": "CareerPath",
+    "quizzes": "Quizzes",
+    "profile": "My Career Profile",
+    "admin": "Admin Dashboard",
+    "results": "Results",
+    "settings": "Settings",
+    "signIn": "Sign in",
+    "userMenu": "Account"
+  },
+  "Footer": {
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "Drawer": {
+    "menuTitle": "Menu",
+    "quizzes": "Quizzes",
+    "profile": "My Career Profile",
+    "admin": "Admin Dashboard",
+    "results": "Results",
+    "settings": "Settings",
+    "language": "Language",
+    "signIn": "Sign in"
   }
 }
