@@ -2713,11 +2713,24 @@ paths:
         schema:
           type: string
           default: en
-      - name: pageable
+      - name: page
         in: query
-        required: true
+        description: Page number (0-based)
+        required: false
         schema:
-          $ref: "#/components/schemas/Pageable"
+          type: string
+      - name: size
+        in: query
+        description: Number of items per page
+        required: false
+        schema:
+          type: string
+      - name: sort
+        in: query
+        description: Sort by field
+        required: false
+        schema:
+          type: string
       responses:
         "401":
           description: Unauthorized
@@ -3002,6 +3015,89 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ExceptionDto"
+  /api/v1/quizzes/metrics:
+    get:
+      tags:
+      - quiz-metrics-controller
+      summary: Get public quiz metrics
+      operationId: getAllMetrics
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuizPublicMetricsView"
+  /api/v1/quizzes/metrics/{quizId}:
+    get:
+      tags:
+      - quiz-metrics-controller
+      summary: Get public metrics for a quiz
+      operationId: getMetrics
+      parameters:
+      - name: quizId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/QuizPublicMetricsView"
   /auth/account:
     delete:
       tags:
@@ -3242,6 +3338,16 @@ components:
           description: Identifier of the user who authored the quiz
           examples:
           - "1"
+        descriptionDefault:
+          type: string
+          description: Localized quiz description
+          example: This quiz helps identify suitable career paths
+        secondsPerQuestionDefault:
+          type: integer
+          format: int32
+          description: Time limit per question in seconds
+          example: 30
+          minimum: 0
     UpdateQuestionRequest:
       type: object
       description: Request payload for updating a quiz question
@@ -4119,6 +4225,34 @@ components:
           description: Indicates whether the attempt has been completed
           examples:
           - "true"
+    QuizPublicMetricsView:
+      type: object
+      properties:
+        estimatedDurationSeconds:
+          type: integer
+          format: int32
+        attemptsSubmitted:
+          type: integer
+          format: int32
+        avgDurationSeconds:
+          type: number
+          format: double
+        quizId:
+          type: integer
+          format: int32
+        quizCode:
+          type: string
+        quizStatus:
+          type: string
+        categoryId:
+          type: integer
+          format: int32
+        questionsTotal:
+          type: integer
+          format: int32
+        attemptsTotal:
+          type: integer
+          format: int32
   securitySchemes:
     Bearer Authentication:
       type: http
