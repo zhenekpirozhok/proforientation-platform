@@ -45,5 +45,18 @@ public record QuizDto(
                 description = "Identifier of the user who authored the quiz",
                 examples = "1"
         )
-        Integer authorId
+        Integer authorId,
+
+        @Schema(
+                description = "Localized quiz description",
+                example = "This quiz helps identify suitable career paths"
+        )
+        String descriptionDefault,
+
+        @Schema(
+                description = "Time limit per question in seconds",
+                example = "30",
+                minimum = "0"
+        )
+        int secondsPerQuestionDefault
 ) {}

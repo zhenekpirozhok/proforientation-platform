@@ -8,7 +8,6 @@ import com.diploma.proforientation.model.QuestionOption;
 import com.diploma.proforientation.repository.QuestionOptionRepository;
 import com.diploma.proforientation.repository.QuestionRepository;
 import com.diploma.proforientation.service.OptionService;
-import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,6 @@ public class OptionServiceImpl implements OptionService {
 
     private final QuestionOptionRepository optionRepo;
     private final QuestionRepository questionRepo;
-    private final TranslationResolver translationResolver;
 
     @Override
     @Transactional

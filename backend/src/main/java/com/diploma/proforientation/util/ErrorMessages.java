@@ -16,6 +16,7 @@ public final class ErrorMessages {
     public static final String ATTEMPT_NOT_FOUND = "Attempt not found";
     public static final String ATTEMPT_SUBMITTED = "Attempt already submitted";
     public static final String TRANSLATION_NOT_FOUND = "Translation not found";
+    public static final String QUIZ_METRICS_NOT_FOUND = "Quiz metrics not found";
 
     public static final String INVALID_CRED = "Invalid email or password";
     public static final String INVALID_PASS = "Password verification failed";

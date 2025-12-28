@@ -43,4 +43,10 @@ public class Quiz {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
+
+    @Column(name = "description_default", length = 1000)
+    private String descriptionDefault;
+
+    @Column(name = "seconds_per_question_default")
+    private int secondsPerQuestionDefault = 30;
 }
