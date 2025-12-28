@@ -20,8 +20,7 @@ import org.springframework.data.domain.*;
 import java.util.List;
 import java.util.Optional;
 
-import static com.diploma.proforientation.service.impl.OptionServiceImpl.ENTITY_TYPE_OPTION;
-import static com.diploma.proforientation.service.impl.QuestionServiceImpl.FIELD_LABEL;
+import static com.diploma.proforientation.util.Constants.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -164,7 +163,7 @@ class QuestionServiceTest {
                 .thenReturn(page);
 
         when(translationResolver.resolve(
-                "question", 100, "text", "ru", "Default Q"
+                ENTITY_TYPE_QUESTION, 100, FIELD_TEXT, "ru", "Default Q"
         )).thenReturn("Перевод вопроса");
 
         QuestionOption opt = new QuestionOption();
@@ -177,7 +176,7 @@ class QuestionServiceTest {
                 .thenReturn(List.of(opt));
 
         when(translationResolver.resolve(
-                ENTITY_TYPE_OPTION, 200, FIELD_LABEL, "ru", "Default option"
+                ENTITY_TYPE_OPTION, 200, FIELD_TEXT, "ru", "Default option"
         )).thenReturn("Перевод ответа");
 
         Page<QuestionDto> result =
@@ -245,7 +244,7 @@ class QuestionServiceTest {
                 .thenReturn(List.of(option));
 
         when(translationResolver.resolve(
-                ENTITY_TYPE_OPTION, 100, FIELD_LABEL, "en", "Default option"
+                ENTITY_TYPE_OPTION, 100, FIELD_TEXT, "en", "Default option"
         )).thenReturn("Localized option");
 
         List<OptionDto> result =

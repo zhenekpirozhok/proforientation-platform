@@ -15,16 +15,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.diploma.proforientation.util.ErrorMessages.CATEGORY_NOT_FOUND;
-import static com.diploma.proforientation.util.ErrorMessages.PROFESSION_NOT_FOUND;
+import static com.diploma.proforientation.util.Constants.*;
 
 @Service
 @RequiredArgsConstructor
 public class ProfessionServiceImpl implements ProfessionService {
-
-    private static final String ENTITY_TYPE_PROF = "profession";
-    public static final String FIELD_TITLE = "title";
-    public static final String FIELD_DESCRIPTION = "description";
 
     private final ProfessionRepository repo;
     private final ProfessionCategoryRepository categoryRepo;

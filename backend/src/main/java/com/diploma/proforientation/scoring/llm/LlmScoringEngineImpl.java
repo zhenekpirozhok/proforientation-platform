@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.*;
 
-import static com.diploma.proforientation.service.impl.AuthenticationServiceImpl.EMPTY_STRING;
+import static com.diploma.proforientation.util.Constants.EMPTY_STRING;
 
 @Service
 @RequiredArgsConstructor

@@ -62,7 +62,7 @@ class QuizControllerTest {
 
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
 
-        QuizDto dto = new QuizDto(1, "quiz1", "Тест 1", "published", "ml", 3, 2);
+        QuizDto dto = new QuizDto(1, "quiz1", "Тест 1", "published", "ml", 3, 2, null, 30);
         Page<QuizDto> pageResult = new PageImpl<>(List.of(dto), pageable, 1);
 
         when(quizService.getAllLocalized(locale, pageable)).thenReturn(pageResult);
@@ -78,7 +78,7 @@ class QuizControllerTest {
     @Test
     void getById_shouldCallServiceWithLocale() {
         QuizDto dto =
-                new QuizDto(5, "quiz5", "Название", "draft", "ml_riasec", 4, 1);
+                new QuizDto(5, "quiz5", "Название", "draft", "ml_riasec", 4, 1, null, 30);
 
         when(quizService.getByIdLocalized(5, "ru")).thenReturn(dto);
 
@@ -98,7 +98,7 @@ class QuizControllerTest {
                 new CreateQuizRequest("QX", "New Quiz", "ml_riasec", 5, 1);
 
         QuizDto created =
-                new QuizDto(100, "QX", "New Quiz", "draft", "ml_riasec", 5, 1);
+                new QuizDto(100, "QX", "New Quiz", "draft", "ml_riasec", 5, 1, null, 30);
 
         when(quizService.create(req)).thenReturn(created);
 
@@ -116,7 +116,7 @@ class QuizControllerTest {
                 new UpdateQuizRequest("Updated", "ml_riasec", 99);
 
         QuizDto updated =
-                new QuizDto(50, "Q50", "Updated", "draft", "ml_riasec", 99, 10);
+                new QuizDto(50, "Q50", "Updated", "draft", "ml_riasec", 99, 10, null, 30);
 
         when(quizService.update(50, req)).thenReturn(updated);
 

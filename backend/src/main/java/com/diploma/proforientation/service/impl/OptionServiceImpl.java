@@ -8,25 +8,20 @@ import com.diploma.proforientation.model.QuestionOption;
 import com.diploma.proforientation.repository.QuestionOptionRepository;
 import com.diploma.proforientation.repository.QuestionRepository;
 import com.diploma.proforientation.service.OptionService;
-import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.diploma.proforientation.util.ErrorMessages.OPTION_NOT_FOUND;
-import static com.diploma.proforientation.util.ErrorMessages.QUESTION_NOT_FOUND;
+import static com.diploma.proforientation.util.Constants.OPTION_NOT_FOUND;
+import static com.diploma.proforientation.util.Constants.QUESTION_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
 public class OptionServiceImpl implements OptionService {
 
-    public static final String ENTITY_TYPE_OPTION = "question_option";
-    public static final String FIELD_TEXT = "text";
-
     private final QuestionOptionRepository optionRepo;
     private final QuestionRepository questionRepo;
-    private final TranslationResolver translationResolver;
 
     @Override
     @Transactional

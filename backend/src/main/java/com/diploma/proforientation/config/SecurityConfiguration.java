@@ -41,6 +41,8 @@ public class SecurityConfiguration {
                 .requestMatchers("/actuator/health/readiness").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/v1.0/**").permitAll()
+                .requestMatchers("/api/v1/quizzes/metrics").permitAll()
+                .requestMatchers("/api/v1/quizzes/metrics/**").permitAll()
                 .requestMatchers("/demo/**").permitAll()
                 .requestMatchers("/reset-password", "/reset-password/**").permitAll()
 

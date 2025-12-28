@@ -92,25 +92,31 @@ class QuestionControllerTest {
 
     @Test
     void getQuestionsForQuiz_shouldReturnPaginatedQuestions() {
-        Pageable pageable = PageRequest.of(0, 10);
+        int quizId = 5;
+        String locale = "en";
+        int page = 1;
+        int size = 10;
+        String sort = "id";
+
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
 
         QuestionDto dto = new QuestionDto(
                 1, 1, 1, "single_choice", "Question", null
         );
 
-        Page<QuestionDto> page =
-                new PageImpl<>(java.util.List.of(dto), pageable, 1);
+        Page<QuestionDto> pageResult =
+                new PageImpl<>(List.of(dto), pageable, 1);
 
-        when(service.getQuestionsForCurrentVersion(5, "en", pageable))
-                .thenReturn(page);
+        when(service.getQuestionsForCurrentVersion(quizId, locale, pageable))
+                .thenReturn(pageResult);
 
         Page<QuestionDto> result =
-                controller.getQuestionsForQuiz(5, "en", pageable);
+                controller.getQuestionsForQuiz(quizId, locale, page, size, sort);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().text()).isEqualTo("Question");
 
-        verify(service).getQuestionsForCurrentVersion(5, "en", pageable);
+        verify(service).getQuestionsForCurrentVersion(quizId, locale, pageable);
     }
 
     @Test

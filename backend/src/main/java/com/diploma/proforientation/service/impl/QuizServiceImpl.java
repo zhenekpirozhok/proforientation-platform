@@ -21,14 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
-import static com.diploma.proforientation.service.impl.ProfessionServiceImpl.FIELD_TITLE;
-import static com.diploma.proforientation.util.ErrorMessages.*;
+import static com.diploma.proforientation.util.Constants.*;
 
 @Service
 @RequiredArgsConstructor
 public class QuizServiceImpl implements QuizService {
-
-    private static final String ENTITY_TYPE_QUIZ = "quiz";
 
     private final QuizRepository quizRepo;
     private final ProfessionCategoryRepository categoryRepo;
@@ -128,7 +125,9 @@ public class QuizServiceImpl implements QuizService {
                 q.getStatus().name(),
                 q.getProcessingMode().name(),
                 q.getCategory() != null ? q.getCategory().getId() : null,
-                q.getAuthor() != null ? q.getAuthor().getId() : null
+                q.getAuthor() != null ? q.getAuthor().getId() : null,
+                q.getDescriptionDefault(),
+                q.getSecondsPerQuestionDefault()
         );
     }
 
@@ -142,6 +141,14 @@ public class QuizServiceImpl implements QuizService {
                 q.getTitleDefault()
         );
 
+        String description = translationResolver.resolve(
+                ENTITY_TYPE_QUIZ,
+                q.getId(),
+                FIELD_DESCRIPTION,
+                locale,
+                q.getDescriptionDefault()
+        );
+
         return new QuizDto(
                 q.getId(),
                 q.getCode(),
@@ -149,7 +156,9 @@ public class QuizServiceImpl implements QuizService {
                 q.getStatus().name(),
                 q.getProcessingMode().name(),
                 q.getCategory().getId(),
-                q.getAuthor().getId()
+                q.getAuthor().getId(),
+                description,
+                q.getSecondsPerQuestionDefault()
         );
     }
 }

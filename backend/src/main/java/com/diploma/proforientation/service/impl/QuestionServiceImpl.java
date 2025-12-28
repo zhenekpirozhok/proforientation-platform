@@ -22,17 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.diploma.proforientation.service.impl.OptionServiceImpl.ENTITY_TYPE_OPTION;
-import static com.diploma.proforientation.service.impl.OptionServiceImpl.FIELD_TEXT;
-import static com.diploma.proforientation.util.ErrorMessages.QUESTION_NOT_FOUND;
-import static com.diploma.proforientation.util.ErrorMessages.QUIZ_VERSION_NOT_FOUND;
+import static com.diploma.proforientation.util.Constants.*;
 
 @Service
 @RequiredArgsConstructor
 public class QuestionServiceImpl implements QuestionService {
-
-    private static final String ENTITY_TYPE_QUESTION = "question";
-    public static final String FIELD_LABEL = "label";
 
     private final QuestionRepository questionRepo;
     private final QuizVersionRepository quizVersionRepo;
@@ -133,7 +127,7 @@ public class QuestionServiceImpl implements QuestionService {
         String label = translationResolver.resolve(
                 ENTITY_TYPE_OPTION,
                 option.getId(),
-                FIELD_LABEL,
+                FIELD_TEXT,
                 locale,
                 option.getLabelDefault()
         );

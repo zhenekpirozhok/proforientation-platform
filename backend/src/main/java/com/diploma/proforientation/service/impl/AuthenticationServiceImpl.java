@@ -25,13 +25,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static com.diploma.proforientation.util.ErrorMessages.*;
+import static com.diploma.proforientation.util.Constants.*;
 
 @Service
 @Slf4j
 public class AuthenticationServiceImpl implements AuthenticationService {
     private static final String TOKEN_NAME = "name";
-    public static final String EMPTY_STRING = "";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
