@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 
-import static com.diploma.proforientation.util.ErrorMessages.*;
+import static com.diploma.proforientation.util.Constants.*;
 
 @Service
 @RequiredArgsConstructor

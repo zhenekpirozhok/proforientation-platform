@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.diploma.proforientation.util.ErrorMessages.CATEGORY_NOT_FOUND;
+import static com.diploma.proforientation.util.Constants.CATEGORY_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor

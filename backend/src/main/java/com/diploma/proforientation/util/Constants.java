@@ -1,6 +1,6 @@
 package com.diploma.proforientation.util;
 
-public final class ErrorMessages {
+public final class Constants {
 
     public static final String PROFESSION_NOT_FOUND = "Profession not found";
     public static final String CATEGORY_NOT_FOUND = "Category not found";
@@ -24,5 +24,17 @@ public final class ErrorMessages {
     public static final String INVALID_GOOGLE_ID = "Invalid Google ID token";
     public static final String UNKNOWN_USER = "Unknown user";
 
-    private ErrorMessages() {}
+    public static final String ENTITY_TYPE_QUESTION = "question";
+    public static final String ENTITY_TYPE_QUIZ = "quiz";
+    public static final String ENTITY_TYPE_OPTION = "question_option";
+    public static final String ENTITY_TYPE_PROF = "profession";
+
+    public static final String FIELD_LABEL = "label";
+    public static final String FIELD_TEXT = "text";
+    public static final String FIELD_DESCRIPTION = "description";
+    public static final String FIELD_TITLE = "title";
+
+    public static final String EMPTY_STRING = "";
+
+    private Constants() {}
 }

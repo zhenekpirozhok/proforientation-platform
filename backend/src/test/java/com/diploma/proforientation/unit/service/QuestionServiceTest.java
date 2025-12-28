@@ -20,8 +20,8 @@ import org.springframework.data.domain.*;
 import java.util.List;
 import java.util.Optional;
 
-import static com.diploma.proforientation.service.impl.OptionServiceImpl.ENTITY_TYPE_OPTION;
-import static com.diploma.proforientation.service.impl.QuestionServiceImpl.FIELD_LABEL;
+import static com.diploma.proforientation.util.Constants.ENTITY_TYPE_OPTION;
+import static com.diploma.proforientation.util.Constants.FIELD_LABEL;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

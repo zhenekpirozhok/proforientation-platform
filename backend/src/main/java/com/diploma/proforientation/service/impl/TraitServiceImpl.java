@@ -13,8 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.diploma.proforientation.service.impl.ProfessionServiceImpl.FIELD_DESCRIPTION;
-import static com.diploma.proforientation.util.ErrorMessages.TRAIT_NOT_FOUND;
+import static com.diploma.proforientation.util.Constants.FIELD_DESCRIPTION;
+import static com.diploma.proforientation.util.Constants.TRAIT_NOT_FOUND;
 
 
 @Service

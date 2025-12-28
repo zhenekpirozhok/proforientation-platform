@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.diploma.proforientation.util.ErrorMessages.QUIZ_METRICS_NOT_FOUND;
+import static com.diploma.proforientation.util.Constants.QUIZ_METRICS_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor

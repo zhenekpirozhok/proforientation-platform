@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.diploma.proforientation.util.ErrorMessages.TRANSLATION_NOT_FOUND;
+import static com.diploma.proforientation.util.Constants.TRANSLATION_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor

@@ -17,7 +17,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -120,8 +119,14 @@ public class QuestionController {
     public Page<QuestionDto> getQuestionsForQuiz(
             @PathVariable Integer quizId,
             @RequestParam(defaultValue = "en") String locale,
-            @PageableDefault(size = 20, sort = "ord") Pageable pageable
+            @Parameter(description = "Page number (0-based)", schema = @Schema(defaultValue = "1"))
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @Parameter(description = "Number of items per page", schema = @Schema(defaultValue = "20"))
+            @RequestParam(required = false, defaultValue = "20") int size,
+            @Parameter(description = "Sort by field", schema = @Schema(defaultValue = "id"))
+            @RequestParam(required = false, defaultValue = "id") String sort
     ) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
         return questionService.getQuestionsForCurrentVersion(quizId, locale, pageable);
     }
 

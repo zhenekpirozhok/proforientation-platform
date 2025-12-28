@@ -22,7 +22,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 
-import static com.diploma.proforientation.util.ErrorMessages.*;
+import static com.diploma.proforientation.util.Constants.*;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +30,6 @@ public class AttemptServiceImpl implements AttemptService {
 
     private static final String STATUS_IN_PROGRESS = "in_progress";
     private static final String STATUS_COMPLETED = "completed";
-    private static final String ENTITY_TYPE_QUIZ = "quiz";
-    private static final String FIELD_TITLE = "title";
 
     private final AttemptRepository attemptRepo;
     private final UserRepository userRepo;

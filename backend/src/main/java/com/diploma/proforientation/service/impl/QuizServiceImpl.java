@@ -21,15 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
-import static com.diploma.proforientation.service.impl.ProfessionServiceImpl.FIELD_TITLE;
-import static com.diploma.proforientation.util.ErrorMessages.*;
+import static com.diploma.proforientation.util.Constants.*;
 
 @Service
 @RequiredArgsConstructor
 public class QuizServiceImpl implements QuizService {
-
-    private static final String ENTITY_TYPE_QUIZ = "quiz";
-    private static final String FIELD_DESCRIPTION = "description";
 
     private final QuizRepository quizRepo;
     private final ProfessionCategoryRepository categoryRepo;
