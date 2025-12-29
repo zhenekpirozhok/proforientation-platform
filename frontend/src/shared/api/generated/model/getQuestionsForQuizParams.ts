@@ -4,9 +4,19 @@
  * OpenAPI definition
  * OpenAPI spec version: v0
  */
-import type { Pageable } from './pageable';
 
 export type GetQuestionsForQuizParams = {
 locale?: string;
-pageable: Pageable;
+/**
+ * Page number (0-based)
+ */
+page?: string;
+/**
+ * Number of items per page
+ */
+size?: string;
+/**
+ * Sort by field
+ */
+sort?: string;
 };

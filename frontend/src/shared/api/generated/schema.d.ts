@@ -991,6 +991,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/quizzes/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get public quiz metrics */
+        get: operations["getAllMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quizzes/metrics/{quizId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get public metrics for a quiz */
+        get: operations["getMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/account": {
         parameters: {
             query?: never;
@@ -1194,6 +1228,17 @@ export interface components {
              * @example 1
              */
             authorId?: number;
+            /**
+             * @description Localized quiz description
+             * @example This quiz helps identify suitable career paths
+             */
+            descriptionDefault?: string;
+            /**
+             * Format: int32
+             * @description Time limit per question in seconds
+             * @example 30
+             */
+            secondsPerQuestionDefault?: number;
         };
         /** @description Request payload for updating a quiz question */
         UpdateQuestionRequest: {
@@ -1890,6 +1935,24 @@ export interface components {
              * @example true
              */
             isCompleted?: boolean;
+        };
+        QuizPublicMetricsView: {
+            /** Format: int32 */
+            estimatedDurationSeconds?: number;
+            /** Format: int32 */
+            attemptsSubmitted?: number;
+            /** Format: double */
+            avgDurationSeconds?: number;
+            /** Format: int32 */
+            quizId?: number;
+            quizCode?: string;
+            quizStatus?: string;
+            /** Format: int32 */
+            categoryId?: number;
+            /** Format: int32 */
+            questionsTotal?: number;
+            /** Format: int32 */
+            attemptsTotal?: number;
         };
     };
     responses: never;
@@ -5365,9 +5428,14 @@ export interface operations {
     };
     getQuestionsForQuiz: {
         parameters: {
-            query: {
+            query?: {
                 locale?: string;
-                pageable: components["schemas"]["Pageable"];
+                /** @description Page number (0-based) */
+                page?: string;
+                /** @description Number of items per page */
+                size?: string;
+                /** @description Sort by field */
+                sort?: string;
             };
             header?: never;
             path: {
@@ -5650,6 +5718,120 @@ export interface operations {
             };
             /** @description Access denied */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
+            };
+        };
+    };
+    getAllMetrics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuizPublicMetricsView"][];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
+            };
+        };
+    };
+    getMetrics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuizPublicMetricsView"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };

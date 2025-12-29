@@ -25,4 +25,11 @@ export interface QuizDto {
   categoryId?: number;
   /** Identifier of the user who authored the quiz */
   authorId?: number;
+  /** Localized quiz description */
+  descriptionDefault?: string;
+  /**
+   * Time limit per question in seconds
+   * @minimum 0
+   */
+  secondsPerQuestionDefault?: number;
 }
