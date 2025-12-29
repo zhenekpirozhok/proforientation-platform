@@ -1940,10 +1940,6 @@ export interface components {
             /** Format: int32 */
             estimatedDurationSeconds?: number;
             /** Format: int32 */
-            attemptsSubmitted?: number;
-            /** Format: double */
-            avgDurationSeconds?: number;
-            /** Format: int32 */
             quizId?: number;
             quizCode?: string;
             quizStatus?: string;
@@ -1953,6 +1949,10 @@ export interface components {
             questionsTotal?: number;
             /** Format: int32 */
             attemptsTotal?: number;
+            /** Format: int32 */
+            attemptsSubmitted?: number;
+            /** Format: double */
+            avgDurationSeconds?: number;
         };
     };
     responses: never;
