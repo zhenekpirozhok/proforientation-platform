@@ -55,6 +55,7 @@ import type {
   ProfessionDto,
   QuestionDto,
   QuizDto,
+  QuizPublicMetricsView,
   QuizVersionDto,
   RefreshTokenRequest,
   RegisterUserDto,
@@ -4554,7 +4555,7 @@ Example:
  * @summary Get questions for current quiz version (paginated)
  */
 export const getGetQuestionsForQuizUrl = (quizId: number,
-    params: GetQuestionsForQuizParams,) => {
+    params?: GetQuestionsForQuizParams,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -4570,7 +4571,7 @@ export const getGetQuestionsForQuizUrl = (quizId: number,
 }
 
 export const getQuestionsForQuiz = async (quizId: number,
-    params: GetQuestionsForQuizParams, options?: RequestInit): Promise<QuestionDto> => {
+    params?: GetQuestionsForQuizParams, options?: RequestInit): Promise<QuestionDto> => {
   
   return orvalFetch<QuestionDto>(getGetQuestionsForQuizUrl(quizId,params),
   {      
@@ -4594,7 +4595,7 @@ export const getGetQuestionsForQuizQueryKey = (quizId?: number,
 
     
 export const getGetQuestionsForQuizQueryOptions = <TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(quizId: number,
-    params: GetQuestionsForQuizParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+    params?: GetQuestionsForQuizParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -4618,7 +4619,7 @@ export type GetQuestionsForQuizQueryError = ExceptionDto | ExceptionDto | Except
 
 export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
  quizId: number,
-    params: GetQuestionsForQuizParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>> & Pick<
+    params: undefined |  GetQuestionsForQuizParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getQuestionsForQuiz>>,
           TError,
@@ -4629,7 +4630,7 @@ export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQues
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
  quizId: number,
-    params: GetQuestionsForQuizParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>> & Pick<
+    params?: GetQuestionsForQuizParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getQuestionsForQuiz>>,
           TError,
@@ -4640,7 +4641,7 @@ export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQues
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
  quizId: number,
-    params: GetQuestionsForQuizParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+    params?: GetQuestionsForQuizParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
@@ -4649,7 +4650,7 @@ export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQues
 
 export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
  quizId: number,
-    params: GetQuestionsForQuizParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+    params?: GetQuestionsForQuizParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
@@ -5114,6 +5115,206 @@ export function useSearch1<TData = Awaited<ReturnType<typeof search1>>, TError =
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getSearch1QueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Get public quiz metrics
+ */
+export const getGetAllMetricsUrl = () => {
+
+
+  
+
+  return `/api/v1/quizzes/metrics`
+}
+
+export const getAllMetrics = async ( options?: RequestInit): Promise<QuizPublicMetricsView[]> => {
+  
+  return orvalFetch<QuizPublicMetricsView[]>(getGetAllMetricsUrl(),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetAllMetricsQueryKey = () => {
+    return [
+    `/api/v1/quizzes/metrics`
+    ] as const;
+    }
+
+    
+export const getGetAllMetricsQueryOptions = <TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAllMetricsQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllMetrics>>> = ({ signal }) => getAllMetrics({ signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllMetrics>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAllMetricsQueryResult = NonNullable<Awaited<ReturnType<typeof getAllMetrics>>>
+export type GetAllMetricsQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+
+
+export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMetrics>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllMetrics>>,
+          TError,
+          Awaited<ReturnType<typeof getAllMetrics>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMetrics>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllMetrics>>,
+          TError,
+          Awaited<ReturnType<typeof getAllMetrics>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get public quiz metrics
+ */
+
+export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAllMetricsQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * @summary Get public metrics for a quiz
+ */
+export const getGetMetricsUrl = (quizId: number,) => {
+
+
+  
+
+  return `/api/v1/quizzes/metrics/${quizId}`
+}
+
+export const getMetrics = async (quizId: number, options?: RequestInit): Promise<QuizPublicMetricsView> => {
+  
+  return orvalFetch<QuizPublicMetricsView>(getGetMetricsUrl(quizId),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetMetricsQueryKey = (quizId?: number,) => {
+    return [
+    `/api/v1/quizzes/metrics/${quizId}`
+    ] as const;
+    }
+
+    
+export const getGetMetricsQueryOptions = <TData = Awaited<ReturnType<typeof getMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMetricsQueryKey(quizId);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMetrics>>> = ({ signal }) => getMetrics(quizId, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(quizId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMetrics>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMetricsQueryResult = NonNullable<Awaited<ReturnType<typeof getMetrics>>>
+export type GetMetricsQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+
+
+export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+ quizId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMetrics>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMetrics>>,
+          TError,
+          Awaited<ReturnType<typeof getMetrics>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+ quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMetrics>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMetrics>>,
+          TError,
+          Awaited<ReturnType<typeof getMetrics>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+ quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get public metrics for a quiz
+ */
+
+export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+ quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMetricsQueryOptions(quizId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

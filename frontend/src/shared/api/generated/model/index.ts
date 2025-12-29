@@ -48,6 +48,7 @@ export * from './questionDtoQtype';
 export * from './quizDto';
 export * from './quizDtoProcessingMode';
 export * from './quizDtoStatus';
+export * from './quizPublicMetricsView';
 export * from './quizVersionDto';
 export * from './recommendationDto';
 export * from './refreshTokenRequest';
