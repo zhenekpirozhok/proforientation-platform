@@ -8,6 +8,9 @@ import { Alert } from "antd";
 import { useQuizzes } from "@/entities/quiz/api/useQuizzes";
 import type { QuizDto } from "@/shared/api/generated/model";
 
+import { useGetAllMetrics } from "@/shared/api/generated/api";
+import type { QuizPublicMetricsView } from "@/shared/api/generated/model";
+
 import { QuizzesHeader } from "@/features/quizzes/ui/QuizzesHeader";
 import { QuizzesFilters } from "@/features/quizzes/ui/QuizzesFilters";
 import { QuizGridSkeleton } from "@/features/quizzes/ui/QuizGridSkeleton";
@@ -15,7 +18,12 @@ import { QuizEmptyState } from "@/features/quizzes/ui/QuizEmptyState";
 import { QuizCard } from "@/entities/quiz/ui/QuizCard";
 import { QuizzesPagination } from "@/features/quizzes/ui/QuizzesPagination";
 
-type PageLike<T> = { content?: T[]; items?: T[]; totalElements?: number; total?: number };
+type PageLike<T> = {
+  content?: T[];
+  items?: T[];
+  totalElements?: number;
+  total?: number;
+};
 
 function extractItems<T>(data: unknown): T[] {
   if (Array.isArray(data)) return data as T[];
@@ -45,7 +53,21 @@ export default function QuizzesPage() {
     duration: "any",
   });
 
-  const { data, isLoading, error } = useQuizzes({ page, size: pageSize });
+  const apiPage = Math.max(0, page - 1);
+
+  const {
+    data,
+    isLoading: isQuizzesLoading,
+    error: quizzesError,
+  } = useQuizzes({ page: apiPage, size: pageSize });
+
+  const {
+    data: metrics,
+    isLoading: isMetricsLoading,
+    error: metricsError,
+  } = useGetAllMetrics({
+    query: { staleTime: 60_000, gcTime: 5 * 60_000 },
+  });
 
   const items = useMemo(
     () => extractItems<QuizDto>(data).filter(hasNumberId),
@@ -54,8 +76,17 @@ export default function QuizzesPage() {
 
   const total = useMemo(() => extractTotal(data), [data]);
 
+  const metricsByQuizId = useMemo(() => {
+    const map = new Map<number, QuizPublicMetricsView>();
+    (metrics ?? []).forEach((m: QuizPublicMetricsView) => {
+      if (typeof m.quizId === "number") map.set(m.quizId, m);
+    });
+    return map;
+  }, [metrics]);
+
   const filtered = useMemo(() => {
     const q = filters.q.trim().toLowerCase();
+
     let list = items;
 
     if (q) {
@@ -63,11 +94,17 @@ export default function QuizzesPage() {
     }
 
     if (filters.category !== "all") {
-      list = list.filter((x) => (x.categoryId ?? "").toString().toLowerCase() === filters.category);
+      list = list.filter((quiz) => {
+        const m = metricsByQuizId.get(quiz.id);
+        const cat = m?.categoryId;
+        return cat != null && String(cat) === String(filters.category);
+      });
     }
 
     return list;
-  }, [items, filters]);
+  }, [items, filters, metricsByQuizId]);
+
+  const isLoading = isQuizzesLoading || isMetricsLoading;
 
   return (
     <div className="pb-4">
@@ -79,9 +116,19 @@ export default function QuizzesPage() {
         onClear={() => setFilters({ q: "", category: "all", duration: "any" })}
       />
 
-      {error ? (
+      {quizzesError ? (
         <div className="mt-6">
           <Alert type="error" message={t("error")} showIcon />
+        </div>
+      ) : null}
+
+      {metricsError ? (
+        <div className="mt-6">
+          <Alert
+            type="warning"
+            message="Metrics are temporarily unavailable"
+            showIcon
+          />
         </div>
       ) : null}
 
@@ -92,7 +139,12 @@ export default function QuizzesPage() {
       ) : (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((q) => (
-            <QuizCard key={q.id} locale={locale} quiz={q} />
+            <QuizCard
+              key={q.id}
+              locale={locale}
+              quiz={q}
+              metric={metricsByQuizId.get(q.id)} 
+            />
           ))}
         </div>
       )}

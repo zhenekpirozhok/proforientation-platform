@@ -17,6 +17,7 @@
     "start": "Start Quiz",
     "details": "Details",
     "taken": "{count} taken",
+    "questions": "questions",
     "min": "{count} min",
     "emptyTitle": "No quizzes created yet",
     "emptyHint": "Try adjusting filters or check back later.",
