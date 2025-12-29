@@ -4231,12 +4231,6 @@ components:
         estimatedDurationSeconds:
           type: integer
           format: int32
-        attemptsSubmitted:
-          type: integer
-          format: int32
-        avgDurationSeconds:
-          type: number
-          format: double
         quizId:
           type: integer
           format: int32
@@ -4253,6 +4247,12 @@ components:
         attemptsTotal:
           type: integer
           format: int32
+        attemptsSubmitted:
+          type: integer
+          format: int32
+        avgDurationSeconds:
+          type: number
+          format: double
   securitySchemes:
     Bearer Authentication:
       type: http
