@@ -5,11 +5,21 @@
     "english": "English"
   },
   "Quizzes": {
-    "title": "Available quizzes",
+    "title": "Career Assessment Quizzes",
+    "subtitle": "Discover your strengths and find the perfect career path with our comprehensive assessments",
     "loading": "Loading quizzes…",
     "error": "Failed to load quizzes",
+    "searchPlaceholder": "Search quizzes by title or topic…",
+    "allCategories": "All Categories",
+    "anyDuration": "Any Duration",
+    "clearFilters": "Clear all filters",
+    "availableQuizzes": "Available Quizzes",
+    "start": "Start Quiz",
     "details": "Details",
-    "start": "Start quiz",
+    "taken": "{count} taken",
+    "min": "{count} min",
+    "emptyTitle": "No quizzes created yet",
+    "emptyHint": "Try adjusting filters or check back later.",
     "fallbackTitle": "Quiz #{id}"
   },
   "QuizDetails": {
