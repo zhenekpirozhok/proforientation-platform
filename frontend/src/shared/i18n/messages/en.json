@@ -92,5 +92,21 @@
     "settings": "Settings",
     "language": "Language",
     "signIn": "Sign in"
+  },
+  "Landing": {
+    "title": "Find your best career direction",
+    "subtitle": "Quick visual quizzes that explain results and suggest professions.",
+    "ctaPrimary": "Start a quiz",
+    "ctaSecondary": "Sign up",
+    "trust": "Guest mode available • Mobile-first • Clear explanations",
+    "featuresTitle": "Why you’ll like it",
+    "feature1Title": "Fast & visual",
+    "feature1Text": "Finish in minutes with a clean step-by-step flow.",
+    "feature2Title": "Clear results",
+    "feature2Text": "Understand your profile and why careers match you.",
+    "feature3Title": "Save & return",
+    "feature3Text": "Keep results in your dashboard after login.",
+    "ctaTitle": "Ready to discover your career path?",
+    "ctaSubtitle": "Start a quiz as a guest — save your results later if you want."
   }
 }

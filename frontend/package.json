@@ -19,6 +19,7 @@
     "gen:api": "npm run gen:api:types && npm run gen:api:client"
   },
   "dependencies": {
+    "framer-motion": "^12.23.26",
     "next": "16.0.10",
     "next-intl": "^4.6.1",
     "react": "19.2.1",
