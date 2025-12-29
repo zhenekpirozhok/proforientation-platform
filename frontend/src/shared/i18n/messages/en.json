@@ -108,5 +108,17 @@
     "feature3Text": "Keep results in your dashboard after login.",
     "ctaTitle": "Ready to discover your career path?",
     "ctaSubtitle": "Start a quiz as a guest — save your results later if you want."
+  },
+  "Errors": {
+    "title": "Something went wrong",
+    "subtitle": "We couldn’t load this page. Please try again.",
+    "retry": "Try again",
+    "toQuizzes": "Go to quizzes"
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "subtitle": "The page you’re looking for doesn’t exist.",
+    "toHome": "Go home",
+    "toQuizzes": "Go to quizzes"
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from "@/shared/i18n/lib/navigation";
 import { useLocale, useTranslations } from 'next-intl';
 import {
   useQuery,

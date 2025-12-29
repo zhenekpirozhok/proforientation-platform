@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { useRouter } from "@/shared/i18n/lib/navigation";
 import { useLocale, useTranslations, type _Translator } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 

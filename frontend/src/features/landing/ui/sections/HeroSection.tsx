@@ -3,7 +3,7 @@
 import { Button, Typography } from "antd";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/shared/i18n/lib/navigation";
 import { fadeUp } from "../../lib/motion";
 import { PreviewCard } from "./PreviewCard";
 

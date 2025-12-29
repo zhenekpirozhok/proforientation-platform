@@ -1,5 +1,5 @@
 import { LandingPage } from "@/features/landing/ui/LandingPage";
 
-export default function Page() {
+export default async function Page() {
   return <LandingPage />;
 }

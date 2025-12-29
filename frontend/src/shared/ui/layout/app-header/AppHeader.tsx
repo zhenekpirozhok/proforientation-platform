@@ -1,6 +1,6 @@
 "use client";
 
-import { Layout, Button, Select, Avatar } from "antd";
+import { Button, Select, Avatar } from "antd";
 import { MenuOutlined, SettingOutlined } from "@ant-design/icons";
 import { useMemo, useState } from "react";
 import Image from "next/image";
@@ -12,8 +12,6 @@ import { useEffectiveTheme } from "@/shared/model/theme/useEffectiveTheme";
 import { Link, usePathname, useRouter } from "@/shared/i18n/lib/navigation";
 
 import "./app-header.css";
-
-const { Header } = Layout;
 
 type Locale = "en" | "ru";
 type NavItem = { key: string; label: string; href: string; show: boolean };
@@ -38,40 +36,47 @@ export function AppHeader() {
   const navItems = useMemo<NavItem[]>(
     () => [
       { key: "quizzes", label: tHeader("quizzes"), href: "/quizzes", show: true },
-      { key: "profile", label: tHeader("profile"), href: "/profile", show: isAuthenticated },
+      {
+        key: "profile",
+        label: tHeader("profile"),
+        href: "/profile",
+        show: isAuthenticated,
+      },
       { key: "admin", label: tHeader("admin"), href: "/admin", show: isAdmin },
     ],
     [tHeader, isAuthenticated, isAdmin]
   );
 
-  const activeHref = useMemo(() => {
-    return pathname;
-  }, [pathname]);
-
-  const isActive = (href: string) => activeHref === href || activeHref.startsWith(`${href}/`);
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`);
 
   const onLocaleChange = (nextLocale: Locale) => {
     router.replace(pathname, { locale: nextLocale });
   };
 
   return (
-    <Header
-      style={{
-        padding: 0,
-        background: isDark ? "#020617" : "#FFFFFF",
-        borderBottom: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
-      }}
-    >
-      <div className="mx-auto flex h-full max-w-[1200px] items-center justify-between px-4 md:px-6">
+    <>
+      <div
+        className="flex h-16 items-center justify-between"
+        style={{
+          background: "transparent",
+        }}
+      >
         <div className="flex items-center gap-6">
           <Link href="/" locale={locale} className="flex items-center gap-2">
-            <Image src="/images/logo.svg" alt={tHeader("brand")} width={28} height={28} priority />
+            <Image
+              src="/images/logo.svg"
+              alt={tHeader("brand")}
+              width={28}
+              height={28}
+              priority
+            />
             <span className="font-heading text-lg font-semibold text-slate-900 dark:text-slate-100">
               {tHeader("brand")}
             </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden items-center gap-1 md:flex">
             {navItems
               .filter((i) => i.show)
               .map((item) => {
@@ -117,9 +122,7 @@ export function AppHeader() {
           {isAuthenticated ? (
             <button
               type="button"
-              className="hidden md:flex items-center gap-2 rounded-full px-2 py-1
-                         text-slate-900 hover:bg-slate-100
-                         dark:text-slate-100 dark:hover:bg-slate-900"
+              className="hidden items-center gap-2 rounded-full px-2 py-1 text-slate-900 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-900 md:flex"
               aria-label={tHeader("userMenu")}
             >
               <Avatar size="small" />
@@ -145,6 +148,6 @@ export function AppHeader() {
       </div>
 
       <MobileNavDrawer open={open} onClose={() => setOpen(false)} />
-    </Header>
+    </>
   );
 }

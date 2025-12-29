@@ -1,21 +1,24 @@
 "use client";
 
-import { Layout } from "antd";
 import { AppHeader } from "../app-header/AppHeader";
 import { AppFooter } from "../app-footer/AppFooter";
 
-const { Content } = Layout;
-
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <Layout className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <AppHeader />
+    <div className="min-h-screen flex flex-col bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <header className="border-b border-slate-200/60 bg-white/80 backdrop-blur dark:border-slate-800/60 dark:bg-slate-950/70">
+        <div className="mx-auto w-full max-w-[1200px] px-4 md:px-6">
+          <AppHeader />
+        </div>
+      </header>
 
-      <Content className="flex flex-1 justify-center px-4 py-6 md:px-6 bg-transparent">
-        <div className="w-full max-w-[1200px]">{children}</div>
-      </Content>
+      <main className="flex-1">{children}</main>
 
-      <AppFooter />
-    </Layout>
+      <footer className="border-t border-slate-200/60 bg-white/80 backdrop-blur dark:border-slate-800/60 dark:bg-slate-950/70">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-6 md:px-6">
+          <AppFooter />
+        </div>
+      </footer>
+    </div>
   );
 }

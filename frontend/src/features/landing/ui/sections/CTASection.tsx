@@ -2,7 +2,7 @@
 
 import { Button, Card } from "antd";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/shared/i18n/lib/navigation";
 
 export function CTASection() {
   const t = useTranslations("Landing");

@@ -1,56 +1,82 @@
 "use client";
 
-import { Layout } from "antd";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname } from "@/shared/i18n/lib/navigation";
 import clsx from "clsx";
 
-const { Footer } = Layout;
+type Locale = "en" | "ru";
 
 export function AppFooter() {
-  const locale = useLocale() as "en" | "ru";
+  const locale = useLocale() as Locale;
   const pathname = usePathname();
-
   const tFooter = useTranslations("Footer");
 
   return (
-    <Footer className="flex justify-end gap-6 text-sm text-slate-500">
-      <span className="cursor-pointer transition-colors hover:text-slate-700">
-        {tFooter("privacy")}
-      </span>
-      <span className="cursor-pointer transition-colors hover:text-slate-700">
-        {tFooter("terms")}
-      </span>
+    <div
+      className="
+        flex flex-col-reverse gap-4
+        md:flex-row md:items-center md:justify-between
+        text-sm
+        text-slate-600 dark:text-slate-300
+      "
+    >
+      {/* Left / bottom: legal */}
+      <div className="flex flex-wrap items-center gap-4">
+        <span className="cursor-pointer transition-colors hover:text-slate-900 dark:hover:text-white">
+          {tFooter("privacy")}
+        </span>
+        <span className="cursor-pointer transition-colors hover:text-slate-900 dark:hover:text-white">
+          {tFooter("terms")}
+        </span>
+      </div>
 
-      <span className="flex items-center gap-2">
-        <Link
+      {/* Right / top: locale switch */}
+      <div className="flex items-center gap-2">
+        <FooterLocaleLink
           href={pathname}
           locale="en"
-          className={clsx(
-            "transition-colors",
-            locale === "en"
-              ? "font-semibold text-indigo-600 dark:text-indigo-400"
-              : "text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
-          )}
+          active={locale === "en"}
         >
           EN
-        </Link>
+        </FooterLocaleLink>
 
-        <span className="text-slate-400">|</span>
+        <span className="opacity-40">|</span>
 
-        <Link
+        <FooterLocaleLink
           href={pathname}
           locale="ru"
-          className={clsx(
-            "transition-colors",
-            locale === "ru"
-              ? "font-semibold text-indigo-600 dark:text-indigo-400"
-              : "text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
-          )}
+          active={locale === "ru"}
         >
           RU
-        </Link>
-      </span>
-    </Footer>
+        </FooterLocaleLink>
+      </div>
+    </div>
+  );
+}
+
+function FooterLocaleLink({
+  href,
+  locale,
+  active,
+  children,
+}: {
+  href: string;
+  locale: Locale;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      locale={locale}
+      className={clsx(
+        "transition-colors",
+        active
+          ? "font-semibold text-indigo-600 dark:text-indigo-400"
+          : "hover:text-indigo-600 dark:hover:text-indigo-400"
+      )}
+    >
+      {children}
+    </Link>
   );
 }
