@@ -70,30 +70,24 @@
     "errorQuestion": "Question error: {message}",
     "errorGeneric": "Error: {message}"
   },
-  "Results": {
-    "title": "Test Results",
-    "loading": "Loading…",
-    "attempt": "Attempt #{id}",
-
-    "invalidAttemptId": "Invalid attempt id.",
-    "noSessionResult": "Result is not available in this session.",
-
-    "goToQuiz": "Go to quiz",
-    "backToQuiz": "Back to quiz",
-    "retake": "Retake quiz",
-
-    "catalogLoading": "Loading trait/profession catalog…",
-    "catalogError": "Failed to load catalog",
-    "updating": "Updating…",
-
-    "traitsTitle": "Your Traits",
-    "recommendedTitle": "Recommended Fields",
-    "notInThisCategory": "(not in this category)",
-
-    "matchScore": "Match score: {score}%",
-
-    "fallbackProfessionTitle": "Profession #{id}"
-  },
+"Results": {
+  "completeTitle": "Quiz Complete!",
+  "heroTypeTitle": "Your result: {type}",
+  "heroTypeSubtitle": "This result reflects the patterns and tendencies shown in your answers.",
+  "heroFallbackType": "Top",
+  "traitsTitle": "Your Results",
+  "topMatchesTitle": "Your Top Career Matches",
+  "topMatchesSubtitle": "These professions align with your personality and interests",
+  "match": "Match",
+  "save": "Save my results",
+  "retake": "Take another quiz",
+  "invalidAttemptId": "Invalid attempt id",
+  "noSessionResult": "We couldn't find your result in this session.",
+  "goToQuiz": "Go to quiz",
+  "catalogError": "Catalog is temporarily unavailable",
+  "fallbackProfessionTitle": "Profession #{id}",
+  "takeAnother": "Take another quiz"
+},
   "Header": {
     "brand": "CareerPath",
     "quizzes": "Quizzes",

@@ -70,30 +70,24 @@
     "errorQuestion": "Ошибка вопроса: {message}",
     "errorGeneric": "Ошибка: {message}"
   },
-  "Results": {
-    "title": "Результаты теста",
-    "loading": "Загрузка…",
-    "attempt": "Попытка №{id}",
-
-    "invalidAttemptId": "Некорректный идентификатор попытки.",
-    "noSessionResult": "Результаты недоступны в этой сессии.",
-
-    "goToQuiz": "К тесту",
-    "backToQuiz": "Назад к тесту",
-    "retake": "Пройти ещё раз",
-
-    "catalogLoading": "Загрузка справочника качеств/профессий…",
-    "catalogError": "Не удалось загрузить справочник",
-    "updating": "Обновление…",
-
-    "traitsTitle": "Ваши качества",
-    "recommendedTitle": "Рекомендуемые направления",
-    "notInThisCategory": "(нет в этой категории)",
-
-    "matchScore": "Совпадение: {score}%",
-
-    "fallbackProfessionTitle": "Профессия №{id}"
-  },
+"Results": {
+  "completeTitle": "Тест завершён!",
+  "heroTypeTitle": "Ваш результат: {type}",
+  "heroTypeSubtitle": "На основе ваших ответов был определён результат, который лучше всего вам соответствует.",
+  "heroFallbackType": "Лидер",
+  "traitsTitle": "Ваши результаты",
+  "topMatchesTitle": "Лучшие совпадения по профессиям",
+  "topMatchesSubtitle": "Эти профессии лучше всего соответствуют вашим интересам и особенностям",
+  "match": "Совпадение",
+  "save": "Сохранить результат",
+  "retake": "Пройти другой тест",
+  "invalidAttemptId": "Некорректный id попытки",
+  "noSessionResult": "Не удалось найти результат в текущей сессии.",
+  "goToQuiz": "Перейти к тесту",
+  "catalogError": "Каталог временно недоступен",
+  "fallbackProfessionTitle": "Профессия №{id}",
+  "takeAnother": "Пройти ещё один тест"
+},
   "Header": {
     "brand": "CareerPath",
     "quizzes": "Тесты",
