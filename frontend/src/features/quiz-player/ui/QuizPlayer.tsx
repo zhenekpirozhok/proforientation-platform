@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useRouter } from "@/shared/i18n/lib/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 
 import { useCurrentQuizVersionIdQuery } from "../model/useCurrentQuizVersionIdQuery";
@@ -12,7 +12,11 @@ import type { Question, PageLike } from "@/entities/question/model/types";
 import type { AttemptResult } from "@/features/quiz-player/model/types";
 import { parseResponse } from "@/shared/api/parseResponse";
 
-import { useStartAttempt, useAddAnswersBulk, useSubmit } from "@/shared/api/generated/api";
+import {
+  useStartAttempt,
+  useAddAnswersBulk,
+  useSubmit,
+} from "@/shared/api/generated/api";
 
 import { QuizPlayerLayout } from "./components/QuizPlayerLayout";
 import { QuizProgressHeader } from "./components/QuizProgressHeader";
@@ -58,6 +62,17 @@ function indexInBatch(questionIndex0: number) {
 const quizQuestionBatchKey = (quizId: number, batch: number, locale: string) =>
   ["questions", "quiz", quizId, "batch", batch, "size", BATCH_SIZE, "locale", locale] as const;
 
+function detectLocale() {
+  if (typeof document !== "undefined") {
+    const l = (document.documentElement.getAttribute("lang") || "").trim();
+    if (l) return l.split("-")[0];
+  }
+  if (typeof navigator !== "undefined" && navigator.language) {
+    return navigator.language.split("-")[0];
+  }
+  return "en";
+}
+
 async function fetchQuestionBatch(params: {
   quizId: number;
   batch: number;
@@ -92,10 +107,21 @@ async function fetchQuestionBatch(params: {
   };
 }
 
+async function fetchAttemptResult(attemptId: number, guestToken: string) {
+  const res = await fetch(`/api/attempts/${attemptId}/result`, {
+    method: "GET",
+    headers: {
+      ...(guestToken ? { "x-guest-token": guestToken } : {}),
+    },
+    cache: "no-store",
+  });
+
+  return parseResponse<AttemptResult>(res);
+}
+
 export function QuizPlayer({ quizId }: Props) {
   const router = useRouter();
   const qc = useQueryClient();
-  const locale = useLocale();
   const t = useTranslations("QuizPlayer");
 
   const {
@@ -107,6 +133,7 @@ export function QuizPlayer({ quizId }: Props) {
     totalQuestions,
     answersByQuestionId,
     quizVersionId,
+    bulkSentAttemptId,
     resumeOrStart,
     setAttempt,
     setStatus,
@@ -116,20 +143,19 @@ export function QuizPlayer({ quizId }: Props) {
     goPrev,
     selectOption,
     setResult,
+    setBulkSent,
   } = useQuizPlayerStore();
 
   const versionQuery = useCurrentQuizVersionIdQuery(quizId);
 
   const startAttempt = useStartAttempt({
     mutation: { retry: false },
-    request: { headers: { "x-locale": locale } },
   });
 
   const addAnswersBulk = useAddAnswersBulk({
     mutation: { retry: false },
     request: {
       headers: {
-        "x-locale": locale,
         ...(guestToken ? { "x-guest-token": guestToken } : {}),
       },
     },
@@ -139,11 +165,12 @@ export function QuizPlayer({ quizId }: Props) {
     mutation: { retry: false },
     request: {
       headers: {
-        "x-locale": locale,
         ...(guestToken ? { "x-guest-token": guestToken } : {}),
       },
     },
   });
+
+  const startedForVersionRef = useRef<number | null>(null);
 
   useEffect(() => {
     const vId = versionQuery.data;
@@ -153,6 +180,9 @@ export function QuizPlayer({ quizId }: Props) {
 
     const s = useQuizPlayerStore.getState();
     if (s.attemptId && s.guestToken) return;
+
+    if (startedForVersionRef.current === vId) return;
+    startedForVersionRef.current = vId;
 
     let cancelled = false;
 
@@ -165,6 +195,7 @@ export function QuizPlayer({ quizId }: Props) {
         setAttempt(started.attemptId, started.guestToken);
       } catch (e) {
         if (cancelled) return;
+        startedForVersionRef.current = null;
         setError(safeErrorMessage(e));
       }
     })();
@@ -172,16 +203,17 @@ export function QuizPlayer({ quizId }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [quizId, resumeOrStart, setAttempt, setError, startAttempt, versionQuery.data]);
+  }, [quizId, resumeOrStart, setAttempt, setError, startAttempt.mutateAsync, versionQuery.data]);
 
   const ready = Boolean(attemptId && guestToken && quizVersionId);
 
   const safeIndex = Math.max(0, currentIndex);
   const batch = Math.max(0, batchIndexFromQuestionIndex(safeIndex));
+  const locale = useMemo(() => detectLocale(), []);
 
   const batchQuery = useQuery({
     queryKey: quizQuestionBatchKey(quizId, batch, locale),
-    enabled: ready && Number.isFinite(quizId) && quizId > 0 && Boolean(locale),
+    enabled: ready && Number.isFinite(quizId) && quizId > 0,
     queryFn: ({ signal }) => fetchQuestionBatch({ quizId, batch, locale, signal }),
     staleTime: 30_000,
     placeholderData: keepPreviousData,
@@ -252,19 +284,38 @@ export function QuizPlayer({ quizId }: Props) {
 
       setStatus("submitting");
 
-      await addAnswersBulk.mutateAsync({
-        attemptId,
-        data: { optionIds },
-      });
+      if (bulkSentAttemptId !== attemptId) {
+        await addAnswersBulk.mutateAsync({
+          attemptId,
+          data: { optionIds },
+        });
+        setBulkSent(attemptId);
+      }
 
       const result = await submitAttempt.mutateAsync({ attemptId });
       setResult(result as AttemptResult);
 
       setStatus("finished");
-      router.push(`/${locale}/results/${attemptId}`);
+      router.push(`/results/${attemptId}`);
     } catch (e) {
+      const message = safeErrorMessage(e);
+
+      if (message.includes("Attempt already submitted")) {
+        try {
+          const r = await fetchAttemptResult(attemptId, guestToken);
+          setResult(r as AttemptResult);
+          setStatus("finished");
+          router.push(`/results/${attemptId}`);
+          return;
+        } catch (e2) {
+          setStatus("in-progress");
+          setError(safeErrorMessage(e2));
+          return;
+        }
+      }
+
       setStatus("in-progress");
-      setError(safeErrorMessage(e));
+      setError(message);
     }
   }
 
@@ -317,7 +368,6 @@ export function QuizPlayer({ quizId }: Props) {
   const currentHuman = safeIndex + 1;
   const total = totalQuestions ?? null;
 
-  const nextDisabled = !canNext || !selectedOptionId || isBusy;
   const submitDisabled =
     !canSubmit ||
     !selectedOptionId ||
@@ -330,28 +380,29 @@ export function QuizPlayer({ quizId }: Props) {
       <QuizProgressHeader current={currentHuman} total={total} />
 
       <AnimatedQuestion motionKey={question.id}>
-      <QuestionCard
-        question={question}
-        selectedOptionId={selectedOptionId}
-        onSelect={selectOption}
-        disabled={isBusy}
-      />
+        <QuestionCard
+          question={question}
+          selectedOptionId={selectedOptionId}
+          onSelect={selectOption}
+          disabled={isBusy}
+        />
       </AnimatedQuestion>
-<QuizPlayerActions
-  backLabel={t("back")}
-  nextLabel={t("next")}
-  submitLabel={t("submit")}
-  onBack={() => {
-    if (safeIndex <= 0 || isBusy) return;
-    goPrev();
-  }}
-  onNext={onNext}
-  onSubmit={onSubmit}
-  backDisabled={safeIndex <= 0 || isBusy}
-  nextDisabled={!canNext || !selectedOptionId || isBusy}
-  submitDisabled={submitDisabled}
-  isLast={isLast}
-/>
+
+      <QuizPlayerActions
+        backLabel={t("back")}
+        nextLabel={t("next")}
+        submitLabel={t("submit")}
+        onBack={() => {
+          if (safeIndex <= 0 || isBusy) return;
+          goPrev();
+        }}
+        onNext={onNext}
+        onSubmit={onSubmit}
+        backDisabled={safeIndex <= 0 || isBusy}
+        nextDisabled={!canNext || !selectedOptionId || isBusy}
+        submitDisabled={submitDisabled}
+        isLast={isLast}
+      />
     </QuizPlayerLayout>
   );
 }

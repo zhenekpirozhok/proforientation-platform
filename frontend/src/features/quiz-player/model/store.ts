@@ -21,6 +21,8 @@ type QuizPlayerActions = {
 
   setResult(result: AttemptResult | null): void;
 
+  setBulkSent(attemptId: number | null): void;
+
   resetAll(): void;
 };
 
@@ -41,6 +43,8 @@ const initialState: QuizPlayerState = {
   answersByQuestionId: {},
 
   result: null,
+
+  bulkSentAttemptId: null,
 };
 
 function clampIndex(index: number, total: number | null) {
@@ -66,7 +70,8 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           s.currentIndex === 0 &&
           s.totalQuestions == null &&
           Object.keys(s.answersByQuestionId).length === 0 &&
-          s.result == null;
+          s.result == null &&
+          s.bulkSentAttemptId == null;
 
         if (same) return;
 
@@ -81,6 +86,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           totalQuestions: null,
           answersByQuestionId: {},
           result: null,
+          bulkSentAttemptId: null,
         });
       },
 
@@ -125,7 +131,8 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           s.currentIndex === 0 &&
           s.totalQuestions == null &&
           Object.keys(s.answersByQuestionId).length === 0 &&
-          s.result == null;
+          s.result == null &&
+          s.bulkSentAttemptId == null;
 
         if (alreadyStarting) return;
 
@@ -140,12 +147,18 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           totalQuestions: null,
           answersByQuestionId: {},
           result: null,
+          bulkSentAttemptId: null,
         });
       },
 
       setAttempt: (attemptId, guestToken) => {
         const s = get();
-        if (s.attemptId === attemptId && s.guestToken === guestToken && s.status === 'in-progress' && s.error == null) {
+        if (
+          s.attemptId === attemptId &&
+          s.guestToken === guestToken &&
+          s.status === 'in-progress' &&
+          s.error == null
+        ) {
           return;
         }
         set({
@@ -153,6 +166,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           guestToken,
           status: 'in-progress',
           error: null,
+          bulkSentAttemptId: null,
         });
       },
 
@@ -186,6 +200,8 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
       setResult: (result) => set({ result }),
 
+      setBulkSent: (attemptId) => set({ bulkSentAttemptId: attemptId }),
+
       resetAll: () => set(initialState),
     }),
     {
@@ -201,6 +217,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
         totalQuestions: s.totalQuestions,
         answersByQuestionId: s.answersByQuestionId,
         result: s.result,
+        bulkSentAttemptId: s.bulkSentAttemptId,
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;

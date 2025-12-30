@@ -78,7 +78,7 @@ export default function ResultPage() {
 
   const goToQuiz = () => {
     const safeQuizId = Number.isFinite(quizId) && quizId > 0 ? quizId : 1;
-    router.push(`/${locale}/quizzes/${safeQuizId}/play`);
+    router.push(`/quizzes/${safeQuizId}/play`);
   };
 
   const retake = () => {
