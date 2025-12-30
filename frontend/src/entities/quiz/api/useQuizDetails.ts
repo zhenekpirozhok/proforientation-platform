@@ -1,32 +1,60 @@
-import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
-import { orvalFetch } from '@/shared/api/orvalFetch';
-import type { QuizDetailsDto } from '../model/quizDetails';
+import { useMemo } from "react";
+import type {
+  QuizDto,
+  QuizPublicMetricsView,
+  QuizVersionDto,
+} from "@/shared/api/generated/model";
+import { useQuiz } from "./useQuiz";
+import { useQuizMetrics } from "./useQuizMetrics";
+import { useCurrentQuizVersion } from "./useCurrentQuizVersion";
 
-const quizDetailsQueryKey = (id: number) => ['quiz', id, 'details'] as const;
+export type QuizDetailsAggregate = {
+  quiz: QuizDto | null;
+  metrics: QuizPublicMetricsView | null;
+  version: QuizVersionDto | null;
 
-function getQuizDetails(id: number, signal?: AbortSignal) {
-  return orvalFetch<QuizDetailsDto>(`/quizzes/${id}/details`, {
-    method: 'GET',
-    signal,
-  });
-}
+  questionCount: number | null;
+  estimatedMinutes: number | null;
 
-export function useQuizDetails(
-  id: number,
-  options?: Omit<
-    UseQueryOptions<
-      QuizDetailsDto,
-      Error,
-      QuizDetailsDto,
-      ReturnType<typeof quizDetailsQueryKey>
-    >,
-    'queryKey' | 'queryFn'
-  >,
-) {
-  return useQuery({
-    queryKey: quizDetailsQueryKey(id),
-    queryFn: ({ signal }) => getQuizDetails(id, signal),
-    enabled: Number.isFinite(id) && id > 0,
-    ...options,
-  });
+  isLoading: boolean;
+  error: unknown;
+
+  refetchAll: () => void;
+};
+
+export function useQuizDetails(quizId: number): QuizDetailsAggregate {
+  const quizQ = useQuiz(quizId);
+  const metricsQ = useQuizMetrics(quizId);
+  const versionQ = useCurrentQuizVersion(quizId);
+
+  const isLoading = quizQ.isLoading || metricsQ.isLoading || versionQ.isLoading;
+  const error = quizQ.error || metricsQ.error || versionQ.error;
+
+  const questionCount = useMemo(() => {
+    const n = metricsQ.data?.questionsTotal;
+    return typeof n === "number" ? n : null;
+  }, [metricsQ.data?.questionsTotal]);
+
+  const estimatedMinutes = useMemo(() => {
+    const sec = metricsQ.data?.estimatedDurationSeconds;
+    return typeof sec === "number" ? Math.max(1, Math.round(sec / 60)) : null;
+  }, [metricsQ.data?.estimatedDurationSeconds]);
+
+  return {
+    quiz: (quizQ.data as QuizDto | undefined) ?? null,
+    metrics: (metricsQ.data as QuizPublicMetricsView | undefined) ?? null,
+    version: (versionQ.data as QuizVersionDto | undefined) ?? null,
+
+    questionCount,
+    estimatedMinutes,
+
+    isLoading,
+    error,
+
+    refetchAll: () => {
+      quizQ.refetch();
+      metricsQ.refetch();
+      versionQ.refetch();
+    },
+  };
 }

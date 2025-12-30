@@ -26,9 +26,23 @@
   "QuizDetails": {
     "loading": "Loading quiz…",
     "error": "Failed to load quiz",
+
+    "fallbackTitle": "Quiz #{id}",
+
     "questions": "Questions",
     "duration": "Estimated duration",
     "minutes": "{count} minutes",
+    "minutesToComplete": "Minutes to complete",
+
+    "taken": "Taken",
+    "category": "Category",
+
+    "tipsTitle": "Before you start",
+    "tip1": "Find a quiet place and focus on the questions.",
+    "tip2": "Answer honestly — there are no right or wrong answers.",
+    "tip3": "Try to complete the quiz in one session.",
+    "tip4": "Your results will help suggest suitable career paths.",
+
     "start": "Start quiz",
     "back": "Back to quizzes"
   },
