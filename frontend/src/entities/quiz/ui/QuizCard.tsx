@@ -8,8 +8,11 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
-import type { QuizDto } from "@/shared/api/generated/model";
-import type { QuizPublicMetricsView } from "@/shared/api/generated/model";
+import type {
+  QuizDto,
+  QuizPublicMetricsView,
+  ProfessionCategoryDto,
+} from "@/shared/api/generated/model";
 
 function clampInt(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
@@ -32,54 +35,34 @@ function minutesFromSeconds(sec?: number | null) {
   return clampInt(min, 1, 180);
 }
 
-function pickCategoryVisual(categoryId?: number | null) {
-  const palette = [
-    {
-      bg: "bg-indigo-50 dark:bg-indigo-950/40",
-      text: "text-indigo-700 dark:text-indigo-300",
-      label: "Technology",
-    },
-    {
-      bg: "bg-emerald-50 dark:bg-emerald-950/40",
-      text: "text-emerald-700 dark:text-emerald-300",
-      label: "Healthcare",
-    },
-    {
-      bg: "bg-violet-50 dark:bg-violet-950/40",
-      text: "text-violet-700 dark:text-violet-300",
-      label: "Business",
-    },
-    {
-      bg: "bg-sky-50 dark:bg-sky-950/40",
-      text: "text-sky-700 dark:text-sky-300",
-      label: "Finance",
-    },
-    {
-      bg: "bg-amber-50 dark:bg-amber-950/40",
-      text: "text-amber-700 dark:text-amber-300",
-      label: "Education",
-    },
-    {
-      bg: "bg-rose-50 dark:bg-rose-950/40",
-      text: "text-rose-700 dark:text-rose-300",
-      label: "Creative",
-    },
-  ];
-
-  if (typeof categoryId !== "number" || !Number.isFinite(categoryId)) {
-    return { ...palette[0], label: "Category" };
+function categoryStyles(color?: string) {
+  if (!color) {
+    return {
+      bg: "bg-slate-100 dark:bg-slate-800/70",
+      text: "text-slate-700 dark:text-slate-200",
+    };
   }
-  return palette[Math.abs(categoryId) % palette.length];
+
+  return {
+    bg: "",
+    text: "",
+    style: {
+      backgroundColor: `${color}22`,
+      color,
+    } as React.CSSProperties,
+  };
 }
 
 export function QuizCard({
   locale,
   quiz,
   metric,
+  category,
 }: {
   locale: string;
   quiz: QuizDto & { id: number };
   metric?: QuizPublicMetricsView;
+  category?: ProfessionCategoryDto;
 }) {
   const t = useTranslations("Quizzes");
 
@@ -87,7 +70,7 @@ export function QuizCard({
 
   const description =
     (quiz as any).descriptionDefault ??
-    "Discover if you have the skills and interests for a successful career path.";
+    ""; 
 
   const taken =
     typeof metric?.attemptsTotal === "number" ? metric.attemptsTotal : 0;
@@ -97,66 +80,81 @@ export function QuizCard({
 
   const durationMin = minutesFromSeconds(metric?.estimatedDurationSeconds) ?? 15;
 
-  const cat = pickCategoryVisual(metric?.categoryId);
+  const catLabel = category?.name ?? t("category");
+  const catColor = category?.colorCode;
+  const cat = categoryStyles(catColor);
 
   return (
     <Card
       className={[
+        "h-full", 
         "rounded-2xl",
         "border border-slate-200/70 dark:border-slate-800/70",
         "bg-white dark:bg-slate-950",
-        "transition-all",
-        "hover:-translate-y-0.5 hover:shadow-lg",
+        "transition",
+        "hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5 dark:hover:shadow-black/30",
       ].join(" ")}
-      styles={{ body: { padding: 18 } }} 
+      styles={{ body: { padding: 18 } }}
     >
+      <div className="flex h-full flex-col">
+<div className="flex items-center justify-between gap-3">
+  <span
+    className={[
+      "inline-flex items-center rounded-full px-3 py-1 text-xs font-medium",
+      "ring-1 ring-inset ring-slate-900/5 dark:ring-white/10",
+      cat.bg,
+      cat.text,
+    ].join(" ")}
+    style={cat.style}
+  >
+    {catLabel}
+  </span>
 
-      <div className="flex items-start justify-between gap-3">
-        <span
-          className={[
-            "inline-flex items-center rounded-full px-3 py-1 text-xs font-medium",
-            cat.bg,
-            cat.text,
-          ].join(" ")}
-        >
-          {cat.label}
-        </span>
+  <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+    <span className="inline-flex items-center gap-1">
+      <ClockCircleOutlined />
+      {t("min", { count: durationMin })}
+    </span>
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-          <span className="inline-flex items-center gap-1">
-            <ClockCircleOutlined />
-            {t("min", { count: durationMin })}
-          </span>
+    <span className="inline-flex items-center gap-1">
+      <UserOutlined />
+      {t("taken", { count: formatTaken(taken) })}
+    </span>
 
-          <span className="inline-flex items-center gap-1">
-            <UserOutlined />
-            {t("taken", { count: formatTaken(taken) })}
-          </span>
+    {questionsTotal != null ? (
+      <span className="inline-flex items-center gap-1">
+        <QuestionCircleOutlined />
+        {questionsTotal} {t("questions")}
+      </span>
+    ) : null}
+  </div>
+</div>
 
-          {questionsTotal != null ? (
-            <span className="inline-flex items-center gap-1">
-              <QuestionCircleOutlined />
-              {questionsTotal}
-              {" " + t("questions")}
-            </span>
-          ) : null}
+
+        <div className="mt-3 text-lg font-semibold leading-snug text-slate-900 dark:text-slate-100">
+          {title}
         </div>
-      </div>
 
-      <div className="mt-3 text-lg font-semibold leading-snug text-slate-900 dark:text-slate-100">
-        {title}
-      </div>
+        <div
+          className={[
+            "mt-2",
+            "text-sm text-slate-600 dark:text-slate-300",
+            "line-clamp-3",
+          ].join(" ")}
+          style={{
+            minHeight: "3.75rem",
+          }}
+        >
+          {description || "\u00A0" }
+        </div>
 
-      <div className="mt-2 line-clamp-3 text-sm text-slate-600 dark:text-slate-300">
-        {description}
-      </div>
-
-      <div className="mt-5 flex gap-3">
-        <Link href={`/${locale}/quizzes/${quiz.id}`} className="w-full">
-          <Button type="primary" size="large" className="w-full rounded-2xl">
-            {t("start")}
-          </Button>
-        </Link>
+        <div className="mt-auto pt-5">
+          <Link href={`/${locale}/quizzes/${quiz.id}`} className="block w-full">
+            <Button type="primary" size="large" className="w-full rounded-2xl">
+              {t("start")}
+            </Button>
+          </Link>
+        </div>
       </div>
     </Card>
   );

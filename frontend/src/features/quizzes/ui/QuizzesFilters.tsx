@@ -3,15 +3,38 @@
 import { Card, Input, Select } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
+import type { ProfessionCategoryDto } from "@/shared/api/generated/model";
 
-type Props = {
-  value: { q: string; category: string; duration: string };
-  onChange: (next: Props["value"]) => void;
-  onClear: () => void;
+type FiltersValue = {
+  q: string;
+  category: string;
+  duration: string;
 };
 
-export function QuizzesFilters({ value, onChange, onClear }: Props) {
+type Props = {
+  value: FiltersValue;
+  onChange: (next: FiltersValue) => void;
+  onClear: () => void;
+  categories: ProfessionCategoryDto[];
+};
+
+export function QuizzesFilters({
+  value,
+  onChange,
+  onClear,
+  categories,
+}: Props) {
   const t = useTranslations("Quizzes");
+
+  const categoryOptions = [
+    { value: "all", label: t("allCategories") },
+    ...categories
+      .filter((c) => typeof c.id === "number")
+      .map((c) => ({
+        value: String(c.id),
+        label: c.name ?? String(c.id),
+      })),
+  ];
 
   return (
     <Card className="mt-6 rounded-2xl">
@@ -30,13 +53,7 @@ export function QuizzesFilters({ value, onChange, onClear }: Props) {
           value={value.category}
           onChange={(v) => onChange({ ...value, category: v })}
           className="rounded-2xl"
-          options={[
-            { value: "all", label: t("allCategories") },
-            { value: "tech", label: "Technology" },
-            { value: "business", label: "Business" },
-            { value: "health", label: "Healthcare" },
-            { value: "finance", label: "Finance" }
-          ]}
+          options={categoryOptions}
         />
 
         <Select
@@ -48,7 +65,7 @@ export function QuizzesFilters({ value, onChange, onClear }: Props) {
             { value: "any", label: t("anyDuration") },
             { value: "short", label: "≤ 10 min" },
             { value: "mid", label: "10–20 min" },
-            { value: "long", label: "20+ min" }
+            { value: "long", label: "20+ min" },
           ]}
         />
       </div>

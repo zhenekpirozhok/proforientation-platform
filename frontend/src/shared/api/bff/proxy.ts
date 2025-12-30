@@ -19,12 +19,15 @@ function getBackendUrl(): string {
 function toUpstreamPath(path: string) {
   const p = path.startsWith("/") ? path : `/${path}`;
 
-  if (p === "/quizzes/metrics" || p.startsWith("/quizzes/metrics?")) {
+  if (p.startsWith("/api/")) return p;
+
+  if (p.startsWith("/quizzes/metrics")) {
     return `/api/v1${p}`;
   }
 
   return p;
 }
+
 
 export async function bffFetch(
   path: string,

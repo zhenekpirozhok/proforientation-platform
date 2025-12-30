@@ -41,16 +41,16 @@ public class SecurityConfiguration {
                 .requestMatchers("/actuator/health/readiness").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/v1.0/**").permitAll()
+
                 .requestMatchers("/api/v1/quizzes/metrics").permitAll()
                 .requestMatchers("/api/v1/quizzes/metrics/**").permitAll()
-                .requestMatchers("/demo/**").permitAll()
-                .requestMatchers("/reset-password", "/reset-password/**").permitAll()
 
                 .requestMatchers(HttpMethod.GET, "/quizzes", "/quizzes/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/questions", "/questions/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/options", "/options/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/professions", "/professions/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/traits", "/traits/**").permitAll() 
+                .requestMatchers(HttpMethod.GET, "/traits", "/traits/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/categories", "/categories/**").permitAll()
 
                 .requestMatchers(HttpMethod.POST, "/attempts", "/attempts/**").permitAll()
                 .requestMatchers(HttpMethod.PUT,  "/attempts", "/attempts/**").permitAll()
@@ -60,6 +60,7 @@ public class SecurityConfiguration {
 
                 .anyRequest().authenticated()
             )
+
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -6,10 +6,13 @@ import { useTranslations } from "next-intl";
 import { Alert } from "antd";
 
 import { useQuizzes } from "@/entities/quiz/api/useQuizzes";
-import type { QuizDto } from "@/shared/api/generated/model";
-
+import type {
+  QuizDto,
+  QuizPublicMetricsView,
+} from "@/shared/api/generated/model";
 import { useGetAllMetrics } from "@/shared/api/generated/api";
-import type { QuizPublicMetricsView } from "@/shared/api/generated/model";
+import { useCategories } from "@/entities/category/api/useCategories";
+import type { ProfessionCategoryDto } from "@/shared/api/generated/model";
 
 import { QuizzesHeader } from "@/features/quizzes/ui/QuizzesHeader";
 import { QuizzesFilters } from "@/features/quizzes/ui/QuizzesFilters";
@@ -53,13 +56,11 @@ export default function QuizzesPage() {
     duration: "any",
   });
 
-  const apiPage = Math.max(0, page - 1);
-
   const {
     data,
     isLoading: isQuizzesLoading,
     error: quizzesError,
-  } = useQuizzes({ page: apiPage, size: pageSize });
+  } = useQuizzes({ page, size: pageSize });
 
   const {
     data: metrics,
@@ -68,6 +69,12 @@ export default function QuizzesPage() {
   } = useGetAllMetrics({
     query: { staleTime: 60_000, gcTime: 5 * 60_000 },
   });
+
+  const {
+    data: categories = [],
+    isLoading: isCategoriesLoading,
+    error: categoriesError,
+  } = useCategories();
 
   const items = useMemo(
     () => extractItems<QuizDto>(data).filter(hasNumberId),
@@ -78,15 +85,22 @@ export default function QuizzesPage() {
 
   const metricsByQuizId = useMemo(() => {
     const map = new Map<number, QuizPublicMetricsView>();
-    (metrics ?? []).forEach((m: QuizPublicMetricsView) => {
+    (metrics ?? []).forEach((m) => {
       if (typeof m.quizId === "number") map.set(m.quizId, m);
     });
     return map;
   }, [metrics]);
 
+  const categoriesById = useMemo(() => {
+    const map = new Map<number, ProfessionCategoryDto>();
+    categories.forEach((c) => {
+      if (typeof c.id === "number") map.set(c.id, c);
+    });
+    return map;
+  }, [categories]);
+
   const filtered = useMemo(() => {
     const q = filters.q.trim().toLowerCase();
-
     let list = items;
 
     if (q) {
@@ -104,7 +118,7 @@ export default function QuizzesPage() {
     return list;
   }, [items, filters, metricsByQuizId]);
 
-  const isLoading = isQuizzesLoading || isMetricsLoading;
+  const isLoading = isQuizzesLoading || isMetricsLoading || isCategoriesLoading;
 
   return (
     <div className="pb-4">
@@ -114,6 +128,7 @@ export default function QuizzesPage() {
         value={filters}
         onChange={setFilters}
         onClear={() => setFilters({ q: "", category: "all", duration: "any" })}
+        categories={categories}
       />
 
       {quizzesError ? (
@@ -122,11 +137,21 @@ export default function QuizzesPage() {
         </div>
       ) : null}
 
-      {metricsError ? (
+      {!quizzesError && metricsError ? (
         <div className="mt-6">
           <Alert
             type="warning"
             message="Metrics are temporarily unavailable"
+            showIcon
+          />
+        </div>
+      ) : null}
+
+      {!quizzesError && !metricsError && categoriesError ? (
+        <div className="mt-6">
+          <Alert
+            type="warning"
+            message="Categories are temporarily unavailable"
             showIcon
           />
         </div>
@@ -137,16 +162,24 @@ export default function QuizzesPage() {
       ) : filtered.length === 0 ? (
         <QuizEmptyState />
       ) : (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((q) => (
+      <div className="mt-6 grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {filtered.map((q) => {
+          const m = metricsByQuizId.get(q.id);
+          const category =
+            m?.categoryId != null ? categoriesById.get(m.categoryId) : undefined;
+
+          return (
             <QuizCard
               key={q.id}
               locale={locale}
-              quiz={q}
-              metric={metricsByQuizId.get(q.id)} 
+              quiz={q}  
+              metric={m}
+              category={category}
             />
-          ))}
-        </div>
+          );
+        })}
+      </div>
+
       )}
 
       {total > pageSize ? (
