@@ -1,9 +1,10 @@
-import { Card, Skeleton } from "antd";
+'use client';
+
+import { Card, Skeleton } from 'antd';
 
 export default function Loading() {
   return (
     <div className="pb-4">
-      {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0">
           <div className="h-9 w-[320px] rounded-xl bg-slate-200/70 dark:bg-slate-800/60 md:h-12 md:w-[520px]" />
@@ -16,7 +17,6 @@ export default function Loading() {
         </Card>
       </div>
 
-      {/* Filters */}
       <Card className="mt-6 rounded-2xl">
         <div className="grid gap-3 md:grid-cols-3">
           <div className="h-12 rounded-2xl bg-slate-200/60 dark:bg-slate-800/50" />
@@ -29,7 +29,6 @@ export default function Loading() {
         </div>
       </Card>
 
-      {/* Grid Skeleton */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <Card key={i} className="rounded-2xl">
@@ -41,7 +40,6 @@ export default function Loading() {
         ))}
       </div>
 
-      {/* Pagination Skeleton */}
       <div className="mt-6 flex justify-center">
         <div className="h-10 w-[260px] rounded-2xl bg-slate-200/60 dark:bg-slate-800/50" />
       </div>

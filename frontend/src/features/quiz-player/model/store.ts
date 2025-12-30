@@ -54,43 +54,21 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
     (set, get) => ({
       ...initialState,
 
-      startFresh: (quizId, quizVersionId) =>
-        set({
-          quizId,
-          quizVersionId,
-          attemptId: null,
-          guestToken: null,
-          status: 'starting',
-          error: null,
-          currentIndex: 0,
-          totalQuestions: null,
-          answersByQuestionId: {},
-          result: null,
-        }),
-
-      resumeOrStart: (quizId, quizVersionId) => {
+      startFresh: (quizId, quizVersionId) => {
         const s = get();
-
-        const isCompleted = s.status === 'finished' || s.result != null;
-
-        const canResume =
-          !isCompleted &&
+        const same =
           s.quizId === quizId &&
           s.quizVersionId === quizVersionId &&
-          Boolean(s.attemptId) &&
-          Boolean(s.guestToken);
+          s.attemptId == null &&
+          s.guestToken == null &&
+          s.status === 'starting' &&
+          s.error == null &&
+          s.currentIndex === 0 &&
+          s.totalQuestions == null &&
+          Object.keys(s.answersByQuestionId).length === 0 &&
+          s.result == null;
 
-        if (canResume) {
-          set({
-            quizId,
-            quizVersionId,
-            status: 'in-progress',
-            error: null,
-            currentIndex: clampIndex(s.currentIndex, s.totalQuestions),
-            result: s.result ?? null,
-          });
-          return;
-        }
+        if (same) return;
 
         set({
           quizId,
@@ -106,13 +84,77 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
         });
       },
 
-      setAttempt: (attemptId, guestToken) =>
+      resumeOrStart: (quizId, quizVersionId) => {
+        const s = get();
+
+        const isCompleted = s.result != null || s.status === 'finished';
+
+        const canResume =
+          !isCompleted &&
+          s.quizId === quizId &&
+          s.quizVersionId === quizVersionId &&
+          s.attemptId != null &&
+          s.guestToken != null;
+
+        if (canResume) {
+          const nextIndex = clampIndex(s.currentIndex, s.totalQuestions);
+          const already =
+            s.status === 'in-progress' &&
+            s.error == null &&
+            s.currentIndex === nextIndex;
+
+          if (already) return;
+
+          set({
+            quizId,
+            quizVersionId,
+            status: 'in-progress',
+            error: null,
+            currentIndex: nextIndex,
+          });
+          return;
+        }
+
+        const alreadyStarting =
+          s.quizId === quizId &&
+          s.quizVersionId === quizVersionId &&
+          s.attemptId == null &&
+          s.guestToken == null &&
+          s.status === 'starting' &&
+          s.error == null &&
+          s.currentIndex === 0 &&
+          s.totalQuestions == null &&
+          Object.keys(s.answersByQuestionId).length === 0 &&
+          s.result == null;
+
+        if (alreadyStarting) return;
+
+        set({
+          quizId,
+          quizVersionId,
+          attemptId: null,
+          guestToken: null,
+          status: 'starting',
+          error: null,
+          currentIndex: 0,
+          totalQuestions: null,
+          answersByQuestionId: {},
+          result: null,
+        });
+      },
+
+      setAttempt: (attemptId, guestToken) => {
+        const s = get();
+        if (s.attemptId === attemptId && s.guestToken === guestToken && s.status === 'in-progress' && s.error == null) {
+          return;
+        }
         set({
           attemptId,
           guestToken,
           status: 'in-progress',
           error: null,
-        }),
+        });
+      },
 
       setStatus: (status) => set({ status }),
       setError: (error) => set({ error, status: 'error' }),
@@ -147,9 +189,9 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
       resetAll: () => set(initialState),
     }),
     {
-      name: 'quiz-player:v1',
+      name: 'quiz-player:v2',
+      version: 2,
       storage: createJSONStorage(() => localStorage),
-      version: 1,
       partialize: (s) => ({
         quizId: s.quizId,
         quizVersionId: s.quizVersionId,
@@ -158,10 +200,13 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
         currentIndex: s.currentIndex,
         totalQuestions: s.totalQuestions,
         answersByQuestionId: s.answersByQuestionId,
-        status: s.status,
-        error: s.error,
         result: s.result,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        state.setStatus('idle');
+        state.setError(null);
+      },
     },
   ),
 );
