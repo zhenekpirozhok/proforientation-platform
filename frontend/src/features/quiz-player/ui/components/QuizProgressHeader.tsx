@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 export function QuizProgressHeader({
   current,
@@ -7,7 +7,7 @@ export function QuizProgressHeader({
   current: number;
   total?: number | null;
 }) {
-  const hasTotal = typeof total === "number" && total > 0;
+  const hasTotal = typeof total === 'number' && total > 0;
   const percent = hasTotal ? Math.round((current / total) * 100) : undefined;
 
   return (

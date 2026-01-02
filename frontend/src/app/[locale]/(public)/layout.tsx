@@ -1,4 +1,4 @@
-import { AppShell } from "@/shared/ui/layout/app-shell/AppShell";
+import { AppShell } from '@/shared/ui/layout/app-shell/AppShell';
 
 export default function PublicLayout({
   children,

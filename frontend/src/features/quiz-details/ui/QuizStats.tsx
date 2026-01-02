@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
 import {
   ClockCircleOutlined,
   QuestionCircleOutlined,
   UserOutlined,
-} from "@ant-design/icons";
+} from '@ant-design/icons';
 
 function StatCard({
   icon,
@@ -54,17 +54,17 @@ export function QuizStats({
     <div className="grid gap-4 sm:grid-cols-3">
       <StatCard
         icon={<QuestionCircleOutlined className="text-lg" />}
-        value={questions ?? "—"}
+        value={questions ?? '—'}
         label={tQuestions}
       />
       <StatCard
         icon={<ClockCircleOutlined className="text-lg" />}
-        value={minutes ?? "—"}
+        value={minutes ?? '—'}
         label={tMinutes}
       />
       <StatCard
         icon={<UserOutlined className="text-lg" />}
-        value={taken ?? "—"}
+        value={taken ?? '—'}
         label={tTaken}
       />
     </div>

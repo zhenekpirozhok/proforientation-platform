@@ -1,12 +1,6 @@
-"use client";
+'use client';
 
-export function QuizTips({
-  title,
-  items,
-}: {
-  title: string;
-  items: string[];
-}) {
+export function QuizTips({ title, items }: { title: string; items: string[] }) {
   return (
     <div className="rounded-2xl border border-slate-200/70 bg-slate-50 p-6 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/40">
       <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">

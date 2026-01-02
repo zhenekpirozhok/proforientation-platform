@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { AppHeader } from "../app-header/AppHeader";
-import { AppFooter } from "../app-footer/AppFooter";
-import { PageContainer } from "../page-container/PageContainer";
+import { AppHeader } from '../app-header/AppHeader';
+import { AppFooter } from '../app-footer/AppFooter';
+import { PageContainer } from '../page-container/PageContainer';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -25,4 +25,3 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-

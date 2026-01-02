@@ -1,12 +1,12 @@
-import { useMemo } from "react";
+import { useMemo } from 'react';
 import type {
   QuizDto,
   QuizPublicMetricsView,
   QuizVersionDto,
-} from "@/shared/api/generated/model";
-import { useQuiz } from "./useQuiz";
-import { useQuizMetrics } from "./useQuizMetrics";
-import { useCurrentQuizVersion } from "./useCurrentQuizVersion";
+} from '@/shared/api/generated/model';
+import { useQuiz } from './useQuiz';
+import { useQuizMetrics } from './useQuizMetrics';
+import { useCurrentQuizVersion } from './useCurrentQuizVersion';
 
 export type QuizDetailsAggregate = {
   quiz: QuizDto | null;
@@ -28,22 +28,23 @@ export function useQuizDetails(quizId: number): QuizDetailsAggregate {
   const versionQ = useCurrentQuizVersion(quizId);
 
   const isLoading = quizQ.isLoading || metricsQ.isLoading || versionQ.isLoading;
+
   const error = quizQ.error || metricsQ.error || versionQ.error;
 
   const questionCount = useMemo(() => {
     const n = metricsQ.data?.questionsTotal;
-    return typeof n === "number" ? n : null;
+    return typeof n === 'number' ? n : null;
   }, [metricsQ.data?.questionsTotal]);
 
   const estimatedMinutes = useMemo(() => {
     const sec = metricsQ.data?.estimatedDurationSeconds;
-    return typeof sec === "number" ? Math.max(1, Math.round(sec / 60)) : null;
+    return typeof sec === 'number' ? Math.max(1, Math.round(sec / 60)) : null;
   }, [metricsQ.data?.estimatedDurationSeconds]);
 
   return {
-    quiz: (quizQ.data as QuizDto | undefined) ?? null,
-    metrics: (metricsQ.data as QuizPublicMetricsView | undefined) ?? null,
-    version: (versionQ.data as QuizVersionDto | undefined) ?? null,
+    quiz: quizQ.data ?? null,
+    metrics: metricsQ.data ?? null,
+    version: versionQ.data ?? null,
 
     questionCount,
     estimatedMinutes,

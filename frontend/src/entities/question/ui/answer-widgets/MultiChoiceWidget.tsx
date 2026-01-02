@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
-import type { AnswerWidgetProps } from "./types";
+import { motion } from 'framer-motion';
+import type { AnswerWidgetProps } from './types';
 
 export function MultiChoiceWidget({
   question,
@@ -26,23 +26,29 @@ export function MultiChoiceWidget({
             whileTap={disabled ? undefined : { scale: 0.99 }}
             transition={{ duration: 0.12 }}
             className={[
-              "w-full rounded-xl border px-4 py-4 text-left transition",
-              "flex items-start gap-4",
+              'w-full rounded-xl border px-4 py-4 text-left transition',
+              'flex items-start gap-4',
               checked
-                ? "border-indigo-500 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-500/10"
-                : "border-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:bg-slate-900/40",
-              disabled ? "opacity-60" : "",
-            ].join(" ")}
+                ? 'border-indigo-500 bg-indigo-50 dark:border-indigo-400 dark:bg-indigo-500/10'
+                : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:bg-slate-900/40',
+              disabled ? 'opacity-60' : '',
+            ].join(' ')}
           >
             <span
               className={[
-                "mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border",
+                'mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border',
                 checked
-                  ? "border-indigo-500 bg-indigo-500"
-                  : "border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950",
-              ].join(" ")}
+                  ? 'border-indigo-500 bg-indigo-500'
+                  : 'border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950',
+              ].join(' ')}
             >
-              <span className={checked ? "h-2.5 w-2.5 bg-white" : "h-2.5 w-2.5 bg-transparent"} />
+              <span
+                className={
+                  checked
+                    ? 'h-2.5 w-2.5 bg-white'
+                    : 'h-2.5 w-2.5 bg-transparent'
+                }
+              />
             </span>
 
             <span className="text-sm leading-relaxed text-slate-800 dark:text-slate-200 sm:text-base">

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Drawer, Menu, Avatar, Select } from "antd";
-import type { MenuProps } from "antd";
-import { useLocale, useTranslations } from "next-intl";
-import { useRouter, usePathname } from "@/shared/i18n/lib/navigation";
+import { Drawer, Menu, Avatar, Select } from 'antd';
+import type { MenuProps } from 'antd';
+import { useLocale, useTranslations } from 'next-intl';
+import { useRouter, usePathname } from '@/shared/i18n/lib/navigation';
 
 type Props = {
   open: boolean;
@@ -18,9 +18,9 @@ type NavItem = {
 };
 
 export function MobileNavDrawer({ open, onClose }: Props) {
-  const locale = useLocale() as "en" | "ru";
-  const tDrawer = useTranslations("Drawer");
-  const tCommon = useTranslations("Common");
+  const locale = useLocale() as 'en' | 'ru';
+  const tDrawer = useTranslations('Drawer');
+  const tCommon = useTranslations('Common');
 
   const router = useRouter();
   const pathname = usePathname();
@@ -29,28 +29,33 @@ export function MobileNavDrawer({ open, onClose }: Props) {
   const isAdmin = false;
 
   const navItems: NavItem[] = [
-    { key: "quizzes", label: tDrawer("quizzes"), href: "/quizzes", show: true },
-    { key: "results", label: tDrawer("results"), href: "/results", show: isAuthenticated },
-    { key: "admin", label: tDrawer("admin"), href: "/admin", show: isAdmin },
+    { key: 'quizzes', label: tDrawer('quizzes'), href: '/quizzes', show: true },
+    {
+      key: 'results',
+      label: tDrawer('results'),
+      href: '/results',
+      show: isAuthenticated,
+    },
+    { key: 'admin', label: tDrawer('admin'), href: '/admin', show: isAdmin },
   ];
 
   const visibleItems = navItems.filter((i) => i.show);
 
   const hrefByKey = new Map(visibleItems.map((i) => [i.key, i.href]));
 
-  const menuItems: MenuProps["items"] = visibleItems.map((i) => ({
+  const menuItems: MenuProps['items'] = visibleItems.map((i) => ({
     key: i.key,
     label: i.label,
   }));
 
-  const onMenuClick: MenuProps["onClick"] = ({ key }) => {
+  const onMenuClick: MenuProps['onClick'] = ({ key }) => {
     const href = hrefByKey.get(String(key));
     if (!href) return;
     router.push(href);
     onClose();
   };
 
-  const onLocaleChange = (nextLocale: "en" | "ru") => {
+  const onLocaleChange = (nextLocale: 'en' | 'ru') => {
     router.replace(pathname, { locale: nextLocale });
     onClose();
   };
@@ -71,11 +76,11 @@ export function MobileNavDrawer({ open, onClose }: Props) {
           value={locale}
           onChange={onLocaleChange}
           options={[
-            { value: "en", label: tCommon("english") },
-            { value: "ru", label: tCommon("russian") },
+            { value: 'en', label: tCommon('english') },
+            { value: 'ru', label: tCommon('russian') },
           ]}
           className="w-full"
-          aria-label={tCommon("language")}
+          aria-label={tCommon('language')}
         />
       </div>
     </Drawer>

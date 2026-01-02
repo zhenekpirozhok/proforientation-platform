@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { Button } from "antd";
-import { MoonOutlined, SunOutlined } from "@ant-design/icons";
-import { useThemeStore } from "@/shared/model/theme/store";
-import { useEffectiveTheme } from "@/shared/model/theme/useEffectiveTheme";
+import { Button } from 'antd';
+import { MoonOutlined, SunOutlined } from '@ant-design/icons';
+import { useThemeStore } from '@/shared/model/theme/store';
+import { useEffectiveTheme } from '@/shared/model/theme/useEffectiveTheme';
 
 export function ThemeToggle() {
   const theme = useEffectiveTheme();
@@ -14,7 +14,7 @@ export function ThemeToggle() {
       type="text"
       aria-label="Toggle theme"
       onClick={toggleTheme}
-      icon={theme === "dark" ? <SunOutlined /> : <MoonOutlined />}
+      icon={theme === 'dark' ? <SunOutlined /> : <MoonOutlined />}
     />
   );
 }

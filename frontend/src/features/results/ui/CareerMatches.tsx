@@ -1,7 +1,6 @@
-"use client";
+'use client';
 
-import { Card, Typography } from "antd";
-import { RightOutlined } from "@ant-design/icons";
+import { Card, Typography } from 'antd';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -21,7 +20,7 @@ export function CareerMatches({
   title,
   subtitle,
   rows,
-  matchLabel
+  matchLabel,
 }: {
   title: string;
   subtitle: string;

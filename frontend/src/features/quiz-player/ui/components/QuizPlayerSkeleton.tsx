@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 function Block({ className }: { className: string }) {
   return (

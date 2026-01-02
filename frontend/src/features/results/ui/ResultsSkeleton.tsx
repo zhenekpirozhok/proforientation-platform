@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { Card, Skeleton } from "antd";
+import { Card, Skeleton } from 'antd';
 
 export function ResultsSkeleton() {
   return (

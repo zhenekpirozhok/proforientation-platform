@@ -35,12 +35,14 @@
   color: #e5e7eb;
 }
 
-.dark .cp-lang-dropdown
+.dark
+  .cp-lang-dropdown
   .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
   background: rgba(99, 102, 241, 0.18);
 }
 
-.dark .cp-lang-dropdown
+.dark
+  .cp-lang-dropdown
   .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
   background: rgba(99, 102, 241, 0.28);
   color: #ffffff;

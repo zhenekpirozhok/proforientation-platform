@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { Button } from "antd";
+import { Button } from 'antd';
 
-const ACTION_WIDTH = "sm:w-[220px]";
+const ACTION_WIDTH = 'sm:w-[220px]';
 
 export function QuizPlayerActions({
   backLabel,

@@ -1,5 +1,5 @@
-import { QuizPlayer } from "@/features/quiz-player/ui/QuizPlayer";
-import { notFound } from "next/navigation";
+import { QuizPlayer } from '@/features/quiz-player/ui/QuizPlayer';
+import { notFound } from 'next/navigation';
 
 type Props = {
   params:

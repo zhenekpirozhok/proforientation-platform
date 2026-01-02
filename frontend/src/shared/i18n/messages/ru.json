@@ -4,49 +4,49 @@
     "russian": "Русский",
     "english": "Английский"
   },
-"Quizzes": {
-  "title": "Тесты профориентации",
-  "subtitle": "Узнай свои сильные стороны и найди подходящее карьерное направление с помощью коротких тестов",
+  "Quizzes": {
+    "title": "Тесты профориентации",
+    "subtitle": "Узнай свои сильные стороны и найди подходящее карьерное направление с помощью коротких тестов",
 
-  "loading": "Загрузка тестов…",
-  "error": "Не удалось загрузить тесты",
+    "loading": "Загрузка тестов…",
+    "error": "Не удалось загрузить тесты",
 
-  "searchPlaceholder": "Поиск",
-  "allCategories": "Все категории",
-  "anyDuration": "Любая длительность",
+    "searchPlaceholder": "Поиск",
+    "allCategories": "Все категории",
+    "anyDuration": "Любая длительность",
 
-  "filtersTitle": "Фильтры",
-  "filtersActive": "Включены",
-  "filtersNone": "Нет",
-  "applyFilters": "Применить",
-  "clearFilters": "Сбросить фильтры",
+    "filtersTitle": "Фильтры",
+    "filtersActive": "Включены",
+    "filtersNone": "Нет",
+    "applyFilters": "Применить",
+    "clearFilters": "Сбросить фильтры",
 
+    "availableQuizzes": "Тестов доступно",
+    "availableCount": "{total, plural, one {# тест} few {# теста} many {# тестов} other {# теста}}",
 
-  "availableQuizzes": "Тестов доступно",
-  "availableCount": "{total, plural, one {# тест} few {# теста} many {# тестов} other {# теста}}",
+    "start": "Начать тест",
+    "details": "Подробнее",
 
+    "taken": "Прошли тест: {count}",
+    "takenShort": "прошли",
+    "questions": "вопр.",
+    "min": "мин",
 
-  "start": "Начать тест",
-  "details": "Подробнее",
+    "emptyTitle": "Тесты не найдены",
+    "emptyHint": "Попробуй изменить фильтры или зайти позже.",
 
-  "taken": "Прошли тест: {count}",
-  "takenShort": "прошли",
-  "questions": "вопр.",
-  "min": "мин",
+    "fallbackTitle": "Тест №{id}",
 
-  "emptyTitle": "Тесты не найдены",
-  "emptyHint": "Попробуй изменить фильтры или зайти позже.",
+    "durationShort": "≤ 10 мин",
+    "durationMid": "10–20 мин",
+    "durationLong": "20+ мин",
 
-  "fallbackTitle": "Тест №{id}",
+    "loadMore": "Показать ещё",
+    "noMore": "Больше нет",
 
-"durationShort": "≤ 10 мин",
-"durationMid": "10–20 мин",
-"durationLong": "20+ мин",
-
-  "loadMore": "Показать ещё",
-  "noMore": "Больше нет"
-
-},
+    "metricsUnavailable": "Метрики временно недоступны",
+    "categoriesUnavailable": "Категории временно недоступны"
+  },
   "QuizDetails": {
     "loading": "Загрузка теста…",
     "error": "Не удалось загрузить тест",
@@ -94,24 +94,24 @@
     "errorQuestion": "Ошибка вопроса: {message}",
     "errorGeneric": "Ошибка: {message}"
   },
-"Results": {
-  "completeTitle": "Тест завершён!",
-  "heroTypeTitle": "Ваш результат: {type}",
-  "heroTypeSubtitle": "На основе ваших ответов был определён результат, который лучше всего вам соответствует.",
-  "heroFallbackType": "Лидер",
-  "traitsTitle": "Ваши результаты",
-  "topMatchesTitle": "Лучшие совпадения по профессиям",
-  "topMatchesSubtitle": "Эти профессии лучше всего соответствуют вашим интересам и особенностям",
-  "match": "Совпадение",
-  "save": "Сохранить результат",
-  "retake": "Пройти другой тест",
-  "invalidAttemptId": "Некорректный id попытки",
-  "noSessionResult": "Не удалось найти результат в текущей сессии.",
-  "goToQuiz": "Перейти к тесту",
-  "catalogError": "Каталог временно недоступен",
-  "fallbackProfessionTitle": "Профессия №{id}",
-  "takeAnother": "Пройти ещё один тест"
-},
+  "Results": {
+    "completeTitle": "Тест завершён!",
+    "heroTypeTitle": "Ваш результат: {type}",
+    "heroTypeSubtitle": "На основе ваших ответов был определён результат, который лучше всего вам соответствует.",
+    "heroFallbackType": "Лидер",
+    "traitsTitle": "Ваши результаты",
+    "topMatchesTitle": "Лучшие совпадения по профессиям",
+    "topMatchesSubtitle": "Эти профессии лучше всего соответствуют вашим интересам и особенностям",
+    "match": "Совпадение",
+    "save": "Сохранить результат",
+    "retake": "Пройти другой тест",
+    "invalidAttemptId": "Некорректный id попытки",
+    "noSessionResult": "Не удалось найти результат в текущей сессии.",
+    "goToQuiz": "Перейти к тесту",
+    "catalogError": "Каталог временно недоступен",
+    "fallbackProfessionTitle": "Профессия №{id}",
+    "takeAnother": "Пройти ещё один тест"
+  },
   "Header": {
     "brand": "CareerPath",
     "quizzes": "Тесты",

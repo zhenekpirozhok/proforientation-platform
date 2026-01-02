@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { TrophyFilled } from "@ant-design/icons";
-import { Card, Typography } from "antd";
+import { TrophyFilled } from '@ant-design/icons';
+import { Card, Typography } from 'antd';
 
 const { Title, Paragraph } = Typography;
 

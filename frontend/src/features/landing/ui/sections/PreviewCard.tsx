@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Card } from "antd";
-import { motion } from "framer-motion";
+import { Card } from 'antd';
+import { motion } from 'framer-motion';
 
 export function PreviewCard() {
   return (
@@ -30,7 +30,7 @@ export function PreviewCard() {
             </div>
 
             <div className="mt-3 grid grid-cols-2 gap-2">
-              {["Strongly agree", "Agree", "Disagree", "Strongly disagree"].map(
+              {['Strongly agree', 'Agree', 'Disagree', 'Strongly disagree'].map(
                 (x) => (
                   <div
                     key={x}
@@ -38,16 +38,16 @@ export function PreviewCard() {
                   >
                     {x}
                   </div>
-                )
+                ),
               )}
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: "R", w: "w-[68%]" },
-              { label: "I", w: "w-[86%]" },
-              { label: "A", w: "w-[54%]" },
+              { label: 'R', w: 'w-[68%]' },
+              { label: 'I', w: 'w-[86%]' },
+              { label: 'A', w: 'w-[54%]' },
             ].map((b) => (
               <div
                 key={b.label}

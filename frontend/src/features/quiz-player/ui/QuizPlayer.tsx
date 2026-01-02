@@ -1,29 +1,33 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useRef } from "react";
-import { useRouter } from "@/shared/i18n/lib/navigation";
-import { useTranslations } from "next-intl";
-import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef } from 'react';
+import { useRouter } from '@/shared/i18n/lib/navigation';
+import { useTranslations } from 'next-intl';
+import {
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from '@tanstack/react-query';
 
-import { useCurrentQuizVersionIdQuery } from "../model/useCurrentQuizVersionIdQuery";
-import { useQuizPlayerStore } from "../model/store";
+import { useCurrentQuizVersionIdQuery } from '../model/useCurrentQuizVersionIdQuery';
+import { useQuizPlayerStore } from '../model/store';
 
-import type { Question, PageLike } from "@/entities/question/model/types";
-import type { AttemptResult } from "@/features/quiz-player/model/types";
-import { parseResponse } from "@/shared/api/parseResponse";
+import type { Question, PageLike } from '@/entities/question/model/types';
+import type { AttemptResult } from '@/features/quiz-player/model/types';
+import { parseResponse } from '@/shared/api/parseResponse';
 
 import {
   useStartAttempt,
   useAddAnswersBulk,
   useSubmit,
-} from "@/shared/api/generated/api";
+} from '@/shared/api/generated/api';
 
-import { QuizPlayerLayout } from "./components/QuizPlayerLayout";
-import { QuizProgressHeader } from "./components/QuizProgressHeader";
-import { QuizPlayerActions } from "./components/QuizPlayerActions";
-import { QuizPlayerSkeleton } from "./components/QuizPlayerSkeleton";
-import { QuestionCard } from "@/entities/question/ui/QuestionCard";
-import { AnimatedQuestion } from "./components/AnimatedQuestion";
+import { QuizPlayerLayout } from './components/QuizPlayerLayout';
+import { QuizProgressHeader } from './components/QuizProgressHeader';
+import { QuizPlayerActions } from './components/QuizPlayerActions';
+import { QuizPlayerSkeleton } from './components/QuizPlayerSkeleton';
+import { QuestionCard } from '@/entities/question/ui/QuestionCard';
+import { AnimatedQuestion } from './components/AnimatedQuestion';
 
 type Props = { quizId: number };
 
@@ -33,20 +37,20 @@ type StartAttemptResponse = {
 };
 
 function isStartAttemptResponse(v: unknown): v is StartAttemptResponse {
-  if (typeof v !== "object" || v === null) return false;
+  if (typeof v !== 'object' || v === null) return false;
   const o = v as Record<string, unknown>;
   return (
-    typeof o.attemptId === "number" &&
+    typeof o.attemptId === 'number' &&
     Number.isFinite(o.attemptId) &&
-    typeof o.guestToken === "string" &&
+    typeof o.guestToken === 'string' &&
     o.guestToken.length > 0
   );
 }
 
 function safeErrorMessage(e: unknown): string {
   if (e instanceof Error) return e.message;
-  if (typeof e === "string") return e;
-  return "Unknown error";
+  if (typeof e === 'string') return e;
+  return 'Unknown error';
 }
 
 const BATCH_SIZE = 10;
@@ -60,17 +64,27 @@ function indexInBatch(questionIndex0: number) {
 }
 
 const quizQuestionBatchKey = (quizId: number, batch: number, locale: string) =>
-  ["questions", "quiz", quizId, "batch", batch, "size", BATCH_SIZE, "locale", locale] as const;
+  [
+    'questions',
+    'quiz',
+    quizId,
+    'batch',
+    batch,
+    'size',
+    BATCH_SIZE,
+    'locale',
+    locale,
+  ] as const;
 
 function detectLocale() {
-  if (typeof document !== "undefined") {
-    const l = (document.documentElement.getAttribute("lang") || "").trim();
-    if (l) return l.split("-")[0];
+  if (typeof document !== 'undefined') {
+    const l = (document.documentElement.getAttribute('lang') || '').trim();
+    if (l) return l.split('-')[0];
   }
-  if (typeof navigator !== "undefined" && navigator.language) {
-    return navigator.language.split("-")[0];
+  if (typeof navigator !== 'undefined' && navigator.language) {
+    return navigator.language.split('-')[0];
   }
-  return "en";
+  return 'en';
 }
 
 async function fetchQuestionBatch(params: {
@@ -89,31 +103,36 @@ async function fetchQuestionBatch(params: {
   });
 
   const res = await fetch(`/api/questions/quiz/${quizId}?${sp.toString()}`, {
-    method: "GET",
-    headers: { "x-locale": locale },
+    method: 'GET',
+    headers: { 'x-locale': locale },
     signal,
   });
 
   const data = await parseResponse<PageLike<Question> | Question[]>(res);
 
   if (Array.isArray(data)) {
-    return { questions: data, total: undefined as number | undefined, last: true };
+    return {
+      questions: data,
+      total: undefined as number | undefined,
+      last: true,
+    };
   }
 
   return {
     questions: Array.isArray(data.content) ? data.content : [],
-    total: typeof data.totalElements === "number" ? data.totalElements : undefined,
+    total:
+      typeof data.totalElements === 'number' ? data.totalElements : undefined,
     last: data.last === true,
   };
 }
 
 async function fetchAttemptResult(attemptId: number, guestToken: string) {
   const res = await fetch(`/api/attempts/${attemptId}/result`, {
-    method: "GET",
+    method: 'GET',
     headers: {
-      ...(guestToken ? { "x-guest-token": guestToken } : {}),
+      ...(guestToken ? { 'x-guest-token': guestToken } : {}),
     },
-    cache: "no-store",
+    cache: 'no-store',
   });
 
   return parseResponse<AttemptResult>(res);
@@ -122,7 +141,7 @@ async function fetchAttemptResult(attemptId: number, guestToken: string) {
 export function QuizPlayer({ quizId }: Props) {
   const router = useRouter();
   const qc = useQueryClient();
-  const t = useTranslations("QuizPlayer");
+  const t = useTranslations('QuizPlayer');
 
   const {
     attemptId,
@@ -156,7 +175,7 @@ export function QuizPlayer({ quizId }: Props) {
     mutation: { retry: false },
     request: {
       headers: {
-        ...(guestToken ? { "x-guest-token": guestToken } : {}),
+        ...(guestToken ? { 'x-guest-token': guestToken } : {}),
       },
     },
   });
@@ -165,7 +184,7 @@ export function QuizPlayer({ quizId }: Props) {
     mutation: { retry: false },
     request: {
       headers: {
-        ...(guestToken ? { "x-guest-token": guestToken } : {}),
+        ...(guestToken ? { 'x-guest-token': guestToken } : {}),
       },
     },
   });
@@ -188,10 +207,13 @@ export function QuizPlayer({ quizId }: Props) {
 
     (async () => {
       try {
-        const started = await startAttempt.mutateAsync({ params: { quizVersionId: vId } });
+        const started = await startAttempt.mutateAsync({
+          params: { quizVersionId: vId },
+        });
         if (cancelled) return;
 
-        if (!isStartAttemptResponse(started)) throw new Error("Invalid start attempt response");
+        if (!isStartAttemptResponse(started))
+          throw new Error('Invalid start attempt response');
         setAttempt(started.attemptId, started.guestToken);
       } catch (e) {
         if (cancelled) return;
@@ -203,7 +225,15 @@ export function QuizPlayer({ quizId }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [quizId, resumeOrStart, setAttempt, setError, startAttempt.mutateAsync, versionQuery.data]);
+  }, [
+    quizId,
+    resumeOrStart,
+    setAttempt,
+    setError,
+    startAttempt.mutateAsync,
+    versionQuery.data,
+    startAttempt,
+  ]);
 
   const ready = Boolean(attemptId && guestToken && quizVersionId);
 
@@ -214,14 +244,15 @@ export function QuizPlayer({ quizId }: Props) {
   const batchQuery = useQuery({
     queryKey: quizQuestionBatchKey(quizId, batch, locale),
     enabled: ready && Number.isFinite(quizId) && quizId > 0,
-    queryFn: ({ signal }) => fetchQuestionBatch({ quizId, batch, locale, signal }),
+    queryFn: ({ signal }) =>
+      fetchQuestionBatch({ quizId, batch, locale, signal }),
     staleTime: 30_000,
     placeholderData: keepPreviousData,
   });
 
   useEffect(() => {
     const total = batchQuery.data?.total;
-    if (typeof total === "number") setTotalQuestions(total);
+    if (typeof total === 'number') setTotalQuestions(total);
   }, [batchQuery.data?.total, setTotalQuestions]);
 
   const question: Question | null = useMemo(() => {
@@ -240,13 +271,14 @@ export function QuizPlayer({ quizId }: Props) {
   const canNext = !hasTotal || !isLast;
   const canSubmit = hasTotal && isLast;
 
-  const isBusy = status === "submitting" || status === "finished";
+  const isBusy = status === 'submitting' || status === 'finished';
 
   useEffect(() => {
     if (!ready || !question) return;
 
     const nextIndex = safeIndex + 1;
-    if (hasTotal && totalQuestions != null && nextIndex >= totalQuestions) return;
+    if (hasTotal && totalQuestions != null && nextIndex >= totalQuestions)
+      return;
 
     const nextBatch = Math.max(0, batchIndexFromQuestionIndex(nextIndex));
     if (nextBatch === batch) return;
@@ -256,10 +288,21 @@ export function QuizPlayer({ quizId }: Props) {
 
     qc.prefetchQuery({
       queryKey: key,
-      queryFn: ({ signal }) => fetchQuestionBatch({ quizId, batch: nextBatch, locale, signal }),
+      queryFn: ({ signal }) =>
+        fetchQuestionBatch({ quizId, batch: nextBatch, locale, signal }),
       staleTime: 30_000,
     }).catch(() => {});
-  }, [ready, question, safeIndex, batch, hasTotal, totalQuestions, quizId, locale, qc]);
+  }, [
+    ready,
+    question,
+    safeIndex,
+    batch,
+    hasTotal,
+    totalQuestions,
+    quizId,
+    locale,
+    qc,
+  ]);
 
   async function onNext() {
     if (isBusy) return;
@@ -279,10 +322,12 @@ export function QuizPlayer({ quizId }: Props) {
       const optionIds = Array.from(new Set(optionIdsRaw));
 
       if (optionIds.length !== s.totalQuestions) {
-        throw new Error(`Need exactly ${s.totalQuestions} distinct answers, got ${optionIds.length}`);
+        throw new Error(
+          `Need exactly ${s.totalQuestions} distinct answers, got ${optionIds.length}`,
+        );
       }
 
-      setStatus("submitting");
+      setStatus('submitting');
 
       if (bulkSentAttemptId !== attemptId) {
         await addAnswersBulk.mutateAsync({
@@ -295,26 +340,26 @@ export function QuizPlayer({ quizId }: Props) {
       const result = await submitAttempt.mutateAsync({ attemptId });
       setResult(result as AttemptResult);
 
-      setStatus("finished");
+      setStatus('finished');
       router.push(`/results/${attemptId}`);
     } catch (e) {
       const message = safeErrorMessage(e);
 
-      if (message.includes("Attempt already submitted")) {
+      if (message.includes('Attempt already submitted')) {
         try {
           const r = await fetchAttemptResult(attemptId, guestToken);
           setResult(r as AttemptResult);
-          setStatus("finished");
+          setStatus('finished');
           router.push(`/results/${attemptId}`);
           return;
         } catch (e2) {
-          setStatus("in-progress");
+          setStatus('in-progress');
           setError(safeErrorMessage(e2));
           return;
         }
       }
 
-      setStatus("in-progress");
+      setStatus('in-progress');
       setError(message);
     }
   }
@@ -323,17 +368,17 @@ export function QuizPlayer({ quizId }: Props) {
     return (
       <QuizPlayerLayout>
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          {t("errorVersion", { message: versionQuery.error?.message ?? "" })}
+          {t('errorVersion', { message: versionQuery.error?.message ?? '' })}
         </p>
       </QuizPlayerLayout>
     );
   }
 
-  if (status === "error") {
+  if (status === 'error') {
     return (
       <QuizPlayerLayout>
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          {t("errorGeneric", { message: error ?? "" })}
+          {t('errorGeneric', { message: error ?? '' })}
         </p>
       </QuizPlayerLayout>
     );
@@ -351,7 +396,7 @@ export function QuizPlayer({ quizId }: Props) {
     return (
       <QuizPlayerLayout>
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          {t("errorQuestion", { message: safeErrorMessage(batchQuery.error) })}
+          {t('errorQuestion', { message: safeErrorMessage(batchQuery.error) })}
         </p>
       </QuizPlayerLayout>
     );
@@ -389,9 +434,9 @@ export function QuizPlayer({ quizId }: Props) {
       </AnimatedQuestion>
 
       <QuizPlayerActions
-        backLabel={t("back")}
-        nextLabel={t("next")}
-        submitLabel={t("submit")}
+        backLabel={t('back')}
+        nextLabel={t('next')}
+        submitLabel={t('submit')}
         onBack={() => {
           if (safeIndex <= 0 || isBusy) return;
           goPrev();

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 export function QuizPlayerLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { HeroSection } from "./sections/HeroSection";
-import { FeaturesSection } from "./sections/FeaturesSection";
-import { CTASection } from "./sections/CTASection";
-import { FullBleed } from "@/shared/ui/layout/full-bleed/FullBleed";
+import { HeroSection } from './sections/HeroSection';
+import { FeaturesSection } from './sections/FeaturesSection';
+import { CTASection } from './sections/CTASection';
+import { FullBleed } from '@/shared/ui/layout/full-bleed/FullBleed';
 
 export function LandingPage() {
   return (

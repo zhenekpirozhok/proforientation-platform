@@ -1,26 +1,31 @@
-"use client";
+'use client';
 
-import { Card, Typography } from "antd";
-import { motion } from "framer-motion";
-import { useTranslations } from "next-intl";
-import { fadeUp, stagger } from "../../lib/motion";
+import { Card, Typography } from 'antd';
+import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
+import { fadeUp, stagger } from '../../lib/motion';
 
 const { Title } = Typography;
 
 export function FeaturesSection() {
-  const t = useTranslations("Landing");
+  const t = useTranslations('Landing');
 
   const items = [
-    { title: t("feature1Title"), text: t("feature1Text") },
-    { title: t("feature2Title"), text: t("feature2Text") },
-    { title: t("feature3Title"), text: t("feature3Text") },
+    { title: t('feature1Title'), text: t('feature1Text') },
+    { title: t('feature2Title'), text: t('feature2Text') },
+    { title: t('feature3Title'), text: t('feature3Text') },
   ];
 
   return (
     <section className="mt-14">
-      <motion.div initial="hidden" whileInView="show" viewport={{ once: true }} variants={fadeUp}>
+      <motion.div
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true }}
+        variants={fadeUp}
+      >
         <Title level={2} className="!mb-6 !text-2xl md:!text-3xl">
-          {t("featuresTitle")}
+          {t('featuresTitle')}
         </Title>
       </motion.div>
 
@@ -29,7 +34,7 @@ export function FeaturesSection() {
         variants={stagger}
         initial="hidden"
         whileInView="show"
-        viewport={{ once: true, margin: "-80px" }}
+        viewport={{ once: true, margin: '-80px' }}
       >
         {items.map((x) => (
           <motion.div key={x.title} variants={fadeUp}>

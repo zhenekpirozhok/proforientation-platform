@@ -1,9 +1,14 @@
-"use client";
+'use client';
 
-import { ErrorState } from "@/shared/ui/feedback/ErrorState";
-import { ErrorActionsClient } from "@/shared/ui/feedback/ErrorActionsClient";
+import { ErrorState } from '@/shared/ui/feedback/ErrorState';
+import { ErrorActionsClient } from '@/shared/ui/feedback/ErrorActionsClient';
 
-export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
+export default function GlobalError({
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
   return (
     <html lang="en">
       <body className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -18,10 +23,14 @@ export default function GlobalError({ reset }: { error: Error; reset: () => void
             }
             extra={
               <ErrorActionsClient
-                primary={{ label: "Retry", onClick: () => reset(), type: "primary" }}
+                primary={{
+                  label: 'Retry',
+                  onClick: () => reset(),
+                  type: 'primary',
+                }}
                 secondary={{
-                  label: "Go home",
-                  onClick: () => (window.location.href = "/"),
+                  label: 'Go home',
+                  onClick: () => (window.location.href = '/'),
                 }}
               />
             }

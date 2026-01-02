@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { Button } from "antd";
+import { Button } from 'antd';
 
 export function ResultsActions({
   primaryLabel,
@@ -15,7 +15,12 @@ export function ResultsActions({
 }) {
   return (
     <div className="cp-results-actions">
-      <Button type="primary" size="large" className="rounded-2xl" onClick={onPrimary}>
+      <Button
+        type="primary"
+        size="large"
+        className="rounded-2xl"
+        onClick={onPrimary}
+      >
         {primaryLabel}
       </Button>
       <Button size="large" className="rounded-2xl" onClick={onSecondary}>

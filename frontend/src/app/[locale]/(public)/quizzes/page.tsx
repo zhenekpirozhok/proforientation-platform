@@ -1,22 +1,31 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { Alert } from "antd";
+import { useMemo, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { Alert } from 'antd';
 
-import { useQuizzes } from "@/entities/quiz/api/useQuizzes";
-import type { QuizDto, QuizPublicMetricsView } from "@/shared/api/generated/model";
-import { useGetAllMetrics } from "@/shared/api/generated/api";
-import { useCategories } from "@/entities/category/api/useCategories";
-import type { ProfessionCategoryDto } from "@/shared/api/generated/model";
+import { useQuizzes } from '@/entities/quiz/api/useQuizzes';
+import type {
+  QuizDto,
+  QuizPublicMetricsView,
+} from '@/shared/api/generated/model';
+import { useGetAllMetrics } from '@/shared/api/generated/api';
+import { useCategories } from '@/entities/category/api/useCategories';
+import type { ProfessionCategoryDto } from '@/shared/api/generated/model';
 
-import { QuizzesHeader } from "@/features/quizzes/ui/QuizzesHeader";
-import { QuizzesFilters } from "@/features/quizzes/ui/QuizzesFilters";
-import { QuizGridSkeleton } from "@/features/quizzes/ui/QuizGridSkeleton";
-import { QuizEmptyState } from "@/features/quizzes/ui/QuizEmptyState";
-import { QuizCard } from "@/entities/quiz/ui/QuizCard";
-import { QuizzesPagination } from "@/features/quizzes/ui/QuizzesPagination";
+import { QuizzesHeader } from '@/features/quizzes/ui/QuizzesHeader';
+import { QuizzesFilters } from '@/features/quizzes/ui/QuizzesFilters';
+import { QuizGridSkeleton } from '@/features/quizzes/ui/QuizGridSkeleton';
+import { QuizEmptyState } from '@/features/quizzes/ui/QuizEmptyState';
+import { QuizCard } from '@/entities/quiz/ui/QuizCard';
+import { QuizzesPagination } from '@/features/quizzes/ui/QuizzesPagination';
+
+type FiltersValue = {
+  q: string;
+  category: string;
+  duration: string;
+};
 
 type PageLike<T> = {
   content?: T[];
@@ -37,40 +46,49 @@ function extractTotal(data: unknown): number {
 }
 
 function hasNumberId(q: QuizDto): q is QuizDto & { id: number } {
-  return typeof q.id === "number" && Number.isFinite(q.id);
+  return typeof q.id === 'number' && Number.isFinite(q.id);
+}
+
+function detectMobile() {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(max-width: 640px)').matches;
 }
 
 export default function QuizzesPage() {
-  const t = useTranslations("Quizzes");
+  const t = useTranslations('Quizzes');
   const { locale } = useParams<{ locale: string }>();
 
-  const [isMobile, setIsMobile] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(12);
 
-  const [filters, setFilters] = useState({
-    q: "",
-    category: "all",
-    duration: "any",
+  const [filters, setFilters] = useState<FiltersValue>({
+    q: '',
+    category: 'all',
+    duration: 'any',
   });
 
-  useEffect(() => {
-    const mq = window.matchMedia("(max-width: 640px)");
-    const set = () => setIsMobile(mq.matches);
-    set();
-    mq.addEventListener("change", set);
-    return () => mq.removeEventListener("change", set);
-  }, []);
+  const [mobileCache, setMobileCache] = useState<
+    Record<number, (QuizDto & { id: number })[]>
+  >({});
 
-  const { data, isLoading: isQuizzesLoading, error: quizzesError } = useQuizzes({
+  const isMobile = detectMobile();
+
+  const {
+    data,
+    isLoading: isQuizzesLoading,
+    error: quizzesError,
+  } = useQuizzes({
     page,
     size: pageSize,
   });
 
-  const { data: metrics, isLoading: isMetricsLoading, error: metricsError } =
-    useGetAllMetrics({
-      query: { staleTime: 60_000, gcTime: 5 * 60_000 },
-    });
+  const {
+    data: metrics,
+    isLoading: isMetricsLoading,
+    error: metricsError,
+  } = useGetAllMetrics({
+    query: { staleTime: 60_000, gcTime: 5 * 60_000 },
+  });
 
   const {
     data: categories = [],
@@ -80,7 +98,7 @@ export default function QuizzesPage() {
 
   const items = useMemo(
     () => extractItems<QuizDto>(data).filter(hasNumberId),
-    [data]
+    [data],
   );
 
   const total = useMemo(() => extractTotal(data), [data]);
@@ -88,7 +106,7 @@ export default function QuizzesPage() {
   const metricsByQuizId = useMemo(() => {
     const map = new Map<number, QuizPublicMetricsView>();
     (metrics ?? []).forEach((m) => {
-      if (typeof m.quizId === "number") map.set(m.quizId, m);
+      if (typeof m.quizId === 'number') map.set(m.quizId, m);
     });
     return map;
   }, [metrics]);
@@ -96,7 +114,7 @@ export default function QuizzesPage() {
   const categoriesById = useMemo(() => {
     const map = new Map<number, ProfessionCategoryDto>();
     categories.forEach((c) => {
-      if (typeof c.id === "number") map.set(c.id, c);
+      if (typeof c.id === 'number') map.set(c.id, c);
     });
     return map;
   }, [categories]);
@@ -106,9 +124,9 @@ export default function QuizzesPage() {
     return (list: (QuizDto & { id: number })[]) => {
       let out = list;
 
-      if (q) out = out.filter((x) => (x.title ?? "").toLowerCase().includes(q));
+      if (q) out = out.filter((x) => (x.title ?? '').toLowerCase().includes(q));
 
-      if (filters.category !== "all") {
+      if (filters.category !== 'all') {
         out = out.filter((quiz) => {
           const m = metricsByQuizId.get(quiz.id);
           const cat = m?.categoryId;
@@ -118,33 +136,61 @@ export default function QuizzesPage() {
 
       return out;
     };
-  }, [filters, metricsByQuizId]);
+  }, [filters.q, filters.category, metricsByQuizId]);
 
-  const [mobileAccum, setMobileAccum] = useState<(QuizDto & { id: number })[]>([]);
+  const filteredPage = useMemo(
+    () => applyFilters(items),
+    [applyFilters, items],
+  );
 
-  useEffect(() => {
-    setPage(1);
-    setMobileAccum([]);
-  }, [filters.q, filters.category, filters.duration]);
+  const mergedMobile = useMemo(() => {
+    if (!isMobile) return filteredPage;
 
-  useEffect(() => {
-    if (!isMobile) return;
+    const merged: (QuizDto & { id: number })[] = [];
+    const seen = new Set<number>();
 
-    const next = applyFilters(items);
-    setMobileAccum((prev) => {
-      if (page === 1) return next;
-      const seen = new Set(prev.map((x) => x.id));
-      const merged = [...prev];
-      for (const it of next) if (!seen.has(it.id)) merged.push(it);
-      return merged;
-    });
-  }, [isMobile, page, items, applyFilters]);
+    for (let p = 1; p < page; p += 1) {
+      const chunk = mobileCache[p] ?? [];
+      for (const it of chunk) {
+        if (!seen.has(it.id)) {
+          seen.add(it.id);
+          merged.push(it);
+        }
+      }
+    }
 
-  const filteredDesktop = useMemo(() => applyFilters(items), [items, applyFilters]);
+    for (const it of filteredPage) {
+      if (!seen.has(it.id)) {
+        seen.add(it.id);
+        merged.push(it);
+      }
+    }
 
-  const listToRender = isMobile ? mobileAccum : filteredDesktop;
+    return merged;
+  }, [filteredPage, isMobile, mobileCache, page]);
+
+  const listToRender = isMobile ? mergedMobile : filteredPage;
 
   const isLoading = isQuizzesLoading || isMetricsLoading || isCategoriesLoading;
+
+  const onFiltersChange = (next: FiltersValue) => {
+    setFilters(next);
+    setPage(1);
+    setMobileCache({});
+  };
+
+  const onClearFilters = () => {
+    setFilters({ q: '', category: 'all', duration: 'any' });
+    setPage(1);
+    setMobileCache({});
+  };
+
+  const onPageChange = (nextPage: number) => {
+    if (isMobile && nextPage > page) {
+      setMobileCache((prev) => ({ ...prev, [page]: filteredPage }));
+    }
+    setPage(nextPage);
+  };
 
   return (
     <div className="pb-4">
@@ -152,26 +198,26 @@ export default function QuizzesPage() {
 
       <QuizzesFilters
         value={filters}
-        onChange={setFilters}
-        onClear={() => setFilters({ q: "", category: "all", duration: "any" })}
+        onChange={onFiltersChange}
+        onClear={onClearFilters}
         categories={categories}
       />
 
       {quizzesError ? (
         <div className="mt-6">
-          <Alert type="error" message={t("error")} showIcon />
+          <Alert type="error" message={t('error')} showIcon />
         </div>
       ) : null}
 
       {!quizzesError && metricsError ? (
         <div className="mt-6">
-          <Alert type="warning" message="Metrics are temporarily unavailable" showIcon />
+          <Alert type="warning" message={t('metricsUnavailable')} showIcon />
         </div>
       ) : null}
 
       {!quizzesError && !metricsError && categoriesError ? (
         <div className="mt-6">
-          <Alert type="warning" message="Categories are temporarily unavailable" showIcon />
+          <Alert type="warning" message={t('categoriesUnavailable')} showIcon />
         </div>
       ) : null}
 
@@ -184,7 +230,9 @@ export default function QuizzesPage() {
           {listToRender.map((q) => {
             const m = metricsByQuizId.get(q.id);
             const category =
-              m?.categoryId != null ? categoriesById.get(m.categoryId) : undefined;
+              m?.categoryId != null
+                ? categoriesById.get(m.categoryId)
+                : undefined;
 
             return (
               <QuizCard
@@ -205,7 +253,7 @@ export default function QuizzesPage() {
           pageSize={pageSize}
           total={total}
           loading={isLoading && page > 1}
-          onChange={(p) => setPage(p)}
+          onChange={(p) => onPageChange(p)}
         />
       ) : null}
     </div>

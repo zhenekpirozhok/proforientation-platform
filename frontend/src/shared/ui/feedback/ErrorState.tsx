@@ -1,10 +1,11 @@
-import { Card, Result } from "antd";
+import { Card, Result } from 'antd';
+import type { ResultProps } from 'antd';
 
 type Props = {
-  status: "404" | "500" | "403";
+  status: ResultProps['status'];
   title: React.ReactNode;
   subtitle?: React.ReactNode;
-  extra?: React.ReactNode; 
+  extra?: React.ReactNode;
 };
 
 export function ErrorState({ status, title, subtitle, extra }: Props) {
@@ -15,9 +16,9 @@ export function ErrorState({ status, title, subtitle, extra }: Props) {
 
         <Card className="relative rounded-[28px] border border-slate-200/60 bg-white/80 backdrop-blur dark:border-slate-800/60 dark:bg-slate-950/60">
           <Result
-            status={status as any}
+            status={status}
             title={<span className="font-semibold">{title}</span>}
-            subTitle={subtitle ? subtitle : null}
+            subTitle={subtitle ?? null}
             extra={extra}
           />
         </Card>

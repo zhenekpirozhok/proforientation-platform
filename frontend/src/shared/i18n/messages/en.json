@@ -4,46 +4,49 @@
     "russian": "Russian",
     "english": "English"
   },
-"Quizzes": {
-  "title": "Career Assessment Quizzes",
-  "subtitle": "Discover your strengths and find a suitable career direction with short, practical quizzes",
+  "Quizzes": {
+    "title": "Career Assessment Quizzes",
+    "subtitle": "Discover your strengths and find a suitable career direction with short, practical quizzes",
 
-  "loading": "Loading quizzes…",
-  "error": "Failed to load quizzes",
+    "loading": "Loading quizzes…",
+    "error": "Failed to load quizzes",
 
-  "searchPlaceholder": "Search",
-  "allCategories": "All categories",
-  "anyDuration": "Any duration",
+    "searchPlaceholder": "Search",
+    "allCategories": "All categories",
+    "anyDuration": "Any duration",
 
-  "filtersTitle": "Filters",
-  "filtersActive": "Active",
-  "filtersNone": "None",
-  "applyFilters": "Apply",
-  "clearFilters": "Clear all filters",
+    "filtersTitle": "Filters",
+    "filtersActive": "Active",
+    "filtersNone": "None",
+    "applyFilters": "Apply",
+    "clearFilters": "Clear all filters",
 
-  "availableQuizzes": "Available tests",
-  "availableCount": "{total, plural, one {# test} other {# tests}}",
+    "availableQuizzes": "Available tests",
+    "availableCount": "{total, plural, one {# test} other {# tests}}",
 
-  "start": "Start quiz",
-  "details": "View details",
+    "start": "Start quiz",
+    "details": "View details",
 
-  "taken": "{count} people completed",
-  "takenShort": "taken",
-  "questions": "questions",
-  "min": "min",
+    "taken": "{count} people completed",
+    "takenShort": "taken",
+    "questions": "questions",
+    "min": "min",
 
-  "emptyTitle": "No quizzes found",
-  "emptyHint": "Try adjusting filters or come back later.",
+    "emptyTitle": "No quizzes found",
+    "emptyHint": "Try adjusting filters or come back later.",
 
-  "fallbackTitle": "Quiz #{id}",
+    "fallbackTitle": "Quiz #{id}",
 
-  "durationShort": "≤ 10 min",
-"durationMid": "10–20 min",
-"durationLong": "20+ min",
+    "durationShort": "≤ 10 min",
+    "durationMid": "10–20 min",
+    "durationLong": "20+ min",
 
-  "loadMore": "Show more",
-  "noMore": "No more"
-},
+    "loadMore": "Show more",
+    "noMore": "No more",
+
+    "metricsUnavailable": "Metrics are temporarily unavailable",
+    "categoriesUnavailable": "Categories are temporarily unavailable"
+  },
   "QuizDetails": {
     "loading": "Loading quiz…",
     "error": "Failed to load quiz",
@@ -91,24 +94,24 @@
     "errorQuestion": "Question error: {message}",
     "errorGeneric": "Error: {message}"
   },
-"Results": {
-  "completeTitle": "Quiz Complete!",
-  "heroTypeTitle": "Your result: {type}",
-  "heroTypeSubtitle": "This result reflects the patterns and tendencies shown in your answers.",
-  "heroFallbackType": "Top",
-  "traitsTitle": "Your Results",
-  "topMatchesTitle": "Your Top Career Matches",
-  "topMatchesSubtitle": "These professions align with your personality and interests",
-  "match": "Match",
-  "save": "Save my results",
-  "retake": "Take another quiz",
-  "invalidAttemptId": "Invalid attempt id",
-  "noSessionResult": "We couldn't find your result in this session.",
-  "goToQuiz": "Go to quiz",
-  "catalogError": "Catalog is temporarily unavailable",
-  "fallbackProfessionTitle": "Profession #{id}",
-  "takeAnother": "Take another quiz"
-},
+  "Results": {
+    "completeTitle": "Quiz Complete!",
+    "heroTypeTitle": "Your result: {type}",
+    "heroTypeSubtitle": "This result reflects the patterns and tendencies shown in your answers.",
+    "heroFallbackType": "Top",
+    "traitsTitle": "Your Results",
+    "topMatchesTitle": "Your Top Career Matches",
+    "topMatchesSubtitle": "These professions align with your personality and interests",
+    "match": "Match",
+    "save": "Save my results",
+    "retake": "Take another quiz",
+    "invalidAttemptId": "Invalid attempt id",
+    "noSessionResult": "We couldn't find your result in this session.",
+    "goToQuiz": "Go to quiz",
+    "catalogError": "Catalog is temporarily unavailable",
+    "fallbackProfessionTitle": "Profession #{id}",
+    "takeAnother": "Take another quiz"
+  },
   "Header": {
     "brand": "CareerPath",
     "quizzes": "Quizzes",

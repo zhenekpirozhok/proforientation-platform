@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Card, Input, Select, Drawer, Button } from "antd";
-import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
-import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
-import type { ProfessionCategoryDto } from "@/shared/api/generated/model";
+import { Card, Input, Select, Drawer, Button } from 'antd';
+import { SearchOutlined, FilterOutlined } from '@ant-design/icons';
+import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import type { ProfessionCategoryDto } from '@/shared/api/generated/model';
 
 type FiltersValue = {
   q: string;
@@ -20,36 +20,41 @@ type Props = {
 };
 
 function hasActiveFilters(v: FiltersValue) {
-  return Boolean(v.q.trim()) || v.category !== "all" || v.duration !== "any";
+  return Boolean(v.q.trim()) || v.category !== 'all' || v.duration !== 'any';
 }
 
-export function QuizzesFilters({ value, onChange, onClear, categories }: Props) {
-  const t = useTranslations("Quizzes");
+export function QuizzesFilters({
+  value,
+  onChange,
+  onClear,
+  categories,
+}: Props) {
+  const t = useTranslations('Quizzes');
   const [open, setOpen] = useState(false);
 
   const active = hasActiveFilters(value);
 
   const categoryOptions = useMemo(
     () => [
-      { value: "all", label: t("allCategories") },
+      { value: 'all', label: t('allCategories') },
       ...categories
-        .filter((c) => typeof c.id === "number")
+        .filter((c) => typeof c.id === 'number')
         .map((c) => ({
           value: String(c.id),
           label: c.name ?? String(c.id),
         })),
     ],
-    [categories, t]
+    [categories, t],
   );
 
   const durationOptions = useMemo(
     () => [
-      { value: "any", label: t("anyDuration") },
-      { value: "short", label: t("durationShort") },
-      { value: "mid", label: t("durationMid") },
-      { value: "long", label: t("durationLong") },
+      { value: 'any', label: t('anyDuration') },
+      { value: 'short', label: t('durationShort') },
+      { value: 'mid', label: t('durationMid') },
+      { value: 'long', label: t('durationLong') },
     ],
-    [t]
+    [t],
   );
 
   const FiltersForm = (
@@ -57,7 +62,7 @@ export function QuizzesFilters({ value, onChange, onClear, categories }: Props) 
       <Input
         size="large"
         prefix={<SearchOutlined className="text-slate-400" />}
-        placeholder={t("searchPlaceholder")}
+        placeholder={t('searchPlaceholder')}
         value={value.q}
         onChange={(e) => onChange({ ...value, q: e.target.value })}
         className="rounded-2xl"
@@ -70,7 +75,7 @@ export function QuizzesFilters({ value, onChange, onClear, categories }: Props) 
         onChange={(v) => onChange({ ...value, category: v })}
         className="cp-filter-select"
         classNames={{
-          popup: { root: "cp-filter-dropdown" },
+          popup: { root: 'cp-filter-dropdown' },
         }}
         options={categoryOptions}
       />
@@ -81,17 +86,26 @@ export function QuizzesFilters({ value, onChange, onClear, categories }: Props) 
         onChange={(v) => onChange({ ...value, duration: v })}
         className="cp-filter-select"
         classNames={{
-          popup: { root: "cp-filter-dropdown" },
+          popup: { root: 'cp-filter-dropdown' },
         }}
         options={durationOptions}
       />
 
       <div className="flex items-center justify-between pt-2">
-        <Button type="link" className="px-0" onClick={onClear} disabled={!active}>
-          {t("clearFilters")}
+        <Button
+          type="link"
+          className="px-0"
+          onClick={onClear}
+          disabled={!active}
+        >
+          {t('clearFilters')}
         </Button>
 
-        <Button type="primary" className="rounded-xl" onClick={() => setOpen(false)}>
+        <Button
+          type="primary"
+          className="rounded-xl"
+          onClick={() => setOpen(false)}
+        >
           OK
         </Button>
       </div>
@@ -108,19 +122,19 @@ export function QuizzesFilters({ value, onChange, onClear, categories }: Props) 
         >
           <span className="inline-flex items-center gap-2">
             <FilterOutlined />
-            {t("filtersTitle")}
+            {t('filtersTitle')}
           </span>
 
           {active ? (
             <span className="inline-flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-indigo-500" />
               <span className="text-xs text-slate-500 dark:text-slate-400">
-                {t("filtersActive")}
+                {t('filtersActive')}
               </span>
             </span>
           ) : (
             <span className="text-xs text-slate-500 dark:text-slate-400">
-              {t("filtersNone")}
+              {t('filtersNone')}
             </span>
           )}
         </button>
@@ -131,33 +145,32 @@ export function QuizzesFilters({ value, onChange, onClear, categories }: Props) 
           <Input
             size="large"
             prefix={<SearchOutlined className="text-slate-400" />}
-            placeholder={t("searchPlaceholder")}
+            placeholder={t('searchPlaceholder')}
             value={value.q}
             onChange={(e) => onChange({ ...value, q: e.target.value })}
             className="rounded-2xl"
             allowClear
           />
 
-<Select
-  size="large"
-  value={value.category}
-  onChange={(v) => onChange({ ...value, category: v })}
-  options={categoryOptions}
-  className="cp-lang-select w-full"
-  classNames={{ popup: { root: "cp-lang-dropdown" } }}
-  popupMatchSelectWidth={false}
-/>
+          <Select
+            size="large"
+            value={value.category}
+            onChange={(v) => onChange({ ...value, category: v })}
+            options={categoryOptions}
+            className="cp-lang-select w-full"
+            classNames={{ popup: { root: 'cp-lang-dropdown' } }}
+            popupMatchSelectWidth={false}
+          />
 
-<Select
-  size="large"
-  value={value.duration}
-  onChange={(v) => onChange({ ...value, duration: v })}
-  options={durationOptions}
-  className="cp-lang-select w-full"
-  classNames={{ popup: { root: "cp-lang-dropdown" } }}
-  popupMatchSelectWidth={false}
-/>
-
+          <Select
+            size="large"
+            value={value.duration}
+            onChange={(v) => onChange({ ...value, duration: v })}
+            options={durationOptions}
+            className="cp-lang-select w-full"
+            classNames={{ popup: { root: 'cp-lang-dropdown' } }}
+            popupMatchSelectWidth={false}
+          />
         </div>
 
         <div className="mt-3 flex justify-end">
@@ -166,10 +179,10 @@ export function QuizzesFilters({ value, onChange, onClear, categories }: Props) 
             className="text-sm text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
             style={{
               opacity: active ? 1 : 0.4,
-              pointerEvents: active ? "auto" : "none",
+              pointerEvents: active ? 'auto' : 'none',
             }}
           >
-            {t("clearFilters")}
+            {t('clearFilters')}
           </button>
         </div>
       </Card>
@@ -180,7 +193,7 @@ export function QuizzesFilters({ value, onChange, onClear, categories }: Props) 
         placement="bottom"
         size="default"
         styles={{ body: { padding: 16 } }}
-        title={t("filtersTitle")}
+        title={t('filtersTitle')}
       >
         {FiltersForm}
       </Drawer>

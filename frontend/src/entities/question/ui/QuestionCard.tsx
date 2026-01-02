@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import type { Question } from "../model/types";
-import { answerWidgetByType } from "./answer-widgets/registry";
+import type { Question } from '../model/types';
+import { answerWidgetByType } from './answer-widgets/registry';
 
 export function QuestionCard({
   question,

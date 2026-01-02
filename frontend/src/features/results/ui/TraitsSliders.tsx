@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { Card, Progress, Typography } from "antd";
+import { Card, Progress, Typography } from 'antd';
 
 const { Title, Text } = Typography;
 
@@ -46,7 +46,9 @@ export function TraitsSliders({
                   <div className="cp-traitCard__text">
                     <Text strong>{r.label}</Text>
                     {r.description ? (
-                      <Text className="cp-traitCard__desc">{r.description}</Text>
+                      <Text className="cp-traitCard__desc">
+                        {r.description}
+                      </Text>
                     ) : null}
                   </div>
                   <Text className="cp-traitCard__value">{v}%</Text>
