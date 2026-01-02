@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import type { AnswerWidgetProps } from "./types";
+import { SingleChoiceWidget } from "./SingleChoiceWidget";
 
 function likertCount(qtype: string) {
   return qtype === "liker_scale_7" ? 7 : 5;
@@ -28,7 +29,10 @@ export function LikertWidget({
   );
 
   const railRef = useRef<HTMLDivElement | null>(null);
+  const scrollWrapRef = useRef<HTMLDivElement | null>(null);
+
   const [dragging, setDragging] = useState(false);
+  const [useFallback, setUseFallback] = useState(false);
 
   const progressPct =
     n > 1 && selectedIdx >= 0 ? (selectedIdx / (n - 1)) * 100 : 0;
@@ -59,6 +63,32 @@ export function LikertWidget({
     },
     [n]
   );
+
+  const measure = useCallback(() => {
+    const el = scrollWrapRef.current;
+    if (!el) return;
+
+    const needsScroll = el.scrollWidth - el.clientWidth > 8;
+    const isNarrow = window.matchMedia("(max-width: 640px)").matches;
+
+    setUseFallback(isNarrow && needsScroll);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    measure();
+
+    const id = window.setTimeout(measure, 0);
+
+    const onResize = () => measure();
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.clearTimeout(id);
+    };
+  }, [measure, n]);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
@@ -110,6 +140,17 @@ export function LikertWidget({
     [disabled, n, selectByIdx, selectedIdx]
   );
 
+  if (useFallback) {
+    return (
+      <SingleChoiceWidget
+        question={question}
+        selectedOptionId={selectedOptionId}
+        onSelect={onSelect}
+        disabled={disabled}
+      />
+    );
+  }
+
   const dotPx = count === 7 ? 44 : 48;
   const dotSizeClass =
     count === 7 ? "h-11 w-11 sm:h-12 sm:w-12" : "h-12 w-12 sm:h-14 sm:w-14";
@@ -128,7 +169,10 @@ export function LikertWidget({
         aria-disabled={disabled}
         onKeyDown={onKeyDown}
       >
-        <div className="overflow-x-auto overscroll-x-contain px-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div
+          ref={scrollWrapRef}
+          className="overflow-x-auto overscroll-x-contain px-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           <div
             ref={railRef}
             className="relative touch-pan-x"
@@ -165,7 +209,12 @@ export function LikertWidget({
               </div>
             </div>
 
-            <div className="grid items-center gap-x-3" style={{ gridTemplateColumns: `repeat(${n}, minmax(var(--dotPx), 1fr))` }}>
+            <div
+              className="grid items-center gap-x-3"
+              style={{
+                gridTemplateColumns: `repeat(${n}, minmax(var(--dotPx), 1fr))`,
+              }}
+            >
               {opts.map((opt, idx) => {
                 const checked = selectedOptionId === opt.id;
 
@@ -236,7 +285,9 @@ export function LikertWidget({
 
         <div className="mt-2 flex items-start justify-between gap-3 text-xs leading-snug text-slate-500 dark:text-slate-400 md:hidden">
           <span className="max-w-[45%] text-left">{opts[0]?.label ?? ""}</span>
-          <span className="max-w-[45%] text-right">{opts[n - 1]?.label ?? ""}</span>
+          <span className="max-w-[45%] text-right">
+            {opts[n - 1]?.label ?? ""}
+          </span>
         </div>
       </div>
     </div>

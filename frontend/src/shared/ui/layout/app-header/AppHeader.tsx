@@ -26,9 +26,6 @@ export function AppHeader() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const theme = useEffectiveTheme();
-  const isDark = theme === "dark";
-
   // TODO: заменить на реальные данные
   const isAuthenticated = false;
   const isAdmin = false;

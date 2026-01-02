@@ -15,7 +15,10 @@ export function QuizDetailsHero({
 }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white dark:border-slate-800/70 dark:bg-slate-950">
-      <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 px-5 py-8 text-white sm:px-8 sm:py-10">
+      <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500
+                px-4 py-5
+                sm:px-8 sm:py-10
+                text-white">
         <div className="flex flex-wrap items-center gap-2">
           {categoryName ? (
             <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold">
@@ -31,12 +34,20 @@ export function QuizDetailsHero({
           ) : null}
         </div>
 
-        <h1 className="mt-5 text-3xl font-bold leading-tight sm:text-4xl">
+        <h1
+          className={[
+            "mt-4 font-bold",
+            "text-[28px] leading-[1.08] tracking-[-0.02em]",
+            "sm:mt-5 sm:text-4xl sm:leading-tight",
+            "break-words",
+          ].join(" ")}
+          style={{ overflowWrap: "anywhere" }}
+        >
           {title}
         </h1>
 
         {description ? (
-          <p className="mt-4 max-w-[740px] text-sm text-white/90 sm:text-base">
+          <p className="mt-4 max-w-[740px] text-sm leading-relaxed text-white/90 sm:text-base">
             {description}
           </p>
         ) : null}

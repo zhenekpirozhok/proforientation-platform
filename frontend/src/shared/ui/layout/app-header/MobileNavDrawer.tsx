@@ -32,7 +32,6 @@ export function MobileNavDrawer({ open, onClose }: Props) {
     { key: "quizzes", label: tDrawer("quizzes"), href: "/quizzes", show: true },
     { key: "results", label: tDrawer("results"), href: "/results", show: isAuthenticated },
     { key: "admin", label: tDrawer("admin"), href: "/admin", show: isAdmin },
-    { key: "settings", label: tDrawer("settings"), href: "/settings", show: true },
   ];
 
   const visibleItems = navItems.filter((i) => i.show);

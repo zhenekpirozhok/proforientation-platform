@@ -4,25 +4,46 @@
     "russian": "Russian",
     "english": "English"
   },
-  "Quizzes": {
-    "title": "Career Assessment Quizzes",
-    "subtitle": "Discover your strengths and find the perfect career path with our comprehensive assessments",
-    "loading": "Loading quizzes…",
-    "error": "Failed to load quizzes",
-    "searchPlaceholder": "Search quizzes by title or topic…",
-    "allCategories": "All Categories",
-    "anyDuration": "Any Duration",
-    "clearFilters": "Clear all filters",
-    "availableQuizzes": "Available Quizzes",
-    "start": "Start Quiz",
-    "details": "Details",
-    "taken": "{count} taken",
-    "questions": "questions",
-    "min": "{count} min",
-    "emptyTitle": "No quizzes created yet",
-    "emptyHint": "Try adjusting filters or check back later.",
-    "fallbackTitle": "Quiz #{id}"
-  },
+"Quizzes": {
+  "title": "Career Assessment Quizzes",
+  "subtitle": "Discover your strengths and find a suitable career direction with short, practical quizzes",
+
+  "loading": "Loading quizzes…",
+  "error": "Failed to load quizzes",
+
+  "searchPlaceholder": "Search",
+  "allCategories": "All categories",
+  "anyDuration": "Any duration",
+
+  "filtersTitle": "Filters",
+  "filtersActive": "Active",
+  "filtersNone": "None",
+  "applyFilters": "Apply",
+  "clearFilters": "Clear all filters",
+
+  "availableQuizzes": "Available tests",
+  "availableCount": "{total, plural, one {# test} other {# tests}}",
+
+  "start": "Start quiz",
+  "details": "View details",
+
+  "taken": "{count} people completed",
+  "takenShort": "taken",
+  "questions": "questions",
+  "min": "min",
+
+  "emptyTitle": "No quizzes found",
+  "emptyHint": "Try adjusting filters or come back later.",
+
+  "fallbackTitle": "Quiz #{id}",
+
+  "durationShort": "≤ 10 min",
+"durationMid": "10–20 min",
+"durationLong": "20+ min",
+
+  "loadMore": "Show more",
+  "noMore": "No more"
+},
   "QuizDetails": {
     "loading": "Loading quiz…",
     "error": "Failed to load quiz",

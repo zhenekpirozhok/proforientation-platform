@@ -4,25 +4,49 @@
     "russian": "Русский",
     "english": "Английский"
   },
-  "Quizzes": {
-    "title": "Тесты профориентации",
-    "subtitle": "Узнай сильные стороны и найди подходящее направление с помощью коротких тестов",
-    "loading": "Загрузка…",
-    "error": "Не удалось загрузить тесты",
-    "searchPlaceholder": "Поиск по названию или теме…",
-    "allCategories": "Все категории",
-    "anyDuration": "Любая длительность",
-    "clearFilters": "Сбросить фильтры",
-    "availableQuizzes": "Доступные тесты",
-    "start": "Начать",
-    "details": "Подробнее",
-    "taken": "Прошли: {count}",
-    "questions": "вопр.",
-    "min": "{count} мин",
-    "emptyTitle": "Пока нет тестов",
-    "emptyHint": "Попробуй изменить фильтры или зайди позже.",
-    "fallbackTitle": "Тест №{id}"
-  },
+"Quizzes": {
+  "title": "Тесты профориентации",
+  "subtitle": "Узнай свои сильные стороны и найди подходящее карьерное направление с помощью коротких тестов",
+
+  "loading": "Загрузка тестов…",
+  "error": "Не удалось загрузить тесты",
+
+  "searchPlaceholder": "Поиск",
+  "allCategories": "Все категории",
+  "anyDuration": "Любая длительность",
+
+  "filtersTitle": "Фильтры",
+  "filtersActive": "Включены",
+  "filtersNone": "Нет",
+  "applyFilters": "Применить",
+  "clearFilters": "Сбросить фильтры",
+
+
+  "availableQuizzes": "Тестов доступно",
+  "availableCount": "{total, plural, one {# тест} few {# теста} many {# тестов} other {# теста}}",
+
+
+  "start": "Начать тест",
+  "details": "Подробнее",
+
+  "taken": "Прошли тест: {count}",
+  "takenShort": "прошли",
+  "questions": "вопр.",
+  "min": "мин",
+
+  "emptyTitle": "Тесты не найдены",
+  "emptyHint": "Попробуй изменить фильтры или зайти позже.",
+
+  "fallbackTitle": "Тест №{id}",
+
+"durationShort": "≤ 10 мин",
+"durationMid": "10–20 мин",
+"durationLong": "20+ мин",
+
+  "loadMore": "Показать ещё",
+  "noMore": "Больше нет"
+
+},
   "QuizDetails": {
     "loading": "Загрузка теста…",
     "error": "Не удалось загрузить тест",

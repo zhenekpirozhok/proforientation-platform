@@ -50,15 +50,18 @@ export default function QuizDetailsPage() {
   const description = quiz.descriptionDefault ?? "";
 
   return (
-    <main className="mx-auto max-w-[1100px] px-4 py-6 sm:px-6">
-      <Link
-        href={`/${locale}/quizzes`}
-        className="text-sm text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
-      >
-        ← {t("back")}
-      </Link>
+    <main className="mx-auto w-full max-w-[1100px] px-4 py-6 sm:px-6">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <Link
+          href={`/${locale}/quizzes`}
+          className="inline-flex items-center gap-2 rounded-xl px-2 py-1 text-sm text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+        >
+          <span aria-hidden>←</span>
+          <span>{t("back")}</span>
+        </Link>
+      </div>
 
-      <div className="mt-4">
+      <div className="space-y-8">
         <QuizDetailsHero
           title={title}
           description={description}
@@ -77,15 +80,10 @@ export default function QuizDetailsPage() {
 
         <QuizTips
           title={t("tipsTitle")}
-          items={[
-            t("tip1"),
-            t("tip2"),
-            t("tip3"),
-            t("tip4"),
-          ]}
+          items={[t("tip1"), t("tip2"), t("tip3"), t("tip4")]}
         />
 
-        <div className="mt-10 flex justify-center">
+        <div className="hidden justify-center sm:flex">
           <Link href={`/${locale}/quizzes/${quizId}/play`}>
             <Button type="primary" size="large" className="rounded-2xl px-10">
               {t("start")} →
@@ -93,6 +91,20 @@ export default function QuizDetailsPage() {
           </Link>
         </div>
       </div>
+
+      <div className="fixed inset-x-4 bottom-4 z-50 sm:hidden">
+        <Link href={`/${locale}/quizzes/${quizId}/play`} className="block">
+          <Button
+            type="primary"
+            size="large"
+            className="h-12 w-full rounded-2xl shadow-lg"
+          >
+            {t("start")} →
+          </Button>
+        </Link>
+      </div>
+
+      <div className="h-20 sm:hidden" />
     </main>
   );
 }

@@ -1,15 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Alert } from "antd";
 
 import { useQuizzes } from "@/entities/quiz/api/useQuizzes";
-import type {
-  QuizDto,
-  QuizPublicMetricsView,
-} from "@/shared/api/generated/model";
+import type { QuizDto, QuizPublicMetricsView } from "@/shared/api/generated/model";
 import { useGetAllMetrics } from "@/shared/api/generated/api";
 import { useCategories } from "@/entities/category/api/useCategories";
 import type { ProfessionCategoryDto } from "@/shared/api/generated/model";
@@ -47,6 +44,7 @@ export default function QuizzesPage() {
   const t = useTranslations("Quizzes");
   const { locale } = useParams<{ locale: string }>();
 
+  const [isMobile, setIsMobile] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(12);
 
@@ -56,19 +54,23 @@ export default function QuizzesPage() {
     duration: "any",
   });
 
-  const {
-    data,
-    isLoading: isQuizzesLoading,
-    error: quizzesError,
-  } = useQuizzes({ page, size: pageSize });
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const set = () => setIsMobile(mq.matches);
+    set();
+    mq.addEventListener("change", set);
+    return () => mq.removeEventListener("change", set);
+  }, []);
 
-  const {
-    data: metrics,
-    isLoading: isMetricsLoading,
-    error: metricsError,
-  } = useGetAllMetrics({
-    query: { staleTime: 60_000, gcTime: 5 * 60_000 },
+  const { data, isLoading: isQuizzesLoading, error: quizzesError } = useQuizzes({
+    page,
+    size: pageSize,
   });
+
+  const { data: metrics, isLoading: isMetricsLoading, error: metricsError } =
+    useGetAllMetrics({
+      query: { staleTime: 60_000, gcTime: 5 * 60_000 },
+    });
 
   const {
     data: categories = [],
@@ -99,30 +101,54 @@ export default function QuizzesPage() {
     return map;
   }, [categories]);
 
-  const filtered = useMemo(() => {
+  const applyFilters = useMemo(() => {
     const q = filters.q.trim().toLowerCase();
-    let list = items;
+    return (list: (QuizDto & { id: number })[]) => {
+      let out = list;
 
-    if (q) {
-      list = list.filter((x) => (x.title ?? "").toLowerCase().includes(q));
-    }
+      if (q) out = out.filter((x) => (x.title ?? "").toLowerCase().includes(q));
 
-    if (filters.category !== "all") {
-      list = list.filter((quiz) => {
-        const m = metricsByQuizId.get(quiz.id);
-        const cat = m?.categoryId;
-        return cat != null && String(cat) === String(filters.category);
-      });
-    }
+      if (filters.category !== "all") {
+        out = out.filter((quiz) => {
+          const m = metricsByQuizId.get(quiz.id);
+          const cat = m?.categoryId;
+          return cat != null && String(cat) === String(filters.category);
+        });
+      }
 
-    return list;
-  }, [items, filters, metricsByQuizId]);
+      return out;
+    };
+  }, [filters, metricsByQuizId]);
+
+  const [mobileAccum, setMobileAccum] = useState<(QuizDto & { id: number })[]>([]);
+
+  useEffect(() => {
+    setPage(1);
+    setMobileAccum([]);
+  }, [filters.q, filters.category, filters.duration]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const next = applyFilters(items);
+    setMobileAccum((prev) => {
+      if (page === 1) return next;
+      const seen = new Set(prev.map((x) => x.id));
+      const merged = [...prev];
+      for (const it of next) if (!seen.has(it.id)) merged.push(it);
+      return merged;
+    });
+  }, [isMobile, page, items, applyFilters]);
+
+  const filteredDesktop = useMemo(() => applyFilters(items), [items, applyFilters]);
+
+  const listToRender = isMobile ? mobileAccum : filteredDesktop;
 
   const isLoading = isQuizzesLoading || isMetricsLoading || isCategoriesLoading;
 
   return (
     <div className="pb-4">
-      <QuizzesHeader total={total || filtered.length} />
+      <QuizzesHeader total={total || listToRender.length} />
 
       <QuizzesFilters
         value={filters}
@@ -139,47 +165,38 @@ export default function QuizzesPage() {
 
       {!quizzesError && metricsError ? (
         <div className="mt-6">
-          <Alert
-            type="warning"
-            message="Metrics are temporarily unavailable"
-            showIcon
-          />
+          <Alert type="warning" message="Metrics are temporarily unavailable" showIcon />
         </div>
       ) : null}
 
       {!quizzesError && !metricsError && categoriesError ? (
         <div className="mt-6">
-          <Alert
-            type="warning"
-            message="Categories are temporarily unavailable"
-            showIcon
-          />
+          <Alert type="warning" message="Categories are temporarily unavailable" showIcon />
         </div>
       ) : null}
 
-      {isLoading ? (
+      {isLoading && page === 1 ? (
         <QuizGridSkeleton />
-      ) : filtered.length === 0 ? (
+      ) : listToRender.length === 0 ? (
         <QuizEmptyState />
       ) : (
-      <div className="mt-6 grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((q) => {
-          const m = metricsByQuizId.get(q.id);
-          const category =
-            m?.categoryId != null ? categoriesById.get(m.categoryId) : undefined;
+        <div className="mt-6 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {listToRender.map((q) => {
+            const m = metricsByQuizId.get(q.id);
+            const category =
+              m?.categoryId != null ? categoriesById.get(m.categoryId) : undefined;
 
-          return (
-            <QuizCard
-              key={q.id}
-              locale={locale}
-              quiz={q}  
-              metric={m}
-              category={category}
-            />
-          );
-        })}
-      </div>
-
+            return (
+              <QuizCard
+                key={q.id}
+                locale={locale}
+                quiz={q}
+                metric={m}
+                category={category}
+              />
+            );
+          })}
+        </div>
       )}
 
       {total > pageSize ? (
@@ -187,6 +204,7 @@ export default function QuizzesPage() {
           page={page}
           pageSize={pageSize}
           total={total}
+          loading={isLoading && page > 1}
           onChange={(p) => setPage(p)}
         />
       ) : null}
