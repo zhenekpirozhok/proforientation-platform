@@ -65,7 +65,6 @@ function safeProfessionTitle(
   return t("Results.fallbackProfessionTitle", { id: rec.professionId });
 }
 
-
 function topTraitName(
   result: AttemptResult,
   traitByCode: Map<string, TraitDto>,

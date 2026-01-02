@@ -14,8 +14,8 @@ export function AppFooter() {
   return (
     <div
       className="
-        flex flex-col-reverse gap-4
-        md:flex-row md:items-center md:justify-between
+        flex gap-4
+        flex-row items-center justify-between
         text-sm
         text-slate-600 dark:text-slate-300
       "

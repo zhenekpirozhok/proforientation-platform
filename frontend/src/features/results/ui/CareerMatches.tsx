@@ -41,7 +41,7 @@ export function CareerMatches({
         {rows.map((r) => {
           const p = pct(r.score01);
           return (
-            <Card key={r.id} className="cp-match" bordered={false}>
+            <Card key={r.id} className="cp-match" variant="borderless">
               <div className="cp-match__left">
                 <Title level={4} className="cp-match__title">
                   {r.title}

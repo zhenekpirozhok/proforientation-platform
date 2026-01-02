@@ -1,5 +1,5 @@
-import { bffFetch } from '@/shared/api/bff/proxy';
-import { parseResponse } from '@/shared/api/parseResponse';
+import { bffFetch } from "@/shared/api/bff/proxy";
+import { parseResponse } from "@/shared/api/parseResponse";
 
 type QuizDto = {
   id?: number;
@@ -11,13 +11,13 @@ type QuizDto = {
 type TraitDto = {
   id?: number;
   code?: string;
-  name?: string;
+  title?: string;
   description?: string;
 };
 
 type ProfessionDto = {
   id?: number;
-  name?: string;
+  title?: string;
   description?: string;
   categoryId?: number;
 };
@@ -26,7 +26,7 @@ type PageLike<T> = {
   content?: T[];
   totalElements?: number;
   last?: boolean;
-  number?: number; // page index
+  number?: number;
 };
 
 async function fetchJsonOrThrow<T>(res: Response, tag: string) {
@@ -46,11 +46,11 @@ async function fetchAllProfessions(headers?: Record<string, string>) {
     const sp = new URLSearchParams({
       page: String(page),
       size: String(size),
-      sort: 'id,asc',
+      sort: "id,asc",
     });
 
     const res = await bffFetch(`/professions?${sp.toString()}`, {
-      method: 'GET',
+      method: "GET",
       headers,
     });
 
@@ -72,7 +72,7 @@ async function fetchAllProfessions(headers?: Record<string, string>) {
 
     if (data.last === true) break;
 
-    page = typeof data.number === 'number' ? data.number + 1 : page + 1;
+    page = typeof data.number === "number" ? data.number + 1 : page + 1;
   }
 
   return out;
@@ -81,20 +81,20 @@ async function fetchAllProfessions(headers?: Record<string, string>) {
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
-    const quizId = Number(url.searchParams.get('quizId'));
+    const quizId = Number(url.searchParams.get("quizId"));
 
     if (!Number.isFinite(quizId) || quizId <= 0) {
-      return new Response(JSON.stringify({ message: 'quizId is required' }), {
+      return new Response(JSON.stringify({ message: "quizId is required" }), {
         status: 400,
-        headers: { 'content-type': 'application/json' },
+        headers: { "content-type": "application/json" },
       });
     }
 
-    const locale = req.headers.get('x-locale') ?? undefined;
-    const headers = locale ? { 'x-locale': locale } : undefined;
+    const locale = req.headers.get("x-locale") ?? undefined;
+    const headers = locale ? { "x-locale": locale } : undefined;
 
     const quizRes = await bffFetch(`/quizzes/${quizId}`, {
-      method: 'GET',
+      method: "GET",
       headers,
     });
     const quiz = await fetchJsonOrThrow<QuizDto>(quizRes, `/quizzes/${quizId}`);
@@ -102,21 +102,16 @@ export async function GET(req: Request) {
     const categoryId = quiz.categoryId;
     if (!Number.isFinite(categoryId)) {
       return new Response(
-        JSON.stringify({ message: 'Quiz categoryId is missing', quiz }),
-        {
-          status: 502,
-          headers: { 'content-type': 'application/json' },
-        },
+        JSON.stringify({ message: "Quiz categoryId is missing", quiz }),
+        { status: 502, headers: { "content-type": "application/json" } },
       );
     }
 
-    const traitsRes = await bffFetch(`/traits`, { method: 'GET', headers });
+    const traitsRes = await bffFetch(`/traits`, { method: "GET", headers });
     const traits = await fetchJsonOrThrow<TraitDto[]>(traitsRes, `/traits`);
 
     const allProfessions = await fetchAllProfessions(headers);
-    const professions = allProfessions.filter(
-      (p) => p.categoryId === categoryId,
-    );
+    const professions = allProfessions.filter((p) => p.categoryId === categoryId);
 
     return new Response(
       JSON.stringify({
@@ -130,15 +125,15 @@ export async function GET(req: Request) {
           professionsInCategory: professions.length,
         },
       }),
-      { status: 200, headers: { 'content-type': 'application/json' } },
+      { status: 200, headers: { "content-type": "application/json" } },
     );
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Unknown error';
+    const msg = e instanceof Error ? e.message : "Unknown error";
     const stack = e instanceof Error ? e.stack : undefined;
 
     return new Response(JSON.stringify({ message: msg, stack }), {
       status: 500,
-      headers: { 'content-type': 'application/json' },
+      headers: { "content-type": "application/json" },
     });
   }
 }
