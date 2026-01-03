@@ -1,9 +1,9 @@
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import type { Question, PageLike } from "../model/types";
-import { quizQuestionPageKey } from "./queryKeys";
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import type { Question, PageLike } from '../model/types';
+import { quizQuestionPageKey } from './queryKeys';
 
-import { getQuestionsForQuiz } from "@/shared/api/generated/api";
-import type { GetQuestionsForQuizParams } from "@/shared/api/generated/model";
+import { getQuestionsForQuiz } from '@/shared/api/generated/api';
+import type { GetQuestionsForQuizParams } from '@/shared/api/generated/model';
 
 type Params = {
   quizId: number;
@@ -22,12 +22,12 @@ export function useQuizQuestionPageQuery({ quizId, page, locale }: Params) {
     queryFn: async ({ signal }) => {
       const params: GetQuestionsForQuizParams = {
         page: String(page + 1),
-        size: "1",
+        size: '1',
       };
 
       const raw: unknown = await getQuestionsForQuiz(quizId, params, {
         signal,
-        headers: { "x-locale": locale },
+        headers: { 'x-locale': locale },
       });
 
       const data = raw as QuizQuestionsResponse;
@@ -43,7 +43,7 @@ export function useQuizQuestionPageQuery({ quizId, page, locale }: Params) {
       const question = (content[0] ?? null) as Question | null;
 
       const total =
-        typeof data.totalElements === "number" ? data.totalElements : undefined;
+        typeof data.totalElements === 'number' ? data.totalElements : undefined;
 
       return { question, total };
     },

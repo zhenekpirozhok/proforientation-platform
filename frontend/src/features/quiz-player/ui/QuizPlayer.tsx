@@ -232,7 +232,6 @@ export function QuizPlayer({ quizId }: Props) {
     setError,
     startAttempt.mutateAsync,
     versionQuery.data,
-    startAttempt,
   ]);
 
   const ready = Boolean(attemptId && guestToken && quizVersionId);
