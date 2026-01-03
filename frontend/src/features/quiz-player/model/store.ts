@@ -1,6 +1,9 @@
+'use client';
+
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { QuizPlayerState, QuizPlayerStatus, AttemptResult } from './types';
+import { useGuestStore } from '@/entities/guest/model/store';
 
 type QuizPlayerActions = {
   startFresh(quizId: number, quizVersionId: number): void;
@@ -59,22 +62,6 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
       ...initialState,
 
       startFresh: (quizId, quizVersionId) => {
-        const s = get();
-        const same =
-          s.quizId === quizId &&
-          s.quizVersionId === quizVersionId &&
-          s.attemptId == null &&
-          s.guestToken == null &&
-          s.status === 'starting' &&
-          s.error == null &&
-          s.currentIndex === 0 &&
-          s.totalQuestions == null &&
-          Object.keys(s.answersByQuestionId).length === 0 &&
-          s.result == null &&
-          s.bulkSentAttemptId == null;
-
-        if (same) return;
-
         set({
           quizId,
           quizVersionId,
@@ -92,7 +79,6 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
       resumeOrStart: (quizId, quizVersionId) => {
         const s = get();
-
         const isCompleted = s.result != null || s.status === 'finished';
 
         const canResume =
@@ -104,13 +90,6 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
         if (canResume) {
           const nextIndex = clampIndex(s.currentIndex, s.totalQuestions);
-          const already =
-            s.status === 'in-progress' &&
-            s.error == null &&
-            s.currentIndex === nextIndex;
-
-          if (already) return;
-
           set({
             quizId,
             quizVersionId,
@@ -120,21 +99,6 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           });
           return;
         }
-
-        const alreadyStarting =
-          s.quizId === quizId &&
-          s.quizVersionId === quizVersionId &&
-          s.attemptId == null &&
-          s.guestToken == null &&
-          s.status === 'starting' &&
-          s.error == null &&
-          s.currentIndex === 0 &&
-          s.totalQuestions == null &&
-          Object.keys(s.answersByQuestionId).length === 0 &&
-          s.result == null &&
-          s.bulkSentAttemptId == null;
-
-        if (alreadyStarting) return;
 
         set({
           quizId,
@@ -153,14 +117,12 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
       setAttempt: (attemptId, guestToken) => {
         const s = get();
-        if (
-          s.attemptId === attemptId &&
-          s.guestToken === guestToken &&
-          s.status === 'in-progress' &&
-          s.error == null
-        ) {
+        if (s.attemptId === attemptId && s.guestToken === guestToken && s.status === 'in-progress' && s.error == null) {
           return;
         }
+
+        useGuestStore.getState().setGuestToken(guestToken);
+
         set({
           attemptId,
           guestToken,
@@ -171,18 +133,20 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
       },
 
       setStatus: (status) => set({ status }),
-      setError: (error) => set({ error, status: 'error' }),
 
-      setIndex: (index) =>
-        set((s) => ({ currentIndex: clampIndex(index, s.totalQuestions) })),
-      goNext: () =>
-        set((s) => ({
-          currentIndex: clampIndex(s.currentIndex + 1, s.totalQuestions),
-        })),
-      goPrev: () =>
-        set((s) => ({
-          currentIndex: clampIndex(s.currentIndex - 1, s.totalQuestions),
-        })),
+      setError: (error) => {
+        if (error == null) {
+          set({ error: null });
+          return;
+        }
+        set({ error, status: 'error' });
+      },
+
+      setIndex: (index) => set((s) => ({ currentIndex: clampIndex(index, s.totalQuestions) })),
+
+      goNext: () => set((s) => ({ currentIndex: clampIndex(s.currentIndex + 1, s.totalQuestions) })),
+
+      goPrev: () => set((s) => ({ currentIndex: clampIndex(s.currentIndex - 1, s.totalQuestions) })),
 
       setTotalQuestions: (total) =>
         set((s) => ({
@@ -202,7 +166,10 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
       setBulkSent: (attemptId) => set({ bulkSentAttemptId: attemptId }),
 
-      resetAll: () => set(initialState),
+      resetAll: () => {
+        useGuestStore.getState().clearGuestToken();
+        set(initialState);
+      },
     }),
     {
       name: 'quiz-player:v2',

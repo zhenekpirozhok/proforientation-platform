@@ -3,6 +3,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/shared/i18n/lib/routing';
 import { LocaleHtmlLangSync } from '@/shared/providers/LocaleHtmlLangSync';
+import { SessionGate } from './SessionGate';
 
 export default async function LocaleLayout({
   children,
@@ -21,6 +22,7 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <LocaleHtmlLangSync locale={locale} />
+      <SessionGate />
       {children}
     </NextIntlClientProvider>
   );
