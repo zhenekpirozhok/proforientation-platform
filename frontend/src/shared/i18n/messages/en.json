@@ -5,19 +5,68 @@
     "english": "English"
   },
   "Quizzes": {
-    "title": "Available quizzes",
+    "title": "Career Assessment Quizzes",
+    "subtitle": "Discover your strengths and find a suitable career direction with short, practical quizzes",
+
     "loading": "Loading quizzes…",
     "error": "Failed to load quizzes",
-    "details": "Details",
+
+    "searchPlaceholder": "Search",
+    "allCategories": "All categories",
+    "anyDuration": "Any duration",
+
+    "filtersTitle": "Filters",
+    "filtersActive": "Active",
+    "filtersNone": "None",
+    "applyFilters": "Apply",
+    "clearFilters": "Clear all filters",
+
+    "availableQuizzes": "Available tests",
+    "availableCount": "{total, plural, one {# test} other {# tests}}",
+
     "start": "Start quiz",
-    "fallbackTitle": "Quiz #{id}"
+    "details": "View details",
+
+    "taken": "{count} people completed",
+    "takenShort": "taken",
+    "questions": "questions",
+    "min": "min",
+
+    "emptyTitle": "No quizzes found",
+    "emptyHint": "Try adjusting filters or come back later.",
+
+    "fallbackTitle": "Quiz #{id}",
+
+    "durationShort": "≤ 10 min",
+    "durationMid": "10–20 min",
+    "durationLong": "20+ min",
+
+    "loadMore": "Show more",
+    "noMore": "No more",
+
+    "metricsUnavailable": "Metrics are temporarily unavailable",
+    "categoriesUnavailable": "Categories are temporarily unavailable"
   },
   "QuizDetails": {
     "loading": "Loading quiz…",
     "error": "Failed to load quiz",
+
+    "fallbackTitle": "Quiz #{id}",
+
     "questions": "Questions",
     "duration": "Estimated duration",
     "minutes": "{count} minutes",
+    "minutesToComplete": "Minutes to complete",
+
+    "taken": "Taken",
+    "category": "Category",
+
+    "tipsTitle": "Before you start",
+    "tip1": "Find a quiet place and focus on the questions.",
+    "tip2": "Answer honestly — there are no right or wrong answers.",
+    "tip3": "Try to complete the quiz in one session.",
+    "tip4": "Your results will help suggest suitable career paths.",
+
     "start": "Start quiz",
     "back": "Back to quizzes"
   },
@@ -46,27 +95,73 @@
     "errorGeneric": "Error: {message}"
   },
   "Results": {
-    "title": "Test Results",
-    "loading": "Loading…",
-    "attempt": "Attempt #{id}",
-
-    "invalidAttemptId": "Invalid attempt id.",
-    "noSessionResult": "Result is not available in this session.",
-
+    "completeTitle": "Quiz Complete!",
+    "heroTypeTitle": "Your result: {type}",
+    "heroTypeSubtitle": "This result reflects the patterns and tendencies shown in your answers.",
+    "heroFallbackType": "Top",
+    "traitsTitle": "Your Results",
+    "topMatchesTitle": "Your Top Career Matches",
+    "topMatchesSubtitle": "These professions align with your personality and interests",
+    "match": "Match",
+    "save": "Save my results",
+    "retake": "Take another quiz",
+    "invalidAttemptId": "Invalid attempt id",
+    "noSessionResult": "We couldn't find your result in this session.",
     "goToQuiz": "Go to quiz",
-    "backToQuiz": "Back to quiz",
-    "retake": "Retake quiz",
-
-    "catalogLoading": "Loading trait/profession catalog…",
-    "catalogError": "Failed to load catalog",
-    "updating": "Updating…",
-
-    "traitsTitle": "Your Traits",
-    "recommendedTitle": "Recommended Fields",
-    "notInThisCategory": "(not in this category)",
-
-    "matchScore": "Match score: {score}%",
-
-    "fallbackProfessionTitle": "Profession #{id}"
+    "catalogError": "Catalog is temporarily unavailable",
+    "fallbackProfessionTitle": "Profession #{id}",
+    "takeAnother": "Take another quiz"
+  },
+  "Header": {
+    "brand": "CareerPath",
+    "quizzes": "Quizzes",
+    "profile": "My Career Profile",
+    "admin": "Admin Dashboard",
+    "results": "Results",
+    "settings": "Settings",
+    "signIn": "Sign in",
+    "userMenu": "Account"
+  },
+  "Footer": {
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "Drawer": {
+    "menuTitle": "Menu",
+    "quizzes": "Quizzes",
+    "profile": "My Career Profile",
+    "admin": "Admin Dashboard",
+    "results": "Results",
+    "settings": "Settings",
+    "language": "Language",
+    "signIn": "Sign in"
+  },
+  "Landing": {
+    "title": "Find your best career direction",
+    "subtitle": "Quick visual quizzes that explain results and suggest professions.",
+    "ctaPrimary": "Start a quiz",
+    "ctaSecondary": "Sign up",
+    "trust": "Guest mode available • Mobile-first • Clear explanations",
+    "featuresTitle": "Why you’ll like it",
+    "feature1Title": "Fast & visual",
+    "feature1Text": "Finish in minutes with a clean step-by-step flow.",
+    "feature2Title": "Clear results",
+    "feature2Text": "Understand your profile and why careers match you.",
+    "feature3Title": "Save & return",
+    "feature3Text": "Keep results in your dashboard after login.",
+    "ctaTitle": "Ready to discover your career path?",
+    "ctaSubtitle": "Start a quiz as a guest — save your results later if you want."
+  },
+  "Errors": {
+    "title": "Something went wrong",
+    "subtitle": "We couldn’t load this page. Please try again.",
+    "retry": "Try again",
+    "toQuizzes": "Go to quizzes"
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "subtitle": "The page you’re looking for doesn’t exist.",
+    "toHome": "Go home",
+    "toQuizzes": "Go to quizzes"
   }
 }

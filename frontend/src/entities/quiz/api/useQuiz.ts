@@ -1,6 +1,12 @@
-import { useGetById } from '@/shared/api/generated/api';
+import { useGetById1 } from '@/shared/api/generated/api';
 import type { QuizDto } from '@/shared/api/generated/model';
 
 export function useQuiz(quizId: number) {
-  return useGetById<QuizDto>(quizId);
+  const enabled = Number.isFinite(quizId) && quizId > 0;
+
+  return useGetById1<QuizDto>(quizId, {
+    query: {
+      enabled,
+    },
+  });
 }

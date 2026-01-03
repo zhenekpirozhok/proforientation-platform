@@ -1,13 +1,23 @@
 'use client';
 
+import '@/features/results/ui/results.css';
+
 import { useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { useRouter } from '@/shared/i18n/lib/navigation';
 import { useLocale, useTranslations, type _Translator } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
+import { Alert } from 'antd';
 
 import { useQuizPlayerStore } from '@/features/quiz-player/model/store';
 import type { AttemptResult } from '@/features/quiz-player/model/types';
 import { parseResponse } from '@/shared/api/parseResponse';
+
+import { ResultsHero } from '@/features/results/ui/ResultHero';
+import { TraitsSliders } from '@/features/results/ui/TraitsSliders';
+import { CareerMatches } from '@/features/results/ui/CareerMatches';
+import { ResultsActions } from '@/features/results/ui/ResultsActions';
+import { ResultsSkeleton } from '@/features/results/ui/ResultsSkeleton';
 
 type TraitDto = {
   id?: number;
@@ -18,7 +28,7 @@ type TraitDto = {
 
 type ProfessionDto = {
   id?: number;
-  name?: string;
+  title?: string;
   description?: string;
   categoryId?: number;
 };
@@ -44,8 +54,8 @@ function safeProfessionTitle(
   prof: ProfessionDto | null,
   t: _Translator,
 ) {
-  const apiName = prof?.name?.trim();
-  if (apiName) return apiName;
+  const apiTitle = prof?.title?.trim();
+  if (apiTitle) return apiTitle;
 
   const fromExplanation = (rec.explanation ?? '')
     .replace('Predicted as: ', '')
@@ -53,6 +63,19 @@ function safeProfessionTitle(
   if (fromExplanation) return fromExplanation;
 
   return t('Results.fallbackProfessionTitle', { id: rec.professionId });
+}
+
+function topTraitName(
+  result: AttemptResult,
+  traitByCode: Map<string, TraitDto>,
+  t: _Translator,
+) {
+  const sorted = (result.traitScores ?? [])
+    .slice()
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  const top = sorted[0];
+  if (!top) return t('Results.heroFallbackType');
+  return traitByCode.get(top.traitCode)?.name?.trim() || top.traitCode;
 }
 
 export default function ResultPage() {
@@ -77,7 +100,7 @@ export default function ResultPage() {
 
   const goToQuiz = () => {
     const safeQuizId = Number.isFinite(quizId) && quizId > 0 ? quizId : 1;
-    router.push(`/${locale}/quizzes/${safeQuizId}/play`);
+    router.push(`/quizzes/${safeQuizId}/play`);
   };
 
   const retake = () => {
@@ -115,31 +138,39 @@ export default function ResultPage() {
 
   if (!attemptIdReady) {
     return (
-      <div style={{ padding: 24, maxWidth: 720 }}>
-        <h1>{t('Results.title')}</h1>
-        <p style={{ opacity: 0.7 }}>{t('Results.loading')}</p>
+      <div className="cp-results-content">
+        <ResultsSkeleton />
       </div>
     );
   }
 
   if (!attemptIdValid) {
     return (
-      <div style={{ padding: 24, maxWidth: 720 }}>
-        <h1>{t('Results.title')}</h1>
-        <p>{t('Results.invalidAttemptId')}</p>
-        <button onClick={goToQuiz}>{t('Results.goToQuiz')}</button>
+      <div className="cp-results-content">
+        <Alert type="error" showIcon message={t('Results.invalidAttemptId')} />
+        <div style={{ marginTop: 16 }}>
+          <ResultsActions
+            primaryLabel={t('Results.goToQuiz')}
+            secondaryLabel={t('Results.retake')}
+            onPrimary={goToQuiz}
+            onSecondary={retake}
+          />
+        </div>
       </div>
     );
   }
 
   if (!hasStoreResult) {
     return (
-      <div style={{ padding: 24, maxWidth: 720 }}>
-        <h1>{t('Results.title')}</h1>
-        <p>{t('Results.noSessionResult')}</p>
-        <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-          <button onClick={goToQuiz}>{t('Results.goToQuiz')}</button>
-          <button onClick={retake}>{t('Results.retake')}</button>
+      <div className="cp-results-content">
+        <Alert type="warning" showIcon message={t('Results.noSessionResult')} />
+        <div style={{ marginTop: 16 }}>
+          <ResultsActions
+            primaryLabel={t('Results.goToQuiz')}
+            secondaryLabel={t('Results.retake')}
+            onPrimary={goToQuiz}
+            onSecondary={retake}
+          />
         </div>
       </div>
     );
@@ -147,78 +178,74 @@ export default function ResultPage() {
 
   const result = storedResult as AttemptResult;
 
+  const traitRows =
+    result.traitScores?.map((ts) => {
+      const tr = traitByCode.get(ts.traitCode);
+      return {
+        key: ts.traitCode,
+        label: tr?.name?.trim() || ts.traitCode,
+        description: tr?.description,
+        value: ts.score,
+      };
+    }) ?? [];
+
+  const matchRows =
+    result.recommendations?.map((rec) => {
+      const prof = professionById.get(rec.professionId) ?? null;
+      return {
+        id: rec.professionId,
+        title: safeProfessionTitle(rec, prof, t),
+        description: prof?.description,
+        score01: rec.score,
+      };
+    }) ?? [];
+
+  const heroType = topTraitName(result, traitByCode, t);
+
   return (
-    <div style={{ padding: 24, maxWidth: 720 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <h1>{t('Results.title')}</h1>
-        <span style={{ opacity: 0.7 }}>
-          {t('Results.attempt', { id: attemptIdFromUrl })}
-        </span>
+    <div className="cp-results">
+      <ResultsHero
+        title={t('Results.completeTitle')}
+        subtitleTitle={t('Results.heroTypeTitle', { type: heroType })}
+        subtitleText={t('Results.heroTypeSubtitle')}
+      />
+
+      <div className="cp-results-content">
+        {catalogQuery.isError ? (
+          <Alert
+            type="warning"
+            showIcon
+            message={
+              catalogQuery.error instanceof Error
+                ? catalogQuery.error.message
+                : t('Results.catalogError')
+            }
+            style={{ marginBottom: 16 }}
+          />
+        ) : null}
+
+        {catalogQuery.isLoading ? (
+          <ResultsSkeleton />
+        ) : (
+          <>
+            <TraitsSliders title={t('Results.traitsTitle')} rows={traitRows} />
+
+            <CareerMatches
+              title={t('Results.topMatchesTitle')}
+              subtitle={t('Results.topMatchesSubtitle')}
+              rows={matchRows.slice(0, 3)}
+              matchLabel={t('Results.match')}
+            />
+
+            <ResultsActions
+              primaryLabel={t('Results.save')}
+              secondaryLabel={t('Results.takeAnother')}
+              onPrimary={() => {}}
+              onSecondary={retake}
+            />
+          </>
+        )}
       </div>
-
-      <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-        <button onClick={retake}>{t('Results.retake')}</button>
-        <button onClick={goToQuiz}>{t('Results.backToQuiz')}</button>
-      </div>
-
-      {catalogQuery.isLoading && (
-        <p style={{ marginTop: 16, opacity: 0.7 }}>
-          {t('Results.catalogLoading')}
-        </p>
-      )}
-
-      {catalogQuery.isError && (
-        <p style={{ marginTop: 16, color: 'crimson' }}>
-          {catalogQuery.error instanceof Error
-            ? catalogQuery.error.message
-            : t('Results.catalogError')}
-        </p>
-      )}
-
-      <section style={{ marginTop: 24 }}>
-        <h2>{t('Results.traitsTitle')}</h2>
-        <ul>
-          {result.traitScores.map((ts) => {
-            const tr = traitByCode.get(ts.traitCode);
-            return (
-              <li key={ts.traitCode}>
-                <strong>{tr?.name?.trim() || ts.traitCode}</strong>: {ts.score}
-                {tr?.description && (
-                  <div style={{ opacity: 0.75 }}>{tr.description}</div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      <section style={{ marginTop: 24 }}>
-        <h2>{t('Results.recommendedTitle')}</h2>
-        <ol>
-          {result.recommendations.map((rec) => {
-            const prof = professionById.get(rec.professionId) ?? null;
-            const title = safeProfessionTitle(rec, prof, t);
-
-            return (
-              <li key={rec.professionId}>
-                <strong>{title}</strong>
-                <div>
-                  {t('Results.matchScore', {
-                    score: (rec.score * 100).toFixed(1),
-                  })}
-                </div>
-                {prof?.description && (
-                  <div style={{ opacity: 0.75 }}>{prof.description}</div>
-                )}
-              </li>
-            );
-          })}
-        </ol>
-      </section>
-
-      {catalogQuery.isFetching && (
-        <p style={{ marginTop: 16, opacity: 0.6 }}>{t('Results.updating')}</p>
-      )}
     </div>
   );
 }

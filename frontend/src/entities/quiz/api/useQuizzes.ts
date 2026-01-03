@@ -20,13 +20,13 @@ type Page<T> = {
 };
 
 function normalizeParams(params?: QuizzesParams) {
-  const pageRaw = params?.page ?? 0;
+  const pageRaw = params?.page ?? 1;
   const sizeRaw = params?.size ?? 20;
 
   const pageNum = typeof pageRaw === 'number' ? pageRaw : Number(pageRaw);
   const sizeNum = typeof sizeRaw === 'number' ? sizeRaw : Number(sizeRaw);
 
-  const page = Number.isFinite(pageNum) ? Math.max(0, pageNum) : 0; // ✅ clamp
+  const page = Number.isFinite(pageNum) ? Math.max(1, pageNum) : 1;
   const size = Number.isFinite(sizeNum) ? Math.max(1, sizeNum) : 20;
 
   const sort = params?.sort;
@@ -47,8 +47,6 @@ function buildQuizzesUrl(params?: QuizzesParams) {
 }
 
 export function useQuizzes(params?: QuizzesParams) {
-  console.log('useQuizzes raw params:', params);
-
   const norm = normalizeParams(params);
   const url = buildQuizzesUrl(params);
 

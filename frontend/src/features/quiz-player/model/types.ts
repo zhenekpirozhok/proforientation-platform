@@ -30,4 +30,5 @@ export type QuizPlayerState = {
 
   answersByQuestionId: Record<number, number>;
   result: AttemptResult | null;
+  bulkSentAttemptId: number | null;
 };
