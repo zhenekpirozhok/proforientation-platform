@@ -155,7 +155,7 @@ public class QuestionServiceImpl implements QuestionService {
                 q.getId(),
                 q.getQuizVersion().getId(),
                 q.getOrd(),
-                q.getQtype().name(),
+                q.getQtype().toString(),
                 q.getTextDefault(),
                 List.of()
         );
@@ -182,7 +182,7 @@ public class QuestionServiceImpl implements QuestionService {
                 q.getId(),
                 q.getQuizVersion().getId(),
                 q.getOrd(),
-                q.getQtype().name(),
+                q.getQtype().toString(),
                 localized,
                 optionDtos
         );

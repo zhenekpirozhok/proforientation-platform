@@ -97,7 +97,7 @@ class QuizVersionServiceTest {
         Question q = new Question();
         q.setId(500);
         q.setOrd(1);
-        q.setQtype(QuestionType.single_choice);
+        q.setQtype(QuestionType.SINGLE_CHOICE);
         q.setTextDefault("Some text");
 
         QuestionOption op = new QuestionOption();

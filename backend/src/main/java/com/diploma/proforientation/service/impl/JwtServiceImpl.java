@@ -3,10 +3,12 @@ package com.diploma.proforientation.service.impl;
 import com.diploma.proforientation.config.JwtProperties;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.service.JwtService;
+import com.diploma.proforientation.service.TokenBlacklistService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,14 +23,12 @@ import java.util.function.Function;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class JwtServiceImpl implements JwtService {
     private static final String ROLES_CLAIMS = "roles";
 
     private final JwtProperties jwtProperties;
-
-    public JwtServiceImpl(JwtProperties jwtProperties) {
-        this.jwtProperties = jwtProperties;
-    }
+    private final TokenBlacklistService tokenBlacklistService;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -79,6 +79,12 @@ public class JwtServiceImpl implements JwtService {
     public boolean isTokenValid(String token, UserDetails userDetails) {
         User user = (User) userDetails;
         final String extractedEmail = extractUsername(token);
+
+        if (tokenBlacklistService.isBlacklisted(token)) {
+            log.warn("Token is blacklisted: {}", token);
+            return false;
+        }
+
         return extractedEmail.equals(user.getEmail()) && !isTokenExpired(token);
     }
 
@@ -110,5 +116,11 @@ public class JwtServiceImpl implements JwtService {
 
     public String generateLongLivedRefreshToken(UserDetails userDetails) {
         return buildToken(new HashMap<>(), userDetails, jwtProperties.getLongRefreshExpirationTime());
+    }
+
+    @Override
+    public void logout(String token) {
+        tokenBlacklistService.blacklistToken(token);
+        log.info("Token blacklisted: {}", token);
     }
 }

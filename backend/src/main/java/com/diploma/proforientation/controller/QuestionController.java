@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -25,6 +26,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/questions")
 @RequiredArgsConstructor
+@Tag(name = "Question", description = "CRUD operations for questions")
 public class QuestionController {
 
     private final QuestionService questionService;

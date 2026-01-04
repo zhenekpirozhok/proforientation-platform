@@ -4,6 +4,7 @@ import com.diploma.proforientation.dto.request.OptionTraitListRequest;
 import com.diploma.proforientation.service.OptionTraitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/options")
 @RequiredArgsConstructor
+@Tag(name = "Option Trait", description = "Assign/Update traits operations")
 public class OptionTraitController {
 
     private final OptionTraitService service;

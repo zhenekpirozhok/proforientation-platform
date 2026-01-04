@@ -55,7 +55,9 @@ public class AttemptServiceImpl implements AttemptService {
 
         if (userId != null) {
             attempt.setUser(userRepo.getReferenceById(userId));
+            attempt.setGuestToken(null);
         } else {
+            attempt.setUser(null);
             attempt.setGuestToken(UUID.randomUUID().toString());
         }
 
@@ -196,6 +198,18 @@ public class AttemptServiceImpl implements AttemptService {
                 .stream()
                 .map(a -> toSummary(a, locale))
                 .toList();
+    }
+
+    @Transactional
+    public void attachGuestAttempts(String guestToken, User user) {
+        if (guestToken == null) return;
+
+        List<Attempt> attempts = attemptRepo.findAllByGuestToken(guestToken);
+
+        for (Attempt attempt : attempts) {
+            attempt.setUser(user);
+            attempt.setGuestToken(null);
+        }
     }
 
     private List<TraitScoreDto> toTraitScoreDtos(

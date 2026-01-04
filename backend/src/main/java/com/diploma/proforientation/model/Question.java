@@ -4,6 +4,8 @@ import com.diploma.proforientation.model.enumeration.QuestionType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Getter
 @Setter
@@ -20,8 +22,10 @@ public class Question {
 
     private Integer ord;
 
+    @Column(name = "qtype", nullable = false)
     @Enumerated(EnumType.STRING)
-    private QuestionType qtype = QuestionType.single_choice;
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    private QuestionType qtype = QuestionType.SINGLE_CHOICE;
 
     @Column(name = "text_default", nullable = false)
     private String textDefault;

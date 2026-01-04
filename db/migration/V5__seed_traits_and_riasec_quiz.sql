@@ -1,22 +1,22 @@
 -- Трейты RIASEC
 INSERT INTO trait_profiles (code, name, description, bipolar_pair_code)
 VALUES
-  ('R', 'Realistic',
+  ('R', '''Практико-ориентированный',
    'Практико-ориентированный тип: работа руками, техника, механизмы.',
    NULL),
-  ('I', 'Investigative',
+  ('I', 'Исследовательский',
    'Исследовательский тип: анализ, наука, решение сложных задач.',
    NULL),
-  ('A', 'Artistic',
+  ('A', 'Творческий',
    'Творческий тип: искусство, дизайн, самовыражение.',
    NULL),
-  ('S', 'Social',
+  ('S', 'Социальный',
    'Социальный тип: помощь людям, обучение, консультирование.',
    NULL),
-  ('E', 'Enterprising',
+  ('E', 'Предпринимательский',
    'Предпринимательский тип: управление, продажи, влияние.',
    NULL),
-  ('C', 'Conventional',
+  ('C', 'Конвенциональный',
    'Конвенциональный тип: структурированные задачи, учет, документы.',
    NULL);
 
@@ -26,8 +26,8 @@ INSERT INTO quizzes (code, title_default, status, processing_mode, category_id, 
 VALUES (
   'riasec_main',
   'RIASEC: профориентационный тест',
-  'published',
-  'ml_riasec',
+  'PUBLISHED',
+  'ML_RIASEC',
   (SELECT id FROM profession_categories WHERE code = 'general'),
   (SELECT id FROM users WHERE email = 'ya.kavalchuk@gmail.com')
 )
@@ -56,64 +56,64 @@ WITH qv AS (
 INSERT INTO questions (quiz_version_id, ord, qtype, text_default)
 VALUES
 -- REALISTIC (R)
-((SELECT quiz_version_id FROM qv), 1, 'liker_scale_5', 'Test the quality of parts before shipment'),
-((SELECT quiz_version_id FROM qv), 2, 'liker_scale_5', 'Lay brick or tile'),
-((SELECT quiz_version_id FROM qv), 3, 'liker_scale_5', 'Work on an offshore oil-drilling rig'),
-((SELECT quiz_version_id FROM qv), 4, 'liker_scale_5', 'Assemble electronic parts'),
-((SELECT quiz_version_id FROM qv), 5, 'liker_scale_5', 'Operate a grinding machine in a factory'),
-((SELECT quiz_version_id FROM qv), 6, 'liker_scale_5', 'Fix a broken faucet'),
-((SELECT quiz_version_id FROM qv), 7, 'liker_scale_5', 'Assemble products in a factory'),
-((SELECT quiz_version_id FROM qv), 8, 'liker_scale_5', 'Install flooring in houses'),
+((SELECT quiz_version_id FROM qv), 1, 'LIKER_SCALE_5', 'Test the quality of parts before shipment'),
+((SELECT quiz_version_id FROM qv), 2, 'LIKER_SCALE_5', 'Lay brick or tile'),
+((SELECT quiz_version_id FROM qv), 3, 'LIKER_SCALE_5', 'Work on an offshore oil-drilling rig'),
+((SELECT quiz_version_id FROM qv), 4, 'LIKER_SCALE_5', 'Assemble electronic parts'),
+((SELECT quiz_version_id FROM qv), 5, 'LIKER_SCALE_5', 'Operate a grinding machine in a factory'),
+((SELECT quiz_version_id FROM qv), 6, 'LIKER_SCALE_5', 'Fix a broken faucet'),
+((SELECT quiz_version_id FROM qv), 7, 'LIKER_SCALE_5', 'Assemble products in a factory'),
+((SELECT quiz_version_id FROM qv), 8, 'LIKER_SCALE_5', 'Install flooring in houses'),
 
 -- INVESTIGATIVE (I)
-((SELECT quiz_version_id FROM qv), 9, 'liker_scale_5', 'Study the structure of the human body'),
-((SELECT quiz_version_id FROM qv), 10, 'liker_scale_5', 'Study animal behavior'),
-((SELECT quiz_version_id FROM qv), 11, 'liker_scale_5', 'Do research on plants or animals'),
-((SELECT quiz_version_id FROM qv), 12, 'liker_scale_5', 'Develop a new medical treatment or procedure'),
-((SELECT quiz_version_id FROM qv), 13, 'liker_scale_5', 'Conduct biological research'),
-((SELECT quiz_version_id FROM qv), 14, 'liker_scale_5', 'Study whales and other types of marine life'),
-((SELECT quiz_version_id FROM qv), 15, 'liker_scale_5', 'Work in a biology lab'),
-((SELECT quiz_version_id FROM qv), 16, 'liker_scale_5', 'Make a map of the bottom of an ocean'),
+((SELECT quiz_version_id FROM qv), 9, 'LIKER_SCALE_5', 'Study the structure of the human body'),
+((SELECT quiz_version_id FROM qv), 10, 'LIKER_SCALE_5', 'Study animal behavior'),
+((SELECT quiz_version_id FROM qv), 11, 'LIKER_SCALE_5', 'Do research on plants or animals'),
+((SELECT quiz_version_id FROM qv), 12, 'LIKER_SCALE_5', 'Develop a new medical treatment or procedure'),
+((SELECT quiz_version_id FROM qv), 13, 'LIKER_SCALE_5', 'Conduct biological research'),
+((SELECT quiz_version_id FROM qv), 14, 'LIKER_SCALE_5', 'Study whales and other types of marine life'),
+((SELECT quiz_version_id FROM qv), 15, 'LIKER_SCALE_5', 'Work in a biology lab'),
+((SELECT quiz_version_id FROM qv), 16, 'LIKER_SCALE_5', 'Make a map of the bottom of an ocean'),
 
 -- ARTISTIC (A)
-((SELECT quiz_version_id FROM qv), 17, 'liker_scale_5', 'Conduct a musical choir'),
-((SELECT quiz_version_id FROM qv), 18, 'liker_scale_5', 'Direct a play'),
-((SELECT quiz_version_id FROM qv), 19, 'liker_scale_5', 'Design artwork for magazines'),
-((SELECT quiz_version_id FROM qv), 20, 'liker_scale_5', 'Write a song'),
-((SELECT quiz_version_id FROM qv), 21, 'liker_scale_5', 'Write books or plays'),
-((SELECT quiz_version_id FROM qv), 22, 'liker_scale_5', 'Play a musical instrument'),
-((SELECT quiz_version_id FROM qv), 23, 'liker_scale_5', 'Perform stunts for a movie or television show'),
-((SELECT quiz_version_id FROM qv), 24, 'liker_scale_5', 'Design sets for plays'),
+((SELECT quiz_version_id FROM qv), 17, 'LIKER_SCALE_5', 'Conduct a musical choir'),
+((SELECT quiz_version_id FROM qv), 18, 'LIKER_SCALE_5', 'Direct a play'),
+((SELECT quiz_version_id FROM qv), 19, 'LIKER_SCALE_5', 'Design artwork for magazines'),
+((SELECT quiz_version_id FROM qv), 20, 'LIKER_SCALE_5', 'Write a song'),
+((SELECT quiz_version_id FROM qv), 21, 'LIKER_SCALE_5', 'Write books or plays'),
+((SELECT quiz_version_id FROM qv), 22, 'LIKER_SCALE_5', 'Play a musical instrument'),
+((SELECT quiz_version_id FROM qv), 23, 'LIKER_SCALE_5', 'Perform stunts for a movie or television show'),
+((SELECT quiz_version_id FROM qv), 24, 'LIKER_SCALE_5', 'Design sets for plays'),
 
 -- SOCIAL (S)
-((SELECT quiz_version_id FROM qv), 25, 'liker_scale_5', 'Give career guidance to people'),
-((SELECT quiz_version_id FROM qv), 26, 'liker_scale_5', 'Do volunteer work at a non-profit organization'),
-((SELECT quiz_version_id FROM qv), 27, 'liker_scale_5', 'Help people who have problems with drugs or alcohol'),
-((SELECT quiz_version_id FROM qv), 28, 'liker_scale_5', 'Teach an individual an exercise routine'),
-((SELECT quiz_version_id FROM qv), 29, 'liker_scale_5', 'Help people with family-related problems'),
-((SELECT quiz_version_id FROM qv), 30, 'liker_scale_5', 'Supervise the activities of children at a camp'),
-((SELECT quiz_version_id FROM qv), 31, 'liker_scale_5', 'Teach children how to read'),
-((SELECT quiz_version_id FROM qv), 32, 'liker_scale_5', 'Help elderly people with their daily activities'),
+((SELECT quiz_version_id FROM qv), 25, 'LIKER_SCALE_5', 'Give career guidance to people'),
+((SELECT quiz_version_id FROM qv), 26, 'LIKER_SCALE_5', 'Do volunteer work at a non-profit organization'),
+((SELECT quiz_version_id FROM qv), 27, 'LIKER_SCALE_5', 'Help people who have problems with drugs or alcohol'),
+((SELECT quiz_version_id FROM qv), 28, 'LIKER_SCALE_5', 'Teach an individual an exercise routine'),
+((SELECT quiz_version_id FROM qv), 29, 'LIKER_SCALE_5', 'Help people with family-related problems'),
+((SELECT quiz_version_id FROM qv), 30, 'LIKER_SCALE_5', 'Supervise the activities of children at a camp'),
+((SELECT quiz_version_id FROM qv), 31, 'LIKER_SCALE_5', 'Teach children how to read'),
+((SELECT quiz_version_id FROM qv), 32, 'LIKER_SCALE_5', 'Help elderly people with their daily activities'),
 
 -- ENTERPRISING (E)
-((SELECT quiz_version_id FROM qv), 33, 'liker_scale_5', 'Sell restaurant franchises to individuals'),
-((SELECT quiz_version_id FROM qv), 34, 'liker_scale_5', 'Sell merchandise at a department store'),
-((SELECT quiz_version_id FROM qv), 35, 'liker_scale_5', 'Manage the operations of a hotel'),
-((SELECT quiz_version_id FROM qv), 36, 'liker_scale_5', 'Operate a beauty salon or barber shop'),
-((SELECT quiz_version_id FROM qv), 37, 'liker_scale_5', 'Manage a department within a large company'),
-((SELECT quiz_version_id FROM qv), 38, 'liker_scale_5', 'Manage a clothing store'),
-((SELECT quiz_version_id FROM qv), 39, 'liker_scale_5', 'Sell houses'),
-((SELECT quiz_version_id FROM qv), 40, 'liker_scale_5', 'Run a toy store'),
+((SELECT quiz_version_id FROM qv), 33, 'LIKER_SCALE_5', 'Sell restaurant franchises to individuals'),
+((SELECT quiz_version_id FROM qv), 34, 'LIKER_SCALE_5', 'Sell merchandise at a department store'),
+((SELECT quiz_version_id FROM qv), 35, 'LIKER_SCALE_5', 'Manage the operations of a hotel'),
+((SELECT quiz_version_id FROM qv), 36, 'LIKER_SCALE_5', 'Operate a beauty salon or barber shop'),
+((SELECT quiz_version_id FROM qv), 37, 'LIKER_SCALE_5', 'Manage a department within a large company'),
+((SELECT quiz_version_id FROM qv), 38, 'LIKER_SCALE_5', 'Manage a clothing store'),
+((SELECT quiz_version_id FROM qv), 39, 'LIKER_SCALE_5', 'Sell houses'),
+((SELECT quiz_version_id FROM qv), 40, 'LIKER_SCALE_5', 'Run a toy store'),
 
 -- CONVENTIONAL (C)
-((SELECT quiz_version_id FROM qv), 41, 'liker_scale_5', 'Generate the monthly payroll checks for an office'),
-((SELECT quiz_version_id FROM qv), 42, 'liker_scale_5', 'Inventory supplies using a hand-held computer'),
-((SELECT quiz_version_id FROM qv), 43, 'liker_scale_5', 'Use a computer program to generate customer bills'),
-((SELECT quiz_version_id FROM qv), 44, 'liker_scale_5', 'Maintain employee records'),
-((SELECT quiz_version_id FROM qv), 45, 'liker_scale_5', 'Compute and record statistical and other numerical data'),
-((SELECT quiz_version_id FROM qv), 46, 'liker_scale_5', 'Operate a calculator'),
-((SELECT quiz_version_id FROM qv), 47, 'liker_scale_5', 'Handle customers\ bank transactions'),
-((SELECT quiz_version_id FROM qv), 48, 'liker_scale_5', 'Keep shipping and receiving records');
+((SELECT quiz_version_id FROM qv), 41, 'LIKER_SCALE_5', 'Generate the monthly payroll checks for an office'),
+((SELECT quiz_version_id FROM qv), 42, 'LIKER_SCALE_5', 'Inventory supplies using a hand-held computer'),
+((SELECT quiz_version_id FROM qv), 43, 'LIKER_SCALE_5', 'Use a computer program to generate customer bills'),
+((SELECT quiz_version_id FROM qv), 44, 'LIKER_SCALE_5', 'Maintain employee records'),
+((SELECT quiz_version_id FROM qv), 45, 'LIKER_SCALE_5', 'Compute and record statistical and other numerical data'),
+((SELECT quiz_version_id FROM qv), 46, 'LIKER_SCALE_5', 'Operate a calculator'),
+((SELECT quiz_version_id FROM qv), 47, 'LIKER_SCALE_5', 'Handle customers\ bank transactions'),
+((SELECT quiz_version_id FROM qv), 48, 'LIKER_SCALE_5', 'Keep shipping and receiving records');
 
 -- 4. Опции для КАЖДОГО вопроса: Нет / Скорее нет / Нейтрально / Скорее да / Да
 WITH current_qv AS (
@@ -279,7 +279,7 @@ DO $$
     END $$;
 
 ------------------------------------------------------------
--- 7. Russian translations for Likert answer options
+-- 7. Russian translations for Liker answer options
 ------------------------------------------------------------
 
 DO $$

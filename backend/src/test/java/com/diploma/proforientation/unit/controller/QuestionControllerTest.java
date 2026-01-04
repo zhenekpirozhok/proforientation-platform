@@ -131,7 +131,7 @@ class QuestionControllerTest {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
 
         QuestionDto dto = new QuestionDto(
-                10, 1, 2, "multi_choice", "Versioned question", null
+                10, 1, 2, "multiple_choice", "Versioned question", null
         );
 
         Page<QuestionDto> pageResult = new PageImpl<>(List.of(dto), pageable, 1);
@@ -144,7 +144,7 @@ class QuestionControllerTest {
         );
 
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().getFirst().qtype()).isEqualTo("multi_choice");
+        assertThat(result.getContent().getFirst().qtype()).isEqualTo("multiple_choice");
 
         verify(service).getQuestionsForVersion(quizId, version, locale, pageable);
     }

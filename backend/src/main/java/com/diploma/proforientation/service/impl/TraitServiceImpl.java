@@ -13,16 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.diploma.proforientation.util.Constants.FIELD_DESCRIPTION;
-import static com.diploma.proforientation.util.Constants.TRAIT_NOT_FOUND;
+import static com.diploma.proforientation.util.Constants.*;
 
 
 @Service
 @RequiredArgsConstructor
 public class TraitServiceImpl implements TraitService {
-
-    private static final String ENTITY_TYPE_TRAIT= "trait";
-    private static final String FIELD_NAME = "name";
 
     private final TraitProfileRepository repo;
     private final TranslationResolver translationResolver;
@@ -102,7 +98,7 @@ public class TraitServiceImpl implements TraitService {
         String name = translationResolver.resolve(
                 ENTITY_TYPE_TRAIT,
                 trait.getId(),
-                FIELD_NAME,
+                FIELD_TITLE,
                 locale,
                 trait.getName()
         );

@@ -15,11 +15,17 @@ import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import jakarta.persistence.criteria.Predicate;
 
 import static com.diploma.proforientation.util.Constants.*;
 
@@ -59,6 +65,12 @@ public class QuizServiceImpl implements QuizService {
         return toDtoLocalized(quiz, locale);
     }
 
+    public QuizDto getByCodeLocalized(String code, String locale) {
+        Quiz quiz = quizRepo.findByCode(code)
+                .orElseThrow(() -> new EntityNotFoundException("Quiz not found with code: " + code));
+        return toDtoLocalized(quiz, locale);
+    }
+
     @Override
     @Transactional
     public QuizDto create(CreateQuizRequest req) {
@@ -73,7 +85,7 @@ public class QuizServiceImpl implements QuizService {
         q.setTitleDefault(req.title());
         q.setProcessingMode(req.processingMode() != null
                 ? Enum.valueOf(QuizProcessingMode.class, req.processingMode())
-                : QuizProcessingMode.llm);
+                : QuizProcessingMode.LLM);
         q.setCategory(category);
         q.setAuthor(author);
         q.setCreatedAt(Instant.now());
@@ -115,6 +127,45 @@ public class QuizServiceImpl implements QuizService {
         Quiz quiz = quizRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
         quizRepo.delete(quiz);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Page<QuizDto> searchAndSort(
+            String search,      // search by title/code/description
+            String sortBy,      // "category", "createdAt", "updatedAt", default "id"
+            String locale,
+            Pageable pageable
+    ) {
+        Specification<Quiz> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (search != null && !search.isBlank()) {
+                String like = "%" + search.toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("titleDefault")), like),
+                        cb.like(cb.lower(root.get("code")), like),
+                        cb.like(cb.lower(root.get("descriptionDefault")), like)
+                ));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        // Sorting
+        if ("category".equals(sortBy)) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    Sort.by("category.id").ascending());
+        } else if ("createdAt".equals(sortBy)) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    Sort.by("createdAt").descending());
+        } else if ("updatedAt".equals(sortBy)) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    Sort.by("updatedAt").descending());
+        }
+
+        return quizRepo.findAll(spec, pageable)
+                .map(q -> toDtoLocalized(q, locale));
     }
 
     private QuizDto toDto(Quiz q) {

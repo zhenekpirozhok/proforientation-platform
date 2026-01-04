@@ -5,6 +5,7 @@ import com.diploma.proforientation.dto.request.create.CreateCategoryRequest;
 import com.diploma.proforientation.model.ProfessionCategory;
 import com.diploma.proforientation.repository.ProfessionCategoryRepository;
 import com.diploma.proforientation.service.ProfessionCategoryService;
+import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,17 +13,25 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.diploma.proforientation.util.Constants.CATEGORY_NOT_FOUND;
+import static com.diploma.proforientation.util.Constants.*;
 
 @Service
 @RequiredArgsConstructor
 public class ProfessionCategoryServiceImpl implements ProfessionCategoryService {
 
     private final ProfessionCategoryRepository repo;
+    private final TranslationResolver translationResolver;
 
     public List<ProfessionCategoryDto> getAll() {
         return repo.findAll().stream()
                 .map(this::toDto)
+                .toList();
+    }
+
+    @Override
+    public List<ProfessionCategoryDto> getAllLocalized(String locale) {
+        return repo.findAll().stream()
+                .map(cat -> toDtoLocalized(cat, locale))
                 .toList();
     }
 
@@ -57,6 +66,24 @@ public class ProfessionCategoryServiceImpl implements ProfessionCategoryService 
                 cat.getId(),
                 cat.getCode(),
                 cat.getName(),
+                cat.getColorCode()
+        );
+    }
+
+    private ProfessionCategoryDto toDtoLocalized(ProfessionCategory cat, String locale) {
+
+        String name = translationResolver.resolve(
+                ENTITY_TYPE_CATEGORY,
+                cat.getId(),
+                FIELD_TITLE,
+                locale,
+                cat.getName()
+        );
+
+        return new ProfessionCategoryDto(
+                cat.getId(),
+                cat.getCode(),
+                name,
                 cat.getColorCode()
         );
     }

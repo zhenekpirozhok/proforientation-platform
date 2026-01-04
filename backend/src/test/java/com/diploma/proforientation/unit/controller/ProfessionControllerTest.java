@@ -10,10 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -60,18 +57,22 @@ class ProfessionControllerTest {
         );
     }
 
-    // -------------------------------------------------
-    // GET /professions
-    // -------------------------------------------------
     @Test
     void shouldReturnPaginatedLocalizedProfessions() {
-        Pageable pageable = PageRequest.of(0, 20);
-        Page<ProfessionDto> page =
+        LocaleContextHolder.setLocale(Locale.ENGLISH);
+
+        int page = 1;
+        int size = 20;
+        String sort = "id";
+
+        Pageable pageable = PageRequest.of(0, size, Sort.by(sort));
+
+        Page<ProfessionDto> pageResult =
                 new PageImpl<>(List.of(dto1, dto2), pageable, 2);
 
-        when(service.getAllLocalized("en", pageable)).thenReturn(page);
+        when(service.getAllLocalized("en", pageable)).thenReturn(pageResult);
 
-        Page<ProfessionDto> result = controller.getAll(pageable);
+        Page<ProfessionDto> result = controller.getAll(page, size, sort);
 
         assertNotNull(result);
         assertEquals(2, result.getContent().size());

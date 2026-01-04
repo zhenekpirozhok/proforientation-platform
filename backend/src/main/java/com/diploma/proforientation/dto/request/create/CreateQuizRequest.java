@@ -16,10 +16,10 @@ public record CreateQuizRequest(
         String title,
         @Schema(
                 description = "Processing mode defining how results are calculated",
-                examples = "ml_riasec",
+                examples = "ML_RIASEC",
                 allowableValues = {
-                        "ml_riasec",
-                        "llm"
+                        "ML_RIASEC",
+                        "LLM"
                 }
         )
         String processingMode,

@@ -11,10 +11,10 @@ public record UpdateQuizRequest(
         String title,
         @Schema(
                 description = "Updated quiz processing mode",
-                examples = "ml_riasec",
+                examples = "ML_RIASEC",
                 allowableValues = {
-                        "ml_riasec",
-                        "llm"
+                        "ML_RIASEC",
+                        "LLM"
                 }
         )
         String processingMode,

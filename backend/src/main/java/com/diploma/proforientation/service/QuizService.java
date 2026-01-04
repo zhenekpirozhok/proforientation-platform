@@ -12,7 +12,14 @@ public interface QuizService {
     Page<QuizDto> getAllLocalized(String locale, Pageable pageable);
     QuizDto getById(Integer id);
     QuizDto getByIdLocalized(Integer id, String locale);
+    QuizDto getByCodeLocalized(String code, String locale);
     QuizDto create(CreateQuizRequest req);
     QuizDto update(Integer id, UpdateQuizRequest req);
     void delete(Integer id);
+    Page<QuizDto> searchAndSort(
+            String search,
+            String sortBy,
+            String locale,
+            Pageable pageable
+    );
 }

@@ -15,7 +15,7 @@ public class ScoringEngineFactory {
 
     public ScoringEngine getEngine(QuizProcessingMode mode) {
         return switch (mode) {
-            case ml_riasec -> mlEngine;
+            case ML_RIASEC -> mlEngine;
             default -> llmEngine;
         };
     }

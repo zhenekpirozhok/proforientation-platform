@@ -11,6 +11,7 @@ import com.diploma.proforientation.repository.ProfessionCategoryRepository;
 import com.diploma.proforientation.repository.QuizRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.impl.QuizServiceImpl;
+import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +37,8 @@ class QuizServiceTest {
 
     @Mock
     private UserRepository userRepo;
+    @Mock
+    private TranslationResolver translationResolver;
 
     @InjectMocks
     private QuizServiceImpl service;
@@ -96,9 +100,49 @@ class QuizServiceTest {
     }
 
     @Test
+    void getByCodeLocalized_shouldReturnQuiz() {
+        Quiz quiz = new Quiz();
+        quiz.setId(20);
+        quiz.setCode("Q20");
+        quiz.setTitleDefault("Quiz Code Test");
+
+        ProfessionCategory category = new ProfessionCategory();
+        category.setId(5);
+        quiz.setCategory(category);
+
+        User author = new User();
+        author.setId(1);
+        quiz.setAuthor(author);
+
+        when(quizRepo.findByCode("Q20")).thenReturn(Optional.of(quiz));
+
+        when(translationResolver.resolve(
+                anyString(),
+                anyInt(),
+                anyString(),
+                anyString(),
+                anyString()
+        )).thenReturn("Quiz Code Test");
+
+        QuizDto result = service.getByCodeLocalized("Q20", "en");
+
+        assertThat(result.id()).isEqualTo(20);
+        assertThat(result.title()).isEqualTo("Quiz Code Test");
+        verify(quizRepo).findByCode("Q20");
+    }
+
+    @Test
+    void getByCodeLocalized_shouldThrowWhenNotFound() {
+        when(quizRepo.findByCode("NOT_EXIST")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getByCodeLocalized("NOT_EXIST", "en"))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
     void create_shouldCreateQuiz() {
         CreateQuizRequest req =
-                new CreateQuizRequest("QX", "New Quiz", "ml_riasec", 5, 1);
+                new CreateQuizRequest("QX", "New Quiz", "ML_RIASEC", 5, 1);
 
         when(categoryRepo.findById(5)).thenReturn(Optional.of(category));
         when(userRepo.findById(1)).thenReturn(Optional.of(author));
@@ -109,7 +153,7 @@ class QuizServiceTest {
         saved.setTitleDefault("New Quiz");
         saved.setCategory(category);
         saved.setAuthor(author);
-        saved.setProcessingMode(QuizProcessingMode.ml_riasec);
+        saved.setProcessingMode(QuizProcessingMode.ML_RIASEC);
 
         when(quizRepo.save(any())).thenReturn(saved);
 
@@ -148,14 +192,14 @@ class QuizServiceTest {
         Quiz quiz = new Quiz();
         quiz.setId(5);
         quiz.setTitleDefault("Old");
-        quiz.setProcessingMode(QuizProcessingMode.ml_riasec);
+        quiz.setProcessingMode(QuizProcessingMode.ML_RIASEC);
 
         when(quizRepo.findById(5)).thenReturn(Optional.of(quiz));
         when(categoryRepo.findById(5)).thenReturn(Optional.of(category));
         when(quizRepo.save(quiz)).thenReturn(quiz);
 
         UpdateQuizRequest req =
-                new UpdateQuizRequest("Updated", "ml_riasec", 5);
+                new UpdateQuizRequest("Updated", "ML_RIASEC", 5);
 
         QuizDto result = service.update(5, req);
 
@@ -172,5 +216,72 @@ class QuizServiceTest {
 
         assertThatThrownBy(() -> service.update(77, req))
                 .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    void searchAndSort_shouldReturnFilteredQuizzes() {
+        // Prepare test quiz
+        Quiz quiz = new Quiz();
+        quiz.setId(1);
+        quiz.setCode("Q1");
+        quiz.setTitleDefault("Test Quiz");
+        ProfessionCategory category = new ProfessionCategory();
+        category.setId(5);
+        quiz.setCategory(category);
+        User author = new User();
+        author.setId(1);
+        quiz.setAuthor(author);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Quiz> page = new PageImpl<>(List.of(quiz), pageable, 1);
+
+        when(quizRepo.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+
+        when(translationResolver.resolve(anyString(), anyInt(), anyString(), anyString(), anyString()))
+                .thenAnswer(invocation -> invocation.getArgument(4)); // return default title/description
+
+        Page<QuizDto> result = service.searchAndSort("Test", "id", "en", pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().title()).isEqualTo("Test Quiz");
+        verify(quizRepo).findAll(any(Specification.class), eq(pageable));
+    }
+
+    @Test
+    void searchAndSort_emptySearch_shouldReturnAll() {
+        Quiz quiz1 = new Quiz();
+        quiz1.setId(1);
+        quiz1.setCode("Q1");
+        quiz1.setTitleDefault("Quiz One");
+        quiz1.setCategory(new ProfessionCategory(){{
+            setId(1);
+        }});
+        quiz1.setAuthor(new User(){{
+            setId(1);
+        }});
+
+        Quiz quiz2 = new Quiz();
+        quiz2.setId(2);
+        quiz2.setCode("Q2");
+        quiz2.setTitleDefault("Quiz Two");
+        quiz2.setCategory(new ProfessionCategory(){{
+            setId(2);
+        }});
+        quiz2.setAuthor(new User(){{
+            setId(2);
+        }});
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Quiz> page = new PageImpl<>(List.of(quiz1, quiz2), pageable, 2);
+
+        when(quizRepo.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+        when(translationResolver.resolve(anyString(), anyInt(), anyString(), anyString(), anyString()))
+                .thenAnswer(invocation -> invocation.getArgument(4));
+
+        Page<QuizDto> result = service.searchAndSort(null, "id", "en", pageable);
+
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getContent().get(0).title()).isEqualTo("Quiz One");
+        assertThat(result.getContent().get(1).title()).isEqualTo("Quiz Two");
     }
 }

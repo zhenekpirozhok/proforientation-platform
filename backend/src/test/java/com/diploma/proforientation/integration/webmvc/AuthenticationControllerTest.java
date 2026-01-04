@@ -8,6 +8,7 @@ import com.diploma.proforientation.dto.passwordreset.ResetPasswordDto;
 import com.diploma.proforientation.dto.request.GoogleOneTapLoginRequest;
 import com.diploma.proforientation.dto.request.RefreshTokenRequest;
 import com.diploma.proforientation.model.User;
+import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.service.AuthenticationService;
 import com.diploma.proforientation.service.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,6 +55,9 @@ class AuthenticationControllerTest {
     @MockitoBean
     JwtService jwtService;
 
+    @MockitoBean
+    AttemptService attemptService;
+
     @Autowired
     ObjectMapper objectMapper;
 
@@ -84,7 +88,7 @@ class AuthenticationControllerTest {
 
     @Test
     void loginReturnsTokens() throws Exception {
-        LoginUserDto dto = new LoginUserDto("test@mail.com", "password", false);
+        LoginUserDto dto = new LoginUserDto("test@mail.com", "password", false, null);
 
         User user = new User();
         Mockito.when(authenticationService.authenticate(any(LoginUserDto.class)))
@@ -141,7 +145,7 @@ class AuthenticationControllerTest {
     @Test
     void googleOneTapSuccessReturnsTokens() throws Exception {
         GoogleOneTapLoginRequest request =
-                new GoogleOneTapLoginRequest("google-token");
+                new GoogleOneTapLoginRequest("google-token", null);
 
         User user = new User();
 
@@ -162,7 +166,7 @@ class AuthenticationControllerTest {
     @Test
     void googleOneTapFailureReturnsUnauthorized() throws Exception {
         GoogleOneTapLoginRequest request =
-                new GoogleOneTapLoginRequest("bad-token");
+                new GoogleOneTapLoginRequest("bad-token", null);
 
         Mockito.when(authenticationService.authenticateWithGoogleIdToken("bad-token"))
                 .thenThrow(new RuntimeException("Invalid token"));
@@ -171,5 +175,34 @@ class AuthenticationControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void logoutWithValidTokenReturnsOk() throws Exception {
+        Mockito.doNothing().when(jwtService).logout("accessToken123");
+
+        mockMvc.perform(post("/auth/logout")
+                        .header("Authorization", "Bearer accessToken123")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Successfully logged out")));
+
+        Mockito.verify(jwtService, Mockito.times(1)).logout("accessToken123");
+    }
+
+    @Test
+    void logoutWithMissingOrInvalidHeaderReturnsBadRequest() throws Exception {
+        mockMvc.perform(post("/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("Missing or invalid Authorization header")));
+
+        mockMvc.perform(post("/auth/logout")
+                        .header("Authorization", "InvalidHeader")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("Missing or invalid Authorization header")));
+
+        Mockito.verify(jwtService, Mockito.never()).logout(Mockito.anyString());
     }
 }

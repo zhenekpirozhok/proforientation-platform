@@ -4,6 +4,7 @@ import com.diploma.proforientation.config.JwtAuthenticationFilter;
 import com.diploma.proforientation.controller.AuthenticationController;
 import com.diploma.proforientation.dto.RegisterUserDto;
 import com.diploma.proforientation.model.User;
+import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.service.AuthenticationService;
 import com.diploma.proforientation.service.JwtService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,6 +49,9 @@ class AuthenticationControllerValidationTest {
 
     @MockitoBean
     AuthenticationService authenticationService;
+
+    @MockitoBean
+    AttemptService attemptService;
 
     @MockitoBean
     JwtService jwtService;

@@ -46,7 +46,7 @@ class QuestionServiceTest {
     @Test
     void create_shouldCreateQuestion() {
         CreateQuestionRequest req =
-                new CreateQuestionRequest(1, 1, "single_choice", "Test question");
+                new CreateQuestionRequest(1, 1, "SINGLE_CHOICE", "Test question");
 
         when(versionRepo.findById(1)).thenReturn(Optional.of(version));
 
@@ -54,7 +54,7 @@ class QuestionServiceTest {
         q.setId(10);
         q.setQuizVersion(version);
         q.setOrd(1);
-        q.setQtype(QuestionType.single_choice);
+        q.setQtype(QuestionType.SINGLE_CHOICE);
         q.setTextDefault("Test question");
 
         when(questionRepo.save(any())).thenReturn(q);
@@ -81,7 +81,7 @@ class QuestionServiceTest {
         Question existing = new Question();
         existing.setId(5);
         existing.setOrd(1);
-        existing.setQtype(QuestionType.single_choice);
+        existing.setQtype(QuestionType.SINGLE_CHOICE);
         existing.setTextDefault("Old");
         existing.setQuizVersion(version);
 
@@ -89,12 +89,12 @@ class QuestionServiceTest {
         when(questionRepo.save(existing)).thenReturn(existing);
 
         UpdateQuestionRequest req =
-                new UpdateQuestionRequest(2, "multi_choice", "Updated");
+                new UpdateQuestionRequest(2, "MULTI_CHOICE", "Updated");
 
         QuestionDto result = service.update(5, req);
 
         assertThat(result.ord()).isEqualTo(2);
-        assertThat(result.qtype()).isEqualTo("multi_choice");
+        assertThat(result.qtype()).isEqualTo("MULTI_CHOICE");
         assertThat(result.text()).isEqualTo("Updated");
     }
 
@@ -103,7 +103,7 @@ class QuestionServiceTest {
         when(questionRepo.findById(999)).thenReturn(Optional.empty());
 
         UpdateQuestionRequest req =
-                new UpdateQuestionRequest(1, "single_choice", "X");
+                new UpdateQuestionRequest(1, "SINGLE_CHOICE", "X");
 
         assertThatThrownBy(() -> service.update(999, req))
                 .isInstanceOf(EntityNotFoundException.class);
@@ -121,7 +121,7 @@ class QuestionServiceTest {
         q.setId(10);
         q.setOrd(1);
         q.setQuizVersion(version);
-        q.setQtype(QuestionType.single_choice);
+        q.setQtype(QuestionType.SINGLE_CHOICE);
         q.setTextDefault("Text");
 
         when(questionRepo.findById(10)).thenReturn(Optional.of(q));
@@ -153,7 +153,7 @@ class QuestionServiceTest {
         q.setId(100);
         q.setOrd(1);
         q.setTextDefault("Default Q");
-        q.setQtype(QuestionType.single_choice);
+        q.setQtype(QuestionType.SINGLE_CHOICE);
         q.setQuizVersion(qv);
 
         Pageable pageable = PageRequest.of(0, 10);
@@ -203,7 +203,7 @@ class QuestionServiceTest {
         q.setId(77);
         q.setOrd(1);
         q.setTextDefault("Default");
-        q.setQtype(QuestionType.single_choice);
+        q.setQtype(QuestionType.SINGLE_CHOICE);
         q.setQuizVersion(qv);
 
         Pageable pageable = PageRequest.of(0, 10);

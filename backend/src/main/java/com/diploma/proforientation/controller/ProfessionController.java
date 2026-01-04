@@ -4,20 +4,24 @@ import com.diploma.proforientation.dto.ProfessionDto;
 import com.diploma.proforientation.dto.request.create.CreateProfessionRequest;
 import com.diploma.proforientation.service.ProfessionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/professions")
 @RequiredArgsConstructor
+@Tag(name = "Profession", description = "CRUD operations for profession")
 public class ProfessionController {
 
     private final ProfessionService service;
@@ -43,9 +47,15 @@ public class ProfessionController {
             content = @Content(schema = @Schema(implementation = ProfessionDto.class))
     )
     public Page<ProfessionDto> getAll(
-            @PageableDefault(size = 20, sort = "id") Pageable pageable
+            @Parameter(description = "Page number (0-based)", schema = @Schema(defaultValue = "1"))
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @Parameter(description = "Number of items per page", schema = @Schema(defaultValue = "20"))
+            @RequestParam(required = false, defaultValue = "20") int size,
+            @Parameter(description = "Sort by field", schema = @Schema(defaultValue = "id"))
+            @RequestParam(required = false, defaultValue = "id") String sort
     ) {
         String locale = LocaleContextHolder.getLocale().getLanguage();
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
         return service.getAllLocalized(locale, pageable);
     }
 

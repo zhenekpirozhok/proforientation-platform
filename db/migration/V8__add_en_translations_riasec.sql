@@ -58,6 +58,24 @@ FROM trait_profiles tp
 WHERE tp.code IN ('R','I','A','S','E','C')
 ON CONFLICT DO NOTHING;
 
+INSERT INTO translations (entity_type, entity_id, locale, field, text)
+SELECT
+    'trait_profile',
+    tp.id,
+    'en',
+    'title',
+    CASE tp.code
+        WHEN 'R' THEN 'Realistic'
+        WHEN 'I' THEN 'Investigative'
+        WHEN 'A' THEN 'Artistic'
+        WHEN 'S' THEN 'Social'
+        WHEN 'E' THEN 'Enterprising'
+        WHEN 'C' THEN 'Conventional'
+        END
+FROM trait_profiles tp
+WHERE tp.code IN ('R','I','A','S','E','C')
+ON CONFLICT DO NOTHING;
+
 ------------------------------------------------------------
 -- 3) EN translations for all questions of the current RIASEC version
 -- Copy from text_default (already EN in V5)
