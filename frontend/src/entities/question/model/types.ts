@@ -1,3 +1,9 @@
+export type QuestionType =
+  | 'single_choice'
+  | 'multi_choice'
+  | 'liker_scale_5'
+  | 'liker_scale_7';
+
 export type QuestionOption = {
   id: number;
   questionId: number;
@@ -10,7 +16,7 @@ export type Question = {
   id: number;
   quizVersionId: number;
   ord?: number;
-  qtype?: string;
+  qtype: QuestionType;
   text: string;
   options: QuestionOption[];
   [k: string]: unknown;

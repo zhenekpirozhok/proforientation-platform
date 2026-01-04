@@ -1,12 +1,5 @@
-import Link from 'next/link';
+import { LandingPage } from '@/features/landing/ui/LandingPage';
 
-export default function PublicHomePage() {
-  return (
-    <main style={{ padding: 24 }}>
-      <h1>Home</h1>
-      <p>
-        <Link href="/en/quizzes">Go to quizzes</Link>
-      </p>
-    </main>
-  );
+export default async function Page() {
+  return <LandingPage />;
 }

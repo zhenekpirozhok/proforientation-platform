@@ -22,17 +22,15 @@ public class ProfessionCategoryController {
     private final ProfessionCategoryService service;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Get all profession categories",
-            description = "Returns a list of all profession categories. Accessible only to administrators."
+            description = "Returns a list of all profession categories."
     )
     @ApiResponse(
             responseCode = "200",
             description = "List of profession categories",
             content = @Content(schema = @Schema(implementation = ProfessionCategoryDto.class))
     )
-    @ApiResponse(responseCode = "403", description = "Forbidden")
     public List<ProfessionCategoryDto> getAll() {
         return service.getAll();
     }
@@ -69,7 +67,7 @@ public class ProfessionCategoryController {
     @ApiResponse(responseCode = "403", description = "Forbidden")
     @ApiResponse(responseCode = "404", description = "Category not found")
     public ProfessionCategoryDto update(@PathVariable Integer id,
-                                        @Valid @RequestBody CreateCategoryRequest req) {
+                                       @Valid @RequestBody CreateCategoryRequest req) {
         return service.update(id, req);
     }
 

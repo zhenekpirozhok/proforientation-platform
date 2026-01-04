@@ -16,6 +16,18 @@ function getBackendUrl(): string {
   return url;
 }
 
+function toUpstreamPath(path: string) {
+  const p = path.startsWith('/') ? path : `/${path}`;
+
+  if (p.startsWith('/api/')) return p;
+
+  if (p.startsWith('/quizzes/metrics')) {
+    return `/api/v1${p}`;
+  }
+
+  return p;
+}
+
 export async function bffFetch(
   path: string,
   init: RequestInit = {},
@@ -43,7 +55,8 @@ export async function bffFetch(
     ? Object.fromEntries(new Headers(init.headers).entries())
     : {};
 
-  const url = new URL(path, backendUrl).toString();
+  const upstreamPath = toUpstreamPath(path);
+  const url = new URL(upstreamPath, backendUrl).toString();
 
   return fetch(url, {
     ...init,

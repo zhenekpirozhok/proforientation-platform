@@ -7,12 +7,12 @@
 
 export interface QuizPublicMetricsView {
   estimatedDurationSeconds?: number;
-  attemptsSubmitted?: number;
-  avgDurationSeconds?: number;
   quizId?: number;
   quizCode?: string;
   quizStatus?: string;
   categoryId?: number;
   questionsTotal?: number;
   attemptsTotal?: number;
+  attemptsSubmitted?: number;
+  avgDurationSeconds?: number;
 }

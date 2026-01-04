@@ -21,10 +21,8 @@ export function useQuizQuestionPageQuery({ quizId, page, locale }: Params) {
 
     queryFn: async ({ signal }) => {
       const params: GetQuestionsForQuizParams = {
-        pageable: {
-          page,
-          size: 1,
-        },
+        page: String(page + 1),
+        size: '1',
       };
 
       const raw: unknown = await getQuestionsForQuiz(quizId, params, {
