@@ -1,18 +1,17 @@
-import { NextRequest } from 'next/server';
-import { bffFetch } from '@/shared/api/bff/proxy';
+import { bffAuthFetch } from '@/shared/api/bffAuthFetch';
 
-export async function POST(req: NextRequest) {
-  const search = req.nextUrl.search;
-  const upstreamPath = `/attempts/start${search}`;
+export async function POST(req: Request) {
+  const url = new URL(req.url);
+  const qs = url.search ? url.search : '';
+  const upstreamPath = `/attempts/start${qs}`;
 
-  const upstreamRes = await bffFetch(upstreamPath, { method: 'POST' });
-  const body = await upstreamRes.text();
-
-  return new Response(body, {
-    status: upstreamRes.status,
-    headers: {
-      'content-type':
-        upstreamRes.headers.get('content-type') ?? 'application/json',
-    },
+  const upstream = await bffAuthFetch(upstreamPath, {
+    method: 'POST',
   });
+
+  const text = await upstream.text();
+  const headers = new Headers(upstream.headers);
+  if (!headers.get('content-type')) headers.set('content-type', 'application/json');
+
+  return new Response(text, { status: upstream.status, headers });
 }

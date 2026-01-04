@@ -1,29 +1,38 @@
 import { bffFetch } from '@/shared/api/bff/proxy';
 import { cookies } from 'next/headers';
 
-async function getAuthHeaders() {
+function decode(v: string) {
+    try {
+        return decodeURIComponent(v);
+    } catch {
+        return v;
+    }
+}
+
+async function getAccessFromCookies() {
     const c = await cookies();
-    const access = c.get('cp_access')?.value;
-    const h = new Headers();
-    if (access) h.set('authorization', `Bearer ${decodeURIComponent(access)}`);
-    return h;
+    const access = c.get('cp_access')?.value ?? null;
+    return access ? decode(access) : null;
 }
 
 export async function bffAuthFetch(path: string, init: RequestInit = {}) {
     const headers = new Headers(init.headers);
-    const authHeaders = await getAuthHeaders();
-    authHeaders.forEach((v, k) => headers.set(k, v));
+
+    const access = await getAccessFromCookies();
+    if (access) headers.set('authorization', `Bearer ${access}`);
 
     const first = await bffFetch(path, { ...init, headers });
 
     if (first.status !== 401 && first.status !== 403) return first;
 
-    const refreshRes = await bffFetch('/auth/refresh', { method: 'POST' });
+    const refreshRes = await fetch('/api/auth/refresh', { method: 'POST' });
     if (!refreshRes.ok) return first;
 
+    const access2 = await getAccessFromCookies();
+    if (!access2) return first;
+
     const headers2 = new Headers(init.headers);
-    const authHeaders2 = await getAuthHeaders();
-    authHeaders2.forEach((v, k) => headers2.set(k, v));
+    headers2.set('authorization', `Bearer ${access2}`);
 
     return bffFetch(path, { ...init, headers: headers2 });
 }

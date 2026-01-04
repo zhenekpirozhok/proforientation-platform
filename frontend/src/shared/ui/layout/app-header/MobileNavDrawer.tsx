@@ -1,9 +1,11 @@
 'use client';
 
-import { Drawer, Menu, Avatar, Select } from 'antd';
+import { Drawer, Menu, Avatar, Select, Button } from 'antd';
 import type { MenuProps } from 'antd';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter, usePathname } from '@/shared/i18n/lib/navigation';
+import { useSessionStore } from '@/entities/session/model/store';
+import { hasRole } from '@/entities/session/model/roles';
 
 type Props = {
   open: boolean;
@@ -25,17 +27,15 @@ export function MobileNavDrawer({ open, onClose }: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const isAuthenticated = false;
-  const isAdmin = false;
+  const status = useSessionStore((s) => s.status);
+  const user = useSessionStore((s) => s.user);
+
+  const isAuthenticated = status === 'auth';
+  const isAdmin = hasRole(user, 'ADMIN');
 
   const navItems: NavItem[] = [
     { key: 'quizzes', label: tDrawer('quizzes'), href: '/quizzes', show: true },
-    {
-      key: 'results',
-      label: tDrawer('results'),
-      href: '/results',
-      show: isAuthenticated,
-    },
+    { key: 'profile', label: tDrawer('profile') ?? 'Profile', href: '/me/results', show: isAuthenticated },
     { key: 'admin', label: tDrawer('admin'), href: '/admin', show: isAdmin },
   ];
 
@@ -60,18 +60,44 @@ export function MobileNavDrawer({ open, onClose }: Props) {
     onClose();
   };
 
+  const onSignIn = () => {
+    router.push(`/login?next=${encodeURIComponent(pathname || '/')}`);
+    onClose();
+  };
+
+  const onLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+    useSessionStore.getState().reset();
+    router.push('/');
+    onClose();
+  };
+
+  const userLabel = user?.displayName?.trim() || user?.email || 'User';
+
   return (
     <Drawer placement="right" open={open} onClose={onClose}>
-      {isAuthenticated && (
-        <div className="flex items-center gap-3 mb-6">
+      {isAuthenticated ? (
+        <div className="mb-6 flex items-center gap-3">
           <Avatar size={48} />
-          <div className="font-medium">Sophia Rose</div>
+          <div className="font-medium">{userLabel}</div>
+        </div>
+      ) : (
+        <div className="mb-6">
+          <Button type="primary" className="w-full" onClick={onSignIn}>
+            {tDrawer('signIn') ?? 'Sign in'}
+          </Button>
         </div>
       )}
 
       <Menu mode="inline" items={menuItems} onClick={onMenuClick} />
 
-      <div className="mt-6">
+      <div className="mt-6 flex flex-col gap-3">
+        {isAuthenticated ? (
+          <Button danger className="w-full" onClick={onLogout}>
+            {tDrawer('logout') ?? 'Logout'}
+          </Button>
+        ) : null}
+
         <Select
           value={locale}
           onChange={onLocaleChange}

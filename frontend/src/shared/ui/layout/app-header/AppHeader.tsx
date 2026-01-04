@@ -1,7 +1,7 @@
 'use client';
 
-import { Button, Select, Avatar } from 'antd';
-import { MenuOutlined, SettingOutlined } from '@ant-design/icons';
+import { Button, Select, Avatar, Dropdown } from 'antd';
+import { MenuOutlined, SettingOutlined, LogoutOutlined, LoginOutlined, UserOutlined } from '@ant-design/icons';
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
@@ -9,6 +9,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { MobileNavDrawer } from './MobileNavDrawer';
 import { ThemeToggle } from '@/shared/ui/theme/theme-toggle/ThemeToggle';
 import { Link, usePathname, useRouter } from '@/shared/i18n/lib/navigation';
+import { useSessionStore } from '@/entities/session/model/store';
+import { hasRole } from '@/entities/session/model/roles';
 
 import './app-header.css';
 
@@ -25,53 +27,67 @@ export function AppHeader() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // TODO: заменить на реальные данные
-  const isAuthenticated = false;
-  const isAdmin = false;
+  const status = useSessionStore((s) => s.status);
+  const user = useSessionStore((s) => s.user);
+
+  const isAuthenticated = status === 'auth';
+  const isAdmin = hasRole(user, 'ADMIN');
 
   const navItems = useMemo<NavItem[]>(
     () => [
-      {
-        key: 'quizzes',
-        label: tHeader('quizzes'),
-        href: '/quizzes',
-        show: true,
-      },
-      {
-        key: 'profile',
-        label: tHeader('profile'),
-        href: '/profile',
-        show: isAuthenticated,
-      },
+      { key: 'quizzes', label: tHeader('quizzes'), href: '/quizzes', show: true },
+      { key: 'profile', label: tHeader('profile'), href: '/me/results', show: isAuthenticated },
       { key: 'admin', label: tHeader('admin'), href: '/admin', show: isAdmin },
     ],
     [tHeader, isAuthenticated, isAdmin],
   );
 
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   const onLocaleChange = (nextLocale: Locale) => {
     router.replace(pathname, { locale: nextLocale });
   };
 
+  const onSignIn = () => {
+    router.push(`/login?next=${encodeURIComponent(pathname || '/')}`);
+  };
+
+  const onLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+    useSessionStore.getState().reset();
+    router.push('/');
+  };
+
+  const userLabel = user?.displayName?.trim() || user?.email || 'User';
+
+  const dropdownItems = [
+    {
+      key: 'profile',
+      icon: <UserOutlined />,
+      label: tHeader('profile'),
+      onClick: () => router.push('/my-career-profile'),
+    },
+    {
+      key: 'settings',
+      icon: <SettingOutlined />,
+      label: tHeader('settings') ?? 'Settings',
+      onClick: () => router.push('/my-career-profile'),
+    },
+    { type: 'divider' as const },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: tHeader('logout') ?? 'Logout',
+      onClick: onLogout,
+    },
+  ];
+
   return (
     <>
-      <div
-        className="flex h-16 items-center justify-between"
-        style={{
-          background: 'transparent',
-        }}
-      >
+      <div className="flex h-16 items-center justify-between" style={{ background: 'transparent' }}>
         <div className="flex items-center gap-6">
           <Link href="/" locale={locale} className="flex items-center gap-2">
-            <Image
-              src="/images/logo.svg"
-              alt={tHeader('brand')}
-              width={28}
-              height={28}
-              priority
-            />
+            <Image src="/images/logo.svg" alt={tHeader('brand')} width={28} height={28} priority />
             <span className="font-heading text-lg font-semibold text-slate-900 dark:text-slate-100">
               {tHeader('brand')}
             </span>
@@ -121,18 +137,22 @@ export function AppHeader() {
           <ThemeToggle />
 
           {isAuthenticated ? (
-            <button
-              type="button"
-              className="hidden items-center gap-2 rounded-full px-2 py-1 text-slate-900 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-900 md:flex"
-              aria-label={tHeader('userMenu')}
-            >
-              <Avatar size="small" />
-              <span className="hidden md:inline">Username</span>
-              <SettingOutlined />
-            </button>
+            <Dropdown menu={{ items: dropdownItems as any }} placement="bottomRight" trigger={['click']}>
+              <button
+                type="button"
+                className="hidden items-center gap-2 rounded-full px-2 py-1 text-slate-900 hover:bg-slate-100 dark:text-slate-100 dark:hover:bg-slate-900 md:flex"
+                aria-label={tHeader('userMenu')}
+              >
+                <Avatar size="small" />
+                <span className="hidden md:inline">{userLabel}</span>
+                <SettingOutlined />
+              </button>
+            </Dropdown>
           ) : (
             <div className="hidden md:block">
-              <Button type="primary">{tHeader('signIn')}</Button>
+              <Button type="primary" icon={<LoginOutlined />} onClick={onSignIn}>
+                {tHeader('signIn')}
+              </Button>
             </div>
           )}
 

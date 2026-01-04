@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/shared/i18n/lib/routing';
 import { LocaleHtmlLangSync } from '@/shared/providers/LocaleHtmlLangSync';
 import { SessionGate } from './SessionGate';
+import { AppShell } from '@/shared/ui/layout/app-shell/AppShell';
 
 export default async function LocaleLayout({
   children,
@@ -23,7 +24,7 @@ export default async function LocaleLayout({
     <NextIntlClientProvider locale={locale} messages={messages}>
       <LocaleHtmlLangSync locale={locale} />
       <SessionGate />
-      {children}
+      <AppShell>{children}</AppShell>
     </NextIntlClientProvider>
   );
 }

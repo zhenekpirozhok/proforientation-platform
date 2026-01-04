@@ -163,5 +163,29 @@
     "subtitle": "Похоже, такой страницы нет.",
     "toHome": "На главную",
     "toQuizzes": "К тестам"
-  }
+  },
+"MyResultsPage": {
+    "Title": "Мои результаты",
+    "Subtitle": "Посмотрите завершённые тесты и изучите лучшие совпадения.",
+    "AttemptsTitle": "Завершённые тесты",
+    "SearchPlaceholder": "Поиск по названию теста",
+    "SortNewest": "Сначала новые",
+    "SortOldest": "Сначала старые",
+    "Empty": "Пока нет результатов",
+    "GoToQuizzes": "Перейти к тестам",
+    "DefaultQuizTitle": "Результат теста",
+    "UnknownDate": "Дата неизвестна",
+    "Selected": "Выбрано",
+    "LoadError": "Не удалось загрузить список результатов",
+    "ResultLoadError": "Не удалось загрузить детали результата",
+    "TopMatchLabel": "Лучшее совпадение:",
+    "TraitsTitle": "Результаты по шкалам",
+    "TraitsSubtitle": "Чем выше значение, тем сильнее выражена шкала.",
+    "ProfessionsTitle": "Рекомендованные профессии",
+    "ProfessionsSubtitle": "На основе ваших ответов и скоринга модели.",
+    "Match": "Совпадение",
+    "TakeAnother": "Пройти другой тест",
+    "OpenDetails": "Открыть полный результат",
+    "FallbackProfessionTitle": "Профессия №{id}"
+}
 }
