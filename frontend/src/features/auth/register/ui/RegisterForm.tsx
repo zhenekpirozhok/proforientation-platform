@@ -3,14 +3,16 @@
 import { Form, Input, Button, Typography, message } from 'antd';
 import Link from 'next/link';
 import { useRouter } from '@/shared/i18n/lib/navigation';
+import { useTranslations } from 'next-intl';
 import { applyZodErrorsToAntdForm } from '@/shared/validation/antdZod';
-import { type RegisterSchemaValues } from '@/shared/validation/registerSchema';
+import { type RegisterSchemaValues, registerSchema } from '@/shared/validation/registerSchema';
 import { useRegisterThenLogin } from '@/features/auth/register/model/useRegisterThenLogin';
 import { useQuizPlayerStore } from '@/features/quiz-player/model/store';
 
 const { Title, Text } = Typography;
 
 export function RegisterForm() {
+  const t = useTranslations('RegisterPage');
   const [form] = Form.useForm<RegisterSchemaValues>();
   const router = useRouter();
   const { submit, isPending } = useRegisterThenLogin();
@@ -18,68 +20,73 @@ export function RegisterForm() {
 
   return (
     <div className="mx-auto w-full max-w-[480px] px-4">
-      <div className="py-10">
+      <div className="py-10 sm:py-12">
         <div className="text-center">
-          <Title level={2} className="!mb-2">
-            Sign up
+          <Title level={2} className="!mb-2 !text-slate-900 dark:!text-slate-100">
+            {t('Title')}
           </Title>
-          <Text type="secondary">Create your account to continue.</Text>
+          <Text className="!text-slate-600 dark:!text-slate-300">
+            {t('Subtitle')}
+          </Text>
         </div>
 
-        <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
           <Form
             form={form}
             layout="vertical"
             requiredMark={false}
             onFinish={async (values) => {
-              const res = await submit(values);
+              const parsed = registerSchema.safeParse(values);
+              if (!parsed.success) {
+                applyZodErrorsToAntdForm(form, parsed.error);
+                return;
+              }
+
+              const res = await submit(parsed.data);
 
               if (!res.ok) {
                 if (res.zodError) {
                   applyZodErrorsToAntdForm(form, res.zodError);
                   return;
                 }
-                message.error(res.message ?? 'Something went wrong');
+                message.error(res.message ?? t('Errors.Generic'));
                 return;
               }
 
-              message.success('Signed in');
-              if (attemptId) {
-                router.push(`/results/${attemptId}`);
-              } else {
-                router.push('/my-career-profile');
-              }
+              message.success(t('Success'));
+              if (attemptId) router.push(`/results/${attemptId}`);
+              else router.push('/my-career-profile');
             }}
           >
-            <Form.Item name="email" label="Email">
-              <Input placeholder="john.doe@example.com" autoComplete="email" />
+            <Form.Item name="email" label={<span className="text-slate-900 dark:text-slate-100">{t('EmailLabel')}</span>}>
+              <Input placeholder={t('EmailPlaceholder')} autoComplete="email" />
             </Form.Item>
 
-            <Form.Item name="displayName" label="Name">
-              <Input placeholder="John Doe" autoComplete="name" />
+            <Form.Item name="displayName" label={<span className="text-slate-900 dark:text-slate-100">{t('NameLabel')}</span>}>
+              <Input placeholder={t('NamePlaceholder')} autoComplete="name" />
             </Form.Item>
 
-            <Form.Item name="password" label="Password">
-              <Input.Password autoComplete="new-password" />
+            <Form.Item name="password" label={<span className="text-slate-900 dark:text-slate-100">{t('PasswordLabel')}</span>}>
+              <Input.Password autoComplete="new-password" placeholder={t('PasswordPlaceholder')} />
             </Form.Item>
 
-            <Form.Item name="confirmPassword" label="Confirm password">
-              <Input.Password autoComplete="new-password" />
+            <Form.Item name="confirmPassword" label={<span className="text-slate-900 dark:text-slate-100">{t('ConfirmPasswordLabel')}</span>}>
+              <Input.Password autoComplete="new-password" placeholder={t('ConfirmPasswordPlaceholder')} />
             </Form.Item>
 
             <Button htmlType="submit" type="primary" className="w-full" loading={isPending}>
-              Create account
+              {t('Submit')}
             </Button>
 
             <Button className="mt-3 w-full" disabled>
-              Continue with Google
+              {t('Google')}
             </Button>
 
             <div className="mt-4 text-center">
-              <Text type="secondary">
-                Already have an account?{' '}
-                <Link href="/login" className="text-blue-600 hover:text-blue-700">
-                  Sign in
+              <Text className="!text-slate-600 dark:!text-slate-300">
+                {t('HaveAccount')}{' '}
+                <Link href="/login" className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300">
+                  {t('SignIn')}
                 </Link>
               </Text>
             </div>

@@ -187,5 +187,43 @@
     "TakeAnother": "Take another quiz",
     "OpenDetails": "Open full result",
     "FallbackProfessionTitle": "Profession #{id}"
+  },
+  "LoginPage": {
+    "Title": "Sign in",
+    "Subtitle": "Welcome back! Continue to your dashboard.",
+    "EmailLabel": "Email",
+    "EmailPlaceholder": "john.doe@example.com",
+    "PasswordLabel": "Password",
+    "PasswordPlaceholder": "Enter your password",
+    "BackToHome": "Back to Home",
+    "ForgotPassword": "Forgot password?",
+    "Submit": "Sign in",
+    "Google": "Continue with Google",
+    "NoAccount": "No account?",
+    "CreateOne": "Create one",
+    "Success": "Signed in",
+    "Errors": {
+      "Generic": "Login failed"
+    }
+  },
+  "RegisterPage": {
+    "Title": "Sign up",
+    "Subtitle": "Create your account to continue.",
+    "EmailLabel": "Email",
+    "EmailPlaceholder": "john.doe@example.com",
+    "NameLabel": "Name",
+    "NamePlaceholder": "John Doe",
+    "PasswordLabel": "Password",
+    "PasswordPlaceholder": "Create a password",
+    "ConfirmPasswordLabel": "Confirm password",
+    "ConfirmPasswordPlaceholder": "Repeat your password",
+    "Submit": "Create account",
+    "Google": "Continue with Google",
+    "HaveAccount": "Already have an account?",
+    "SignIn": "Sign in",
+    "Success": "Account created",
+    "Errors": {
+      "Generic": "Something went wrong"
+    }
   }
 }

@@ -187,5 +187,43 @@
     "TakeAnother": "Пройти другой тест",
     "OpenDetails": "Открыть полный результат",
     "FallbackProfessionTitle": "Профессия №{id}"
-}
+},
+  "LoginPage": {
+    "Title": "Вход",
+    "Subtitle": "С возвращением! Войдите, чтобы продолжить.",
+    "EmailLabel": "Email",
+    "EmailPlaceholder": "john.doe@example.com",
+    "PasswordLabel": "Пароль",
+    "PasswordPlaceholder": "Введите пароль",
+    "BackToHome": "На главную",
+    "ForgotPassword": "Забыли пароль?",
+    "Submit": "Войти",
+    "Google": "Продолжить с Google",
+    "NoAccount": "Нет аккаунта?",
+    "CreateOne": "Создать",
+    "Success": "Вы вошли",
+    "Errors": {
+      "Generic": "Не удалось войти"
+    }
+  },
+  "RegisterPage": {
+    "Title": "Регистрация",
+    "Subtitle": "Создайте аккаунт, чтобы продолжить.",
+    "EmailLabel": "Email",
+    "EmailPlaceholder": "john.doe@example.com",
+    "NameLabel": "Имя",
+    "NamePlaceholder": "Иван Иванов",
+    "PasswordLabel": "Пароль",
+    "PasswordPlaceholder": "Придумайте пароль",
+    "ConfirmPasswordLabel": "Повторите пароль",
+    "ConfirmPasswordPlaceholder": "Повторите пароль",
+    "Submit": "Создать аккаунт",
+    "Google": "Продолжить с Google",
+    "HaveAccount": "Уже есть аккаунт?",
+    "SignIn": "Войти",
+    "Success": "Аккаунт создан",
+    "Errors": {
+      "Generic": "Что-то пошло не так"
+    }
+  }
 }
