@@ -120,7 +120,8 @@
     "results": "Результаты",
     "settings": "Настройки",
     "signIn": "Войти",
-    "userMenu": "Аккаунт"
+    "userMenu": "Аккаунт",
+    "logout": "Выйти"
   },
   "Footer": {
     "privacy": "Конфиденциальность",

@@ -120,7 +120,8 @@
     "results": "Results",
     "settings": "Settings",
     "signIn": "Sign in",
-    "userMenu": "Account"
+    "userMenu": "Account",
+    "logout": "Sign out"
   },
   "Footer": {
     "privacy": "Privacy",

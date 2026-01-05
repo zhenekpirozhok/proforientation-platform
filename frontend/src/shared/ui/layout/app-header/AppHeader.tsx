@@ -11,6 +11,7 @@ import { ThemeToggle } from '@/shared/ui/theme/theme-toggle/ThemeToggle';
 import { Link, usePathname, useRouter } from '@/shared/i18n/lib/navigation';
 import { useSessionStore } from '@/entities/session/model/store';
 import { hasRole } from '@/entities/session/model/roles';
+import { useLogoutUser } from '@/features/auth/logout/model/useLogoutUser';
 
 import './app-header.css';
 
@@ -32,6 +33,8 @@ export function AppHeader() {
 
   const isAuthenticated = status === 'auth';
   const isAdmin = hasRole(user, 'ADMIN');
+  const logoutM = useLogoutUser()
+
 
   const navItems = useMemo<NavItem[]>(
     () => [
@@ -49,14 +52,13 @@ export function AppHeader() {
   };
 
   const onSignIn = () => {
-    router.push(`/login?next=${encodeURIComponent(pathname || '/')}`);
+    router.push(`/login`)
   };
 
   const onLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
-    useSessionStore.getState().reset();
-    router.push('/');
-  };
+    await logoutM.mutateAsync().catch(() => {})
+    router.push('/')
+  }
 
   const userLabel = user?.displayName?.trim() || user?.email || 'User';
 
