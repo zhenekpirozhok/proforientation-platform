@@ -74,26 +74,29 @@ async function fetchQuestionBatch(params: {
     size: String(BATCH_SIZE),
   })
 
-  const res = await fetch(`/api/questions/quiz/${quizId}?${sp.toString()}`, {
-    method: 'GET',
-    headers: { 'x-locale': locale },
-    signal,
-  })
+  try {
+    const res = await fetch(`/api/questions/quiz/${quizId}?${sp.toString()}`, {
+      method: 'GET',
+      headers: { 'x-locale': locale },
+      signal,
+    })
 
-  const data = await parseResponse<PageLike<Question> | Question[]>(res)
+    const data = await parseResponse<PageLike<Question> | Question[]>(res)
 
-  if (Array.isArray(data)) {
-    return {
-      questions: data,
-      total: undefined as number | undefined,
-      last: true,
+    if (Array.isArray(data)) {
+      return { questions: data, total: undefined as number | undefined, last: true }
     }
-  }
 
-  return {
-    questions: Array.isArray(data.content) ? data.content : [],
-    total: typeof data.totalElements === 'number' ? data.totalElements : undefined,
-    last: data.last === true,
+    return {
+      questions: Array.isArray(data.content) ? data.content : [],
+      total: typeof data.totalElements === 'number' ? data.totalElements : undefined,
+      last: data.last === true,
+    }
+  } catch (e) {
+    if (e instanceof DOMException && e.name === 'AbortError') {
+      return { questions: [], total: undefined as number | undefined, last: false }
+    }
+    throw e
   }
 }
 
@@ -340,7 +343,11 @@ export function QuizPlayer({ quizId }: Props) {
     )
   }
 
-  if (batchQuery.isError) {
+  const isAbort =
+  batchQuery.error instanceof DOMException && batchQuery.error.name === 'AbortError'
+
+
+  if (batchQuery.isError && !isAbort) {
     return (
       <QuizPlayerLayout>
         <p className="text-sm text-slate-600 dark:text-slate-300">
