@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export type StartAttemptParams = {
-quizVersionId: number;
+export type ImportTranslationsBody = {
+  /** CSV file containing translations */
+  file: Blob;
 };

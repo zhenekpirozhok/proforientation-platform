@@ -5,6 +5,9 @@
  * OpenAPI spec version: 1.0
  */
 
-export type StartAttemptParams = {
-quizVersionId: number;
+export type SearchQuizzesParams = {
+search?: string;
+sortBy?: string;
+page?: number;
+size?: number;
 };
