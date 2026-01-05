@@ -1,0 +1,89 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e6] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e7]:
+      - img [ref=e8]
+    - generic [ref=e11]:
+      - button "Open issues overlay" [ref=e12]:
+        - generic [ref=e13]:
+          - generic [ref=e14]: "0"
+          - generic [ref=e15]: "1"
+        - generic [ref=e16]: Issue
+      - button "Collapse issues badge" [ref=e17]:
+        - img [ref=e18]
+  - alert [ref=e20]
+  - generic [ref=e21]:
+    - banner [ref=e22]:
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - link "CareerPath CareerPath" [ref=e26] [cursor=pointer]:
+            - /url: /en
+            - img "CareerPath" [ref=e27]
+            - generic [ref=e28]: CareerPath
+          - navigation [ref=e29]:
+            - link "Quizzes" [ref=e30] [cursor=pointer]:
+              - /url: /en/quizzes
+        - generic [ref=e31]:
+          - generic "Language" [ref=e33] [cursor=pointer]:
+            - generic [ref=e34]:
+              - generic "English" [ref=e35]
+              - combobox "Language" [ref=e36]
+            - img "down" [ref=e38]:
+              - img [ref=e39]
+          - button "Toggle theme" [ref=e41] [cursor=pointer]:
+            - img "moon" [ref=e43]:
+              - img [ref=e44]
+          - button "Sign in" [ref=e47] [cursor=pointer]:
+            - generic [ref=e48]: Sign in
+    - main [ref=e49]:
+      - generic [ref=e51]:
+        - generic [ref=e52]:
+          - generic [ref=e54]:
+            - heading "Career Assessment Quizzes" [level=1] [ref=e55]
+            - generic [ref=e56]: Discover your strengths and find a suitable career direction with short, practical quizzes
+          - generic [ref=e58]:
+            - generic [ref=e59]: "0"
+            - generic [ref=e60]: Available tests
+        - generic [ref=e62]:
+          - generic [ref=e63]:
+            - generic [ref=e64]:
+              - img "search" [ref=e66]:
+                - img [ref=e67]
+              - textbox "Search" [ref=e69]
+            - generic [ref=e71] [cursor=pointer]:
+              - generic [ref=e72]:
+                - generic "All categories" [ref=e73]
+                - combobox [ref=e74]
+              - img "down" [ref=e76]:
+                - img [ref=e77]
+            - generic [ref=e79] [cursor=pointer]:
+              - generic [ref=e80]:
+                - generic "Any duration" [ref=e81]
+                - combobox [ref=e82]
+              - img "down" [ref=e84]:
+                - img [ref=e85]
+          - generic [ref=e87]:
+            - button "Clear all filters"
+        - alert [ref=e89]:
+          - img "close-circle" [ref=e90]:
+            - img [ref=e91]
+          - generic [ref=e94]: Failed to load quizzes
+        - generic [ref=e98]:
+          - img "No data" [ref=e100]
+          - generic [ref=e113]:
+            - generic [ref=e114]: No quizzes found
+            - generic [ref=e115]: Try adjusting filters or come back later.
+    - contentinfo [ref=e116]:
+      - generic [ref=e118]:
+        - generic [ref=e119]:
+          - generic [ref=e120] [cursor=pointer]: Privacy
+          - generic [ref=e121] [cursor=pointer]: Terms
+        - generic [ref=e122]:
+          - link "EN" [ref=e123] [cursor=pointer]:
+            - /url: /en/quizzes
+          - generic [ref=e124]: "|"
+          - link "RU" [ref=e125] [cursor=pointer]:
+            - /url: /ru/quizzes
+```
