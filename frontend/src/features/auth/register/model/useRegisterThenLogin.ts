@@ -19,9 +19,8 @@ async function loginViaBff(params: {
         method: 'POST',
         headers: {
             'content-type': 'application/json',
-            ...(params.guestToken ? { 'x-guest-token': params.guestToken } : {}),
         },
-        body: JSON.stringify({ email: params.email, password: params.password }),
+        body: JSON.stringify({ email: params.email, password: params.password, ...(params.guestToken ? { guestToken: params.guestToken } : {}) }),
         credentials: 'include',
     });
 

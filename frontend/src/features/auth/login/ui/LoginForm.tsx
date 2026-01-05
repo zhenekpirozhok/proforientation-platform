@@ -7,7 +7,6 @@ import { useTranslations } from 'next-intl';
 import { applyZodErrorsToAntdForm } from '@/shared/validation/antdZod';
 import { loginSchema, type LoginSchemaValues } from '@/shared/validation/loginSchema';
 import { useLoginUser } from '@/features/auth/login/model/useLoginUser';
-import { useQuizPlayerStore } from '@/features/quiz-player/model/store';
 
 const { Title, Text } = Typography;
 
@@ -16,7 +15,6 @@ export function LoginForm() {
   const [form] = Form.useForm<LoginSchemaValues>();
   const router = useRouter();
   const { submit, isPending } = useLoginUser();
-  const attemptId = useQuizPlayerStore((s) => s.attemptId);
 
   return (
     <div className="mx-auto w-full max-w-[480px] px-4">

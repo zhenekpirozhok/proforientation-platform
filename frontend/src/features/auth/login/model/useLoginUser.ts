@@ -20,11 +20,11 @@ export function useLoginUser() {
                 method: 'POST',
                 headers: {
                     'content-type': 'application/json',
-                    ...(guestToken ? { 'x-guest-token': guestToken } : {}),
                 },
                 body: JSON.stringify({
                     email: values.email.trim().toLowerCase(),
                     password: values.password,
+                    ...(guestToken ? { guestToken } : {}),
                 }),
                 credentials: 'include',
             });
