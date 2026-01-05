@@ -1,17 +1,47 @@
 openapi: 3.1.0
 info:
-  title: OpenAPI definition
-  version: v0
+  title: Quiz API
+  version: "1.0"
 servers:
 - url: http://localhost:8082
   description: Generated server url
 security:
 - Bearer Authentication: []
+- Locale: []
+tags:
+- name: Question
+  description: CRUD operations for questions
+- name: Quiz
+  description: CRUD operations for quizzes
+- name: Option
+  description: CRUD operations for options
+- name: Trait
+  description: CRUD operations for traits
+- name: Profession
+  description: CRUD operations for profession
+- name: Attempt
+  description: Track user's quiz progress
+- name: Authentication
+  description: Authentication operations
+- name: Translation
+  description: CRUD operations for translations
+- name: Import
+  description: CSV data import operations
+- name: Option Trait
+  description: Assign/Update traits operations
+- name: Export
+  description: Data export operations (CSV / Excel)
+- name: Quiz Metrics
+  description: Get metrics for quizzes
+- name: Profession Category
+  description: CRUD operations for profession categories
+- name: User
+  description: Get users operations
 paths:
   /translations/{id}:
     put:
       tags:
-      - translation-controller
+      - Translation
       summary: Update translation
       description: Updates the text of an existing translation
       operationId: update
@@ -67,7 +97,7 @@ paths:
                 $ref: "#/components/schemas/ExceptionDto"
     delete:
       tags:
-      - translation-controller
+      - Translation
       summary: Delete translation
       description: Deletes a translation by its identifier
       operationId: delete
@@ -114,7 +144,7 @@ paths:
   /traits/{id}:
     get:
       tags:
-      - trait-controller
+      - Trait
       summary: Get trait by ID
       description: Returns a single trait localized according to the current request
         locale
@@ -159,7 +189,7 @@ paths:
                 $ref: "#/components/schemas/TraitDto"
     put:
       tags:
-      - trait-controller
+      - Trait
       summary: Update trait
       description: Updates an existing trait (ADMIN only)
       operationId: update_1
@@ -215,7 +245,7 @@ paths:
                 $ref: "#/components/schemas/ExceptionDto"
     delete:
       tags:
-      - trait-controller
+      - Trait
       summary: Delete trait
       description: Deletes a trait by its ID (ADMIN only)
       operationId: delete_1
@@ -262,7 +292,7 @@ paths:
   /quizzes/{id}:
     get:
       tags:
-      - quiz-controller
+      - Quiz
       summary: Get quiz by ID
       description: Returns a single quiz localized according to the current request
         locale
@@ -307,7 +337,7 @@ paths:
                 $ref: "#/components/schemas/QuizDto"
     put:
       tags:
-      - quiz-controller
+      - Quiz
       summary: Update quiz
       description: Updates an existing quiz (ADMIN only)
       operationId: update_2
@@ -363,7 +393,7 @@ paths:
                 $ref: "#/components/schemas/ExceptionDto"
     delete:
       tags:
-      - quiz-controller
+      - Quiz
       summary: Delete quiz
       description: Deletes a quiz by its ID (ADMIN only)
       operationId: delete_2
@@ -410,7 +440,7 @@ paths:
   /questions/{id}:
     put:
       tags:
-      - question-controller
+      - Question
       summary: Update a question
       description: "Updates question text, type, or order. Only administrators are\
         \ allowed."
@@ -467,7 +497,7 @@ paths:
                 $ref: "#/components/schemas/QuestionDto"
     delete:
       tags:
-      - question-controller
+      - Question
       summary: Delete a question
       description: Deletes a question by ID. Only administrators are allowed.
       operationId: delete_3
@@ -510,7 +540,7 @@ paths:
   /questions/{id}/order/{ord}:
     put:
       tags:
-      - question-controller
+      - Question
       summary: Update question order
       description: Changes the display order of a question within a quiz version.
       operationId: updateOrder
@@ -567,7 +597,7 @@ paths:
   /professions/{id}:
     get:
       tags:
-      - profession-controller
+      - Profession
       summary: Get profession by ID
       description: Returns a single profession by its ID with localized fields.
       operationId: getById_2
@@ -611,7 +641,7 @@ paths:
                 $ref: "#/components/schemas/ProfessionDto"
     put:
       tags:
-      - profession-controller
+      - Profession
       summary: Update a profession
       description: Updates an existing profession. Only administrators are allowed.
       operationId: update_4
@@ -667,7 +697,7 @@ paths:
                 $ref: "#/components/schemas/ProfessionDto"
     delete:
       tags:
-      - profession-controller
+      - Profession
       summary: Delete a profession
       description: Deletes a profession by ID. Only administrators are allowed.
       operationId: delete_4
@@ -710,7 +740,7 @@ paths:
   /options/{optionId}/traits:
     put:
       tags:
-      - option-trait-controller
+      - Option Trait
       summary: Update traits for an option
       description: |
         Updates the list of traits associated with a specific option.
@@ -761,7 +791,7 @@ paths:
           description: Forbidden
     post:
       tags:
-      - option-trait-controller
+      - Option Trait
       summary: Assign traits to an option
       description: |
         Assigns a list of traits with weights to a specific option.
@@ -813,7 +843,7 @@ paths:
   /options/{id}:
     put:
       tags:
-      - option-controller
+      - Option
       summary: Update an option
       description: |
         Updates an existing answer option.
@@ -871,7 +901,7 @@ paths:
                 $ref: "#/components/schemas/OptionDto"
     delete:
       tags:
-      - option-controller
+      - Option
       summary: Delete an option
       description: |
         Deletes an answer option permanently.
@@ -916,7 +946,7 @@ paths:
   /options/{id}/order/{ord}:
     put:
       tags:
-      - option-controller
+      - Option
       summary: Update option order
       description: |
         Updates the display order of an option within a question.
@@ -975,7 +1005,7 @@ paths:
   /categories/{id}:
     put:
       tags:
-      - profession-category-controller
+      - Profession Category
       summary: Update a profession category
       description: Updates an existing profession category by ID. Accessible only
         to administrators.
@@ -1032,7 +1062,7 @@ paths:
                 $ref: "#/components/schemas/ProfessionCategoryDto"
     delete:
       tags:
-      - profession-category-controller
+      - Profession Category
       summary: Delete a profession category
       description: Deletes a profession category by ID. Accessible only to administrators.
       operationId: delete_6
@@ -1075,7 +1105,7 @@ paths:
   /translations:
     get:
       tags:
-      - translation-controller
+      - Translation
       summary: Search translations
       description: "Returns translations for a given entity, entity ID, and locale"
       operationId: search
@@ -1129,7 +1159,7 @@ paths:
                 $ref: "#/components/schemas/TranslationDto"
     post:
       tags:
-      - translation-controller
+      - Translation
       summary: Create translation
       description: Creates a new translation entry for a specific entity field and
         locale
@@ -1185,7 +1215,7 @@ paths:
   /traits:
     get:
       tags:
-      - trait-controller
+      - Trait
       summary: Get all traits
       description: Returns all traits localized according to the current request locale
       operationId: getAll
@@ -1222,7 +1252,7 @@ paths:
                 $ref: "#/components/schemas/TraitDto"
     post:
       tags:
-      - trait-controller
+      - Trait
       summary: Create trait
       description: Creates a new trait (ADMIN only)
       operationId: create_1
@@ -1272,7 +1302,7 @@ paths:
   /quizzes:
     get:
       tags:
-      - quiz-controller
+      - Quiz
       summary: Get all quizzes (paginated)
       description: |
         Returns a paginated list of quizzes localized according to the current request locale.
@@ -1337,7 +1367,7 @@ paths:
                 $ref: "#/components/schemas/QuizDto"
     post:
       tags:
-      - quiz-controller
+      - Quiz
       summary: Create quiz
       description: Creates a new quiz (ADMIN only)
       operationId: create_2
@@ -1387,7 +1417,7 @@ paths:
   /quizzes/{id}/publish:
     post:
       tags:
-      - quiz-controller
+      - Quiz
       summary: Publish quiz
       description: Publishes a quiz and creates a new current quiz version (ADMIN
         only)
@@ -1433,7 +1463,7 @@ paths:
   /quizzes/{id}/copy:
     post:
       tags:
-      - quiz-controller
+      - Quiz
       summary: Copy latest quiz version
       description: Creates a new draft version by copying the latest version (ADMIN
         only)
@@ -1479,7 +1509,7 @@ paths:
   /questions:
     post:
       tags:
-      - question-controller
+      - Question
       summary: Create a question
       description: Creates a new question for a quiz version. Only administrators
         are allowed.
@@ -1530,7 +1560,7 @@ paths:
   /professions:
     get:
       tags:
-      - profession-controller
+      - Profession
       summary: Get all professions (paginated)
       description: |
         Returns a paginated list of professions with localized fields.
@@ -1544,11 +1574,24 @@ paths:
         `/professions?page=0&size=10&sort=id,asc`
       operationId: getAll_2
       parameters:
-      - name: pageable
+      - name: page
         in: query
-        required: true
+        description: Page number (0-based)
+        required: false
         schema:
-          $ref: "#/components/schemas/Pageable"
+          type: string
+      - name: size
+        in: query
+        description: Number of items per page
+        required: false
+        schema:
+          type: string
+      - name: sort
+        in: query
+        description: Sort by field
+        required: false
+        schema:
+          type: string
       responses:
         "401":
           description: Unauthorized
@@ -1582,7 +1625,7 @@ paths:
                 $ref: "#/components/schemas/ProfessionDto"
     post:
       tags:
-      - profession-controller
+      - Profession
       summary: Create a profession
       description: Creates a new profession. Only administrators are allowed.
       operationId: create_4
@@ -1632,7 +1675,7 @@ paths:
   /options:
     post:
       tags:
-      - option-controller
+      - Option
       summary: Create an answer option
       description: |
         Creates a new answer option for a question.
@@ -1681,102 +1724,10 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/OptionDto"
-  /demo/ml:
-    post:
-      tags:
-      - demo-controller
-      summary: Run ML scoring demo
-      description: |
-        Executes the machine-learning scoring engine using a raw set of demo answers.
-        This endpoint is intended for testing and demonstration purposes only.
-      operationId: testMl
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DemoRequest"
-        required: true
-      responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "200":
-          description: ML scoring result successfully calculated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ScoringResult"
-  /demo/llm:
-    post:
-      tags:
-      - demo-controller
-      summary: Run LLM scoring demo
-      description: |
-        Executes the LLM-based scoring engine using a raw set of demo answers.
-        Returns recommendations and explanations generated by the LLM.
-      operationId: testLlm
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DemoRequest"
-        required: true
-      responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "200":
-          description: LLM scoring result successfully generated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ScoringResult"
   /categories:
     get:
       tags:
-      - profession-category-controller
+      - Profession Category
       summary: Get all profession categories
       description: Returns a list of all profession categories.
       operationId: getAll_3
@@ -1813,7 +1764,7 @@ paths:
                 $ref: "#/components/schemas/ProfessionCategoryDto"
     post:
       tags:
-      - profession-category-controller
+      - Profession Category
       summary: Create a profession category
       description: Creates a new profession category. Accessible only to administrators.
       operationId: create_6
@@ -1863,7 +1814,7 @@ paths:
   /auth/signup:
     post:
       tags:
-      - authentication-controller
+      - Authentication
       summary: Register a new user
       description: Creates a new user account using email and password.
       operationId: register
@@ -1907,7 +1858,7 @@ paths:
   /auth/reset-password:
     post:
       tags:
-      - authentication-controller
+      - Authentication
       summary: Reset password
       description: Resets a user's password using a valid reset token.
       operationId: resetPassword
@@ -1951,7 +1902,7 @@ paths:
   /auth/request-password-reset:
     post:
       tags:
-      - authentication-controller
+      - Authentication
       summary: Request password reset
       description: Sends a password reset link to the user's email address if it exists.
       operationId: requestReset
@@ -1995,7 +1946,7 @@ paths:
   /auth/refresh:
     post:
       tags:
-      - authentication-controller
+      - Authentication
       summary: Refresh access token
       description: Generates a new access token using a valid refresh token.
       operationId: refreshToken
@@ -2036,10 +1987,55 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/LoginResponse"
+  /auth/logout:
+    post:
+      tags:
+      - Authentication
+      summary: Logout user
+      description: Invalidates the current JWT token by blacklisting it. The user
+        must be authenticated.
+      operationId: logout
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        schema:
+          type: string
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Missing or invalid Authorization header
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Successfully logged out
+          content:
+            '*/*':
+              schema:
+                type: object
   /auth/login:
     post:
       tags:
-      - authentication-controller
+      - Authentication
       summary: Authenticate user
       description: Authenticates a user and returns JWT access and refresh tokens.
       operationId: authenticate
@@ -2083,7 +2079,7 @@ paths:
   /auth/google-onetap:
     post:
       tags:
-      - authentication-controller
+      - Authentication
       summary: Google One Tap login
       description: Authenticates a user using Google One Tap ID token.
       operationId: handleGoogleOneTap
@@ -2127,7 +2123,7 @@ paths:
   /attempts/{attemptId}/submit:
     post:
       tags:
-      - attempt-controller
+      - Attempt
       summary: Submit attempt
       description: |
         Finalizes an attempt and triggers scoring logic.
@@ -2177,7 +2173,7 @@ paths:
   /attempts/{attemptId}/answers:
     post:
       tags:
-      - attempt-controller
+      - Attempt
       summary: Submit a single answer
       description: Adds a single answer to an active attempt.
       operationId: addAnswer
@@ -2221,10 +2217,62 @@ paths:
                 $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Answer added successfully
+  /attempts/{attemptId}/answers/question:
+    post:
+      tags:
+      - Attempt
+      summary: Submit answers for one question (single or multi-select)
+      description: |
+        Overwrites answers for one specific question inside an active attempt.
+
+        - Useful for multi-select questions (checkboxes)
+        - Also works for single-choice (send one optionId)
+        - Does NOT delete answers for other questions
+      operationId: addAnswersForQuestion
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int32
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddAnswersForQuestionRequest"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid attempt state or invalid option/question mapping
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Answers saved for the question
   /attempts/{attemptId}/answers/bulk:
     post:
       tags:
-      - attempt-controller
+      - Attempt
       summary: Submit multiple answers at once
       description: Adds multiple answers to an active attempt in a single request.
       operationId: addAnswersBulk
@@ -2271,7 +2319,7 @@ paths:
   /attempts/start:
     post:
       tags:
-      - attempt-controller
+      - Attempt
       summary: Start a quiz attempt
       description: |
         Starts a new quiz attempt for a given quiz version.
@@ -2317,10 +2365,128 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/AttemptStartResponse"
+  /api/import/translations:
+    post:
+      tags:
+      - Import
+      summary: Import translations from CSV
+      description: |
+        Imports translations for quizzes, questions, options, and professions.
+        Existing translations are updated, new ones are created.
+        Only administrators are allowed to perform this operation.
+      operationId: importTranslations
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: CSV file containing translations
+              required:
+              - file
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid CSV format or validation errors
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Translations imported successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImportResultDto"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImportResultDto"
+  /api/import/questions:
+    post:
+      tags:
+      - Import
+      summary: Import questions from CSV
+      description: |
+        Imports quiz questions from a CSV file.
+        The file must contain a header row and valid question data.
+        Only administrators are allowed to perform this operation.
+      operationId: importQuestions
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: CSV file containing questions
+              required:
+              - file
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid CSV format or validation errors
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Questions imported successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImportResultDto"
+        "403":
+          description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImportResultDto"
   /users:
     get:
       tags:
-      - user-controller
+      - User
       summary: Get all users (admin only)
       description: |2
             Returns a paginated list of users.
@@ -2393,7 +2559,7 @@ paths:
   /users/me:
     get:
       tags:
-      - user-controller
+      - User
       summary: Get current authenticated user
       description: Returns the profile of the currently authenticated user
       operationId: authenticatedUser
@@ -2445,7 +2611,7 @@ paths:
   /translations/entity/{entityType}:
     get:
       tags:
-      - translation-controller
+      - Translation
       summary: Get all translations for entity type
       description: Returns all translations for a given entity type across all locales
       operationId: getAllForEntityType
@@ -2489,7 +2655,7 @@ paths:
   /quizzes/{id}/versions:
     get:
       tags:
-      - quiz-controller
+      - Quiz
       summary: Get quiz versions
       description: Returns all versions of a quiz
       operationId: getVersions
@@ -2534,7 +2700,7 @@ paths:
   /quizzes/{id}/versions/{version}:
     get:
       tags:
-      - quiz-controller
+      - Quiz
       summary: Get specific quiz version
       description: Returns a specific version of a quiz by version number
       operationId: getVersion
@@ -2585,7 +2751,7 @@ paths:
   /quizzes/{id}/versions/current:
     get:
       tags:
-      - quiz-controller
+      - Quiz
       summary: Get current quiz version
       description: Returns the currently published quiz version
       operationId: getCurrentVersion
@@ -2627,10 +2793,122 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/QuizVersionDto"
+  /quizzes/search:
+    get:
+      tags:
+      - Quiz
+      summary: Search and sort quizzes
+      description: "Search quizzes by title, code, or description and sort by category\
+        \ or creation/update time. Supports pagination and localization."
+      operationId: searchQuizzes
+      parameters:
+      - name: search
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: sortBy
+        in: query
+        required: false
+        schema:
+          type: string
+          default: id
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 1
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 10
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: No quizzes found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Quizzes found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuizDto"
+  /quizzes/code/{code}:
+    get:
+      tags:
+      - Quiz
+      summary: Get quiz by code
+      description: Returns a single quiz localized according to the current request
+        locale
+      operationId: getByCode
+      parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Quiz not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Quiz found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizDto"
   /questions/{questionId}/options:
     get:
       tags:
-      - question-controller
+      - Question
       summary: Get options for a question
       description: |
         Returns all answer options for a specific question.
@@ -2678,7 +2956,7 @@ paths:
   /questions/quiz/{quizId}:
     get:
       tags:
-      - question-controller
+      - Question
       summary: Get questions for current quiz version (paginated)
       description: |
         Returns questions for the current published version of a quiz.
@@ -2756,7 +3034,7 @@ paths:
   /questions/quiz/{quizId}/version/{version}:
     get:
       tags:
-      - question-controller
+      - Question
       summary: Get questions for a specific quiz version (paginated)
       description: |
         Returns questions for a specific quiz version.
@@ -2840,7 +3118,7 @@ paths:
   /attempts:
     get:
       tags:
-      - attempt-controller
+      - Attempt
       summary: Get user's attempts
       description: |
         Returns all attempts for the current user.
@@ -2888,7 +3166,7 @@ paths:
   /attempts/{id}/result:
     get:
       tags:
-      - attempt-controller
+      - Attempt
       summary: Get attempt result
       description: Returns final scoring results and recommendations for a submitted
         attempt.
@@ -2934,7 +3212,7 @@ paths:
   /attempts/search:
     get:
       tags:
-      - attempt-controller
+      - Attempt
       summary: Admin search attempts
       description: |
         Administrative search over attempts.
@@ -3009,7 +3287,7 @@ paths:
   /api/v1/quizzes/metrics:
     get:
       tags:
-      - quiz-metrics-controller
+      - Quiz Metrics
       summary: Get public quiz metrics
       operationId: getAllMetrics
       responses:
@@ -3048,7 +3326,7 @@ paths:
   /api/v1/quizzes/metrics/{quizId}:
     get:
       tags:
-      - quiz-metrics-controller
+      - Quiz Metrics
       summary: Get public metrics for a quiz
       operationId: getMetrics
       parameters:
@@ -3089,10 +3367,103 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/QuizPublicMetricsView"
+  /api/export/excel:
+    get:
+      tags:
+      - Export
+      summary: Export all data to Excel
+      description: |
+        Exports all system data into a single Excel file.
+        Each entity is exported into a separate sheet.
+      operationId: exportExcel
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Bad Request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Excel file generated successfully
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet: {}
+  /api/export/csv/{entity}:
+    get:
+      tags:
+      - Export
+      summary: Export entity to CSV
+      description: |
+        Exports the specified entity to a CSV file.
+        Supported entities include quizzes, questions, options,
+        professions, attempts, and translations.
+      operationId: exportCsv
+      parameters:
+      - name: entity
+        in: path
+        description: Entity name to export
+        required: true
+        schema:
+          type: string
+          enum:
+          - quizzes
+          - quiz_versions
+          - questions
+          - question_options
+          - professions
+          - attempts
+          - translations
+        example: questions
+      responses:
+        "401":
+          description: Unauthorized
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Unsupported entity type
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Not Found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: CSV file generated successfully
+          content:
+            text/csv: {}
   /auth/account:
     delete:
       tags:
-      - authentication-controller
+      - Authentication
       summary: Delete user account
       description: Deletes the authenticated user's account after password confirmation.
       operationId: deleteAccount
@@ -3270,10 +3641,10 @@ components:
           type: string
           description: Updated quiz processing mode
           enum:
-          - ml_riasec
-          - llm
+          - ML_RIASEC
+          - LLM
           examples:
-          - ml_riasec
+          - ML_RIASEC
         categoryId:
           type: integer
           format: int32
@@ -3304,19 +3675,19 @@ components:
           type: string
           description: Current lifecycle status of the quiz
           enum:
-          - published
-          - draft
-          - archived
+          - PUBLISHED
+          - DRAFT
+          - ARCHIVED
           examples:
-          - published
+          - PUBLISHED
         processingMode:
           type: string
           description: Processing mode used to evaluate quiz results
           enum:
-          - ml_riasec
-          - llm
+          - ML_RIASEC
+          - LLM
           examples:
-          - ml_riasec
+          - ML_RIASEC
         categoryId:
           type: integer
           format: int32
@@ -3354,12 +3725,12 @@ components:
           type: string
           description: Updated question type
           enum:
-          - single_choice
-          - multi_choice
-          - liker_scale_5
-          - liker_scale_7
+          - SINGLE_CHOICE
+          - MULTI_CHOICE
+          - LIKER_SCALE_5
+          - LIKER_SCALE_7
           examples:
-          - single_choice
+          - SINGLE_CHOICE
         text:
           type: string
           description: Updated question text
@@ -3420,12 +3791,12 @@ components:
           type: string
           description: Type of question defining how the user should answer
           enum:
-          - single_choice
-          - multi_choice
-          - liker_scale_5
-          - liker_scale_7
+          - SINGLE_CHOICE
+          - MULTI_CHOICE
+          - LIKER_SCALE_5
+          - LIKER_SCALE_7
           examples:
-          - single_choice
+          - SINGLE_CHOICE
         text:
           type: string
           description: Text displayed to the user for this question
@@ -3648,10 +4019,10 @@ components:
           type: string
           description: Processing mode defining how results are calculated
           enum:
-          - ml_riasec
-          - llm
+          - ML_RIASEC
+          - LLM
           examples:
-          - ml_riasec
+          - ML_RIASEC
         categoryId:
           type: integer
           format: int32
@@ -3706,24 +4077,24 @@ components:
           format: int32
           description: Identifier of the quiz version this question belongs to
           examples:
-          - "12"
+          - "1"
         ord:
           type: integer
           format: int32
           description: Order of the question within the quiz version
           examples:
-          - "1"
+          - "49"
           minimum: 1
         qtype:
           type: string
           description: "Type of the question (e.g. single_choice, multi_choice, liker_scale_5)"
           enum:
-          - single_choice
-          - multi_choice
-          - liker_scale_5
-          - liker_scale_7
+          - SINGLE_CHOICE
+          - MULTI_CHOICE
+          - LIKER_SCALE_5
+          - LIKER_SCALE_7
           examples:
-          - single_choice
+          - SINGLE_CHOICE
         text:
           type: string
           description: Question text shown to the user
@@ -3751,80 +4122,6 @@ components:
           description: Displayed label of the option
           examples:
           - Strongly agree
-    DemoRequest:
-      type: object
-      properties:
-        answers:
-          type: array
-          description: List of selected answer IDs
-          examples:
-          - |-
-            {
-              "answers": [
-                3,3,3,3,3,3,3,3,
-                3,3,3,3,3,3,3,3,
-                3,3,3,3,3,3,3,3,
-                3,3,3,3,3,3,3,3,
-                3,3,3,3,3,3,3,3,
-                3,3,3,3,3,3,3,3
-              ]
-            }
-          items:
-            type: integer
-            format: int32
-    RecommendationDto:
-      type: object
-      description: Career recommendation generated by the scoring engine
-      properties:
-        professionId:
-          type: integer
-          format: int32
-          description: Identifier of the recommended profession
-          examples:
-          - "42"
-        score:
-          type: number
-          description: Identifier of the recommended profession
-          examples:
-          - "42"
-        explanation:
-          type: string
-          description: Human-readable explanation of why this profession was recommended
-          examples:
-          - "Predicted as: Software Engineer"
-    ScoringResult:
-      type: object
-      description: Final scoring result produced after evaluating a quiz attempt
-      properties:
-        traitScores:
-          type: object
-          additionalProperties:
-            type: number
-          description: |
-            Calculated trait scores based on quiz answers.
-            Each entry maps a trait profile to its aggregated score.
-          examples:
-          - |
-            {
-              "R": 12.5,
-              "I": 9.0,
-              "A": 7.5
-            }
-        recommendations:
-          type: array
-          description: List of profession recommendations generated by the ML scoring
-            engine
-          examples:
-          - |
-            [
-              {
-                "professionId": 42,
-                "score": 0.82,
-                "explanation": "Predicted as: Software Engineer"
-              }
-            ]
-          items:
-            $ref: "#/components/schemas/RecommendationDto"
     RegisterUserDto:
       type: object
       description: Request payload for user registration
@@ -3968,7 +4265,7 @@ components:
           type: string
           description: Email address used for user authentication
           examples:
-          - user@example.com
+          - user1@example.com
           minLength: 1
         password:
           type: string
@@ -3983,6 +4280,9 @@ components:
           description: "If true, a long-lived refresh token will be issued"
           examples:
           - "false"
+        guestToken:
+          type: string
+          description: Guest token used to attach anonymous quiz attempts after login
       required:
       - email
       - password
@@ -3996,6 +4296,9 @@ components:
           examples:
           - eyJhbGciOiJSUzI1NiIsImtpZCI6Ij...
           minLength: 1
+        guestToken:
+          type: string
+          description: Guest token used to attach anonymous quiz attempts after login
       required:
       - token
     AttemptResultDto:
@@ -4030,6 +4333,26 @@ components:
             ]
           items:
             $ref: "#/components/schemas/RecommendationDto"
+    RecommendationDto:
+      type: object
+      description: Career recommendation generated by the scoring engine
+      properties:
+        professionId:
+          type: integer
+          format: int32
+          description: Identifier of the recommended profession
+          examples:
+          - "42"
+        score:
+          type: number
+          description: Identifier of the recommended profession
+          examples:
+          - "42"
+        explanation:
+          type: string
+          description: Human-readable explanation of why this profession was recommended
+          examples:
+          - "Predicted as: Software Engineer"
     TraitScoreDto:
       type: object
       description: Trait score entry
@@ -4056,6 +4379,28 @@ components:
           - "123"
       required:
       - optionId
+    AddAnswersForQuestionRequest:
+      type: object
+      description: Submit selected optionIds for a single question (overwrites previous
+        answers for that question)
+      properties:
+        questionId:
+          type: integer
+          format: int32
+          description: Question id
+          example: 10
+        optionIds:
+          type: array
+          description: Selected option ids for this question
+          example:
+          - 100
+          - 101
+          items:
+            type: integer
+            format: int32
+          minItems: 1
+      required:
+      - questionId
     AddAnswersBulkRequest:
       type: object
       description: Request payload for submitting multiple answers in a single operation
@@ -4096,6 +4441,42 @@ components:
             Null for authenticated users.
           examples:
           - f7c1a2e9-8a9d-4b2e-9b61-1a2f8c123abc
+    ImportErrorDto:
+      type: object
+      description: Represents an error encountered during CSV import
+      properties:
+        rowNumber:
+          type: integer
+          format: int32
+          description: Row number in the CSV where the error occurred
+          example: 2
+        field:
+          type: string
+          description: Field/column name causing the error
+          example: quiz_version_id
+        message:
+          type: string
+          description: Detailed error message
+          example: Required field is missing
+    ImportResultDto:
+      type: object
+      description: Represents the result of a CSV import operation
+      properties:
+        totalRows:
+          type: integer
+          format: int32
+          description: Total number of rows read from the CSV file (excluding header)
+          example: 10
+        successCount:
+          type: integer
+          format: int32
+          description: Number of rows successfully imported
+          example: 8
+        errors:
+          type: array
+          description: List of errors encountered during import
+          items:
+            $ref: "#/components/schemas/ImportErrorDto"
     Page:
       type: object
       properties:
@@ -4155,21 +4536,6 @@ components:
           type: boolean
         unsorted:
           type: boolean
-    Pageable:
-      type: object
-      properties:
-        page:
-          type: integer
-          format: int32
-          minimum: 0
-        size:
-          type: integer
-          format: int32
-          minimum: 1
-        sort:
-          type: array
-          items:
-            type: string
     AttemptSummaryDto:
       type: object
       description: Summary information about a quiz attempt
@@ -4249,3 +4615,8 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    Locale:
+      type: apiKey
+      description: "Locale, e.g. en, ru, en-US"
+      name: Accept-Language
+      in: header
