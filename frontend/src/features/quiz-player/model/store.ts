@@ -56,6 +56,22 @@ function clampIndex(index: number, total: number | null) {
   return Math.min(safe, Math.max(0, total - 1));
 }
 
+function isFreshStarting(s: QuizPlayerState, quizId: number, quizVersionId: number) {
+  return (
+    s.quizId === quizId &&
+    s.quizVersionId === quizVersionId &&
+    s.attemptId == null &&
+    s.guestToken == null &&
+    s.status === 'starting' &&
+    s.error == null &&
+    s.currentIndex === 0 &&
+    s.totalQuestions == null &&
+    Object.keys(s.answersByQuestionId).length === 0 &&
+    s.result == null &&
+    s.bulkSentAttemptId == null
+  );
+}
+
 export const useQuizPlayerStore = create<QuizPlayerStore>()(
   persist(
     (set, get) => ({
@@ -63,20 +79,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
       startFresh: (quizId, quizVersionId) => {
         const s = get();
-        const already =
-          s.quizId === quizId &&
-          s.quizVersionId === quizVersionId &&
-          s.attemptId == null &&
-          s.guestToken == null &&
-          s.status === 'starting' &&
-          s.error == null &&
-          s.currentIndex === 0 &&
-          s.totalQuestions == null &&
-          Object.keys(s.answersByQuestionId).length === 0 &&
-          s.result == null &&
-          s.bulkSentAttemptId == null;
-
-        if (already) return;
+        if (isFreshStarting(s, quizId, quizVersionId)) return;
 
         set({
           quizId,
@@ -108,11 +111,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           const nextIndex = clampIndex(s.currentIndex, s.totalQuestions);
 
           const already =
-            s.status === 'in-progress' &&
-            s.error == null &&
-            s.currentIndex === nextIndex &&
-            s.quizId === quizId &&
-            s.quizVersionId === quizVersionId;
+            s.status === 'in-progress' && s.error == null && s.currentIndex === nextIndex;
 
           if (already) return;
 
@@ -126,20 +125,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           return;
         }
 
-        const alreadyReset =
-          s.quizId === quizId &&
-          s.quizVersionId === quizVersionId &&
-          s.attemptId == null &&
-          s.guestToken == null &&
-          s.status === 'starting' &&
-          s.error == null &&
-          s.currentIndex === 0 &&
-          s.totalQuestions == null &&
-          Object.keys(s.answersByQuestionId).length === 0 &&
-          s.result == null &&
-          s.bulkSentAttemptId == null;
-
-        if (alreadyReset) return;
+        if (isFreshStarting(s, quizId, quizVersionId)) return;
 
         set({
           quizId,
@@ -159,14 +145,13 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
       setAttempt: (attemptId, guestToken) => {
         const s = get();
         const already =
+        const already =
           s.attemptId === attemptId &&
           s.guestToken === guestToken &&
           s.status === 'in-progress' &&
           s.error == null;
 
         if (already) return;
-
-        useGuestStore.getState().setGuestToken(guestToken);
 
         set({
           attemptId,
@@ -177,86 +162,51 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
         });
       },
 
-      setStatus: (status) => {
-        const s = get();
-        if (s.status === status) return;
-        set({ status });
-      },
+      setStatus: (status) => set({ status }),
 
-      setError: (error) => {
-        const s = get();
-        if (s.error === error && (error == null || s.status === 'error'))
-          return;
+      setError: (error) =>
+        set((s) => ({
+          error,
+          status: error ? 'error' : s.status,
+        })),
 
-        if (error == null) {
-          set({ error: null });
-          return;
-        }
-
-        set({ error, status: 'error' });
-      },
 
       setIndex: (index) =>
-        set((s) => {
-          const next = clampIndex(index, s.totalQuestions);
-          if (s.currentIndex === next) return {};
-          return { currentIndex: next };
-        }),
+        set((s) => ({ currentIndex: clampIndex(index, s.totalQuestions) })),
 
       goNext: () =>
-        set((s) => {
-          const next = clampIndex(s.currentIndex + 1, s.totalQuestions);
-          if (s.currentIndex === next) return {};
-          return { currentIndex: next };
-        }),
+        set((s) => ({
+          currentIndex: clampIndex(s.currentIndex + 1, s.totalQuestions),
+        })),
 
       goPrev: () =>
-        set((s) => {
-          const next = clampIndex(s.currentIndex - 1, s.totalQuestions);
-          if (s.currentIndex === next) return {};
-          return { currentIndex: next };
-        }),
+        set((s) => ({
+          currentIndex: clampIndex(s.currentIndex - 1, s.totalQuestions),
+        })),
 
       setTotalQuestions: (total) =>
-        set((s) => {
-          const nextIndex = clampIndex(s.currentIndex, total);
-          const sameTotal = s.totalQuestions === total;
-          const sameIndex = s.currentIndex === nextIndex;
-          if (sameTotal && sameIndex) return {};
-          return { totalQuestions: total, currentIndex: nextIndex };
-        }),
+        set((s) => ({
+          totalQuestions: total,
+          currentIndex: clampIndex(s.currentIndex, total),
+        })),
 
       selectOption: (questionId, optionId) =>
-        set((s) => {
-          if (s.answersByQuestionId[questionId] === optionId) return {};
-          return {
-            answersByQuestionId: {
-              ...s.answersByQuestionId,
-              [questionId]: optionId,
-            },
-          };
-        }),
+        set((s) => ({
+          answersByQuestionId: {
+            ...s.answersByQuestionId,
+            [questionId]: optionId,
+          },
+        })),
 
-      setResult: (result) => {
-        const s = get();
-        if (s.result === result) return;
-        set({ result });
-      },
+      setResult: (result) => set({ result }),
 
-      setBulkSent: (attemptId) => {
-        const s = get();
-        if (s.bulkSentAttemptId === attemptId) return;
-        set({ bulkSentAttemptId: attemptId });
-      },
+      setBulkSent: (attemptId) => set({ bulkSentAttemptId: attemptId }),
 
-      resetAll: () => {
-        useGuestStore.getState().clearGuestToken();
-        set(initialState);
-      },
+      resetAll: () => set(initialState),
     }),
     {
-      name: 'quiz-player:v5',
-      version: 5,
+      name: 'quiz-player:v2',
+      version: 2,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({
         quizId: s.quizId,
@@ -271,9 +221,10 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        if (state.status !== 'idle') state.setStatus('idle');
-        if (state.error != null) state.setError(null);
+        state.setStatus('idle');
+        state.setError(null);
       },
+
     },
   ),
 );
