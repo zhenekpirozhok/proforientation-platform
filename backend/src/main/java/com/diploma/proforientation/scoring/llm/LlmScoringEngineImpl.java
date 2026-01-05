@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.*;
 
-import static com.diploma.proforientation.util.Constants.EMPTY_STRING;
+import static com.diploma.proforientation.util.Constants.*;
 
 @Service
 @RequiredArgsConstructor
@@ -26,10 +26,15 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
     private static final String NOT_VALID_JSON_REGEX1 = "```";
     private static final String NOT_VALID_JSON_REGEX2 = "```json";
     private static final String TRAITS_KEY = "traits";
+    private static final String TRAITS_SCHEMA = "object traitCode->number";
     private static final String RECOMMENDATIONS_KEY = "recommendations";
+    private static final String RECOMMENDATIONS_SCHEMA = "array of {professionId:int, score:number, explanation:string}";
     private static final String PROFESSION_ID_KEY = "professionId";
     private static final String SCORE_KEY = "score";
     private static final String EXPLANATION_KEY = "explanation";
+    private static final String ID_KEY = "id";
+    private static final String CODE_KEY = "code";
+    private static final String OUTPUT_FORMAT_KEY = "output_format";
 
 
     private final OpenAiChatModel openAiChat;
@@ -45,7 +50,7 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
     public ScoringResult evaluate(Integer attemptId) {
 
         attemptRepo.findById(attemptId)
-                .orElseThrow(() -> new RuntimeException("Attempt not found"));
+                .orElseThrow(() -> new RuntimeException(ATTEMPT_NOT_FOUND));
 
         List<Answer> answers = answerRepo.findByAttemptId(attemptId);
         List<Profession> professions = professionRepo.findAll();
@@ -68,10 +73,6 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
 
     public ScoringResult evaluateRaw(List<Integer> answers) {
 
-        if (answers.size() != 48) {
-            throw new IllegalArgumentException("Exactly 48 answers required.");
-        }
-
         String promptText = buildPromptForRawAnswers(answers);
         Prompt prompt = new Prompt(promptText);
         ChatResponse response = openAiChat.call(prompt);
@@ -93,7 +94,7 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
             }
             return new ObjectMapper().readTree(text);
         } catch (Exception e) {
-            throw new RuntimeException("LLM returned invalid JSON: " + text);
+            throw new RuntimeException(INVALID_JSON_FROM_LLM + text);
         }
     }
 
@@ -129,33 +130,57 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
     }
 
     private String buildPrompt(List<Answer> answers, List<Profession> professions) {
-        StringBuilder sb = new StringBuilder();
+        Map<Question, List<Answer>> byQuestion = new LinkedHashMap<>();
 
-        sb.append("Analyze the following quiz answers and return ONLY strict JSON.\n\n");
+        for (Answer a : answers) {
+            Question q = a.getOption().getQuestion();
+            byQuestion.computeIfAbsent(q, k -> new ArrayList<>()).add(a);
+        }
 
-        sb.append("Answers:\n");
-        answers.forEach(a ->
-                sb.append("- ").append(a.getOption().getLabelDefault()).append("\n"));
+        List<PromptQuestion> questions = byQuestion.entrySet().stream()
+                .map(e -> {
+                    Question q = e.getKey();
+                    List<PromptOption> opts = e.getValue().stream()
+                            .map(a -> new PromptOption(
+                                    a.getOption().getId(),
+                                    a.getOption().getLabelDefault()
+                            ))
+                            .toList();
 
-        sb.append("\nProfessions:\n");
-        professions.forEach(p ->
-                sb.append("{\"id\": ").append(p.getId()).append(", \"code\": \"")
-                        .append(p.getCode()).append("\"}\n")
+                    String type = q.getQtype().name();
+                    return new PromptQuestion(q.getId(), type, q.getTextDefault(), opts);
+                })
+                .toList();
+
+        List<Map<String, Object>> profs = professions.stream()
+                .map(p -> Map.<String, Object>of(
+                        ID_KEY, p.getId(),
+                        CODE_KEY, p.getCode()
+                ))
+                .toList();
+
+        Map<String, Object> payload = Map.of(
+                ENTITY_QUESTIONS, questions,
+                ENTITY_PROFESSIONS, profs,
+                OUTPUT_FORMAT_KEY, Map.of(
+                        TRAITS_KEY, TRAITS_SCHEMA,
+                        RECOMMENDATIONS_KEY, RECOMMENDATIONS_SCHEMA
+                )
         );
 
-        sb.append("""
-                
-                Respond EXACTLY in this JSON format:
-                {
-                  "traits": { "TRAIT_CODE": number },
-                  "recommendations": [
-                    { "professionId": int, "score": number, "explanation": "text" }
-                  ]
-                }
-                """);
-
-        return sb.toString();
+        try {
+            return """
+               You are a career guidance scorer. Analyze the structured quiz answers below.
+               IMPORTANT:
+               - MULTI_CHOICE means multiple selectedOptions are intentional.
+               - Return ONLY strict JSON, no markdown, no extra text.
+               Payload:
+               """ + mapper.writeValueAsString(payload);
+        } catch (Exception e) {
+            throw new RuntimeException(INVALID_PROMPT, e);
+        }
     }
+
     private String buildPromptForRawAnswers(List<Integer> answers) {
         StringBuilder sb = new StringBuilder();
 
@@ -183,3 +208,6 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
         return sb.toString();
     }
 }
+
+record PromptOption(Integer optionId, String label) {}
+record PromptQuestion(Integer questionId, String type, String text, List<PromptOption> selectedOptions) {}

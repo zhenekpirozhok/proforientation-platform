@@ -1,4 +1,4 @@
-package com.diploma.proforientation.dto.request;
+package com.diploma.proforientation.dto.request.add;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

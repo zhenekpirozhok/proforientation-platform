@@ -4,8 +4,9 @@ import com.diploma.proforientation.controller.AttemptController;
 import com.diploma.proforientation.dto.AttemptResultDto;
 import com.diploma.proforientation.dto.AttemptSummaryDto;
 import com.diploma.proforientation.dto.RecommendationDto;
-import com.diploma.proforientation.dto.request.AddAnswerRequest;
-import com.diploma.proforientation.dto.request.AddAnswersBulkRequest;
+import com.diploma.proforientation.dto.request.add.AddAnswerRequest;
+import com.diploma.proforientation.dto.request.add.AddAnswersBulkRequest;
+import com.diploma.proforientation.dto.request.add.AddAnswersForQuestionRequest;
 import com.diploma.proforientation.dto.response.AttemptStartResponse;
 import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.util.AuthUtils;
@@ -299,4 +300,72 @@ class AttemptControllerTest {
                 .addAnswersBulk(10, List.of());
     }
 
+    @Test
+    void testAddAnswersForQuestion_success() {
+        AddAnswersForQuestionRequest req =
+                new AddAnswersForQuestionRequest(10, List.of(100, 101));
+
+        attemptController.addAnswersForQuestion(5, req);
+
+        verify(attemptService, times(1))
+                .addAnswersForQuestion(5, 10, List.of(100, 101));
+    }
+
+    @Test
+    void testAddAnswersForQuestion_singleOption_stillCallsService() {
+        AddAnswersForQuestionRequest req =
+                new AddAnswersForQuestionRequest(10, List.of(100));
+
+        attemptController.addAnswersForQuestion(5, req);
+
+        verify(attemptService)
+                .addAnswersForQuestion(5, 10, List.of(100));
+    }
+
+    @Test
+    void testAddAnswersForQuestion_emptyOptionIds_callsService() {
+        AddAnswersForQuestionRequest req =
+                new AddAnswersForQuestionRequest(10, List.of());
+
+        attemptController.addAnswersForQuestion(5, req);
+
+        verify(attemptService)
+                .addAnswersForQuestion(5, 10, List.of());
+    }
+
+    @Test
+    void testAddAnswersForQuestion_nullRequest_throwsNpe() {
+        assertThrows(NullPointerException.class,
+                () -> attemptController.addAnswersForQuestion(5, null));
+
+        verify(attemptService, never())
+                .addAnswersForQuestion(anyInt(), anyInt(), any());
+    }
+
+    @Test
+    void testAddAnswersForQuestion_nullOptionIds_callsServiceWithNull() {
+        AddAnswersForQuestionRequest req =
+                new AddAnswersForQuestionRequest(10, null);
+
+        attemptController.addAnswersForQuestion(5, req);
+
+        verify(attemptService).addAnswersForQuestion(5, 10, null);
+    }
+
+    @Test
+    void testAddAnswersForQuestion_serviceThrows_propagates() {
+        AddAnswersForQuestionRequest req =
+                new AddAnswersForQuestionRequest(10, List.of(100, 101));
+
+        doThrow(new IllegalArgumentException("Some options do not belong to question"))
+                .when(attemptService)
+                .addAnswersForQuestion(5, 10, List.of(100, 101));
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> attemptController.addAnswersForQuestion(5, req)
+        );
+
+        assertEquals("Some options do not belong to question", ex.getMessage());
+    }
 }

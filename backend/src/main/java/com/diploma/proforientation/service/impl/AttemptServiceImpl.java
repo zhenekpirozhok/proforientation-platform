@@ -212,6 +212,45 @@ public class AttemptServiceImpl implements AttemptService {
         }
     }
 
+    @Override
+    @Transactional
+    public void addAnswersForQuestion(Integer attemptId, Integer questionId, List<Integer> optionIds) {
+
+        Attempt attempt = attemptRepo.findById(attemptId)
+                .orElseThrow(() -> new IllegalArgumentException(ATTEMPT_NOT_FOUND));
+
+        if (attempt.getSubmittedAt() != null) {
+            throw new IllegalStateException(ATTEMPT_SUBMITTED);
+        }
+
+        answerRepo.deleteByAttemptIdAndQuestionId(attemptId, questionId);
+
+        List<QuestionOption> options = optionRepo.findAllById(optionIds);
+
+        if (options.size() != optionIds.size()) {
+            throw new IllegalArgumentException(OPTIONS_NOT_FOUND);
+        }
+
+        boolean allBelongToQuestion = options.stream()
+                .allMatch(o -> o.getQuestion() != null && Objects.equals(o.getQuestion().getId(), questionId));
+
+        if (!allBelongToQuestion) {
+            throw new IllegalArgumentException("Some options do not belong to questionId=" + questionId);
+        }
+
+        List<Answer> answers = options.stream()
+                .map(option -> {
+                    Answer a = new Answer();
+                    a.setAttempt(attempt);
+                    a.setOption(option);
+                    a.setCreatedAt(Instant.now());
+                    return a;
+                })
+                .toList();
+
+        answerRepo.saveAll(answers);
+    }
+
     private List<TraitScoreDto> toTraitScoreDtos(
             Map<TraitProfile, BigDecimal> scores
     ) {

@@ -4,8 +4,8 @@ import com.diploma.proforientation.config.JwtAuthenticationFilter;
 import com.diploma.proforientation.controller.AttemptController;
 import com.diploma.proforientation.dto.AttemptResultDto;
 import com.diploma.proforientation.dto.AttemptSummaryDto;
-import com.diploma.proforientation.dto.request.AddAnswerRequest;
-import com.diploma.proforientation.dto.request.AddAnswersBulkRequest;
+import com.diploma.proforientation.dto.request.add.AddAnswerRequest;
+import com.diploma.proforientation.dto.request.add.AddAnswersBulkRequest;
 import com.diploma.proforientation.dto.response.AttemptStartResponse;
 import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.util.AuthUtils;
@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -164,5 +165,60 @@ class AttemptControllerTest {
                         .param("userId", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)));
+    }
+
+
+    @Test
+    void addAnswersForQuestion_validRequest_callsService_returns200() throws Exception {
+        int attemptId = 5;
+
+        String body = """
+            {
+              "questionId": 10,
+              "optionIds": [100, 101, 102]
+            }
+            """;
+
+        mockMvc.perform(post("/attempts/{attemptId}/answers/question", attemptId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
+
+        verify(attemptService).addAnswersForQuestion(
+                attemptId,
+                10,
+                java.util.List.of(100, 101, 102)
+        );
+        verifyNoMoreInteractions(attemptService);
+    }
+
+    @Test
+    void addAnswersForQuestion_missingQuestionId_returns400() throws Exception {
+        int attemptId = 5;
+
+        String body = """
+            {
+              "optionIds": [100, 101]
+            }
+            """;
+
+        mockMvc.perform(post("/attempts/{attemptId}/answers/question", attemptId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(attemptService);
+    }
+
+    @Test
+    void addAnswersForQuestion_emptyBody_returns400() throws Exception {
+        int attemptId = 5;
+
+        mockMvc.perform(post("/attempts/{attemptId}/answers/question", attemptId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(attemptService);
     }
 }

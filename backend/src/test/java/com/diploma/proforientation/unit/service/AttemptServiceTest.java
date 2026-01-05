@@ -375,4 +375,31 @@ class AttemptServiceTest {
 
         verify(attemptRepo, times(1)).findAllByGuestToken(guestToken);
     }
+
+    @Test
+    void addAnswersForQuestion_overwritesOnlyThatQuestion() {
+        Attempt attempt = new Attempt();
+        attempt.setId(1);
+        attempt.setSubmittedAt(null);
+
+        Question q = new Question();
+        q.setId(10);
+
+        QuestionOption o1 = new QuestionOption();
+        o1.setId(100);
+        o1.setQuestion(q);
+
+        QuestionOption o2 = new QuestionOption();
+        o2.setId(101);
+        o2.setQuestion(q);
+
+        when(attemptRepo.findById(1)).thenReturn(Optional.of(attempt));
+        when(optionRepo.findAllById(List.of(100, 101))).thenReturn(List.of(o1, o2));
+
+        service.addAnswersForQuestion(1, 10, List.of(100, 101));
+
+        verify(answerRepo).deleteByAttemptIdAndQuestionId(1, 10);
+        verify(answerRepo).saveAll(anyList());
+    }
+
 }

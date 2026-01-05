@@ -37,6 +37,9 @@ public final class Constants {
     public static final String INVALID_GOOGLE_ID = "Invalid Google ID token";
     public static final String UNKNOWN_USER = "Unknown user";
 
+    public static final String INVALID_JSON_FROM_LLM = "LLM returned invalid JSON: ";
+    public static final String INVALID_PROMPT = "Failed to build prompt JSON";
+
     public static final String ENTITY_TYPE_QUESTION = "question";
     public static final String ENTITY_TYPE_QUIZ = "quiz";
     public static final String ENTITY_TYPE_OPTION = "question_option";
