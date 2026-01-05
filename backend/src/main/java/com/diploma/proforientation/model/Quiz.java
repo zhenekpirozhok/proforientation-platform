@@ -5,6 +5,8 @@ import com.diploma.proforientation.model.enumeration.QuizStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
@@ -23,12 +25,15 @@ public class Quiz {
     @Column(name = "title_default", nullable = false)
     private String titleDefault;
 
+    @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
-    private QuizStatus status = QuizStatus.draft;
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    private QuizStatus status = QuizStatus.DRAFT;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "processing_mode")
-    private QuizProcessingMode processingMode = QuizProcessingMode.llm;
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    private QuizProcessingMode processingMode = QuizProcessingMode.LLM;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)

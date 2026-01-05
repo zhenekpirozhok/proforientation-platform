@@ -45,6 +45,8 @@ public class SecurityConfiguration {
                 .requestMatchers("/api/v1/quizzes/metrics").permitAll()
                 .requestMatchers("/api/v1/quizzes/metrics/**").permitAll()
 
+                .requestMatchers("/api/export/**").permitAll()
+
                 .requestMatchers(HttpMethod.GET, "/quizzes", "/quizzes/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/questions", "/questions/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/options", "/options/**").permitAll()
@@ -60,7 +62,6 @@ public class SecurityConfiguration {
 
                 .anyRequest().authenticated()
             )
-
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

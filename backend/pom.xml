@@ -116,7 +116,6 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<scope>runtime</scope>
 		</dependency>
 
 		<!-- Data Validation -->
@@ -163,6 +162,18 @@
 			<groupId>com.github.ben-manes.caffeine</groupId>
 			<artifactId>caffeine</artifactId>
 			<version>3.1.8</version>
+		</dependency>
+		<!-- Excel -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.5</version>
+		</dependency>
+		<!-- CSV -->
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>5.9</version>
 		</dependency>
 
 		<!-- Test -->
@@ -287,7 +298,6 @@
 						<exclude>**/response/**</exclude>
 						<exclude>**/model/**</exclude>
 						<exclude>**/model/role/**</exclude>
-						<exclude>**/service/scoring/demo/**</exclude>
 					</excludes>
 					<rules>
 						<rule>

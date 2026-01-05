@@ -8,9 +8,11 @@ import com.diploma.proforientation.service.QuizService;
 import com.diploma.proforientation.service.QuizVersionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
@@ -25,6 +27,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/quizzes")
 @RequiredArgsConstructor
+@Tag(name = "Quiz", description = "CRUD operations for quizzes")
 public class QuizController {
 
     private final QuizService quizService;
@@ -89,6 +92,31 @@ public class QuizController {
     public QuizDto getById(@PathVariable Integer id) {
         String locale = LocaleContextHolder.getLocale().getLanguage();
         return quizService.getByIdLocalized(id, locale);
+    }
+
+    @GetMapping("/code/{code}")
+    @Operation(
+            summary = "Get quiz by code",
+            description = "Returns a single quiz localized according to the current request locale"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Quiz found",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = QuizDto.class)
+            )
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "Quiz not found",
+            content = @Content(
+                    schema = @Schema(implementation = com.diploma.proforientation.dto.ExceptionDto.class)
+            )
+    )
+    public QuizDto getByCode(@PathVariable String code) {
+        String locale = LocaleContextHolder.getLocale().getLanguage();
+        return quizService.getByCodeLocalized(code, locale);
     }
 
     @PostMapping
@@ -269,5 +297,37 @@ public class QuizController {
             @PathVariable Integer version
     ) {
         return versionService.getVersion(id, version);
+    }
+
+    @GetMapping("/search")
+    @Operation(
+            summary = "Search and sort quizzes",
+            description = "Search quizzes by title, code, or description and sort by category or creation/update time. Supports pagination and localization."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Quizzes found",
+            content = @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = QuizDto.class))
+            )
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "No quizzes found",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = com.diploma.proforientation.dto.ExceptionDto.class)
+            )
+    )
+    public Page<QuizDto> searchQuizzes(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false, defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        String locale = LocaleContextHolder.getLocale().getLanguage();
+        Pageable pageable = PageRequest.of(page - 1, size);
+        return quizService.searchAndSort(search, sortBy, locale, pageable);
     }
 }

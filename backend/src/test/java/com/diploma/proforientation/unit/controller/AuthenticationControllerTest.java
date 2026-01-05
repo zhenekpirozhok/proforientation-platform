@@ -8,6 +8,7 @@ import com.diploma.proforientation.dto.request.GoogleOneTapLoginRequest;
 import com.diploma.proforientation.dto.request.RefreshTokenRequest;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.dto.response.LoginResponse;
+import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.service.AuthenticationService;
 import com.diploma.proforientation.service.JwtService;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,6 +33,9 @@ class AuthenticationControllerTest {
 
     @Mock
     private AuthenticationService authenticationService;
+
+    @Mock
+    private AttemptService attemptService;
 
     @InjectMocks
     private AuthenticationController authenticationController;
@@ -66,6 +71,9 @@ class AuthenticationControllerTest {
         dto.setEmail("test@example.com");
         dto.setPassword("12345");
         dto.setRememberMe(false);
+
+        doNothing().when(attemptService)
+                .attachGuestAttempts(any(), any());
 
         when(authenticationService.authenticate(dto)).thenReturn(mockUser);
         when(jwtService.generateToken(mockUser)).thenReturn("access123");
@@ -142,6 +150,9 @@ class AuthenticationControllerTest {
         GoogleOneTapLoginRequest request = new GoogleOneTapLoginRequest();
         request.setToken("googleIdToken");
 
+        doNothing().when(attemptService)
+                .attachGuestAttempts(any(), any());
+
         when(authenticationService.authenticateWithGoogleIdToken("googleIdToken"))
                 .thenReturn(mockUser);
         when(jwtService.generateToken(mockUser)).thenReturn("access123");
@@ -177,5 +188,63 @@ class AuthenticationControllerTest {
 
         verify(authenticationService).deleteAccount("test@example.com", "password123");
         assertEquals(204, response.getStatusCode().value());
+    }
+
+    @Test
+    void testAuthenticate_withGuestToken() {
+        LoginUserDto dto = new LoginUserDto();
+        dto.setEmail("guest@example.com");
+        dto.setPassword("12345");
+        dto.setRememberMe(false);
+        dto.setGuestToken("guest-token-123");
+
+        when(authenticationService.authenticate(dto)).thenReturn(mockUser);
+        when(jwtService.generateToken(mockUser)).thenReturn("access123");
+        when(jwtService.generateRefreshToken(mockUser)).thenReturn("refresh123");
+        when(jwtService.getExpirationTime()).thenReturn(3600L);
+
+        doNothing().when(attemptService)
+                .attachGuestAttempts("guest-token-123", mockUser);
+
+        ResponseEntity<LoginResponse> response =
+                authenticationController.authenticate(dto);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("access123", response.getBody().getToken());
+        assertEquals("refresh123", response.getBody().getRefreshToken());
+
+        verify(attemptService, times(1))
+                .attachGuestAttempts("guest-token-123", mockUser);
+
+        verify(authenticationService, times(1))
+                .authenticate(dto);
+    }
+
+    @Test
+    void testLogout_success() {
+        String token = "Bearer accessToken123";
+
+        doNothing().when(jwtService).logout("accessToken123");
+
+        ResponseEntity<?> response = authenticationController.logout(token);
+
+        verify(jwtService, times(1)).logout("accessToken123");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("Successfully logged out", response.getBody());
+    }
+
+    @Test
+    void testLogout_missingOrInvalidHeader() {
+        ResponseEntity<?> responseNull = authenticationController.logout(null);
+        assertEquals(HttpStatus.BAD_REQUEST, responseNull.getStatusCode());
+        assertEquals("Missing or invalid Authorization header", responseNull.getBody());
+
+        ResponseEntity<?> responseInvalid = authenticationController.logout("InvalidToken");
+        assertEquals(HttpStatus.BAD_REQUEST, responseInvalid.getStatusCode());
+        assertEquals("Missing or invalid Authorization header", responseInvalid.getBody());
+
+        verify(jwtService, never()).logout(anyString());
     }
 }

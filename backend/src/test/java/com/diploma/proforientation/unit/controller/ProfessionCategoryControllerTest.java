@@ -9,11 +9,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -33,19 +35,23 @@ class ProfessionCategoryControllerTest {
     }
 
     @Test
-    void testGetAll() {
+    void testGetAllLocalized() {
+        LocaleContextHolder.setLocale(Locale.ENGLISH);
+
         List<ProfessionCategoryDto> mockList = List.of(
                 new ProfessionCategoryDto(1, "IT", "Tech", "#000000"),
                 new ProfessionCategoryDto(2, "MED", "Medicine", "#FFFFFF")
         );
 
-        when(service.getAll()).thenReturn(mockList);
+        when(service.getAllLocalized("en")).thenReturn(mockList);
 
         List<ProfessionCategoryDto> result = controller.getAll();
 
         assertEquals(2, result.size());
         assertEquals("IT", result.getFirst().code());
-        verify(service).getAll();
+
+        verify(service, times(1)).getAllLocalized("en");
+        verify(service, never()).getAll();
     }
 
     @Test

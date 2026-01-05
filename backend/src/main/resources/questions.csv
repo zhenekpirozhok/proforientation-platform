@@ -1,0 +1,4 @@
+quiz_version_id,ord,qtype,text_default
+1,49,liker_scale_5,What is your favorite color?
+1,50,multi_choice,Select all programming languages you know.
+1,51,liker_scale_5,How often do you exercise per week?

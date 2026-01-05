@@ -9,13 +9,16 @@ import com.diploma.proforientation.dto.passwordreset.RequestResetPasswordDto;
 import com.diploma.proforientation.dto.passwordreset.ResetPasswordDto;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.dto.response.LoginResponse;
+import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.service.AuthenticationService;
 import com.diploma.proforientation.service.JwtService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,20 +36,12 @@ import java.security.Principal;
 @RequestMapping("/auth")
 @RestController
 @Validated
+@RequiredArgsConstructor
+@Tag(name = "Authentication", description = "Authentication operations")
 public class AuthenticationController {
     private final JwtService jwtService;
     private final AuthenticationService authenticationService;
-
-    /**
-     * Constructs an AuthenticationController with the required dependencies.
-     *
-     * @param jwtService the service responsible for JWT token operations
-     * @param authenticationService the service handling authentication logic
-     */
-    public AuthenticationController(JwtService jwtService, AuthenticationService authenticationService) {
-        this.jwtService = jwtService;
-        this.authenticationService = authenticationService;
-    }
+    private final AttemptService attemptService;
 
     /**
      * Registers a new user with the provided registration details.
@@ -91,6 +86,12 @@ public class AuthenticationController {
             content = @Content(schema = @Schema(implementation = ExceptionDto.class)))
     public ResponseEntity<LoginResponse> authenticate(@Valid @RequestBody LoginUserDto loginUserDto){
         User user = authenticationService.authenticate(loginUserDto);
+
+        attemptService.attachGuestAttempts(
+                loginUserDto.getGuestToken(),
+                user
+        );
+
         String accessToken = jwtService.generateToken(user);
         String refreshToken = loginUserDto.isRememberMe()
                 ? jwtService.generateLongLivedRefreshToken(user)
@@ -187,6 +188,11 @@ public class AuthenticationController {
         try {
             User user = authenticationService.authenticateWithGoogleIdToken(request.getToken());
 
+            attemptService.attachGuestAttempts(
+                    request.getGuestToken(),
+                    user
+            );
+
             String accessToken = jwtService.generateToken(user);
             String refreshToken = jwtService.generateRefreshToken(user);
 
@@ -210,5 +216,27 @@ public class AuthenticationController {
 
         authenticationService.deleteAccount(principal.getName(), password);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/logout")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(
+            summary = "Logout user",
+            description = "Invalidates the current JWT token by blacklisting it. " +
+                    "The user must be authenticated."
+    )
+    @ApiResponse(responseCode = "200", description = "Successfully logged out")
+    @ApiResponse(responseCode = "400", description = "Missing or invalid Authorization header")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    public ResponseEntity<?> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ") || authHeader.length() <= 7) {
+            return ResponseEntity.badRequest().body("Missing or invalid Authorization header");
+        }
+
+        String token = authHeader.substring(7);
+        jwtService.logout(token);
+        SecurityContextHolder.clearContext();
+
+        return ResponseEntity.ok("Successfully logged out");
     }
 }

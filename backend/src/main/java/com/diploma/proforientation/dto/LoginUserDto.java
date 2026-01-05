@@ -33,7 +33,7 @@ public class LoginUserDto {
     @Email(message = "Invalid email format")
     @Schema(
             description = "Email address used for user authentication",
-            examples = "user@example.com",
+            examples = "user1@example.com",
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String email;
@@ -67,9 +67,16 @@ public class LoginUserDto {
     )
     private boolean rememberMe;
 
+    @Schema(
+            description = "Guest token used to attach anonymous quiz attempts after login",
+            nullable = true
+    )
+    private String guestToken;
+
     public LoginUserDto(String email, String password) {
         this.email = email;
         this.password = password;
         this.rememberMe = false;
+        this.guestToken = null;
     }
 }

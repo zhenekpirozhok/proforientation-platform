@@ -7,8 +7,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/categories")
 @RequiredArgsConstructor
+@Tag(name = "Profession Category", description = "CRUD operations for profession categories")
 public class ProfessionCategoryController {
 
     private final ProfessionCategoryService service;
@@ -32,7 +35,8 @@ public class ProfessionCategoryController {
             content = @Content(schema = @Schema(implementation = ProfessionCategoryDto.class))
     )
     public List<ProfessionCategoryDto> getAll() {
-        return service.getAll();
+        String locale = LocaleContextHolder.getLocale().getLanguage();
+        return service.getAllLocalized(locale);
     }
 
     @PostMapping

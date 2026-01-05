@@ -21,4 +21,10 @@ public class GoogleOneTapLoginRequest {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     private String token;
+
+    @Schema(
+            description = "Guest token used to attach anonymous quiz attempts after login",
+            nullable = true
+    )
+    private String guestToken;
 }

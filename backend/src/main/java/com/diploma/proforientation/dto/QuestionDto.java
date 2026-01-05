@@ -26,12 +26,12 @@ public record QuestionDto(
         Integer ord,
         @Schema(
                 description = "Type of question defining how the user should answer",
-                examples = "single_choice",
+                examples = "SINGLE_CHOICE",
                 allowableValues = {
-                        "single_choice",
-                        "multi_choice",
-                        "liker_scale_5",
-                        "liker_scale_7"
+                        "SINGLE_CHOICE",
+                        "MULTI_CHOICE",
+                        "LIKER_SCALE_5",
+                        "LIKER_SCALE_7"
                 }
         )
         String qtype,

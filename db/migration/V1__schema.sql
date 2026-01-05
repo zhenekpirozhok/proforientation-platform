@@ -6,10 +6,9 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto; -- для gen_random_uuid()
 -- 2. Enum-типы (роль пользователя, статус и режим обработки квиза)
 
 CREATE TYPE user_role AS ENUM ('SUPERADMIN', 'ADMIN', 'USER');
-CREATE TYPE quiz_status AS ENUM ('draft', 'published', 'archived');
-CREATE TYPE quiz_processing_mode AS ENUM ('ml_riasec', 'llm');
-
-CREATE TYPE question_type AS ENUM ('single_choice', 'multi_choice', 'liker_scale_5', 'liker_scale_7');
+CREATE TYPE quiz_status AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
+CREATE TYPE quiz_processing_mode AS ENUM ('ML_RIASEC', 'LLM');
+CREATE TYPE question_type AS ENUM ('SINGLE_CHOICE', 'MULTI_CHOICE', 'LIKER_SCALE_5', 'LIKER_SCALE_7');
 
 ----------------------------------------------------------------------
 -- 3. Справочник категорий профессий
@@ -58,8 +57,8 @@ CREATE TABLE quizzes (
   id              SERIAL PRIMARY KEY,
   code            VARCHAR(64) NOT NULL UNIQUE, 
   title_default   VARCHAR(255) NOT NULL,
-  status          quiz_status NOT NULL DEFAULT 'draft',
-  processing_mode quiz_processing_mode NOT NULL DEFAULT 'ml_riasec',
+  status          quiz_status NOT NULL DEFAULT 'DRAFT',
+  processing_mode quiz_processing_mode NOT NULL DEFAULT 'ML_RIASEC',
   category_id     INT NOT NULL REFERENCES profession_categories(id),
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -83,7 +82,7 @@ CREATE TABLE questions (
   id              SERIAL PRIMARY KEY,
   quiz_version_id INT NOT NULL REFERENCES quiz_versions(id) ON DELETE CASCADE,
   ord             INT NOT NULL,                     
-  qtype           question_type NOT NULL DEFAULT 'single_choice',
+  qtype           question_type NOT NULL DEFAULT 'SINGLE_CHOICE',
   text_default    TEXT NOT NULL
 );
 

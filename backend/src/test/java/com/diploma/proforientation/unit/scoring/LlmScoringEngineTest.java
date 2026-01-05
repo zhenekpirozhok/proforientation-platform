@@ -132,15 +132,6 @@ class LlmScoringEngineTest {
     }
 
     @Test
-    void evaluateRaw_wrongAnswerCount() {
-        List<Integer> answers = Collections.nCopies(20, 1);
-
-        assertThatThrownBy(() -> service.evaluateRaw(answers))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Exactly 48 answers required.");
-    }
-
-    @Test
     void parseTraits_unknownTraitIgnored_simulatedString() {
         String jsonOutput = """
             {

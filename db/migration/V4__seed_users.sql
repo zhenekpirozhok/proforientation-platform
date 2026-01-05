@@ -23,7 +23,7 @@ VALUES
 
   -- USERS
   ('user1@example.com',
-   '$2b$12$eZqFSMfJ8WJKL5JLEH6rFOWszRsXxDDFwZkEPIjgQq0QGPm0v9Rhu',
+   '$2a$10$e8UVnqzL4PxyZTA1cCFnIuGT5HlVGxw4soWLob3z6xnxNrC6Th22m',
    'Test User One', 'USER', TRUE),
 
   ('user2@example.com',

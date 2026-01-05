@@ -3,8 +3,9 @@ package com.diploma.proforientation.controller;
 import com.diploma.proforientation.dto.AttemptResultDto;
 import com.diploma.proforientation.dto.AttemptSummaryDto;
 import com.diploma.proforientation.dto.ExceptionDto;
-import com.diploma.proforientation.dto.request.AddAnswerRequest;
-import com.diploma.proforientation.dto.request.AddAnswersBulkRequest;
+import com.diploma.proforientation.dto.request.add.AddAnswerRequest;
+import com.diploma.proforientation.dto.request.add.AddAnswersBulkRequest;
+import com.diploma.proforientation.dto.request.add.AddAnswersForQuestionRequest;
 import com.diploma.proforientation.dto.response.AttemptStartResponse;
 import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.util.AuthUtils;
@@ -12,6 +13,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +26,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/attempts")
 @RequiredArgsConstructor
+@Tag(name = "Attempt", description = "Track user's quiz progress")
 public class AttemptController {
 
     private final AttemptService attemptService;
@@ -188,5 +192,29 @@ public class AttemptController {
     ) {
         String locale = LocaleContextHolder.getLocale().getLanguage();
         return attemptService.adminSearchAttempts(userId, quizId, from, to, locale);
+    }
+
+    @PostMapping("/{attemptId}/answers/question")
+    @Operation(
+            summary = "Submit answers for one question (single or multi-select)",
+            description = """
+                Overwrites answers for one specific question inside an active attempt.
+                
+                - Useful for multi-select questions (checkboxes)
+                - Also works for single-choice (send one optionId)
+                - Does NOT delete answers for other questions
+                """
+    )
+    @ApiResponse(responseCode = "200", description = "Answers saved for the question")
+    @ApiResponse(
+            responseCode = "400",
+            description = "Invalid attempt state or invalid option/question mapping",
+            content = @Content(schema = @Schema(implementation = ExceptionDto.class))
+    )
+    public void addAnswersForQuestion(
+            @PathVariable Integer attemptId,
+            @Valid @RequestBody AddAnswersForQuestionRequest request
+    ) {
+        attemptService.addAnswersForQuestion(attemptId, request.questionId(), request.optionIds());
     }
 }

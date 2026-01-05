@@ -115,7 +115,7 @@ class AttemptServiceTest {
         attempt.setId(10);
 
         Quiz quiz = new Quiz();
-        quiz.setProcessingMode(QuizProcessingMode.ml_riasec);
+        quiz.setProcessingMode(QuizProcessingMode.ML_RIASEC);
 
         QuizVersion qv = new QuizVersion();
         qv.setId(2);
@@ -137,7 +137,7 @@ class AttemptServiceTest {
 
         // configure mocks
         when(attemptRepo.findById(10)).thenReturn(Optional.of(attempt));
-        when(scoringEngineFactory.getEngine(QuizProcessingMode.ml_riasec)).thenReturn(scoringEngine);
+        when(scoringEngineFactory.getEngine(QuizProcessingMode.ML_RIASEC)).thenReturn(scoringEngine);
         when(scoringEngine.evaluate(10)).thenReturn(result);
 
         Profession prof = new Profession();
@@ -349,4 +349,57 @@ class AttemptServiceTest {
         verify(answerRepo, times(1)).deleteByAttemptId(1);
         verify(answerRepo, never()).saveAll(any());
     }
+
+    @Test
+    void attachGuestAttempts_shouldAttachAttemptsToUser() {
+        String guestToken = "guest-token-123";
+        User user = new User();
+        user.setId(1);
+
+        Attempt attempt1 = new Attempt();
+        attempt1.setGuestToken(guestToken);
+
+        Attempt attempt2 = new Attempt();
+        attempt2.setGuestToken(guestToken);
+
+        when(attemptRepo.findAllByGuestToken(guestToken))
+                .thenReturn(List.of(attempt1, attempt2));
+
+        service.attachGuestAttempts(guestToken, user);
+
+        assertThat(attempt1.getUser()).isEqualTo(user);
+        assertThat(attempt1.getGuestToken()).isNull();
+
+        assertThat(attempt2.getUser()).isEqualTo(user);
+        assertThat(attempt2.getGuestToken()).isNull();
+
+        verify(attemptRepo, times(1)).findAllByGuestToken(guestToken);
+    }
+
+    @Test
+    void addAnswersForQuestion_overwritesOnlyThatQuestion() {
+        Attempt attempt = new Attempt();
+        attempt.setId(1);
+        attempt.setSubmittedAt(null);
+
+        Question q = new Question();
+        q.setId(10);
+
+        QuestionOption o1 = new QuestionOption();
+        o1.setId(100);
+        o1.setQuestion(q);
+
+        QuestionOption o2 = new QuestionOption();
+        o2.setId(101);
+        o2.setQuestion(q);
+
+        when(attemptRepo.findById(1)).thenReturn(Optional.of(attempt));
+        when(optionRepo.findAllById(List.of(100, 101))).thenReturn(List.of(o1, o2));
+
+        service.addAnswersForQuestion(1, 10, List.of(100, 101));
+
+        verify(answerRepo).deleteByAttemptIdAndQuestionId(1, 10);
+        verify(answerRepo).saveAll(anyList());
+    }
+
 }

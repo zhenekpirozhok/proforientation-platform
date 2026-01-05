@@ -32,7 +32,7 @@ class ScoringEngineFactoryTest {
     @Test
     void getEngine_shouldReturnMlEngine_forMlRiasec() {
         ScoringEngine engine =
-                factory.getEngine(QuizProcessingMode.ml_riasec);
+                factory.getEngine(QuizProcessingMode.ML_RIASEC);
 
         assertThat(engine).isSameAs(mlEngine);
     }
@@ -40,7 +40,7 @@ class ScoringEngineFactoryTest {
     @Test
     void getEngine_shouldReturnLlmEngine_forOtherModes() {
         ScoringEngine engine =
-                factory.getEngine(QuizProcessingMode.llm);
+                factory.getEngine(QuizProcessingMode.LLM);
 
         assertThat(engine).isSameAs(llmEngine);
     }

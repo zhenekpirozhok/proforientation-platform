@@ -2,11 +2,13 @@ package com.diploma.proforientation.integration.ml;
 
 import com.diploma.proforientation.config.MlClientConfig;
 import com.diploma.proforientation.dto.RecommendationDto;
+import com.diploma.proforientation.dto.ml.ScoringResult;
+import com.diploma.proforientation.model.Profession;
 import com.diploma.proforientation.repository.AnswerRepository;
 import com.diploma.proforientation.repository.ProfessionRepository;
-import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.diploma.proforientation.scoring.ml.TraitScoreCalculator;
 import com.diploma.proforientation.scoring.ml.impl.MlClientImpl;
+import com.diploma.proforientation.scoring.ml.impl.MlProfessionExplanationServiceImpl;
 import com.diploma.proforientation.scoring.ml.impl.MlResultMapper;
 import com.diploma.proforientation.scoring.ml.impl.MlScoringEngineImpl;
 import org.junit.jupiter.api.Test;
@@ -20,7 +22,9 @@ import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,10 +60,21 @@ class MlFullFlowIntegrationTest {
     @MockitoBean
     TraitScoreCalculator traitScoreCalculator;
 
-    @Test
-    void fullFlow_answersToRecommendations() {
+    @MockitoBean
+    MlProfessionExplanationServiceImpl explanationService;
 
-        // ML service stub
+    private Profession prof(int id, String code, String title, String desc) {
+        Profession p = new Profession();
+        p.setId(id);
+        p.setCode(code);
+        p.setTitleDefault(title);
+        p.setDescription(desc);
+        return p;
+    }
+
+    @Test
+    void fullFlow_answersToRecommendations_withExplanations() {
+
         stubFor(post("/predict")
                 .willReturn(okJson("""
                     {
@@ -70,7 +85,6 @@ class MlFullFlowIntegrationTest {
                     }
                 """)));
 
-        // DB stubs
         Mockito.when(answerRepository.findValuesByAttemptId(1))
                 .thenReturn(java.util.Collections.nCopies(48, 3));
 
@@ -80,21 +94,40 @@ class MlFullFlowIntegrationTest {
         Mockito.when(professionRepository.findIdByMlClassCode("DS"))
                 .thenReturn(java.util.Optional.of(20));
 
-        Mockito.when(traitScoreCalculator.calculateScores(1))
-                .thenReturn(java.util.Map.of());
+        Profession p10 = prof(10, "se_prof", "Software Engineer", "Builds software systems");
+        Profession p20 = prof(20, "ds_prof", "Data Scientist", "Analyzes data and builds models");
 
+        Mockito.when(professionRepository.findAllById(Mockito.anyCollection()))
+                .thenReturn(List.of(p10, p20));
+
+        Mockito.when(traitScoreCalculator.calculateScores(1))
+                .thenReturn(Map.of());
+
+        Mockito.when(explanationService.explainProfessions(List.of(p10, p20)))
+                .thenReturn(Map.of(
+                        10, "Software Engineers design and build applications.",
+                        20, "Data Scientists analyze data and build predictive models."
+                ));
 
         ScoringResult result = scoringEngine.evaluate(1);
-
 
         List<RecommendationDto> recs = result.recommendations();
 
         assertThat(recs).hasSize(2);
 
         assertThat(recs.get(0).professionId()).isEqualTo(10);
-        assertThat(recs.get(0).score()).isEqualTo("0.80");
+        assertThat(recs.get(0).score()).isEqualByComparingTo("0.80");
+        assertThat(recs.get(0).explanation()).isEqualTo("Software Engineers design and build applications.");
 
         assertThat(recs.get(1).professionId()).isEqualTo(20);
-        assertThat(recs.get(1).score()).isEqualTo("0.60");
+        assertThat(recs.get(1).score()).isEqualByComparingTo("0.60");
+        assertThat(recs.get(1).explanation()).isEqualTo("Data Scientists analyze data and build predictive models.");
+
+        Mockito.verify(answerRepository).findValuesByAttemptId(1);
+        Mockito.verify(professionRepository).findIdByMlClassCode("SE");
+        Mockito.verify(professionRepository).findIdByMlClassCode("DS");
+        Mockito.verify(professionRepository).findAllById(Mockito.anyCollection());
+        Mockito.verify(explanationService).explainProfessions(List.of(p10, p20));
+        Mockito.verify(traitScoreCalculator).calculateScores(1);
     }
 }

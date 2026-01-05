@@ -4,13 +4,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(
         description = "Lifecycle status of a quiz",
-        example = "published"
+        example = "PUBLISHED"
 )
 public enum QuizStatus {
     @Schema(description = "Quiz is in draft state and not visible to users")
-    draft,
+    DRAFT,
     @Schema(description = "Quiz is visible and available for users")
-    published,
+    PUBLISHED,
     @Schema(description = "Quiz is archived and no longer maintained")
-    archived
+    ARCHIVED
 }

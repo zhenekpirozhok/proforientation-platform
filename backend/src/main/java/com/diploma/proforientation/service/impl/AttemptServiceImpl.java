@@ -55,7 +55,9 @@ public class AttemptServiceImpl implements AttemptService {
 
         if (userId != null) {
             attempt.setUser(userRepo.getReferenceById(userId));
+            attempt.setGuestToken(null);
         } else {
+            attempt.setUser(null);
             attempt.setGuestToken(UUID.randomUUID().toString());
         }
 
@@ -196,6 +198,57 @@ public class AttemptServiceImpl implements AttemptService {
                 .stream()
                 .map(a -> toSummary(a, locale))
                 .toList();
+    }
+
+    @Transactional
+    public void attachGuestAttempts(String guestToken, User user) {
+        if (guestToken == null) return;
+
+        List<Attempt> attempts = attemptRepo.findAllByGuestToken(guestToken);
+
+        for (Attempt attempt : attempts) {
+            attempt.setUser(user);
+            attempt.setGuestToken(null);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void addAnswersForQuestion(Integer attemptId, Integer questionId, List<Integer> optionIds) {
+
+        Attempt attempt = attemptRepo.findById(attemptId)
+                .orElseThrow(() -> new IllegalArgumentException(ATTEMPT_NOT_FOUND));
+
+        if (attempt.getSubmittedAt() != null) {
+            throw new IllegalStateException(ATTEMPT_SUBMITTED);
+        }
+
+        answerRepo.deleteByAttemptIdAndQuestionId(attemptId, questionId);
+
+        List<QuestionOption> options = optionRepo.findAllById(optionIds);
+
+        if (options.size() != optionIds.size()) {
+            throw new IllegalArgumentException(OPTIONS_NOT_FOUND);
+        }
+
+        boolean allBelongToQuestion = options.stream()
+                .allMatch(o -> o.getQuestion() != null && Objects.equals(o.getQuestion().getId(), questionId));
+
+        if (!allBelongToQuestion) {
+            throw new IllegalArgumentException("Some options do not belong to questionId=" + questionId);
+        }
+
+        List<Answer> answers = options.stream()
+                .map(option -> {
+                    Answer a = new Answer();
+                    a.setAttempt(attempt);
+                    a.setOption(option);
+                    a.setCreatedAt(Instant.now());
+                    return a;
+                })
+                .toList();
+
+        answerRepo.saveAll(answers);
     }
 
     private List<TraitScoreDto> toTraitScoreDtos(

@@ -21,19 +21,19 @@ public record QuizDto(
         String title,
         @Schema(
                 description = "Current lifecycle status of the quiz",
-                examples = "published",
+                examples = "PUBLISHED",
                 allowableValues = {
-                        "published",
-                        "draft",
-                        "archived"
+                        "PUBLISHED",
+                        "DRAFT",
+                        "ARCHIVED"
                 })
         String status,
         @Schema(
                 description = "Processing mode used to evaluate quiz results",
-                examples = "ml_riasec",
+                examples = "ML_RIASEC",
                 allowableValues = {
-                        "ml_riasec",
-                        "llm"
+                        "ML_RIASEC",
+                        "LLM"
                 })
         String processingMode,
         @Schema(
