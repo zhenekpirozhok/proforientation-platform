@@ -5,12 +5,8 @@ import { SearchOutlined, FilterOutlined } from '@ant-design/icons';
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { ProfessionCategoryDto } from '@/shared/api/generated/model';
+import { FiltersValue } from '@/features/quizzes/model/types';
 
-type FiltersValue = {
-  q: string;
-  category: string;
-  duration: string;
-};
 
 type Props = {
   value: FiltersValue;
@@ -20,7 +16,7 @@ type Props = {
 };
 
 function hasActiveFilters(v: FiltersValue) {
-  return Boolean(v.q.trim()) || v.category !== 'all' || v.duration !== 'any';
+  return Boolean(v.search.trim()) || v.category !== 'all' || v.duration !== 'any';
 }
 
 export function QuizzesFilters({
@@ -63,8 +59,8 @@ export function QuizzesFilters({
         size="large"
         prefix={<SearchOutlined className="text-slate-400" />}
         placeholder={t('searchPlaceholder')}
-        value={value.q}
-        onChange={(e) => onChange({ ...value, q: e.target.value })}
+        value={value.search}
+        onChange={(e) => onChange({ ...value, search: e.target.value })}
         className="rounded-2xl"
         allowClear
       />
@@ -146,8 +142,8 @@ export function QuizzesFilters({
             size="large"
             prefix={<SearchOutlined className="text-slate-400" />}
             placeholder={t('searchPlaceholder')}
-            value={value.q}
-            onChange={(e) => onChange({ ...value, q: e.target.value })}
+            value={value.search}
+            onChange={(e) => onChange({ ...value, search: e.target.value })}
             className="rounded-2xl"
             allowClear
           />
