@@ -1778,8 +1778,7 @@ paths:
       tags:
       - profession-category-controller
       summary: Get all profession categories
-      description: Returns a list of all profession categories. Accessible only to
-        administrators.
+      description: Returns a list of all profession categories.
       operationId: getAll_3
       responses:
         "401":
@@ -1812,14 +1811,6 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ProfessionCategoryDto"
-        "403":
-          description: Forbidden
-          content:
-            '*/*':
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ProfessionCategoryDto"
     post:
       tags:
       - profession-category-controller
