@@ -29,7 +29,7 @@ export default function QuizDetailsPage() {
   if (!validId) notFound();
 
   const { data: categories = [], isLoading: categoriesLoading } =
-    useCategories();
+    useCategories(locale);
 
   const categoriesById = useMemo(() => {
     const map = new Map<number, ProfessionCategoryDto>();

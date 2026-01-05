@@ -10,9 +10,18 @@ function normalizeArray<T>(v: unknown): T[] {
   return [v as T];
 }
 
-export function useCategories() {
+export function useCategories(locale: string) {
   const q = useGetAll3({
-    query: { staleTime: 10 * 60_000, gcTime: 30 * 60_000 },
+    request: {
+      headers: {
+        'x-locale': locale,
+      },
+    },
+    query: {
+      queryKey: ['categories', locale],
+      staleTime: 10 * 60_000,
+      gcTime: 30 * 60_000,
+    },
   });
 
   const categories = useMemo(
@@ -20,8 +29,5 @@ export function useCategories() {
     [q.data],
   );
 
-  return {
-    ...q,
-    data: categories,
-  };
+  return { ...q, data: categories };
 }

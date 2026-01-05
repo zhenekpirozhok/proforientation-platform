@@ -39,6 +39,7 @@ export type QuizCatalogItem = (QuizDto & { id: number }) & {
 };
 
 export function useQuizzesCatalog(params: {
+  locale: string;
   page: number;
   size: number;
   filters: { q: string; category: string; duration: string };
@@ -49,7 +50,7 @@ export function useQuizzesCatalog(params: {
     query: { staleTime: 60_000, gcTime: 5 * 60_000 },
   });
 
-  const categoriesQ = useCategories();
+  const categoriesQ = useCategories(params.locale);
 
   const itemsAll = useMemo(() => {
     const quizzes = extractItems<QuizDto>(quizzesQ.data).filter(hasNumberId);
@@ -77,12 +78,9 @@ export function useQuizzesCatalog(params: {
 
   const filtered = useMemo(() => {
     const q = params.filters.q.trim().toLowerCase();
-
     let list = itemsAll;
 
-    if (q) {
-      list = list.filter((x) => (x.title ?? '').toLowerCase().includes(q));
-    }
+    if (q) list = list.filter((x) => (x.title ?? '').toLowerCase().includes(q));
 
     if (params.filters.category !== 'all') {
       list = list.filter(
@@ -101,8 +99,8 @@ export function useQuizzesCatalog(params: {
 
     isLoading:
       quizzesQ.isLoading || metricsQ.isLoading || categoriesQ.isLoading,
-    quizzesError: quizzesQ.error,
 
+    quizzesError: quizzesQ.error,
     metricsError: metricsQ.error,
     categoriesError: categoriesQ.error,
 
