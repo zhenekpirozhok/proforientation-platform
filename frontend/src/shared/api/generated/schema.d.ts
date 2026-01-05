@@ -499,7 +499,7 @@ export interface paths {
         };
         /**
          * Get all profession categories
-         * @description Returns a list of all profession categories. Accessible only to administrators.
+         * @description Returns a list of all profession categories.
          */
         get: operations["getAll_3"];
         put?: never;
@@ -4281,15 +4281,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ProfessionCategoryDto"][];
                 };
             };
             /** @description Not Found */

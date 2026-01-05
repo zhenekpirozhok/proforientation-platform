@@ -2892,7 +2892,7 @@ export const useTestLlm = <TError = ExceptionDto | ExceptionDto | ExceptionDto |
     }
     
 /**
- * Returns a list of all profession categories. Accessible only to administrators.
+ * Returns a list of all profession categories.
  * @summary Get all profession categories
  */
 export const getGetAll3Url = () => {
@@ -2925,7 +2925,7 @@ export const getGetAll3QueryKey = () => {
     }
 
     
-export const getGetAll3QueryOptions = <TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ProfessionCategoryDto[] | ExceptionDto | ExceptionDto>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll3>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetAll3QueryOptions = <TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll3>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -2944,10 +2944,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetAll3QueryResult = NonNullable<Awaited<ReturnType<typeof getAll3>>>
-export type GetAll3QueryError = ExceptionDto | ExceptionDto | ProfessionCategoryDto[] | ExceptionDto | ExceptionDto
+export type GetAll3QueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
 
 
-export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ProfessionCategoryDto[] | ExceptionDto | ExceptionDto>(
+export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll3>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAll3>>,
@@ -2957,7 +2957,7 @@ export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError =
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ProfessionCategoryDto[] | ExceptionDto | ExceptionDto>(
+export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll3>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAll3>>,
@@ -2967,7 +2967,7 @@ export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError =
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ProfessionCategoryDto[] | ExceptionDto | ExceptionDto>(
+export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll3>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -2975,7 +2975,7 @@ export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError =
  * @summary Get all profession categories
  */
 
-export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ProfessionCategoryDto[] | ExceptionDto | ExceptionDto>(
+export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll3>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
