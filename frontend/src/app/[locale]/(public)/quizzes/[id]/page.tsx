@@ -90,7 +90,7 @@ export default function QuizDetailsPage() {
 
         <div className="hidden justify-center sm:flex">
           <Link href={`/${locale}/quizzes/${quizId}/play`}>
-            <Button type="primary" size="large" className="rounded-2xl px-10">
+            <Button type="primary" size="large" className="rounded-2xl px-10" data-testid="start-quiz-button">
               {t('start')} →
             </Button>
           </Link>

@@ -169,14 +169,13 @@ export default function ResultPage() {
   const showSkeleton = catalogEnabled && catalogQ.isLoading;
 
   return (
-    <div className="cp-results">
-      <div id="pdf-hero">
-        <ResultsHero
-          title={t('Results.completeTitle')}
-          subtitleTitle={t('Results.heroTypeTitle', { type: heroType })}
-          subtitleText={t('Results.heroTypeSubtitle')}
-        />
-      </div>
+    <div className="cp-results" data-testid="results-page">
+      <ResultsHero
+        title={t('Results.completeTitle')}
+        subtitleTitle={t('Results.heroTypeTitle', { type: heroType })}
+        subtitleText={t('Results.heroTypeSubtitle')}
+      />
+
       <div className="cp-results-content">
         {catalogEnabled && catalogQ.isError ? (
           <Alert

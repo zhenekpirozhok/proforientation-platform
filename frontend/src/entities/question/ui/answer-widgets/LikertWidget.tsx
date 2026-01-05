@@ -226,6 +226,7 @@ export function LikertWidget({
 
                 return (
                   <button
+                    data-testid="answer-option"
                     key={opt.id}
                     type="button"
                     disabled={disabled}

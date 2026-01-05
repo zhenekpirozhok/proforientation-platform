@@ -1,0 +1,44 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - alert [ref=e11]
+  - generic [ref=e12]:
+    - banner [ref=e13]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - link "CareerPath CareerPath" [ref=e17] [cursor=pointer]:
+            - /url: /en
+            - img "CareerPath" [ref=e18]
+            - generic [ref=e19]: CareerPath
+          - navigation [ref=e20]:
+            - link "Quizzes" [ref=e21] [cursor=pointer]:
+              - /url: /en/quizzes
+        - generic [ref=e22]:
+          - generic "Language" [ref=e24] [cursor=pointer]:
+            - generic [ref=e25]:
+              - generic "English" [ref=e26]
+              - combobox "Language" [ref=e27]
+            - img "down" [ref=e29]:
+              - img [ref=e30]
+          - button "Toggle theme" [ref=e32] [cursor=pointer]:
+            - img "moon" [ref=e34]:
+              - img [ref=e35]
+          - button "Sign in" [ref=e38] [cursor=pointer]:
+            - generic [ref=e39]: Sign in
+    - main [ref=e40]:
+      - generic [ref=e42]: Failed to load quiz
+    - contentinfo [ref=e43]:
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - generic [ref=e47] [cursor=pointer]: Privacy
+          - generic [ref=e48] [cursor=pointer]: Terms
+        - generic [ref=e49]:
+          - link "EN" [ref=e50] [cursor=pointer]:
+            - /url: /en/quizzes/1
+          - generic [ref=e51]: "|"
+          - link "RU" [ref=e52] [cursor=pointer]:
+            - /url: /ru/quizzes/1
+```

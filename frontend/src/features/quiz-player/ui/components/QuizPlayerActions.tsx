@@ -41,6 +41,7 @@ export function QuizPlayerActions({
       <div className="flex w-full sm:w-auto">
         {!isLast ? (
           <Button
+            data-testid="next-button"
             type="primary"
             size="large"
             className={`w-full rounded-2xl ${ACTION_WIDTH}`}
@@ -51,6 +52,7 @@ export function QuizPlayerActions({
           </Button>
         ) : (
           <Button
+            data-testid="submit-button"
             type="primary"
             size="large"
             className={`w-full rounded-2xl ${ACTION_WIDTH}`}
