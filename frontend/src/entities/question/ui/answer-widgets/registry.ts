@@ -1,4 +1,4 @@
-import type { QuestionType } from '../../model/types';
+import type { QuestionDtoQtype } from '@/shared/api/generated/model';
 import type { AnswerWidgetProps } from './types';
 import type { ComponentType } from 'react';
 
@@ -7,11 +7,11 @@ import { MultiChoiceWidget } from './MultiChoiceWidget';
 import { LikertWidget } from './LikertWidget';
 
 export const answerWidgetByType: Record<
-  QuestionType,
-  ComponentType<AnswerWidgetProps>
+    QuestionDtoQtype,
+    ComponentType<AnswerWidgetProps>
 > = {
-  single_choice: SingleChoiceWidget,
-  multi_choice: MultiChoiceWidget,
-  liker_scale_5: LikertWidget,
-  liker_scale_7: LikertWidget,
+    SINGLE_CHOICE: SingleChoiceWidget,
+    MULTI_CHOICE: MultiChoiceWidget,
+    LIKER_SCALE_5: LikertWidget,
+    LIKER_SCALE_7: LikertWidget,
 };
