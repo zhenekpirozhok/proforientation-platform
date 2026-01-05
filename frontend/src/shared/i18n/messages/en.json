@@ -225,5 +225,40 @@
     "Errors": {
       "Generic": "Something went wrong"
     }
+  },
+  "ForgotPasswordPage": {
+    "Title": "Forgot password",
+    "Subtitle": "Enter your email and we’ll send you a reset link.",
+    "EmailLabel": "Email",
+    "Submit": "Send reset link",
+    "GenericError": "Request failed",
+    "BackToLoginPrefix": "Remembered your password?",
+    "BackToLoginLink": "Sign in",
+    "CheckEmailTitle": "Check your email",
+    "CheckEmailSubtitle": "If an account exists for this email, you’ll receive a reset link.",
+    "CheckEmailBody1": "We’ve sent a password reset link to your email (if it exists in our system).",
+    "CheckEmailBody2": "Check spam/junk if you don’t see it within a few minutes.",
+    "SendAgain": "Send again",
+    "GoToLogin": "Go to login"
+  },
+  "ResetPasswordPage": {
+    "Title": "Reset password",
+    "Subtitle": "Set a new password for your account.",
+    "PasswordLabel": "New password",
+    "ConfirmPasswordLabel": "Confirm new password",
+    "PasswordHint": "Password must be at least 6 characters and contain at least one number.",
+    "Submit": "Update password",
+    "GenericError": "Reset failed",
+    "BackToLoginPrefix": "Back to",
+    "BackToLoginLink": "Sign in",
+    "MissingTokenTitle": "Invalid link",
+    "MissingTokenSubtitle": "This reset link is missing a token or has expired.",
+    "MissingTokenAlert": "Please request a new password reset link.",
+    "RequestNewLink": "Request new link",
+    "GoToLogin": "Go to login",
+    "SuccessTitle": "Password updated",
+    "SuccessSubtitle": "You can now sign in with your new password.",
+    "SuccessBody": "Your password was successfully updated.",
+    "SignIn": "Sign in"
   }
 }

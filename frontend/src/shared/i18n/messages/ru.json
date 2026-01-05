@@ -225,5 +225,40 @@
     "Errors": {
       "Generic": "Что-то пошло не так"
     }
+  },
+  "ForgotPasswordPage": {
+    "Title": "Забыли пароль",
+    "Subtitle": "Введите email — мы отправим ссылку для сброса пароля.",
+    "EmailLabel": "Email",
+    "Submit": "Отправить ссылку",
+    "GenericError": "Не удалось отправить запрос",
+    "BackToLoginPrefix": "Вспомнили пароль?",
+    "BackToLoginLink": "Войти",
+    "CheckEmailTitle": "Проверьте почту",
+    "CheckEmailSubtitle": "Если аккаунт существует, вы получите письмо со ссылкой.",
+    "CheckEmailBody1": "Мы отправили ссылку для сброса пароля на вашу почту (если она есть в системе).",
+    "CheckEmailBody2": "Если письма нет несколько минут — проверьте спам.",
+    "SendAgain": "Отправить ещё раз",
+    "GoToLogin": "К входу"
+  },
+  "ResetPasswordPage": {
+    "Title": "Сброс пароля",
+    "Subtitle": "Задайте новый пароль для аккаунта.",
+    "PasswordLabel": "Новый пароль",
+    "ConfirmPasswordLabel": "Повторите пароль",
+    "PasswordHint": "Минимум 6 символов и хотя бы одна цифра.",
+    "Submit": "Обновить пароль",
+    "GenericError": "Не удалось сбросить пароль",
+    "BackToLoginPrefix": "Назад к",
+    "BackToLoginLink": "входу",
+    "MissingTokenTitle": "Некорректная ссылка",
+    "MissingTokenSubtitle": "В ссылке нет токена или она уже истекла.",
+    "MissingTokenAlert": "Запросите новую ссылку для сброса пароля.",
+    "RequestNewLink": "Запросить новую ссылку",
+    "GoToLogin": "К входу",
+    "SuccessTitle": "Пароль обновлён",
+    "SuccessSubtitle": "Теперь можно войти с новым паролем.",
+    "SuccessBody": "Пароль успешно изменён.",
+    "SignIn": "Войти"
   }
 }

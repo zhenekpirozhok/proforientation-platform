@@ -54,8 +54,7 @@ export function LoginForm() {
               }
 
               message.success(t('Success'));
-              if (attemptId) router.push(`/results/${attemptId}`);
-              else router.push('/my-career-profile');
+              router.push('/me/results');
             }}
           >
             <Form.Item name="email" label={<span className="text-slate-900 dark:text-slate-100">{t('EmailLabel')}</span>}>
