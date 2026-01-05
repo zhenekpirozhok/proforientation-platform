@@ -5,6 +5,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type StartAttemptParams = {
-quizVersionId: number;
-};
+export type Logout200 = { [key: string]: unknown };
