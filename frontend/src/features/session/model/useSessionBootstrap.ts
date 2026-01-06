@@ -4,12 +4,13 @@ import { useEffect } from 'react';
 import { useAuthenticatedUser } from '@/shared/api/generated/api';
 import { useSessionStore } from '@/entities/session/model/store';
 
-export function useSessionBootstrap() {
+export function useSessionBootstrap(enabled: boolean) {
     const setUser = useSessionStore((s) => s.setUser);
     const setStatus = useSessionStore((s) => s.setStatus);
 
     const q = useAuthenticatedUser({
         query: {
+            enabled,
             retry: false,
             refetchOnWindowFocus: false,
             staleTime: 30_000,
@@ -17,7 +18,12 @@ export function useSessionBootstrap() {
     });
 
     useEffect(() => {
-        if (q.isLoading) {
+        if (!enabled) {
+            setUser(null);
+            return;
+        }
+
+        if (q.isFetching) {
             setStatus('unknown');
             return;
         }
@@ -27,8 +33,11 @@ export function useSessionBootstrap() {
             return;
         }
 
-        setUser(null);
-    }, [q.isLoading, q.isSuccess, q.data, setUser, setStatus]);
+        if (q.isError) {
+            setUser(null);
+            return;
+        }
+    }, [enabled, q.isFetching, q.isSuccess, q.isError, q.data, setUser, setStatus]);
 
     return q;
 }

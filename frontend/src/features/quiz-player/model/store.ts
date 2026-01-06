@@ -62,6 +62,22 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
       ...initialState,
 
       startFresh: (quizId, quizVersionId) => {
+        const s = get();
+        const alreadyFresh =
+          s.quizId === quizId &&
+          s.quizVersionId === quizVersionId &&
+          s.attemptId == null &&
+          s.guestToken == null &&
+          s.status === 'starting' &&
+          s.error == null &&
+          s.currentIndex === 0 &&
+          s.totalQuestions == null &&
+          Object.keys(s.answersByQuestionId).length === 0 &&
+          s.result == null &&
+          s.bulkSentAttemptId == null;
+
+        if (alreadyFresh) return;
+
         set({
           quizId,
           quizVersionId,
@@ -90,6 +106,16 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
         if (canResume) {
           const nextIndex = clampIndex(s.currentIndex, s.totalQuestions);
+
+          const alreadyResumed =
+            s.quizId === quizId &&
+            s.quizVersionId === quizVersionId &&
+            s.status === 'in-progress' &&
+            s.error == null &&
+            s.currentIndex === nextIndex;
+
+          if (alreadyResumed) return;
+
           set({
             quizId,
             quizVersionId,
@@ -99,6 +125,21 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           });
           return;
         }
+
+        const alreadyReset =
+          s.quizId === quizId &&
+          s.quizVersionId === quizVersionId &&
+          s.attemptId == null &&
+          s.guestToken == null &&
+          s.status === 'starting' &&
+          s.error == null &&
+          s.currentIndex === 0 &&
+          s.totalQuestions == null &&
+          Object.keys(s.answersByQuestionId).length === 0 &&
+          s.result == null &&
+          s.bulkSentAttemptId == null;
+
+        if (alreadyReset) return;
 
         set({
           quizId,
@@ -117,7 +158,12 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
       setAttempt: (attemptId, guestToken) => {
         const s = get();
-        if (s.attemptId === attemptId && s.guestToken === guestToken && s.status === 'in-progress' && s.error == null) {
+        if (
+          s.attemptId === attemptId &&
+          s.guestToken === guestToken &&
+          s.status === 'in-progress' &&
+          s.error == null
+        ) {
           return;
         }
 
@@ -132,9 +178,16 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
         });
       },
 
-      setStatus: (status) => set({ status }),
+      setStatus: (status) => {
+        const s = get();
+        if (s.status === status) return;
+        set({ status });
+      },
 
       setError: (error) => {
+        const s = get();
+        if (s.error === error && (error == null || s.status === 'error')) return;
+
         if (error == null) {
           set({ error: null });
           return;
@@ -142,29 +195,58 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
         set({ error, status: 'error' });
       },
 
-      setIndex: (index) => set((s) => ({ currentIndex: clampIndex(index, s.totalQuestions) })),
+      setIndex: (index) =>
+        set((s) => {
+          const next = clampIndex(index, s.totalQuestions);
+          if (s.currentIndex === next) return {};
+          return { currentIndex: next };
+        }),
 
-      goNext: () => set((s) => ({ currentIndex: clampIndex(s.currentIndex + 1, s.totalQuestions) })),
+      goNext: () =>
+        set((s) => {
+          const next = clampIndex(s.currentIndex + 1, s.totalQuestions);
+          if (s.currentIndex === next) return {};
+          return { currentIndex: next };
+        }),
 
-      goPrev: () => set((s) => ({ currentIndex: clampIndex(s.currentIndex - 1, s.totalQuestions) })),
+      goPrev: () =>
+        set((s) => {
+          const next = clampIndex(s.currentIndex - 1, s.totalQuestions);
+          if (s.currentIndex === next) return {};
+          return { currentIndex: next };
+        }),
 
       setTotalQuestions: (total) =>
-        set((s) => ({
-          totalQuestions: total,
-          currentIndex: clampIndex(s.currentIndex, total),
-        })),
+        set((s) => {
+          const nextIndex = clampIndex(s.currentIndex, total);
+          const sameTotal = s.totalQuestions === total;
+          const sameIndex = s.currentIndex === nextIndex;
+          if (sameTotal && sameIndex) return {};
+          return { totalQuestions: total, currentIndex: nextIndex };
+        }),
 
       selectOption: (questionId, optionId) =>
-        set((s) => ({
-          answersByQuestionId: {
-            ...s.answersByQuestionId,
-            [questionId]: optionId,
-          },
-        })),
+        set((s) => {
+          if (s.answersByQuestionId[questionId] === optionId) return {};
+          return {
+            answersByQuestionId: {
+              ...s.answersByQuestionId,
+              [questionId]: optionId,
+            },
+          };
+        }),
 
-      setResult: (result) => set({ result }),
+      setResult: (result) => {
+        const s = get();
+        if (s.result === result) return;
+        set({ result });
+      },
 
-      setBulkSent: (attemptId) => set({ bulkSentAttemptId: attemptId }),
+      setBulkSent: (attemptId) => {
+        const s = get();
+        if (s.bulkSentAttemptId === attemptId) return;
+        set({ bulkSentAttemptId: attemptId });
+      },
 
       resetAll: () => {
         useGuestStore.getState().clearGuestToken();
@@ -188,8 +270,8 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        state.setStatus('idle');
-        state.setError(null);
+        if (state.status !== 'idle') state.setStatus('idle');
+        if (state.error != null) state.setError(null);
       },
     },
   ),
