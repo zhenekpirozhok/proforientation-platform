@@ -110,7 +110,11 @@
     "goToQuiz": "Перейти к тесту",
     "catalogError": "Каталог временно недоступен",
     "fallbackProfessionTitle": "Профессия №{id}",
-    "takeAnother": "Пройти ещё один тест"
+    "takeAnother": "Пройти ещё один тест",
+    "loginTitle": "Войдите, чтобы сохранить результат",
+    "loginBody": "Чтобы сохранить результат и вернуться к нему позже, нужно войти в аккаунт.",
+    "loginOkText": "Войти",
+    "loginCancelText": "Отмена"
   },
   "Header": {
     "brand": "CareerPath",

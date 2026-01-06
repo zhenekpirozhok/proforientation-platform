@@ -2,7 +2,7 @@
 
 import { ConfigProvider } from 'antd';
 import { useLayoutEffect, useMemo } from 'react';
-import { darkTheme, lightTheme } from '@/shared/config/theme';
+import { darkTheme, lightTheme } from '@/shared/assets/config/theme';
 import { useThemeStore } from '@/shared/model/theme/store';
 import { useEffectiveTheme } from '@/shared/model/theme/useEffectiveTheme';
 

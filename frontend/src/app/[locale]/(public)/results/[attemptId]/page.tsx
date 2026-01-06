@@ -1,6 +1,6 @@
-'use client';
+'use client'
 
-import '@/features/results/ui/results.css';
+import '@/features/results/ui/results.css'
 
 import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
@@ -11,26 +11,16 @@ import { Alert } from 'antd'
 import { useQuizPlayerStore } from '@/features/quiz-player/model/store'
 import type { AttemptResult } from '@/features/quiz-player/model/types'
 import { useQuizCatalogForResults } from '@/features/results/model/useQuizCatalogForResults'
+import { useSessionStore } from '@/entities/session/model/store'
 
-import { ResultsHero } from '@/features/results/ui/ResultHero';
-import { TraitsSliders } from '@/features/results/ui/TraitsSliders';
-import { CareerMatches } from '@/features/results/ui/CareerMatches';
-import { ResultsActions } from '@/features/results/ui/ResultsActions';
-import { ResultsSkeleton } from '@/features/results/ui/ResultsSkeleton';
+import { ResultsHero } from '@/features/results/ui/ResultHero'
+import { TraitsSliders } from '@/features/results/ui/TraitsSliders'
+import { CareerMatches } from '@/features/results/ui/CareerMatches'
+import { ResultsActions } from '@/features/results/ui/ResultsActions'
+import { ResultsSkeleton } from '@/features/results/ui/ResultsSkeleton'
 
-type TraitDto = {
-  id?: number
-  code?: string
-  name?: string
-  description?: string
-}
+import { TraitDto, ProfessionDto } from '@/shared/api/generated/model';
 
-type ProfessionDto = {
-  id?: number
-  title?: string
-  description?: string
-  categoryId?: number
-}
 
 function safeProfessionTitle(
   rec: { professionId: number; explanation?: string },
@@ -40,10 +30,8 @@ function safeProfessionTitle(
   const apiTitle = prof?.title?.trim()
   if (apiTitle) return apiTitle
 
-  const fromExplanation = (rec.explanation ?? '')
-    .replace('Predicted as: ', '')
-    .trim();
-  if (fromExplanation) return fromExplanation;
+  const fromExplanation = (rec.explanation ?? '').replace('Predicted as: ', '').trim()
+  if (fromExplanation) return fromExplanation
 
   return t('Results.fallbackProfessionTitle', { id: rec.professionId })
 }
@@ -53,23 +41,23 @@ function topTraitName(
   traitByCode: Map<string, TraitDto>,
   t: _Translator,
 ) {
-  const sorted = (result.traitScores ?? [])
-    .slice()
-    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-  const top = sorted[0];
-  if (!top) return t('Results.heroFallbackType');
-  return traitByCode.get(top.traitCode)?.name?.trim() || top.traitCode;
+  const sorted = (result.traitScores ?? []).slice().sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+  const top = sorted[0]
+  if (!top) return t('Results.heroFallbackType')
+  return traitByCode.get(top.traitCode)?.name?.trim() || top.traitCode
 }
 
 export default function ResultPage() {
-  const t = useTranslations();
-  const params = useParams<{ attemptId?: string }>();
-  const locale = useLocale();
-  const router = useRouter();
+  const t = useTranslations()
+  const router = useRouter()
+  const params = useParams<{ attemptId?: string }>()
 
   const quizId = useQuizPlayerStore((s) => s.quizId)
   const storedAttemptId = useQuizPlayerStore((s) => s.attemptId)
   const storedResult = useQuizPlayerStore((s) => s.result)
+
+  const status = useSessionStore((s) => s.status)
+  const isAuthenticated = status === 'auth'
 
   const attemptIdStr = params?.attemptId
   const attemptIdFromUrl = attemptIdStr ? Number(attemptIdStr) : NaN
@@ -77,9 +65,7 @@ export default function ResultPage() {
   const attemptIdValid = Number.isFinite(attemptIdFromUrl)
 
   const hasStoreResult =
-    attemptIdValid &&
-    storedAttemptId === attemptIdFromUrl &&
-    storedResult != null;
+    attemptIdValid && storedAttemptId === attemptIdFromUrl && storedResult != null
 
   const goToQuiz = () => {
     const safeQuizId = Number.isFinite(quizId) && quizId > 0 ? quizId : 1
@@ -91,16 +77,11 @@ export default function ResultPage() {
     goToQuiz()
   }
 
-  const catalogEnabled =
-    hasStoreResult && Number.isFinite(quizId) && quizId > 0;
+  const catalogEnabled = hasStoreResult && Number.isFinite(quizId) && quizId > 0
+  const catalogQ = useQuizCatalogForResults(catalogEnabled ? quizId : 0)
 
-  const catalogQuery = useQuery({
-    queryKey: ['results', 'catalog', quizId, locale],
-    enabled: catalogEnabled,
-    queryFn: () => fetchCatalog(locale, quizId),
-    staleTime: 60_000,
-    retry: 1,
-  });
+  const traits = (catalogQ.data?.traits ?? []) as TraitDto[]
+  const professions = (catalogQ.data?.professions ?? []) as ProfessionDto[]
 
   const traitByCode = useMemo(() => {
     const m = new Map<string, TraitDto>()
@@ -130,13 +111,18 @@ export default function ResultPage() {
   if (!attemptIdValid) {
     return (
       <div className="cp-results-content">
-        <Alert type="error" showIcon message={t('Results.invalidAttemptId')} />
+        <Alert type="error" showIcon title={t('Results.invalidAttemptId')} />
         <div style={{ marginTop: 16 }}>
           <ResultsActions
             primaryLabel={t('Results.goToQuiz')}
             secondaryLabel={t('Results.retake')}
             onPrimary={goToQuiz}
             onSecondary={retake}
+            isAuthenticated={isAuthenticated}
+            loginTitle={t('Results.loginTitle')}
+            loginBody={t('Results.loginBody')}
+            loginOkText={t('Results.loginOkText')}
+            loginCancelText={t('Results.loginCancelText')}
           />
         </div>
       </div>
@@ -153,6 +139,11 @@ export default function ResultPage() {
             secondaryLabel={t('Results.retake')}
             onPrimary={goToQuiz}
             onSecondary={retake}
+            isAuthenticated={isAuthenticated}
+                          loginTitle={t('Results.loginTitle')}
+              loginBody={t('Results.loginBody')}
+              loginOkText={t('Results.loginOkText')}
+              loginCancelText={t('Results.loginCancelText')}
           />
         </div>
       </div>
@@ -183,7 +174,12 @@ export default function ResultPage() {
       }
     }) ?? []
 
-  const heroType = topTraitName(result, traitByCode, t);
+  const heroType = topTraitName(result, traitByCode, t)
+
+  const primaryLabel = !isAuthenticated ? t('Results.save') : t('Results.goToQuiz')
+  const onPrimary = isAuthenticated ? () => {} : goToQuiz
+
+  const showSkeleton = catalogEnabled && catalogQ.isLoading
 
   return (
     <div className="cp-results">
@@ -198,16 +194,14 @@ export default function ResultPage() {
           <Alert
             type="warning"
             showIcon
-            message={
-              catalogQuery.error instanceof Error
-                ? catalogQuery.error.message
-                : t('Results.catalogError')
+            title={
+              catalogQ.error instanceof Error ? catalogQ.error.message : t('Results.catalogError')
             }
             style={{ marginBottom: 16 }}
           />
         ) : null}
 
-        {catalogEnabled && catalogQ.isLoading ? (
+        {showSkeleton ? (
           <ResultsSkeleton />
         ) : (
           <>
@@ -220,20 +214,16 @@ export default function ResultPage() {
               matchLabel={t('Results.match')}
             />
 
-            {!isAuthenticated ? (
-              <Alert
-                type="info"
-                showIcon
-                message={t('Results.loginToSaveTitle') ?? 'Sign in to save your results'}
-                style={{ marginBottom: 16 }}
-              />
-            ) : null}
-
             <ResultsActions
               primaryLabel={primaryLabel}
               secondaryLabel={t('Results.takeAnother')}
               onPrimary={onPrimary}
               onSecondary={retake}
+              isAuthenticated={isAuthenticated}
+              loginTitle={t('Results.loginTitle')}
+              loginBody={t('Results.loginBody')}
+              loginOkText={t('Results.loginOkText')}
+              loginCancelText={t('Results.loginCancelText')}
             />
           </>
         )}

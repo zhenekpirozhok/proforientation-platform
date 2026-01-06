@@ -110,7 +110,11 @@
     "goToQuiz": "Go to quiz",
     "catalogError": "Catalog is temporarily unavailable",
     "fallbackProfessionTitle": "Profession #{id}",
-    "takeAnother": "Take another quiz"
+    "takeAnother": "Take another quiz",
+    "loginTitle": "Sign in to save your results",
+    "loginBody": "You need to sign in to save your results and access them later.",
+    "loginOkText": "Sign in",
+    "loginCancelText": "Cancel"
   },
   "Header": {
     "brand": "CareerPath",
