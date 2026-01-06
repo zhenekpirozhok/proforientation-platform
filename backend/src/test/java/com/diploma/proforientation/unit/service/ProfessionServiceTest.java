@@ -7,6 +7,7 @@ import com.diploma.proforientation.model.ProfessionCategory;
 import com.diploma.proforientation.repository.ProfessionCategoryRepository;
 import com.diploma.proforientation.repository.ProfessionRepository;
 import com.diploma.proforientation.service.impl.ProfessionServiceImpl;
+import com.diploma.proforientation.util.LocaleProvider;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,9 @@ class ProfessionServiceTest {
 
     @Mock
     private TranslationResolver translationResolver;
+
+    @Mock
+    private LocaleProvider localeProvider;
 
     @InjectMocks
     private ProfessionServiceImpl service;
@@ -78,13 +82,14 @@ class ProfessionServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Profession> page = new PageImpl<>(List.of(profession), pageable, 1);
 
+        when(localeProvider.currentLanguage()).thenReturn("en");
         when(repo.findAll(pageable)).thenReturn(page);
         when(translationResolver.resolve(any(), any(), eq("title"), eq("en"), any()))
                 .thenReturn("Developer EN");
         when(translationResolver.resolve(any(), any(), eq("description"), eq("en"), any()))
                 .thenReturn("Writes code EN");
 
-        Page<ProfessionDto> result = service.getAllLocalized("en", pageable);
+        Page<ProfessionDto> result = service.getAllLocalized(pageable);
 
         ProfessionDto dto = result.getContent().getFirst();
         assertEquals("Developer EN", dto.title());
@@ -115,12 +120,13 @@ class ProfessionServiceTest {
     @Test
     void shouldReturnLocalizedProfessionById() {
         when(repo.findById(1)).thenReturn(Optional.of(profession));
+        when(localeProvider.currentLanguage()).thenReturn("en");
         when(translationResolver.resolve(any(), any(), eq("title"), eq("en"), any()))
                 .thenReturn("Developer EN");
         when(translationResolver.resolve(any(), any(), eq("description"), eq("en"), any()))
                 .thenReturn("Writes code EN");
 
-        ProfessionDto dto = service.getByIdLocalized(1, "en");
+        ProfessionDto dto = service.getByIdLocalized(1);
 
         assertEquals("Developer EN", dto.title());
         assertEquals("Writes code EN", dto.description());

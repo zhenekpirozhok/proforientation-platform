@@ -11,6 +11,7 @@ import com.diploma.proforientation.repository.ProfessionCategoryRepository;
 import com.diploma.proforientation.repository.QuizRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.impl.QuizServiceImpl;
+import com.diploma.proforientation.util.LocaleProvider;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +40,8 @@ class QuizServiceTest {
     private UserRepository userRepo;
     @Mock
     private TranslationResolver translationResolver;
+    @Mock
+    private LocaleProvider localeProvider;
 
     @InjectMocks
     private QuizServiceImpl service;
@@ -115,7 +118,7 @@ class QuizServiceTest {
         quiz.setAuthor(author);
 
         when(quizRepo.findByCode("Q20")).thenReturn(Optional.of(quiz));
-
+        when(localeProvider.currentLanguage()).thenReturn("en");
         when(translationResolver.resolve(
                 anyString(),
                 anyInt(),
@@ -124,7 +127,7 @@ class QuizServiceTest {
                 anyString()
         )).thenReturn("Quiz Code Test");
 
-        QuizDto result = service.getByCodeLocalized("Q20", "en");
+        QuizDto result = service.getByCodeLocalized("Q20");
 
         assertThat(result.id()).isEqualTo(20);
         assertThat(result.title()).isEqualTo("Quiz Code Test");
@@ -133,9 +136,10 @@ class QuizServiceTest {
 
     @Test
     void getByCodeLocalized_shouldThrowWhenNotFound() {
+        when(localeProvider.currentLanguage()).thenReturn("en");
         when(quizRepo.findByCode("NOT_EXIST")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.getByCodeLocalized("NOT_EXIST", "en"))
+        assertThatThrownBy(() -> service.getByCodeLocalized("NOT_EXIST"))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
@@ -236,11 +240,11 @@ class QuizServiceTest {
         Page<Quiz> page = new PageImpl<>(List.of(quiz), pageable, 1);
 
         when(quizRepo.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
-
+        when(localeProvider.currentLanguage()).thenReturn("en");
         when(translationResolver.resolve(anyString(), anyInt(), anyString(), anyString(), anyString()))
                 .thenAnswer(invocation -> invocation.getArgument(4)); // return default title/description
 
-        Page<QuizDto> result = service.searchAndSort("Test", "id", "en", pageable);
+        Page<QuizDto> result = service.searchAndSort("Test", "id", pageable);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().title()).isEqualTo("Test Quiz");
@@ -275,10 +279,11 @@ class QuizServiceTest {
         Page<Quiz> page = new PageImpl<>(List.of(quiz1, quiz2), pageable, 2);
 
         when(quizRepo.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+        when(localeProvider.currentLanguage()).thenReturn("en");
         when(translationResolver.resolve(anyString(), anyInt(), anyString(), anyString(), anyString()))
                 .thenAnswer(invocation -> invocation.getArgument(4));
 
-        Page<QuizDto> result = service.searchAndSort(null, "id", "en", pageable);
+        Page<QuizDto> result = service.searchAndSort(null, "id", pageable);
 
         assertThat(result.getTotalElements()).isEqualTo(2);
         assertThat(result.getContent().get(0).title()).isEqualTo("Quiz One");

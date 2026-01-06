@@ -51,14 +51,14 @@ class TraitControllerTest {
                 new TraitDto(1, "openness", "Открытость", "Описание", null)
         );
 
-        when(service.getAllLocalized("ru")).thenReturn(list);
+        when(service.getAllLocalized()).thenReturn(list);
 
         List<TraitDto> result = controller.getAll();
 
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().name()).isEqualTo("Открытость");
 
-        verify(service).getAllLocalized("ru");
+        verify(service).getAllLocalized();
     }
 
     @Test
@@ -66,14 +66,14 @@ class TraitControllerTest {
         TraitDto dto =
                 new TraitDto(5, "logic", "Логика", "Описание", "emotion");
 
-        when(service.getByIdLocalized(5, "ru")).thenReturn(dto);
+        when(service.getByIdLocalized(5)).thenReturn(dto);
 
         TraitDto result = controller.getById(5);
 
         assertThat(result.id()).isEqualTo(5);
         assertThat(result.name()).isEqualTo("Логика");
 
-        verify(service).getByIdLocalized(5, "ru");
+        verify(service).getByIdLocalized(5);
     }
 
     @Test

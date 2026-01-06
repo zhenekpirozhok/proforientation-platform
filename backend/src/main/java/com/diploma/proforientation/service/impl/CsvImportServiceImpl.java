@@ -267,7 +267,6 @@ public class CsvImportServiceImpl implements CsvImportService {
             return null;
         }
 
-        // Validate supported entity types
         if (!Set.of(ENTITY_TYPE_QUIZ, ENTITY_TYPE_QUESTION, ENTITY_TYPE_OPTION, ENTITY_TYPE_PROF)
                 .contains(entityType)) {
             errors.add(

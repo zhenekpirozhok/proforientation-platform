@@ -8,11 +8,12 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import static com.diploma.proforientation.util.Constants.EMPTY_STRING;
+
 @Service
 public class OAuth2UserService extends DefaultOAuth2UserService {
     private static final String EMAIL_ATTRIBUTE = "email";
     private static final String NAME_ATTRIBUTE = "name";
-    private static final String EMPTY_ATTRIBUTE = "";
 
     private final UserRepository userRepository;
 
@@ -31,7 +32,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                     User newUser = new User();
                     newUser.setEmail(email);
                     newUser.setDisplayName(user.getAttribute(NAME_ATTRIBUTE));
-                    newUser.setPasswordHash(EMPTY_ATTRIBUTE);
+                    newUser.setPasswordHash(EMPTY_STRING);
                     return userRepository.save(newUser);
                 });
 

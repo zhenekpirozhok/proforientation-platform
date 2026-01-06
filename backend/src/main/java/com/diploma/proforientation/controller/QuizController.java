@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -64,9 +63,8 @@ public class QuizController {
             @Parameter(description = "Sort by field", schema = @Schema(defaultValue = "id"))
             @RequestParam(required = false, defaultValue = "id") String sort
     ) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
-        return quizService.getAllLocalized(locale, pageable);
+        return quizService.getAllLocalized(pageable);
     }
 
     @GetMapping("/{id}")
@@ -90,8 +88,7 @@ public class QuizController {
             )
     )
     public QuizDto getById(@PathVariable Integer id) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
-        return quizService.getByIdLocalized(id, locale);
+        return quizService.getByIdLocalized(id);
     }
 
     @GetMapping("/code/{code}")
@@ -115,8 +112,7 @@ public class QuizController {
             )
     )
     public QuizDto getByCode(@PathVariable String code) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
-        return quizService.getByCodeLocalized(code, locale);
+        return quizService.getByCodeLocalized(code);
     }
 
     @PostMapping
@@ -326,8 +322,7 @@ public class QuizController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
         Pageable pageable = PageRequest.of(page - 1, size);
-        return quizService.searchAndSort(search, sortBy, locale, pageable);
+        return quizService.searchAndSort(search, sortBy, pageable);
     }
 }

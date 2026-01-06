@@ -1,28 +1,49 @@
 package com.diploma.proforientation.service.impl;
 
 import com.diploma.proforientation.service.EmailService;
+import com.diploma.proforientation.util.ResetPasswordLinkBuilder;
+import lombok.AllArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.util.Locale;
+
+import static com.diploma.proforientation.util.Constants.DEFAULT_LOCALE;
+
 @Service
+@AllArgsConstructor
 public class EmailServiceImpl implements EmailService {
-    public static final String RESET_LINK = "http://localhost:5173/reset-password?token=";
-    private static final String EMAIL_SUBJECT= "Password Reset Request";
-    private static final String EMAIL_MESSAGE = "Click the link to reset your password:\n";
 
     private final JavaMailSender mailSender;
+    private final ResetPasswordLinkBuilder resetPasswordLinkBuilder;
+    private final MessageSource messageSource;
 
-    public EmailServiceImpl(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
+    public void sendResetPasswordEmail(String toEmail, String token, String locale) {
 
-    public void sendResetPasswordEmail(String toEmail, String token) {
-        String resetLink = RESET_LINK + token;
+        Locale loc = Locale.forLanguageTag(
+                locale != null ? locale : DEFAULT_LOCALE
+        );
+
+        String link = resetPasswordLinkBuilder.build(loc.getLanguage(), token);
+
+        String subject = messageSource.getMessage(
+                "email.reset.subject",
+                null,
+                loc
+        );
+
+        String body = messageSource.getMessage(
+                "email.reset.body",
+                new Object[]{link},
+                loc
+        );
+
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
-        message.setSubject(EMAIL_SUBJECT);
-        message.setText(EMAIL_MESSAGE + resetLink);
+        message.setSubject(subject);
+        message.setText(body + link);
 
         mailSender.send(message);
     }

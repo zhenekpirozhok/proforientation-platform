@@ -12,6 +12,7 @@ import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.scoring.ScoringEngine;
 import com.diploma.proforientation.scoring.ScoringEngineFactory;
 import com.diploma.proforientation.dto.ml.ScoringResult;
+import com.diploma.proforientation.util.LocaleProvider;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +43,7 @@ public class AttemptServiceImpl implements AttemptService {
 
     private final ScoringEngineFactory scoringEngineFactory;
     private final TranslationResolver translationResolver;
+    private final LocaleProvider localeProvider;
 
     @Override
     public AttemptStartResponse startAttempt(Integer quizVersionId, Integer userId) {
@@ -84,33 +86,12 @@ public class AttemptServiceImpl implements AttemptService {
     @Transactional
     public void addAnswersBulk(Integer attemptId, List<Integer> optionIds) {
 
-        Attempt attempt = attemptRepo.findById(attemptId)
-                .orElseThrow(() -> new IllegalArgumentException(ATTEMPT_NOT_FOUND));
+        Attempt attempt = loadActiveAttempt(attemptId);
 
-        if (attempt.getSubmittedAt() != null) {
-            throw new IllegalStateException(ATTEMPT_SUBMITTED);
-        }
-
-        // Overwrite previous answers
         answerRepo.deleteByAttemptId(attemptId);
 
-        List<QuestionOption> options = optionRepo.findAllById(optionIds);
-
-        if (options.size() != optionIds.size()) {
-            throw new IllegalArgumentException(OPTIONS_NOT_FOUND);
-        }
-
-        List<Answer> answers = options.stream()
-                .map(option -> {
-                    Answer a = new Answer();
-                    a.setAttempt(attempt);
-                    a.setOption(option);
-                    a.setCreatedAt(Instant.now());
-                    return a;
-                })
-                .toList();
-
-        answerRepo.saveAll(answers);
+        List<QuestionOption> options = loadOptionsStrict(optionIds);
+        answerRepo.saveAll(buildAnswers(attempt, options));
     }
 
     @Override
@@ -129,7 +110,6 @@ public class AttemptServiceImpl implements AttemptService {
 
         ScoringResult result = engine.evaluate(attemptId);
 
-        // remove old results
         traitScoreRepo.deleteByAttempt_Id(attemptId);
         recRepo.deleteByAttempt_Id(attemptId);
 
@@ -143,8 +123,7 @@ public class AttemptServiceImpl implements AttemptService {
     }
 
     @Override
-    public List<AttemptSummaryDto> getMyAttempts(Integer userId, String guestToken, String locale) {
-
+    public List<AttemptSummaryDto> getMyAttempts(Integer userId, String guestToken) {
         List<Attempt> attempts;
 
         if (userId != null) {
@@ -154,7 +133,7 @@ public class AttemptServiceImpl implements AttemptService {
         }
 
         return attempts.stream()
-                .map(a -> toSummary(a, locale))
+                .map(this::toSummary)
                 .toList();
     }
 
@@ -191,12 +170,11 @@ public class AttemptServiceImpl implements AttemptService {
             Integer userId,
             Integer quizId,
             Instant from,
-            Instant to,
-            String locale
+            Instant to
     ) {
         return attemptRepo.searchAdmin(userId, quizId, from, to)
                 .stream()
-                .map(a -> toSummary(a, locale))
+                .map(this::toSummary)
                 .toList();
     }
 
@@ -216,39 +194,21 @@ public class AttemptServiceImpl implements AttemptService {
     @Transactional
     public void addAnswersForQuestion(Integer attemptId, Integer questionId, List<Integer> optionIds) {
 
-        Attempt attempt = attemptRepo.findById(attemptId)
-                .orElseThrow(() -> new IllegalArgumentException(ATTEMPT_NOT_FOUND));
-
-        if (attempt.getSubmittedAt() != null) {
-            throw new IllegalStateException(ATTEMPT_SUBMITTED);
-        }
+        Attempt attempt = loadActiveAttempt(attemptId);
 
         answerRepo.deleteByAttemptIdAndQuestionId(attemptId, questionId);
 
-        List<QuestionOption> options = optionRepo.findAllById(optionIds);
-
-        if (options.size() != optionIds.size()) {
-            throw new IllegalArgumentException(OPTIONS_NOT_FOUND);
-        }
+        List<QuestionOption> options = loadOptionsStrict(optionIds);
 
         boolean allBelongToQuestion = options.stream()
-                .allMatch(o -> o.getQuestion() != null && Objects.equals(o.getQuestion().getId(), questionId));
+                .allMatch(o -> o.getQuestion() != null
+                        && Objects.equals(o.getQuestion().getId(), questionId));
 
         if (!allBelongToQuestion) {
-            throw new IllegalArgumentException("Some options do not belong to questionId=" + questionId);
+            throw new IllegalArgumentException(UNKNOWN_OPTIONS + questionId);
         }
 
-        List<Answer> answers = options.stream()
-                .map(option -> {
-                    Answer a = new Answer();
-                    a.setAttempt(attempt);
-                    a.setOption(option);
-                    a.setCreatedAt(Instant.now());
-                    return a;
-                })
-                .toList();
-
-        answerRepo.saveAll(answers);
+        answerRepo.saveAll(buildAnswers(attempt, options));
     }
 
     private List<TraitScoreDto> toTraitScoreDtos(
@@ -290,7 +250,40 @@ public class AttemptServiceImpl implements AttemptService {
         }
     }
 
-    private AttemptSummaryDto toSummary(Attempt a, String locale) {
+    private List<Answer> buildAnswers(Attempt attempt, List<QuestionOption> options) {
+        Instant now = Instant.now();
+        return options.stream()
+                .map(option -> {
+                    Answer a = new Answer();
+                    a.setAttempt(attempt);
+                    a.setOption(option);
+                    a.setCreatedAt(now);
+                    return a;
+                })
+                .toList();
+    }
+
+    private Attempt loadActiveAttempt(Integer attemptId) {
+        Attempt attempt = attemptRepo.findById(attemptId)
+                .orElseThrow(() -> new IllegalArgumentException(ATTEMPT_NOT_FOUND));
+
+        if (attempt.getSubmittedAt() != null) {
+            throw new IllegalStateException(ATTEMPT_SUBMITTED);
+        }
+        return attempt;
+    }
+
+    private List<QuestionOption> loadOptionsStrict(List<Integer> optionIds) {
+        List<QuestionOption> options = optionRepo.findAllById(optionIds);
+
+        if (options.size() != optionIds.size()) {
+            throw new IllegalArgumentException(OPTIONS_NOT_FOUND);
+        }
+        return options;
+    }
+
+    private AttemptSummaryDto toSummary(Attempt a) {
+        String locale = localeProvider.currentLanguage();
         Quiz quiz = a.getQuizVersion().getQuiz();
 
         String title = translationResolver.resolve(

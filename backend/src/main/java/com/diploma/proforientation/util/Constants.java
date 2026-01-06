@@ -2,6 +2,8 @@ package com.diploma.proforientation.util;
 
 public final class Constants {
 
+    public static final String DEFAULT_LOCALE = "en";
+
     public static final String PROFESSION_NOT_FOUND = "Profession not found";
     public static final String CATEGORY_NOT_FOUND = "Category not found";
     public static final String QUIZ_NOT_FOUND = "Quiz not found";
@@ -36,6 +38,7 @@ public final class Constants {
     public static final String FAILED_GOOGLE_TOKEN = "Failed to verify Google token";
     public static final String INVALID_GOOGLE_ID = "Invalid Google ID token";
     public static final String UNKNOWN_USER = "Unknown user";
+    public static final String UNKNOWN_OPTIONS = "Some options do not belong to questionId=";
 
     public static final String INVALID_JSON_FROM_LLM = "LLM returned invalid JSON: ";
     public static final String INVALID_PROMPT = "Failed to build prompt JSON";

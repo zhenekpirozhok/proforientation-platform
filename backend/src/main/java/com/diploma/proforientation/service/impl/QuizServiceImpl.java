@@ -11,6 +11,7 @@ import com.diploma.proforientation.repository.ProfessionCategoryRepository;
 import com.diploma.proforientation.repository.QuizRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.QuizService;
+import com.diploma.proforientation.util.LocaleProvider;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,7 @@ public class QuizServiceImpl implements QuizService {
     private final ProfessionCategoryRepository categoryRepo;
     private final UserRepository userRepo;
     private final TranslationResolver translationResolver;
+    private final LocaleProvider localeProvider;
 
     @Transactional(readOnly = true)
     @Override
@@ -47,7 +49,8 @@ public class QuizServiceImpl implements QuizService {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<QuizDto> getAllLocalized(String locale, Pageable pageable) {
+    public Page<QuizDto> getAllLocalized(Pageable pageable) {
+        String locale = localeProvider.currentLanguage();
         return quizRepo.findAll(pageable)
                 .map(q -> toDtoLocalized(q, locale));
     }
@@ -59,13 +62,15 @@ public class QuizServiceImpl implements QuizService {
                 .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
     }
 
-    public QuizDto getByIdLocalized(Integer id, String locale) {
+    public QuizDto getByIdLocalized(Integer id) {
+        String locale = localeProvider.currentLanguage();
         Quiz quiz = quizRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
         return toDtoLocalized(quiz, locale);
     }
 
-    public QuizDto getByCodeLocalized(String code, String locale) {
+    public QuizDto getByCodeLocalized(String code) {
+        String locale = localeProvider.currentLanguage();
         Quiz quiz = quizRepo.findByCode(code)
                 .orElseThrow(() -> new EntityNotFoundException("Quiz not found with code: " + code));
         return toDtoLocalized(quiz, locale);
@@ -134,9 +139,9 @@ public class QuizServiceImpl implements QuizService {
     public Page<QuizDto> searchAndSort(
             String search,      // search by title/code/description
             String sortBy,      // "category", "createdAt", "updatedAt", default "id"
-            String locale,
             Pageable pageable
     ) {
+        String locale = localeProvider.currentLanguage();
         Specification<Quiz> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
