@@ -1,5 +1,6 @@
 package com.diploma.proforientation.unit.service;
 
+import com.diploma.proforientation.exception.CsvExportException;
 import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.model.enumeration.QuestionType;
 import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,7 +42,7 @@ class ExportServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ExportServiceImpl(
+        ExportServiceImpl impl = new ExportServiceImpl(
                 quizRepo,
                 quizVersionRepo,
                 questionRepo,
@@ -49,6 +51,8 @@ class ExportServiceTest {
                 attemptRepo,
                 translationRepo
         );
+        impl.initExporters();
+        service = impl;
     }
 
     @Test
@@ -161,15 +165,10 @@ class ExportServiceTest {
 
     @Test
     void exportUnsupportedEntity_throwsException() {
-        try {
-            service.exportEntityToCsv("unknown");
-        } catch (Exception e) {
-            assertThat(e)
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Unsupported export entity");
-        }
+        assertThatThrownBy(() -> service.exportEntityToCsv("unknown"))
+                .isInstanceOf(CsvExportException.class)
+                .hasMessageContaining("Unsupported export entity");
     }
-
 
     @Test
     void exportAllToExcel_createsAllSheets() throws Exception {

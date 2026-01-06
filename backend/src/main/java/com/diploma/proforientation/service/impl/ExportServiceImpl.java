@@ -40,7 +40,7 @@ public class ExportServiceImpl implements ExportService {
     private final Map<String, Consumer<CSVWriter>> csvExporters = new LinkedHashMap<>();
 
     @PostConstruct
-    void initExporters() {
+    public void initExporters() {
         csvExporters.put(ENTITY_QUIZZES, this::writeQuizzesCsv);
         csvExporters.put(ENTITY_QUIZ_VERSIONS, this::writeQuizVersionsCsv);
         csvExporters.put(ENTITY_QUESTIONS, this::writeQuestionsCsv);

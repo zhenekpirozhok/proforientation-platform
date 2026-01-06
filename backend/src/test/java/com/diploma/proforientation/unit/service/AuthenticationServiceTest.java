@@ -3,6 +3,8 @@ package com.diploma.proforientation.unit.service;
 import com.diploma.proforientation.dto.LoginUserDto;
 import com.diploma.proforientation.dto.RegisterUserDto;
 import com.diploma.proforientation.exception.EmailNotFoundException;
+import com.diploma.proforientation.exception.GoogleTokenVerificationFailedException;
+import com.diploma.proforientation.exception.InvalidGoogleIdTokenException;
 import com.diploma.proforientation.exception.UserNotFoundForPasswordResetException;
 import com.diploma.proforientation.model.PasswordResetToken;
 import com.diploma.proforientation.model.User;
@@ -397,30 +399,20 @@ class AuthenticationServiceTest {
 
     @Test
     void authenticateWithGoogleIdToken_shouldThrowWhenTokenIsNull() throws Exception {
-        GoogleIdTokenVerifier verifierMock = mock(GoogleIdTokenVerifier.class);
-        when(verifierMock.verify("invalid")).thenReturn(null);
-
-        var field = AuthenticationServiceImpl.class.getDeclaredField("googleIdTokenVerifier");
-        field.setAccessible(true);
-        field.set(authService, verifierMock);
+        when(googleIdTokenVerifier.verify("invalid")).thenReturn(null);
 
         assertThatThrownBy(() -> authService.authenticateWithGoogleIdToken("invalid"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Failed to verify Google token");
+                .isInstanceOf(InvalidGoogleIdTokenException.class)
+                .hasMessageContaining("Invalid Google ID token");
     }
 
     @Test
     void authenticateWithGoogleIdToken_shouldThrowWhenVerifierFails() throws Exception {
-        GoogleIdTokenVerifier verifierMock = mock(GoogleIdTokenVerifier.class);
-        when(verifierMock.verify(anyString()))
+        when(googleIdTokenVerifier.verify(anyString()))
                 .thenThrow(new RuntimeException("Verifier failure"));
 
-        var field = AuthenticationServiceImpl.class.getDeclaredField("googleIdTokenVerifier");
-        field.setAccessible(true);
-        field.set(authService, verifierMock);
-
         assertThatThrownBy(() -> authService.authenticateWithGoogleIdToken("token"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Failed to verify Google token");
+                .isInstanceOf(GoogleTokenVerificationFailedException.class)
+                .hasMessageContaining("Failed to verify Google ID token");
     }
 }

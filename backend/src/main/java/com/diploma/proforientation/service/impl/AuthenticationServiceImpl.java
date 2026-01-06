@@ -124,6 +124,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         newUser.setPasswordHash(EMPTY_STRING); // no password for Google users
                         return userRepository.save(newUser);
                     });
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
             throw new GoogleTokenVerificationFailedException(e);
         }
