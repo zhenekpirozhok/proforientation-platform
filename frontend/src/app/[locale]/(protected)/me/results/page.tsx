@@ -7,8 +7,16 @@ import { Alert, Card, Input, Select, Skeleton, Empty, Button, Tag, message } fro
 
 import { useMyAttemptsQuery } from '@/entities/attempt/api/useMyAttemptsQuery';
 import { useAttemptViewQuery } from '@/entities/attempt/api/useAttemptViewQuery';
-import { TraitsSliders } from '@/features/results/ui/TraitsSliders';
 import { HttpError } from '@/shared/api/httpError';
+
+import { CareerMatchesCompact } from '@/features/results/ui/CareerMatchesCompact';
+import { TraitsSliders } from '@/features/results/ui/TraitsSliders';
+import { ResultsActions } from '@/features/results/ui/ResultsActions';
+import { ResultsSkeleton } from '@/features/results/ui/ResultsSkeleton';
+import {TopProfessionsSummary} from '@/features/results/ui/TopProfessionsSummary';
+
+import { sliceOrAll, canToggle } from '@/features/results/model/visibility';
+import '@/features/results/ui/results.css';
 
 type SortKey = 'newest' | 'oldest';
 
@@ -34,69 +42,6 @@ function throwIfForbidden(e: unknown) {
   if (e instanceof HttpError && (e.status === 401 || e.status === 403)) throw e;
 }
 
-type TraitsRow = { key: string; label: string; value: number };
-type ProfessionRow = { id: number; title: string; score01: number };
-
-function ProfessionCards(props: {
-  title: string;
-  subtitle?: string;
-  rows: ProfessionRow[];
-  visibleCount: number;
-  showAll: boolean;
-  onToggleShowAll: () => void;
-  t: (k: string, p?: any) => string;
-}) {
-  const { title, subtitle, rows, visibleCount, showAll, onToggleShowAll, t } = props;
-
-  const visible = showAll ? rows : rows.slice(0, visibleCount);
-
-  return (
-    <Card className="dark:!bg-slate-950 dark:!border-slate-800">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div>
-          <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{title}</div>
-          {subtitle ? <div className="text-xs text-slate-600 dark:text-slate-300">{subtitle}</div> : null}
-        </div>
-
-        {rows.length > visibleCount ? (
-          <Button type="link" className="px-0" onClick={onToggleShowAll}>
-            {showAll ? t('ShowLess') : t('ShowMore')}
-          </Button>
-        ) : null}
-      </div>
-
-      {visible.length === 0 ? (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('EmptyProfessions')} />
-      ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {visible.map((p) => {
-            const pct = toPercent01(p.score01);
-            return (
-              <div
-                key={p.id}
-                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900/40"
-              >
-                <div className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">{p.title}</div>
-
-                <div className="mt-2 flex items-center justify-between">
-                  <div className="text-sm text-slate-600 dark:text-slate-300">{t('Match')}</div>
-                  <div className="rounded-full bg-slate-100 px-2 py-0.5 text-sm font-medium text-slate-900 dark:bg-slate-900 dark:text-slate-100">
-                    {pct}%
-                  </div>
-                </div>
-
-                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-900">
-                  <div className="h-full rounded-full bg-indigo-500" style={{ width: `${pct}%` }} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </Card>
-  );
-}
-
 export default function MyResultsPage() {
   const t = useTranslations('MyResultsPage');
   const locale = useLocale();
@@ -105,8 +50,12 @@ export default function MyResultsPage() {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SortKey>('newest');
   const [selectedAttemptId, setSelectedAttemptId] = useState<number | null>(null);
+
   const [showAllTraits, setShowAllTraits] = useState(false);
   const [showAllProfessions, setShowAllProfessions] = useState(false);
+
+  const TRAITS_VISIBLE = 3;
+  const PROFESSIONS_VISIBLE = 6;
 
   const attemptsQuery = useMyAttemptsQuery();
   if (attemptsQuery.isError) throwIfForbidden(attemptsQuery.error);
@@ -153,35 +102,6 @@ export default function MyResultsPage() {
   const viewQuery = useAttemptViewQuery(resolvedSelectedId);
   if (viewQuery.isError) throwIfForbidden(viewQuery.error);
 
-  const traitRowsAll: TraitsRow[] = useMemo(() => {
-    const traits = viewQuery.data?.traits ?? [];
-    return traits
-      .slice()
-      .sort((a, b) => (b.score01 ?? 0) - (a.score01 ?? 0))
-      .map((s) => ({
-        key: s.code,
-        label: s.name,
-        value: typeof s.score01 === 'number' ? s.score01 : 0,
-      }));
-  }, [viewQuery.data]);
-
-  const traitRows: TraitsRow[] = useMemo(() => {
-    if (showAllTraits) return traitRowsAll;
-    return traitRowsAll.slice(0, 3);
-  }, [traitRowsAll, showAllTraits]);
-
-  const professionRowsAll: ProfessionRow[] = useMemo(() => {
-    const profs = viewQuery.data?.professions ?? [];
-    return profs
-      .slice()
-      .sort((a, b) => (b.score01 ?? 0) - (a.score01 ?? 0))
-      .map((p) => ({
-        id: p.id,
-        title: p.title || t('FallbackProfessionTitle', { id: p.id }),
-        score01: typeof p.score01 === 'number' ? p.score01 : 0,
-      }));
-  }, [viewQuery.data, t]);
-
   const headerTitle = useMemo(() => {
     return String(selectedAttempt?.quizTitle ?? selectedAttempt?.quizName ?? '').trim() || t('DefaultQuizTitle');
   }, [selectedAttempt?.quizTitle, selectedAttempt?.quizName, t]);
@@ -191,10 +111,46 @@ export default function MyResultsPage() {
     return formatDate(locale, iso);
   }, [locale, selectedAttempt?.createdAt, selectedAttempt?.submittedAt, selectedAttempt?.finishedAt]);
 
+  const professionRowsAll = useMemo(() => {
+    const profs = viewQuery.data?.professions ?? [];
+    return profs
+      .slice()
+      .sort((a, b) => (b.score01 ?? 0) - (a.score01 ?? 0))
+      .map((p) => ({
+        id: p.id,
+        title: p.title || t('FallbackProfessionTitle', { id: p.id }),
+        description: p.description,
+        score01: typeof p.score01 === 'number' ? p.score01 : 0,
+      }));
+  }, [viewQuery.data, t]);
+
+  const traitRowsAll = useMemo(() => {
+    const traits = viewQuery.data?.traits ?? [];
+    return traits
+      .slice()
+      .sort((a, b) => (b.score01 ?? 0) - (a.score01 ?? 0))
+      .map((s) => ({
+        key: s.code,
+        label: s.name,
+        description: s.description,
+        value: typeof s.score01 === 'number' ? s.score01 : 0,
+      }));
+  }, [viewQuery.data]);
+
+  const professionRows = useMemo(() => {
+    return sliceOrAll(professionRowsAll, showAllProfessions, PROFESSIONS_VISIBLE);
+  }, [professionRowsAll, showAllProfessions]);
+
+  const traitRows = useMemo(() => {
+    return sliceOrAll(traitRowsAll, showAllTraits, TRAITS_VISIBLE);
+  }, [traitRowsAll, showAllTraits]);
+
   const topScore = useMemo(() => {
     const best = professionRowsAll[0];
     return toPercent01(best?.score01);
   }, [professionRowsAll]);
+
+  const isAuthenticated = true;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6">
@@ -317,61 +273,56 @@ export default function MyResultsPage() {
             {viewQuery.isError ? (
               <Alert type="error" showIcon message={viewQuery.error instanceof Error ? viewQuery.error.message : t('ResultLoadError')} />
             ) : viewQuery.isLoading ? (
-              <div className="space-y-4">
-                <Skeleton active paragraph={{ rows: 3 }} />
-                <Skeleton active paragraph={{ rows: 6 }} />
-              </div>
+              <ResultsSkeleton />
             ) : (
               <div className="space-y-4">
-                <Card className="dark:!bg-slate-950 dark:!border-slate-800" bordered={false}>
-                  <div className="mb-2 text-sm font-medium text-slate-900 dark:text-slate-100">
-                    {t('TopProfessionsTitle')}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {professionRowsAll.slice(0, 3).map((p) => (
-                      <Tag key={p.id} className="dark:!bg-slate-900 dark:!border-slate-700 dark:!text-slate-200">
-                        {p.title}
-                      </Tag>
-                    ))}
-                  </div>
-                </Card>
+                <TopProfessionsSummary t={t as any} professions={professionRowsAll.slice(0, 3) as any} />
 
-                <Card className="dark:!bg-slate-950 dark:!border-slate-800">
+<CareerMatchesCompact
+  title={t('ProfessionsTitle')}
+  subtitle={t('ProfessionsSubtitle')}
+  rows={professionRowsAll}
+  matchLabel={t('Match')}
+  collapsedCount={3}
+  expandedCount={5}
+  showMoreLabel={t('ShowMore')}
+  showLessLabel={t('ShowLess')}
+/>
+
+
+
+                {canToggle(professionRowsAll.length, PROFESSIONS_VISIBLE) ? (
+                  <div className="-mt-2 flex justify-end">
+                    <Button type="link" className="px-0" onClick={() => setShowAllProfessions((v) => !v)}>
+                      {showAllProfessions ? t('ShowLess') : t('ShowMore')}
+                    </Button>
+                  </div>
+                ) : null}
+
+                <div>
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <div>
                       <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{t('TraitsTitle')}</div>
                       <div className="text-xs text-slate-600 dark:text-slate-300">{t('TraitsSubtitle')}</div>
                     </div>
 
-                    {traitRowsAll.length > 3 ? (
+                    {canToggle(traitRowsAll.length, TRAITS_VISIBLE) ? (
                       <Button type="link" className="px-0" onClick={() => setShowAllTraits((v) => !v)}>
                         {showAllTraits ? t('ShowLess') : t('ShowMore')}
                       </Button>
                     ) : null}
                   </div>
 
-                  <TraitsSliders title="" rows={traitRows} />
-                </Card>
-
-                <ProfessionCards
-                  title={t('ProfessionsTitle')}
-                  subtitle={t('ProfessionsSubtitle')}
-                  rows={professionRowsAll}
-                  visibleCount={6}
-                  showAll={showAllProfessions}
-                  onToggleShowAll={() => setShowAllProfessions((v) => !v)}
-                  t={t as any}
-                />
-
-                <div className="mt-1 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <Button onClick={() => router.push('/quizzes')}>{t('TakeAnother')}</Button>
-                  <Button
-                    type="primary"
-                    onClick={() => message.info(t('PdfSoon'))}
-                  >
-                    {t('DownloadPdf')}
-                  </Button>
+                  <TraitsSliders title="" rows={traitRows as any} />
                 </div>
+
+                <ResultsActions
+                  primaryLabel={t('DownloadPdf')}
+                  secondaryLabel={t('TakeAnother')}
+                  onPrimary={() => message.info(t('PdfSoon'))}
+                  onSecondary={() => router.push('/quizzes')}
+                  isAuthenticated={isAuthenticated}
+                />
               </div>
             )}
           </Card>
