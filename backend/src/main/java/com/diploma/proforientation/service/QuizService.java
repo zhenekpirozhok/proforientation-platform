@@ -9,17 +9,18 @@ import org.springframework.data.domain.Pageable;
 public interface QuizService {
 
     Page<QuizDto> getAll(Pageable pageable);
-    Page<QuizDto> getAllLocalized(String locale, Pageable pageable);
+    Page<QuizDto> getAllLocalized(Pageable pageable);
     QuizDto getById(Integer id);
-    QuizDto getByIdLocalized(Integer id, String locale);
-    QuizDto getByCodeLocalized(String code, String locale);
+    QuizDto getByIdLocalized(Integer id);
+    QuizDto getByCodeLocalized(String code);
     QuizDto create(CreateQuizRequest req);
     QuizDto update(Integer id, UpdateQuizRequest req);
     void delete(Integer id);
-    Page<QuizDto> searchAndSort(
+    Page<QuizDto> search(
             String search,
-            String sortBy,
-            String locale,
+            Integer categoryId,
+            Integer minDurationSec,
+            Integer maxDurationSec,
             Pageable pageable
     );
 }

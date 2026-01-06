@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -120,8 +119,7 @@ public class QuestionController {
     )
     public Page<QuestionDto> getQuestionsForQuiz(
             @PathVariable Integer quizId,
-            @RequestParam(defaultValue = "en") String locale,
-            @Parameter(description = "Page number (0-based)", schema = @Schema(defaultValue = "1"))
+            @Parameter(description = "Page number", schema = @Schema(defaultValue = "1"))
             @RequestParam(required = false, defaultValue = "1") int page,
             @Parameter(description = "Number of items per page", schema = @Schema(defaultValue = "20"))
             @RequestParam(required = false, defaultValue = "20") int size,
@@ -129,7 +127,7 @@ public class QuestionController {
             @RequestParam(required = false, defaultValue = "id") String sort
     ) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
-        return questionService.getQuestionsForCurrentVersion(quizId, locale, pageable);
+        return questionService.getQuestionsForCurrentVersion(quizId, pageable);
     }
 
     @GetMapping("/quiz/{quizId}/version/{version}")
@@ -156,8 +154,7 @@ public class QuestionController {
     public Page<QuestionDto> getQuestionsForQuizVersion(
             @PathVariable Integer quizId,
             @PathVariable Integer version,
-            @RequestParam(defaultValue = "en") String locale,
-            @Parameter(description = "Page number (0-based)", schema = @Schema(defaultValue = "1"))
+            @Parameter(description = "Page number", schema = @Schema(defaultValue = "1"))
             @RequestParam(required = false, defaultValue = "1") int page,
             @Parameter(description = "Number of items per page", schema = @Schema(defaultValue = "20"))
             @RequestParam(required = false, defaultValue = "20") int size,
@@ -165,7 +162,7 @@ public class QuestionController {
             @RequestParam(required = false, defaultValue = "id") String sort
     ) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
-        return questionService.getQuestionsForVersion(quizId, version, locale, pageable);
+        return questionService.getQuestionsForVersion(quizId, version, pageable);
     }
 
     @GetMapping("/{questionId}/options")
@@ -188,7 +185,6 @@ public class QuestionController {
     public List<OptionDto> getOptionsForQuestion(
             @PathVariable Integer questionId
     ) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
-        return questionService.getOptionsForQuestionLocalized(questionId, locale);
+        return questionService.getOptionsForQuestionLocalized(questionId);
     }
 }

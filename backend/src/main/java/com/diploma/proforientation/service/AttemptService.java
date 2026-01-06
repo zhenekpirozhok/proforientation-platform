@@ -14,9 +14,9 @@ public interface AttemptService {
     void addAnswer(Integer attemptId, Integer optionId);
     void addAnswersBulk(Integer attemptId, List<Integer> optionIds);
     AttemptResultDto submitAttempt(Integer attemptId);
-    List<AttemptSummaryDto> getMyAttempts(Integer userId, String guestToken, String locale);
+    List<AttemptSummaryDto> getMyAttempts(Integer userId, String guestToken);
     AttemptResultDto getResult(Integer attemptId);
-    List<AttemptSummaryDto> adminSearchAttempts(Integer userId, Integer quizId, Instant from, Instant to, String locale);
+    List<AttemptSummaryDto> adminSearchAttempts(Integer userId, Integer quizId, Instant from, Instant to);
     void attachGuestAttempts(String guestToken, User user);
     void addAnswersForQuestion(Integer attemptId, Integer questionId, List<Integer> optionIds);
 }

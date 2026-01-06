@@ -60,21 +60,20 @@ class QuizControllerTest {
         int page = 1;
         int size = 20;
         String sort = "id";
-        String locale = "ru";
 
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
 
         QuizDto dto = new QuizDto(1, "quiz1", "Тест 1", "published", "ml", 3, 2, null, 30);
         Page<QuizDto> pageResult = new PageImpl<>(List.of(dto), pageable, 1);
 
-        when(quizService.getAllLocalized(locale, pageable)).thenReturn(pageResult);
+        when(quizService.getAllLocalized(pageable)).thenReturn(pageResult);
 
         Page<QuizDto> result = controller.getAll(page, size, sort);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().title()).isEqualTo("Тест 1");
 
-        verify(quizService).getAllLocalized(locale, pageable);
+        verify(quizService).getAllLocalized(pageable);
     }
 
     @Test
@@ -82,38 +81,38 @@ class QuizControllerTest {
         QuizDto dto =
                 new QuizDto(5, "quiz5", "Название", "draft", "ml_riasec", 4, 1, null, 30);
 
-        when(quizService.getByIdLocalized(5, "ru")).thenReturn(dto);
+        when(quizService.getByIdLocalized(5)).thenReturn(dto);
 
         QuizDto result = controller.getById(5);
 
         assertThat(result.id()).isEqualTo(5);
         assertThat(result.title()).isEqualTo("Название");
 
-        verify(quizService).getByIdLocalized(5, "ru");
+        verify(quizService).getByIdLocalized(5);
     }
 
     @Test
     void getByCode_shouldCallServiceWithLocale() {
         QuizDto dto = new QuizDto(15, "Q15", "Тест по коду", "draft", "ml_riasec", 5, 1, null, 30);
 
-        when(quizService.getByCodeLocalized("Q15", "ru")).thenReturn(dto);
+        when(quizService.getByCodeLocalized("Q15")).thenReturn(dto);
 
         QuizDto result = controller.getByCode("Q15");
 
         assertThat(result.id()).isEqualTo(15);
         assertThat(result.title()).isEqualTo("Тест по коду");
-        verify(quizService).getByCodeLocalized("Q15", "ru");
+        verify(quizService).getByCodeLocalized("Q15");
     }
 
     @Test
     void getByCode_shouldThrowWhenNotFound() {
-        when(quizService.getByCodeLocalized("MISSING", "ru"))
+        when(quizService.getByCodeLocalized("MISSING"))
                 .thenThrow(new EntityNotFoundException("Quiz not found with code: MISSING"));
 
         assertThatThrownBy(() -> controller.getByCode("MISSING"))
                 .isInstanceOf(EntityNotFoundException.class);
 
-        verify(quizService).getByCodeLocalized("MISSING", "ru");
+        verify(quizService).getByCodeLocalized("MISSING");
     }
 
     @Test
@@ -183,37 +182,70 @@ class QuizControllerTest {
     }
 
     @Test
-    void searchQuizzes_shouldReturnPageOfDtos() {
-        String locale = "ru";
-        LocaleContextHolder.setLocale(new Locale(locale));
+    void search_shouldReturnPageOfDtos_withCustomPagination() {
+        Integer categoryId = 5;
+        Integer minDurationSec = 300;
+        Integer maxDurationSec = 900;
 
-        QuizDto dto = new QuizDto(1, "Q1", "Тест 1", "draft", "ml", 5, 1, "Описание", 30);
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<QuizDto> pageResult = new PageImpl<>(List.of(dto), pageable, 1);
+        int page = 2;
+        int size = 10;
+        String sort = "id";
 
-        when(quizService.searchAndSort("Тест", "id", locale, pageable)).thenReturn(pageResult);
+        Pageable expectedPageable = PageRequest.of(page - 1, size, Sort.by(sort));
 
-        Page<QuizDto> result = controller.searchQuizzes("Тест", "id", 1, 10);
+        QuizDto dto = new QuizDto(
+                1, "Q1", "Тест 1", "DRAFT", "ML",
+                5, 1, "Описание", 30
+        );
+
+        Page<QuizDto> pageResult = new PageImpl<>(List.of(dto), expectedPageable, 1);
+
+        when(quizService.search("Тест", categoryId, minDurationSec, maxDurationSec, expectedPageable))
+                .thenReturn(pageResult);
+
+        Page<QuizDto> result = controller.search(
+                "Тест",
+                categoryId,
+                minDurationSec,
+                maxDurationSec,
+                page,
+                size,
+                sort
+        );
 
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).title()).isEqualTo("Тест 1");
+        assertThat(result.getContent().getFirst().title()).isEqualTo("Тест 1");
 
-        verify(quizService).searchAndSort("Тест", "id", locale, pageable);
+        verify(quizService).search("Тест", categoryId, minDurationSec, maxDurationSec, expectedPageable);
+        verifyNoMoreInteractions(quizService);
     }
 
     @Test
-    void searchQuizzes_emptyResult_shouldReturnEmptyPage() {
-        String locale = "en";
-        LocaleContextHolder.setLocale(Locale.of(locale));
+    void search_emptyResult_shouldReturnEmptyPage_withDefaults() {
+        int page = 1;
+        int size = 20;
+        String sort = "id";
 
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<QuizDto> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        Pageable expectedPageable = PageRequest.of(page - 1, size, Sort.by(sort));
+        Page<QuizDto> emptyPage = new PageImpl<>(List.of(), expectedPageable, 0);
 
-        when(quizService.searchAndSort("", "id", locale, pageable)).thenReturn(emptyPage);
+        when(quizService.search("", null, null, null, expectedPageable))
+                .thenReturn(emptyPage);
 
-        Page<QuizDto> result = controller.searchQuizzes("", "id", 1, 10);
+        Page<QuizDto> result = controller.search(
+                "",
+                null,
+                null,
+                null,
+                page,
+                size,
+                sort
+        );
 
-        assertThat(result.getTotalElements()).isEqualTo(0);
-        verify(quizService).searchAndSort("", "id", locale, pageable);
+        assertThat(result.getTotalElements()).isZero();
+        assertThat(result.getContent()).isEmpty();
+
+        verify(quizService).search("", null, null, null, expectedPageable);
+        verifyNoMoreInteractions(quizService);
     }
 }

@@ -7,9 +7,9 @@ import org.springframework.data.domain.Pageable;
 
 public interface ProfessionService {
     Page<ProfessionDto> getAll(Pageable pageable);
-    Page<ProfessionDto> getAllLocalized(String locale, Pageable pageable);
+    Page<ProfessionDto> getAllLocalized(Pageable pageable);
     ProfessionDto getById(Integer id);
-    ProfessionDto getByIdLocalized(Integer id, String locale);
+    ProfessionDto getByIdLocalized(Integer id);
     ProfessionDto create(CreateProfessionRequest req);
     ProfessionDto update(Integer id, CreateProfessionRequest req);
     void delete(Integer id);

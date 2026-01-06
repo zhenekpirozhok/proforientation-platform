@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -47,16 +46,15 @@ public class ProfessionController {
             content = @Content(schema = @Schema(implementation = ProfessionDto.class))
     )
     public Page<ProfessionDto> getAll(
-            @Parameter(description = "Page number (0-based)", schema = @Schema(defaultValue = "1"))
+            @Parameter(description = "Page number", schema = @Schema(defaultValue = "1"))
             @RequestParam(required = false, defaultValue = "1") int page,
             @Parameter(description = "Number of items per page", schema = @Schema(defaultValue = "20"))
             @RequestParam(required = false, defaultValue = "20") int size,
             @Parameter(description = "Sort by field", schema = @Schema(defaultValue = "id"))
             @RequestParam(required = false, defaultValue = "id") String sort
     ) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
-        return service.getAllLocalized(locale, pageable);
+        return service.getAllLocalized(pageable);
     }
 
     @GetMapping("/{id}")
@@ -71,8 +69,7 @@ public class ProfessionController {
     )
     @ApiResponse(responseCode = "404", description = "Profession not found")
     public ProfessionDto getById(@PathVariable Integer id) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
-        return service.getByIdLocalized(id, locale);
+        return service.getByIdLocalized(id);
     }
 
     @PostMapping

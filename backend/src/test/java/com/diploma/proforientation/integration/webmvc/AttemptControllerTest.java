@@ -122,7 +122,7 @@ class AttemptControllerTest {
         );
 
         Mockito.when(authUtils.getAuthenticatedUserId()).thenReturn(42);
-        Mockito.when(attemptService.getMyAttempts(eq(42), isNull(), any()))
+        Mockito.when(attemptService.getMyAttempts(eq(42), isNull()))
                 .thenReturn(List.of(summary));
 
         mockMvc.perform(get("/attempts"))
@@ -158,7 +158,7 @@ class AttemptControllerTest {
         );
 
         Mockito.when(attemptService.adminSearchAttempts(
-                        any(), any(), any(), any(), any()))
+                        any(), any(), any(), any()))
                 .thenReturn(List.of(summary));
 
         mockMvc.perform(get("/attempts/search")

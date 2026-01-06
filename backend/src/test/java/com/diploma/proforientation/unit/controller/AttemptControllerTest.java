@@ -93,14 +93,14 @@ class AttemptControllerTest {
         );
 
         when(authUtils.getAuthenticatedUserId()).thenReturn(userId);
-        when(attemptService.getMyAttempts(userId, guestToken, "en"))
+        when(attemptService.getMyAttempts(userId, guestToken))
                 .thenReturn(List.of(dto));
 
         List<AttemptSummaryDto> list = attemptController.myAttempts(guestToken);
 
         assertEquals(1, list.size());
         assertEquals(dto, list.getFirst());
-        verify(attemptService).getMyAttempts(userId, guestToken, "en");
+        verify(attemptService).getMyAttempts(userId, guestToken);
     }
 
     @Test
@@ -128,7 +128,7 @@ class AttemptControllerTest {
                 Instant.now(), Instant.now(), true
         );
 
-        when(attemptService.adminSearchAttempts(1, 2, from, to, "en"))
+        when(attemptService.adminSearchAttempts(1, 2, from, to))
                 .thenReturn(List.of(dto));
 
         List<AttemptSummaryDto> result =
@@ -137,7 +137,7 @@ class AttemptControllerTest {
         assertEquals(1, result.size());
         assertEquals(dto, result.getFirst());
 
-        verify(attemptService).adminSearchAttempts(1, 2, from, to, "en");
+        verify(attemptService).adminSearchAttempts(1, 2, from, to);
     }
 
     @Test
@@ -194,20 +194,20 @@ class AttemptControllerTest {
                 Instant.now(), null, false
         );
 
-        when(attemptService.getMyAttempts(10, null, "en"))
+        when(attemptService.getMyAttempts(10, null))
                 .thenReturn(List.of(dto));
 
         List<AttemptSummaryDto> list = attemptController.myAttempts(null);
 
         assertEquals(1, list.size());
-        verify(attemptService).getMyAttempts(10, null, "en");
+        verify(attemptService).getMyAttempts(10, null);
     }
 
     @Test
     void testMyAttempts_serviceThrows() {
         when(authUtils.getAuthenticatedUserId()).thenReturn(5);
 
-        when(attemptService.getMyAttempts(5, "guest", "en"))
+        when(attemptService.getMyAttempts(5, "guest"))
                 .thenThrow(new RuntimeException("DB error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -229,13 +229,13 @@ class AttemptControllerTest {
 
     @Test
     void testSearch_allFiltersNull() {
-        when(attemptService.adminSearchAttempts(null, null, null, null, "en"))
+        when(attemptService.adminSearchAttempts(null, null, null, null))
                 .thenReturn(List.of());
 
         List<AttemptSummaryDto> result = attemptController.search(null, null, null, null);
 
         assertTrue(result.isEmpty());
-        verify(attemptService).adminSearchAttempts(null, null, null, null, "en");
+        verify(attemptService).adminSearchAttempts(null, null, null, null);
     }
 
     @Test
@@ -243,7 +243,7 @@ class AttemptControllerTest {
         Instant from = Instant.now().minusSeconds(500);
         Instant to = Instant.now();
 
-        when(attemptService.adminSearchAttempts(5, 3, from, to, "en"))
+        when(attemptService.adminSearchAttempts(5, 3, from, to))
                 .thenThrow(new RuntimeException("Admin error"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,

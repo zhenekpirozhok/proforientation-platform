@@ -5,6 +5,7 @@ import com.diploma.proforientation.dto.request.create.CreateTraitRequest;
 import com.diploma.proforientation.model.TraitProfile;
 import com.diploma.proforientation.repository.TraitProfileRepository;
 import com.diploma.proforientation.service.TraitService;
+import com.diploma.proforientation.util.LocaleProvider;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class TraitServiceImpl implements TraitService {
 
     private final TraitProfileRepository repo;
     private final TranslationResolver translationResolver;
+    private final LocaleProvider localeProvider;
 
     @Override
     public List<TraitDto> getAll() {
@@ -31,7 +33,8 @@ public class TraitServiceImpl implements TraitService {
     }
 
     @Override
-    public List<TraitDto> getAllLocalized(String locale) {
+    public List<TraitDto> getAllLocalized() {
+        String locale = localeProvider.currentLanguage();
         return repo.findAll().stream()
                 .map(t -> toDtoLocalized(t, locale))
                 .toList();
@@ -45,7 +48,8 @@ public class TraitServiceImpl implements TraitService {
     }
 
     @Override
-    public TraitDto getByIdLocalized(Integer id, String locale) {
+    public TraitDto getByIdLocalized(Integer id) {
+        String locale = localeProvider.currentLanguage();
         TraitProfile trait = repo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(TRAIT_NOT_FOUND));
 

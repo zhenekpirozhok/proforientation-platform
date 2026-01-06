@@ -9,9 +9,10 @@ import com.diploma.proforientation.model.enumeration.UserRole;
 import com.diploma.proforientation.repository.PasswordResetTokenRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.AuthenticationService;
+import com.diploma.proforientation.util.LocaleProvider;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -29,6 +30,7 @@ import static com.diploma.proforientation.util.Constants.*;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
     private static final String TOKEN_NAME = "name";
 
@@ -38,25 +40,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final PasswordResetTokenRepository tokenRepo;
     private final EmailServiceImpl emailServiceImpl;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
-
-    public AuthenticationServiceImpl(
-            @Value("${google.client-id}") String googleClientId,
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder,
-            AuthenticationManager authenticationManager,
-            PasswordResetTokenRepository tokenRepo,
-            EmailServiceImpl emailServiceImpl,
-            GoogleIdTokenVerifier googleIdTokenVerifier) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
-        this.tokenRepo = tokenRepo;
-        this.emailServiceImpl = emailServiceImpl;
-        this.googleIdTokenVerifier = googleIdTokenVerifier;
-    }
+    private final LocaleProvider localeProvider;
 
     @Transactional
     public User signup(RegisterUserDto input) {
+        if (userRepository.existsByEmail(input.getEmail())) {
+            throw new EmailAlreadyExistsException(input.getEmail());
+        }
+
         User user = new User(input.getEmail(), passwordEncoder.encode(input.getPassword()),
                 input.getDisplayName(), UserRole.USER);
         log.debug("Added user: {}", user.getEmail());
@@ -78,6 +69,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     public void sendResetToken(String email) {
+        String locale = localeProvider.currentLanguage();
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EmailNotFoundException(email));
 
@@ -90,7 +83,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         resetToken.setExpiryDate(expiry);
 
         tokenRepo.save(resetToken);
-        emailServiceImpl.sendResetPasswordEmail(email, token);
+        emailServiceImpl.sendResetPasswordEmail(email, token, locale);
     }
 
     public void resetPassword(String token, String newPassword) {
@@ -117,7 +110,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         try {
             GoogleIdToken idToken = googleIdTokenVerifier.verify(idTokenString);
             if (idToken == null) {
-                throw new RuntimeException(INVALID_GOOGLE_ID);
+                throw new InvalidGoogleIdTokenException();
             }
 
             String email = idToken.getPayload().getEmail();
@@ -131,8 +124,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         newUser.setPasswordHash(EMPTY_STRING); // no password for Google users
                         return userRepository.save(newUser);
                     });
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
-            throw new RuntimeException(FAILED_GOOGLE_TOKEN, e);
+            throw new GoogleTokenVerificationFailedException(e);
         }
     }
 

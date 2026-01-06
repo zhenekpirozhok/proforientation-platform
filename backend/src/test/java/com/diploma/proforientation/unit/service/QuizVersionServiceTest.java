@@ -65,7 +65,7 @@ class QuizVersionServiceTest {
         assertThat(dto.version()).isEqualTo(2);
 
         verify(versionRepo, times(1)).save(argThat(v -> !v.isCurrent()));
-        verify(versionRepo, times(1)).save(argThat(v -> v.isCurrent()));
+        verify(versionRepo, times(1)).save(argThat(QuizVersion::isCurrent));
     }
 
     @Test

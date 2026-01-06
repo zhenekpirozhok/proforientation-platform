@@ -8,15 +8,12 @@ import com.diploma.proforientation.model.QuestionOption;
 import com.diploma.proforientation.repository.QuestionOptionRepository;
 import com.diploma.proforientation.repository.QuestionRepository;
 import com.diploma.proforientation.service.impl.OptionServiceImpl;
-import com.diploma.proforientation.util.TranslationResolver;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -32,9 +29,6 @@ class OptionServiceTest {
 
     @InjectMocks
     private OptionServiceImpl service;
-
-    @Mock
-    private TranslationResolver translationResolver;
 
     private Question question;
     private QuestionOption opt;

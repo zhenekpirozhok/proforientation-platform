@@ -3,6 +3,8 @@ package com.diploma.proforientation.unit.service;
 import com.diploma.proforientation.dto.LoginUserDto;
 import com.diploma.proforientation.dto.RegisterUserDto;
 import com.diploma.proforientation.exception.EmailNotFoundException;
+import com.diploma.proforientation.exception.GoogleTokenVerificationFailedException;
+import com.diploma.proforientation.exception.InvalidGoogleIdTokenException;
 import com.diploma.proforientation.exception.UserNotFoundForPasswordResetException;
 import com.diploma.proforientation.model.PasswordResetToken;
 import com.diploma.proforientation.model.User;
@@ -11,6 +13,7 @@ import com.diploma.proforientation.repository.PasswordResetTokenRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.impl.AuthenticationServiceImpl;
 import com.diploma.proforientation.service.impl.EmailServiceImpl;
+import com.diploma.proforientation.util.LocaleProvider;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,21 +57,23 @@ class AuthenticationServiceTest {
     @Mock
     private GoogleIdTokenVerifier googleIdTokenVerifier;
 
+    @Mock
+    private LocaleProvider localeProvider;
+
     @InjectMocks
     private AuthenticationServiceImpl authService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        String googleClientId = "test-google-client-id";
         authService = new AuthenticationServiceImpl(
-                googleClientId,
                 userRepository,
                 passwordEncoder,
                 authenticationManager,
                 tokenRepo,
                 emailService,
-                googleIdTokenVerifier
+                googleIdTokenVerifier,
+                localeProvider
         );
     }
 
@@ -132,19 +137,27 @@ class AuthenticationServiceTest {
     }
 
     @Test
-    void sendResetPasswordToken_shouldSaveTokenAndSendEmail() {
+    void sendResetPasswordToken_shouldSaveTokenAndSendEmail_withLocale() {
         String email = "test@example.com";
+        String locale = "en";
+
         User user = new User();
         user.setEmail(email);
 
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail(email))
+                .thenReturn(Optional.of(user));
 
-        ArgumentCaptor<PasswordResetToken> tokenCaptor = ArgumentCaptor.forClass(PasswordResetToken.class);
+        when(localeProvider.currentLanguage())
+                .thenReturn(locale);
+
+        ArgumentCaptor<PasswordResetToken> tokenCaptor =
+                ArgumentCaptor.forClass(PasswordResetToken.class);
 
         when(tokenRepo.save(any(PasswordResetToken.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        doNothing().when(emailService).sendResetPasswordEmail(eq(email), anyString());
+        doNothing().when(emailService)
+                .sendResetPasswordEmail(eq(email), anyString(), eq(locale));
 
         authService.sendResetToken(email);
 
@@ -153,9 +166,39 @@ class AuthenticationServiceTest {
 
         assertEquals(user, savedToken.getUser());
         assertNotNull(savedToken.getToken());
+        assertNotNull(savedToken.getExpiryDate());
         assertTrue(savedToken.getExpiryDate().isAfter(LocalDateTime.now()));
 
-        verify(emailService).sendResetPasswordEmail(email, savedToken.getToken());
+        verify(emailService)
+                .sendResetPasswordEmail(email, savedToken.getToken(), locale);
+
+        verify(localeProvider).currentLanguage();
+    }
+
+    @Test
+    void sendResetPasswordToken_shouldDefaultLocaleToEn_whenNull() {
+        String email = "test@example.com";
+
+        User user = new User();
+        user.setEmail(email);
+
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(localeProvider.currentLanguage()).thenReturn("en");
+        when(tokenRepo.save(any(PasswordResetToken.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        doNothing().when(emailService)
+                .sendResetPasswordEmail(eq(email), anyString(), eq("en"));
+
+        authService.sendResetToken(email);
+
+        ArgumentCaptor<PasswordResetToken> tokenCaptor =
+                ArgumentCaptor.forClass(PasswordResetToken.class);
+        verify(tokenRepo).save(tokenCaptor.capture());
+
+        PasswordResetToken savedToken = tokenCaptor.getValue();
+
+        verify(emailService).sendResetPasswordEmail(email, savedToken.getToken(), "en");
     }
 
     @Test
@@ -167,6 +210,9 @@ class AuthenticationServiceTest {
         assertThatThrownBy(() -> authService.sendResetToken(email))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Email not found");
+
+        verify(tokenRepo, never()).save(any());
+        verifyNoInteractions(emailService);
     }
 
     @Test
@@ -353,30 +399,20 @@ class AuthenticationServiceTest {
 
     @Test
     void authenticateWithGoogleIdToken_shouldThrowWhenTokenIsNull() throws Exception {
-        GoogleIdTokenVerifier verifierMock = mock(GoogleIdTokenVerifier.class);
-        when(verifierMock.verify("invalid")).thenReturn(null);
-
-        var field = AuthenticationServiceImpl.class.getDeclaredField("googleIdTokenVerifier");
-        field.setAccessible(true);
-        field.set(authService, verifierMock);
+        when(googleIdTokenVerifier.verify("invalid")).thenReturn(null);
 
         assertThatThrownBy(() -> authService.authenticateWithGoogleIdToken("invalid"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Failed to verify Google token");
+                .isInstanceOf(InvalidGoogleIdTokenException.class)
+                .hasMessageContaining("Invalid Google ID token");
     }
 
     @Test
     void authenticateWithGoogleIdToken_shouldThrowWhenVerifierFails() throws Exception {
-        GoogleIdTokenVerifier verifierMock = mock(GoogleIdTokenVerifier.class);
-        when(verifierMock.verify(anyString()))
+        when(googleIdTokenVerifier.verify(anyString()))
                 .thenThrow(new RuntimeException("Verifier failure"));
 
-        var field = AuthenticationServiceImpl.class.getDeclaredField("googleIdTokenVerifier");
-        field.setAccessible(true);
-        field.set(authService, verifierMock);
-
         assertThatThrownBy(() -> authService.authenticateWithGoogleIdToken("token"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Failed to verify Google token");
+                .isInstanceOf(GoogleTokenVerificationFailedException.class)
+                .hasMessageContaining("Failed to verify Google ID token");
     }
 }

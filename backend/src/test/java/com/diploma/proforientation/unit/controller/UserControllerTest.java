@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -94,11 +95,11 @@ class UserControllerTest {
 
         ResponseEntity<Page<UserDto>> response = userController.allUsers(page, size, sort);
 
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getContent()).hasSize(2);
 
-        UserDto first = response.getBody().getContent().get(0);
+        UserDto first = response.getBody().getContent().getFirst();
         assertThat(first.email()).isEqualTo("user@example.com");
 
         verify(userService, times(1)).getAllUsers(pageable);

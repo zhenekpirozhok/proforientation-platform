@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -137,9 +136,8 @@ public class AttemptController {
             @RequestParam(required = false) String guestToken
     ) {
         Integer userId = authUtils.getAuthenticatedUserId();
-        String locale = LocaleContextHolder.getLocale().getLanguage();
 
-        return attemptService.getMyAttempts(userId, guestToken, locale);
+        return attemptService.getMyAttempts(userId, guestToken);
     }
 
     @GetMapping("/{id}/result")
@@ -190,8 +188,7 @@ public class AttemptController {
             @RequestParam(required = false) Instant from,
             @RequestParam(required = false) Instant to
     ) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
-        return attemptService.adminSearchAttempts(userId, quizId, from, to, locale);
+        return attemptService.adminSearchAttempts(userId, quizId, from, to);
     }
 
     @PostMapping("/{attemptId}/answers/question")

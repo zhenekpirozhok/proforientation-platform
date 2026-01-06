@@ -2,6 +2,8 @@ package com.diploma.proforientation.util;
 
 public final class Constants {
 
+    public static final String DEFAULT_LOCALE = "en";
+
     public static final String PROFESSION_NOT_FOUND = "Profession not found";
     public static final String CATEGORY_NOT_FOUND = "Category not found";
     public static final String QUIZ_NOT_FOUND = "Quiz not found";
@@ -20,6 +22,9 @@ public final class Constants {
 
     public static final String CSV_IMPORT_FAILED = "CSV import failed";
     public static final String TRANSLATION_CSV_IMPORT_FAILED = "Translation CSV import failed";
+    public static final String INVALID_CSV = "Invalid CSV format: ";
+    public static final String NO_HEADER_IN_CSV = "CSV file has no header row";
+    public static final String EMPTY_CSV = "CSV file is empty";
     public static final String INVALID_INT = "Invalid integer";
     public static final String INVALID_ENUM_VALUE = "Invalid enum value";
     public static final String UNSUPPORTED_ENTITY = "Unsupported entity type";
@@ -30,12 +35,12 @@ public final class Constants {
     public static final String UNSUPPORTED_EXPORT_ENTITY = "Unsupported export entity: ";
     public static final String CSV_EXPORT_FAILED = "CSV export failed for ";
     public static final String EXCEL_EXPORT_FAILED = "Excel export failed";
+    public static final String DB_CONSTRAINT_VIOLATION = "Database constraint violation";
 
     public static final String INVALID_CRED = "Invalid email or password";
     public static final String INVALID_PASS = "Password verification failed";
-    public static final String FAILED_GOOGLE_TOKEN = "Failed to verify Google token";
-    public static final String INVALID_GOOGLE_ID = "Invalid Google ID token";
     public static final String UNKNOWN_USER = "Unknown user";
+    public static final String UNKNOWN_OPTIONS = "Some options do not belong to questionId=";
 
     public static final String INVALID_JSON_FROM_LLM = "LLM returned invalid JSON: ";
     public static final String INVALID_PROMPT = "Failed to build prompt JSON";

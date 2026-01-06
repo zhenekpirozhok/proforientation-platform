@@ -7,17 +7,18 @@ import com.diploma.proforientation.model.ProfessionCategory;
 import com.diploma.proforientation.model.Quiz;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
+import com.diploma.proforientation.model.enumeration.QuizStatus;
 import com.diploma.proforientation.repository.ProfessionCategoryRepository;
+import com.diploma.proforientation.repository.QuizPublicMetricsRepository;
 import com.diploma.proforientation.repository.QuizRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.QuizService;
+import com.diploma.proforientation.util.LocaleProvider;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+
 import jakarta.persistence.criteria.Predicate;
 
 import static com.diploma.proforientation.util.Constants.*;
@@ -37,6 +39,8 @@ public class QuizServiceImpl implements QuizService {
     private final ProfessionCategoryRepository categoryRepo;
     private final UserRepository userRepo;
     private final TranslationResolver translationResolver;
+    private final LocaleProvider localeProvider;
+    private final QuizPublicMetricsRepository quizPublicMetricsRepo;
 
     @Transactional(readOnly = true)
     @Override
@@ -47,7 +51,8 @@ public class QuizServiceImpl implements QuizService {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<QuizDto> getAllLocalized(String locale, Pageable pageable) {
+    public Page<QuizDto> getAllLocalized(Pageable pageable) {
+        String locale = localeProvider.currentLanguage();
         return quizRepo.findAll(pageable)
                 .map(q -> toDtoLocalized(q, locale));
     }
@@ -59,13 +64,15 @@ public class QuizServiceImpl implements QuizService {
                 .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
     }
 
-    public QuizDto getByIdLocalized(Integer id, String locale) {
+    public QuizDto getByIdLocalized(Integer id) {
+        String locale = localeProvider.currentLanguage();
         Quiz quiz = quizRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
         return toDtoLocalized(quiz, locale);
     }
 
-    public QuizDto getByCodeLocalized(String code, String locale) {
+    public QuizDto getByCodeLocalized(String code) {
+        String locale = localeProvider.currentLanguage();
         Quiz quiz = quizRepo.findByCode(code)
                 .orElseThrow(() -> new EntityNotFoundException("Quiz not found with code: " + code));
         return toDtoLocalized(quiz, locale);
@@ -129,19 +136,35 @@ public class QuizServiceImpl implements QuizService {
         quizRepo.delete(quiz);
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public Page<QuizDto> searchAndSort(
-            String search,      // search by title/code/description
-            String sortBy,      // "category", "createdAt", "updatedAt", default "id"
-            String locale,
+    @Transactional(readOnly = true)
+    public Page<QuizDto> search(
+            String search,
+            Integer categoryId,
+            Integer minDurationSec,
+            Integer maxDurationSec,
             Pageable pageable
     ) {
+        String locale = localeProvider.currentLanguage();
+
+        boolean hasDurationFilter = minDurationSec != null || maxDurationSec != null;
+
+        final List<Integer> durationQuizIds =
+                (minDurationSec != null || maxDurationSec != null)
+                        ? quizPublicMetricsRepo.findQuizIdsByDuration(minDurationSec, maxDurationSec)
+                        : null;
+
+        if (durationQuizIds != null && durationQuizIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
         Specification<Quiz> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            predicates.add(cb.equal(root.get("status"), QuizStatus.PUBLISHED));
+
             if (search != null && !search.isBlank()) {
-                String like = "%" + search.toLowerCase() + "%";
+                String like = "%" + search.trim().toLowerCase() + "%";
                 predicates.add(cb.or(
                         cb.like(cb.lower(root.get("titleDefault")), like),
                         cb.like(cb.lower(root.get("code")), like),
@@ -149,20 +172,16 @@ public class QuizServiceImpl implements QuizService {
                 ));
             }
 
+            if (categoryId != null) {
+                predicates.add(cb.equal(root.get("category").get("id"), categoryId));
+            }
+
+            if (hasDurationFilter) {
+                predicates.add(root.get("id").in(durationQuizIds));
+            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-
-        // Sorting
-        if ("category".equals(sortBy)) {
-            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                    Sort.by("category.id").ascending());
-        } else if ("createdAt".equals(sortBy)) {
-            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                    Sort.by("createdAt").descending());
-        } else if ("updatedAt".equals(sortBy)) {
-            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
-                    Sort.by("updatedAt").descending());
-        }
 
         return quizRepo.findAll(spec, pageable)
                 .map(q -> toDtoLocalized(q, locale));

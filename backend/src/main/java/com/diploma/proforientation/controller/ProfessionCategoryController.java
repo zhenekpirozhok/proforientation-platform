@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,8 +34,7 @@ public class ProfessionCategoryController {
             content = @Content(schema = @Schema(implementation = ProfessionCategoryDto.class))
     )
     public List<ProfessionCategoryDto> getAll() {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
-        return service.getAllLocalized(locale);
+        return service.getAllLocalized();
     }
 
     @PostMapping

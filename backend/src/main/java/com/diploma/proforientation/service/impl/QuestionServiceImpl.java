@@ -12,6 +12,7 @@ import com.diploma.proforientation.repository.QuestionOptionRepository;
 import com.diploma.proforientation.repository.QuestionRepository;
 import com.diploma.proforientation.repository.QuizVersionRepository;
 import com.diploma.proforientation.service.QuestionService;
+import com.diploma.proforientation.util.LocaleProvider;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuizVersionRepository quizVersionRepo;
     private final QuestionOptionRepository optionRepo;
     private final TranslationResolver translationResolver;
+    private final LocaleProvider localeProvider;
 
     @Override
     @Transactional
@@ -80,9 +82,10 @@ public class QuestionServiceImpl implements QuestionService {
     @Transactional(readOnly = true)
     public Page<QuestionDto> getQuestionsForCurrentVersion(
             Integer quizId,
-            String locale,
             Pageable pageable
     ) {
+        String locale = localeProvider.currentLanguage();
+
         QuizVersion version = quizVersionRepo
                 .findByQuizIdAndCurrentTrue(quizId)
                 .orElseThrow(() -> new RuntimeException(QUIZ_VERSION_NOT_FOUND));
@@ -95,9 +98,10 @@ public class QuestionServiceImpl implements QuestionService {
     public Page<QuestionDto> getQuestionsForVersion(
             Integer quizId,
             Integer versionNum,
-            String locale,
             Pageable pageable
     ) {
+        String locale = localeProvider.currentLanguage();
+
         QuizVersion version = quizVersionRepo
                 .findByQuizIdAndVersion(quizId, versionNum)
                 .orElseThrow(() -> new RuntimeException(QUIZ_VERSION_NOT_FOUND));
@@ -107,9 +111,10 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public List<OptionDto> getOptionsForQuestionLocalized(
-            Integer questionId,
-            String locale
+            Integer questionId
     ) {
+        String locale = localeProvider.currentLanguage();
+
         questionRepo.findById(questionId)
                 .orElseThrow(() ->
                         new EntityNotFoundException("Question not found")

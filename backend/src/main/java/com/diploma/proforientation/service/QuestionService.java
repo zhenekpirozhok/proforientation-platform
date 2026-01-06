@@ -15,17 +15,11 @@ public interface QuestionService {
     QuestionDto update(Integer id, UpdateQuestionRequest req);
     void delete(Integer id);
     QuestionDto updateOrder(Integer id, Integer ord);
-    List<OptionDto> getOptionsForQuestionLocalized(Integer questionId, String locale);
-    Page<QuestionDto> getQuestionsForCurrentVersion(
-            Integer quizId,
-            String locale,
-            Pageable pageable
-    );
-
+    List<OptionDto> getOptionsForQuestionLocalized(Integer questionId);
+    Page<QuestionDto> getQuestionsForCurrentVersion(Integer quizId, Pageable pageable);
     Page<QuestionDto> getQuestionsForVersion(
             Integer quizId,
             Integer versionNum,
-            String locale,
             Pageable pageable
     );
 }

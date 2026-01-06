@@ -43,21 +43,20 @@ class ProfessionCategoryControllerTest {
                 new ProfessionCategoryDto(2, "MED", "Medicine", "#FFFFFF")
         );
 
-        when(service.getAllLocalized("en")).thenReturn(mockList);
+        when(service.getAllLocalized()).thenReturn(mockList);
 
         List<ProfessionCategoryDto> result = controller.getAll();
 
         assertEquals(2, result.size());
         assertEquals("IT", result.getFirst().code());
 
-        verify(service, times(1)).getAllLocalized("en");
+        verify(service, times(1)).getAllLocalized();
         verify(service, never()).getAll();
     }
 
     @Test
     void testCreate_AsAdmin() {
 
-        // Mock security context as ADMIN
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(
                         "admin",

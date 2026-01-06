@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -57,16 +56,15 @@ public class QuizController {
             )
     )
     public Page<QuizDto> getAll(
-            @Parameter(description = "Page number (0-based)", schema = @Schema(defaultValue = "1"))
+            @Parameter(description = "Page number", schema = @Schema(defaultValue = "1"))
             @RequestParam(required = false, defaultValue = "1") int page,
             @Parameter(description = "Number of items per page", schema = @Schema(defaultValue = "20"))
             @RequestParam(required = false, defaultValue = "20") int size,
             @Parameter(description = "Sort by field", schema = @Schema(defaultValue = "id"))
             @RequestParam(required = false, defaultValue = "id") String sort
     ) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
-        return quizService.getAllLocalized(locale, pageable);
+        return quizService.getAllLocalized(pageable);
     }
 
     @GetMapping("/{id}")
@@ -90,8 +88,7 @@ public class QuizController {
             )
     )
     public QuizDto getById(@PathVariable Integer id) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
-        return quizService.getByIdLocalized(id, locale);
+        return quizService.getByIdLocalized(id);
     }
 
     @GetMapping("/code/{code}")
@@ -115,8 +112,7 @@ public class QuizController {
             )
     )
     public QuizDto getByCode(@PathVariable String code) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
-        return quizService.getByCodeLocalized(code, locale);
+        return quizService.getByCodeLocalized(code);
     }
 
     @PostMapping
@@ -301,8 +297,8 @@ public class QuizController {
 
     @GetMapping("/search")
     @Operation(
-            summary = "Search and sort quizzes",
-            description = "Search quizzes by title, code, or description and sort by category or creation/update time. Supports pagination and localization."
+            summary = "Search and filter quizzes",
+            description = "Search quizzes by title, code, or description and filter by category or duration time. Supports pagination and localization."
     )
     @ApiResponse(
             responseCode = "200",
@@ -320,14 +316,41 @@ public class QuizController {
                     schema = @Schema(implementation = com.diploma.proforientation.dto.ExceptionDto.class)
             )
     )
-    public Page<QuizDto> searchQuizzes(
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false, defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
+    public Page<QuizDto> search(
+            @Parameter(
+                    description = "Search text (title, code or description)",
+                    example = "career"
+            )
+            @RequestParam(required = false)
+            String search,
+            @Parameter(
+                    description = "Profession category ID",
+                    example = "1"
+            )
+            @RequestParam(required = false)
+            Integer categoryId,
+
+            @Parameter(
+                    description = "Minimum estimated duration in seconds",
+                    example = "300"
+            )
+            @RequestParam(required = false)
+            Integer minDurationSec,
+
+            @Parameter(
+                    description = "Maximum estimated duration in seconds",
+                    example = "1200"
+            )
+            @RequestParam(required = false)
+            Integer maxDurationSec,
+            @Parameter(description = "Page number", schema = @Schema(defaultValue = "1"))
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @Parameter(description = "Number of items per page", schema = @Schema(defaultValue = "20"))
+            @RequestParam(required = false, defaultValue = "20") int size,
+            @Parameter(description = "Sort by field", schema = @Schema(defaultValue = "id"))
+            @RequestParam(required = false, defaultValue = "id") String sort
     ) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
-        Pageable pageable = PageRequest.of(page - 1, size);
-        return quizService.searchAndSort(search, sortBy, locale, pageable);
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
+        return quizService.search(search, categoryId, minDurationSec, maxDurationSec, pageable);
     }
 }

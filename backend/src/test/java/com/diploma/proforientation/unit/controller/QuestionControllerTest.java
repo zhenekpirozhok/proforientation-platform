@@ -93,7 +93,6 @@ class QuestionControllerTest {
     @Test
     void getQuestionsForQuiz_shouldReturnPaginatedQuestions() {
         int quizId = 5;
-        String locale = "en";
         int page = 1;
         int size = 10;
         String sort = "id";
@@ -107,23 +106,22 @@ class QuestionControllerTest {
         Page<QuestionDto> pageResult =
                 new PageImpl<>(List.of(dto), pageable, 1);
 
-        when(service.getQuestionsForCurrentVersion(quizId, locale, pageable))
+        when(service.getQuestionsForCurrentVersion(quizId, pageable))
                 .thenReturn(pageResult);
 
         Page<QuestionDto> result =
-                controller.getQuestionsForQuiz(quizId, locale, page, size, sort);
+                controller.getQuestionsForQuiz(quizId, page, size, sort);
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().text()).isEqualTo("Question");
 
-        verify(service).getQuestionsForCurrentVersion(quizId, locale, pageable);
+        verify(service).getQuestionsForCurrentVersion(quizId, pageable);
     }
 
     @Test
     void getQuestionsForQuizVersion_shouldReturnPaginatedQuestions() {
         int quizId = 3;
         int version = 2;
-        String locale = "ru";
         int page = 1;
         int size = 5;
         String sort = "id";
@@ -136,17 +134,17 @@ class QuestionControllerTest {
 
         Page<QuestionDto> pageResult = new PageImpl<>(List.of(dto), pageable, 1);
 
-        when(service.getQuestionsForVersion(quizId, version, locale, pageable))
+        when(service.getQuestionsForVersion(quizId, version, pageable))
                 .thenReturn(pageResult);
 
         Page<QuestionDto> result = controller.getQuestionsForQuizVersion(
-                quizId, version, locale, page, size, sort
+                quizId, version, page, size, sort
         );
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().qtype()).isEqualTo("multiple_choice");
 
-        verify(service).getQuestionsForVersion(quizId, version, locale, pageable);
+        verify(service).getQuestionsForVersion(quizId, version, pageable);
     }
 
     @Test
@@ -161,7 +159,7 @@ class QuestionControllerTest {
                 "Localized option"
         );
 
-        when(service.getOptionsForQuestionLocalized(15, "en"))
+        when(service.getOptionsForQuestionLocalized(15))
                 .thenReturn(List.of(option));
 
         List<OptionDto> result = controller.getOptionsForQuestion(15);
@@ -169,6 +167,6 @@ class QuestionControllerTest {
         assertThat(result).hasSize(1);
         assertThat(result.getFirst().label()).isEqualTo("Localized option");
 
-        verify(service).getOptionsForQuestionLocalized(15, "en");
+        verify(service).getOptionsForQuestionLocalized(15);
     }
 }

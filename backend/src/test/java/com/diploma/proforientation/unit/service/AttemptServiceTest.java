@@ -12,6 +12,7 @@ import com.diploma.proforientation.service.impl.AttemptServiceImpl;
 import com.diploma.proforientation.scoring.ScoringEngine;
 import com.diploma.proforientation.scoring.ScoringEngineFactory;
 import com.diploma.proforientation.dto.ml.ScoringResult;
+import com.diploma.proforientation.util.LocaleProvider;
 import com.diploma.proforientation.util.TranslationResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,8 +40,8 @@ class AttemptServiceTest {
     @Mock ProfessionRepository professionRepo;
     @Mock ScoringEngineFactory scoringEngineFactory;
     @Mock ScoringEngine scoringEngine;
-    @Mock
-    TranslationResolver translationResolver;
+    @Mock TranslationResolver translationResolver;
+    @Mock LocaleProvider localeProvider;
 
     @InjectMocks AttemptServiceImpl service;
 
@@ -110,7 +111,6 @@ class AttemptServiceTest {
     @Test
     void testSubmitAttempt() {
 
-        // mock attempt
         Attempt attempt = new Attempt();
         attempt.setId(10);
 
@@ -123,7 +123,6 @@ class AttemptServiceTest {
 
         attempt.setQuizVersion(qv);
 
-        // mock scoring
         Map<TraitProfile, BigDecimal> traits = new HashMap<>();
         TraitProfile t = new TraitProfile();
         t.setCode("R");
@@ -135,7 +134,6 @@ class AttemptServiceTest {
 
         ScoringResult result = new ScoringResult(traits, recs);
 
-        // configure mocks
         when(attemptRepo.findById(10)).thenReturn(Optional.of(attempt));
         when(scoringEngineFactory.getEngine(QuizProcessingMode.ML_RIASEC)).thenReturn(scoringEngine);
         when(scoringEngine.evaluate(10)).thenReturn(result);
@@ -177,6 +175,8 @@ class AttemptServiceTest {
         when(attemptRepo.findByUserIdOrderByStartedAtDesc(99))
                 .thenReturn(List.of(a));
 
+        when(localeProvider.currentLanguage()).thenReturn("en");
+
         when(translationResolver.resolve(
                 eq("quiz"),
                 eq(1),
@@ -186,7 +186,7 @@ class AttemptServiceTest {
         )).thenReturn("RIASEC");
 
         List<AttemptSummaryDto> list =
-                service.getMyAttempts(99, null, "en");
+                service.getMyAttempts(99, null);
 
         assertThat(list).hasSize(1);
         assertThat(list.getFirst().quizTitle()).isEqualTo("RIASEC");
@@ -209,7 +209,7 @@ class AttemptServiceTest {
         when(attemptRepo.findByGuestTokenOrderByStartedAtDesc("abc"))
                 .thenReturn(List.of(a));
 
-        List<AttemptSummaryDto> list = service.getMyAttempts(null, "abc", "en");
+        List<AttemptSummaryDto> list = service.getMyAttempts(null, "abc");
 
         assertThat(list).hasSize(1);
         assertThat(list.getFirst().id()).isEqualTo(7);
@@ -269,7 +269,7 @@ class AttemptServiceTest {
                 .thenReturn(List.of(a));
 
         List<AttemptSummaryDto> list =
-                service.adminSearchAttempts(null, 5, null, null, "en");
+                service.adminSearchAttempts(null, 5, null, null);
 
         assertThat(list).hasSize(1);
         assertThat(list.getFirst().id()).isEqualTo(22);

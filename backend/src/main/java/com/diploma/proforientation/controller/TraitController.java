@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,8 +36,7 @@ public class TraitController {
             )
     )
     public List<TraitDto> getAll() {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
-        return service.getAllLocalized(locale);
+        return service.getAllLocalized();
     }
 
     @GetMapping("/{id}")
@@ -62,8 +60,7 @@ public class TraitController {
             )
     )
     public TraitDto getById(@PathVariable Integer id) {
-        String locale = LocaleContextHolder.getLocale().getLanguage();
-        return service.getByIdLocalized(id, locale);
+        return service.getByIdLocalized(id);
     }
 
     @PostMapping

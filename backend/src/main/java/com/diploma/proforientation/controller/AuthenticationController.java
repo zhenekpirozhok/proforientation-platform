@@ -229,7 +229,7 @@ public class AuthenticationController {
     @ApiResponse(responseCode = "400", description = "Missing or invalid Authorization header")
     @ApiResponse(responseCode = "401", description = "Unauthorized")
     public ResponseEntity<?> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ") || authHeader.length() <= 7) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.badRequest().body("Missing or invalid Authorization header");
         }
 

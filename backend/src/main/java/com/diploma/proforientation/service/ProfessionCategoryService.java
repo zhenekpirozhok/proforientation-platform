@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ProfessionCategoryService {
     List<ProfessionCategoryDto> getAll();
-    List<ProfessionCategoryDto> getAllLocalized(String locale);
+    List<ProfessionCategoryDto> getAllLocalized();
     ProfessionCategoryDto create(CreateCategoryRequest req);
     ProfessionCategoryDto update(Integer id, CreateCategoryRequest req);
     void delete(Integer id);

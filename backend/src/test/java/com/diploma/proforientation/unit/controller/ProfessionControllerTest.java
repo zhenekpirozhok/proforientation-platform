@@ -70,7 +70,7 @@ class ProfessionControllerTest {
         Page<ProfessionDto> pageResult =
                 new PageImpl<>(List.of(dto1, dto2), pageable, 2);
 
-        when(service.getAllLocalized("en", pageable)).thenReturn(pageResult);
+        when(service.getAllLocalized(pageable)).thenReturn(pageResult);
 
         Page<ProfessionDto> result = controller.getAll(page, size, sort);
 
@@ -78,19 +78,19 @@ class ProfessionControllerTest {
         assertEquals(2, result.getContent().size());
         assertEquals("Developer", result.getContent().getFirst().title());
 
-        verify(service, times(1)).getAllLocalized("en", pageable);
+        verify(service, times(1)).getAllLocalized(pageable);
     }
 
     @Test
     void shouldReturnProfessionByIdLocalized() {
-        when(service.getByIdLocalized(1, "en")).thenReturn(dto1);
+        when(service.getByIdLocalized(1)).thenReturn(dto1);
 
         ProfessionDto result = controller.getById(1);
 
         assertNotNull(result);
         assertEquals("DEV", result.code());
 
-        verify(service).getByIdLocalized(1, "en");
+        verify(service).getByIdLocalized(1);
     }
 
     @Test
