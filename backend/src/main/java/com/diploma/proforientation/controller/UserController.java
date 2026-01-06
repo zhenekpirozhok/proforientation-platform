@@ -35,7 +35,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @Operation(
             summary = "Get current authenticated user",
             description = "Returns the profile of the currently authenticated user"
