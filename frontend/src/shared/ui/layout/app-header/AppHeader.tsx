@@ -67,7 +67,7 @@ export function AppHeader() {
       key: 'profile',
       icon: <UserOutlined />,
       label: tHeader('profile'),
-      onClick: () => router.push('/my-career-profile'),
+      onClick: () => router.push('/me/results'),
     },
     {
       key: 'settings',
@@ -147,7 +147,6 @@ export function AppHeader() {
               >
                 <Avatar size="small" />
                 <span className="hidden md:inline">{userLabel}</span>
-                <SettingOutlined />
               </button>
             </Dropdown>
           ) : (

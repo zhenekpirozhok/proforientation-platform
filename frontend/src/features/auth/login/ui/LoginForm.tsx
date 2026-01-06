@@ -8,6 +8,8 @@ import { applyZodErrorsToAntdForm } from '@/shared/validation/antdZod'
 import { loginSchema, type LoginSchemaValues } from '@/shared/validation/loginSchema'
 import { useLoginUser } from '@/features/auth/login/model/useLoginUser'
 import { useSessionStore } from '@/entities/session/model/store'
+import { useGoogleOneTapLogin } from '@/features/auth/login/model/useGoogleOneTapLogin'
+import { GoogleOneTapInit } from '@/features/auth/login/ui/GoogleOneTapInit'
 
 const { Title, Text } = Typography
 
@@ -15,18 +17,48 @@ export function LoginForm() {
   const t = useTranslations('LoginPage')
   const [form] = Form.useForm<LoginSchemaValues>()
   const router = useRouter()
-  const { submit, isPending } = useLoginUser()
+
+  const passwordLogin = useLoginUser()
+  const googleLogin = useGoogleOneTapLogin()
+  const user = useSessionStore((s) => s.user)
+
+  async function loadMeAndGo() {
+    const meRes = await fetch('/api/users/me', {
+      credentials: 'include',
+      cache: 'no-store',
+    }).catch(() => null)
+
+    if (!meRes || !meRes.ok) {
+      useSessionStore.getState().setUser(null)
+      message.error(t('Errors.Generic'))
+      return
+    }
+
+    const me = await meRes.json().catch(() => null)
+    useSessionStore.getState().setUser(me as any)
+
+    message.success(t('Success'))
+    router.replace('/me/results')
+  }
 
   return (
     <div className="mx-auto w-full max-w-[480px] px-4">
+      <GoogleOneTapInit
+        disabled={!!user || googleLogin.isPending}
+        onCredential={async (token) => {
+          const res = await googleLogin.submit({ token })
+          if (!res.ok) {
+            message.error(res.message ?? t('Errors.Generic'))
+            return
+          }
+          await loadMeAndGo()
+        }}
+      />
+
       <div className="py-10 sm:py-12">
         <div className="text-center">
-          <Title level={2} className="!mb-2 !text-slate-900 dark:!text-slate-100">
-            {t('Title')}
-          </Title>
-          <Text className="!text-slate-600 dark:!text-slate-300">
-            {t('Subtitle')}
-          </Text>
+          <Title level={2}>{t('Title')}</Title>
+          <Text>{t('Subtitle')}</Text>
         </div>
 
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
@@ -41,8 +73,7 @@ export function LoginForm() {
                 return
               }
 
-              const res = await submit(parsed.data)
-
+              const res = await passwordLogin.submit(parsed.data)
               if (!res.ok) {
                 if (res.zodError) {
                   applyZodErrorsToAntdForm(form, res.zodError)
@@ -52,68 +83,35 @@ export function LoginForm() {
                 return
               }
 
-              const meRes = await fetch('/api/users/me', { credentials: 'include' }).catch(() => null)
-
-              if (!meRes || !meRes.ok) {
-                useSessionStore.getState().setUser(null)
-                message.error(t('Errors.Generic'))
-                return
-              }
-
-              const me = await meRes.json().catch(() => null)
-              useSessionStore.getState().setUser(me as any)
-
-              message.success(t('Success'))
-              router.replace('/me/results')
+              await loadMeAndGo()
             }}
           >
-            <Form.Item
-              name="email"
-              label={<span className="text-slate-900 dark:text-slate-100">{t('EmailLabel')}</span>}
-            >
-              <Input placeholder={t('EmailPlaceholder')} autoComplete="email" />
+            <Form.Item name="email" label={t('EmailLabel')}>
+              <Input autoComplete="email" />
             </Form.Item>
 
-            <Form.Item
-              name="password"
-              label={<span className="text-slate-900 dark:text-slate-100">{t('PasswordLabel')}</span>}
-            >
-              <Input.Password autoComplete="current-password" placeholder={t('PasswordPlaceholder')} />
+            <Form.Item name="password" label={t('PasswordLabel')}>
+              <Input.Password autoComplete="current-password" />
             </Form.Item>
 
-            <div className="mb-3 flex items-center justify-between text-sm">
-              <Link
-                href="/"
-                className="text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100"
-              >
-                {t('BackToHome')}
-              </Link>
-
-              <Link
-                href="/forgot-password"
-                className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-              >
-                {t('ForgotPassword')}
-              </Link>
+            <div className="mb-3 flex justify-between text-sm">
+              <Link href="/">{t('BackToHome')}</Link>
+              <Link href="/forgot-password">{t('ForgotPassword')}</Link>
             </div>
 
-            <Button htmlType="submit" type="primary" className="w-full" loading={isPending}>
+            <Button
+              htmlType="submit"
+              type="primary"
+              className="w-full"
+              loading={passwordLogin.isPending || googleLogin.isPending}
+            >
               {t('Submit')}
             </Button>
 
-            <Button className="mt-3 w-full" disabled>
-              {t('Google')}
-            </Button>
-
             <div className="mt-4 text-center">
-              <Text className="!text-slate-600 dark:!text-slate-300">
+              <Text>
                 {t('NoAccount')}{' '}
-                <Link
-                  href="/register"
-                  className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-                >
-                  {t('CreateOne')}
-                </Link>
+                <Link href="/register">{t('CreateOne')}</Link>
               </Text>
             </div>
           </Form>

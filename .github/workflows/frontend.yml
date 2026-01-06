@@ -143,16 +143,15 @@ jobs:
         run: npm run build
 
       - name: Deploy
-        working-directory: frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           npm i -g vercel@latest
-          vercel pull --yes --environment=${{ inputs.target }} --token=$VERCEL_TOKEN
+          vercel pull --yes --environment=${{ inputs.target }} --token=$VERCEL_TOKEN --cwd frontend
           if [ "${{ inputs.target }}" = "production" ]; then
-            vercel deploy --prod --yes --token=$VERCEL_TOKEN
+            vercel deploy --prod --yes --token=$VERCEL_TOKEN --cwd frontend
           else
-            vercel deploy --yes --token=$VERCEL_TOKEN
+            vercel deploy --yes --token=$VERCEL_TOKEN --cwd frontend
           fi
