@@ -84,45 +84,31 @@ async function fetchQuestionBatch(params: {
   }
 }
 
-async function fetchAttemptResult(attemptId: number, guestToken?: string | null) {
-  const res = await fetch(`/api/attempts/${attemptId}/result`, {
-    method: 'GET',
-    headers: {
-      ...(guestToken ? { 'x-guest-token': guestToken } : {}),
-    },
-    cache: 'no-store',
-  })
-
-  return parseResponse<AttemptResult>(res)
-}
-
 export function QuizPlayer({ quizId }: Props) {
   const router = useRouter()
   const qc = useQueryClient()
   const t = useTranslations('QuizPlayer')
   const { locale } = useParams<{ locale: string }>()
 
-  const {
-    attemptId,
-    guestToken,
-    status,
-    error,
-    currentIndex,
-    totalQuestions,
-    answersByQuestionId,
-    quizVersionId,
-    bulkSentAttemptId,
-    resumeOrStart,
-    setAttempt,
-    setStatus,
-    setError,
-    setTotalQuestions,
-    goNext,
-    goPrev,
-    selectOption,
-    setResult,
-    setBulkSent,
-  } = useQuizPlayerStore()
+  const attemptId = useQuizPlayerStore((s) => s.attemptId)
+  const guestToken = useQuizPlayerStore((s) => s.guestToken)
+  const status = useQuizPlayerStore((s) => s.status)
+  const error = useQuizPlayerStore((s) => s.error)
+  const currentIndex = useQuizPlayerStore((s) => s.currentIndex)
+  const totalQuestions = useQuizPlayerStore((s) => s.totalQuestions)
+  const answersByQuestionId = useQuizPlayerStore((s) => s.answersByQuestionId)
+  const bulkSentAttemptId = useQuizPlayerStore((s) => s.bulkSentAttemptId)
+
+  const resumeOrStart = useQuizPlayerStore((s) => s.resumeOrStart)
+  const setAttempt = useQuizPlayerStore((s) => s.setAttempt)
+  const setStatus = useQuizPlayerStore((s) => s.setStatus)
+  const setError = useQuizPlayerStore((s) => s.setError)
+  const setTotalQuestions = useQuizPlayerStore((s) => s.setTotalQuestions)
+  const goNext = useQuizPlayerStore((s) => s.goNext)
+  const goPrev = useQuizPlayerStore((s) => s.goPrev)
+  const selectOption = useQuizPlayerStore((s) => s.selectOption)
+  const setResult = useQuizPlayerStore((s) => s.setResult)
+  const setBulkSent = useQuizPlayerStore((s) => s.setBulkSent)
 
   const versionQuery = useCurrentQuizVersionIdQuery(quizId)
 
@@ -130,32 +116,25 @@ export function QuizPlayer({ quizId }: Props) {
 
   const addAnswersBulk = useAddAnswersBulk({
     mutation: { retry: false },
-    request: {
-      headers: {
-        ...(guestToken ? { 'x-guest-token': guestToken } : {}),
-      },
-    },
   })
 
   const submitAttempt = useSubmit({
     mutation: { retry: false },
-    request: {
-      headers: {
-        ...(guestToken ? { 'x-guest-token': guestToken } : {}),
-      },
-    },
   })
 
   const startedForVersionRef = useRef<number | null>(null)
+  const startAttemptAsync = startAttempt.mutateAsync
+
+  const vId = versionQuery.data ?? null
+  const ready = Boolean(attemptId && vId && locale)
 
   useEffect(() => {
-    const vId = versionQuery.data
     if (!vId) return
 
     resumeOrStart(quizId, vId)
 
     const s = useQuizPlayerStore.getState()
-    if (s.attemptId && s.guestToken) return
+    if (s.attemptId) return
 
     if (startedForVersionRef.current === vId) return
     startedForVersionRef.current = vId
@@ -164,14 +143,12 @@ export function QuizPlayer({ quizId }: Props) {
 
     ;(async () => {
       try {
-        const started = await startAttempt.mutateAsync({ params: { quizVersionId: vId } })
+        const started = await startAttemptAsync({ params: { quizVersionId: vId } })
         if (cancelled) return
 
         if (!isStartAttemptAny(started)) throw new Error('Invalid start attempt response')
 
         const tok = typeof (started as any).guestToken === 'string' ? String((started as any).guestToken) : ''
-        if (!tok) throw new Error('Missing guest token')
-
         setAttempt((started as any).attemptId, tok)
       } catch (e) {
         if (cancelled) return
@@ -183,17 +160,15 @@ export function QuizPlayer({ quizId }: Props) {
     return () => {
       cancelled = true
     }
-  }, [quizId, resumeOrStart, setAttempt, setError, startAttempt, versionQuery.data])
-
-  const ready = Boolean(attemptId && guestToken && quizVersionId && locale)
+  }, [quizId, vId, resumeOrStart, setAttempt, setError, startAttemptAsync])
 
   const safeIndex = Math.max(0, currentIndex)
   const batch = Math.max(0, batchIndexFromQuestionIndex(safeIndex))
 
   const batchQuery = useQuery({
-    queryKey: quizQuestionBatchKey(quizId, batch, locale),
+    queryKey: quizQuestionBatchKey(quizId, batch, String(locale)),
     enabled: ready && Number.isFinite(quizId) && quizId > 0,
-    queryFn: ({ signal }) => fetchQuestionBatch({ quizId, batch, locale, signal }),
+    queryFn: ({ signal }) => fetchQuestionBatch({ quizId, batch, locale: String(locale), signal }),
     staleTime: 30_000,
     placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
@@ -216,10 +191,8 @@ export function QuizPlayer({ quizId }: Props) {
 
   const hasTotal = totalQuestions != null
   const isLast = hasTotal ? safeIndex === (totalQuestions ?? 1) - 1 : false
-
   const canNext = !hasTotal || !isLast
   const canSubmit = hasTotal && isLast
-
   const isBusy = status === 'submitting' || status === 'finished'
 
   useEffect(() => {
@@ -231,14 +204,17 @@ export function QuizPlayer({ quizId }: Props) {
     const nextBatch = Math.max(0, batchIndexFromQuestionIndex(nextIndex))
     if (nextBatch === batch) return
 
-    const key = quizQuestionBatchKey(quizId, nextBatch, locale)
+    const key = quizQuestionBatchKey(quizId, nextBatch, String(locale))
     if (qc.getQueryData(key)) return
 
-    qc.prefetchQuery({
-      queryKey: key,
-      queryFn: ({ signal }) => fetchQuestionBatch({ quizId, batch: nextBatch, locale, signal }),
-      staleTime: 30_000,
-    }).catch(() => {})
+    qc
+      .prefetchQuery({
+        queryKey: key,
+        queryFn: ({ signal }) =>
+          fetchQuestionBatch({ quizId, batch: nextBatch, locale: String(locale), signal }),
+        staleTime: 30_000,
+      })
+      .catch(() => {})
   }, [ready, question, safeIndex, batch, hasTotal, totalQuestions, quizId, locale, qc])
 
   async function onNext() {
@@ -249,7 +225,7 @@ export function QuizPlayer({ quizId }: Props) {
 
   async function onSubmit() {
     if (isBusy) return
-    if (!attemptId || !guestToken || !hasTotal) return
+    if (!attemptId || !hasTotal) return
     if (!question || !selectedOptionId) return
 
     try {
@@ -272,20 +248,15 @@ export function QuizPlayer({ quizId }: Props) {
       setResult(result as AttemptResult)
 
       setStatus('finished')
-      router.push(`/results/${attemptId}`)
+      router.push('/results')
     } catch (e) {
       const message = safeErrorMessage(e)
 
       if (message.includes('Attempt already submitted')) {
-        try {
-          const r = await fetchAttemptResult(attemptId, guestToken)
-          setResult(r as AttemptResult)
+        const existing = useQuizPlayerStore.getState().result
+        if (existing) {
           setStatus('finished')
-          router.push(`/results/${attemptId}`)
-          return
-        } catch (e2) {
-          setStatus('in-progress')
-          setError(safeErrorMessage(e2))
+          router.push('/results')
           return
         }
       }
@@ -358,7 +329,12 @@ export function QuizPlayer({ quizId }: Props) {
       <QuizProgressHeader current={currentHuman} total={total} />
 
       <AnimatedQuestion motionKey={question.id}>
-        <QuestionCard question={question} selectedOptionId={selectedOptionId} onSelect={selectOption} disabled={isBusy} />
+        <QuestionCard
+          question={question}
+          selectedOptionId={selectedOptionId}
+          onSelect={selectOption}
+          disabled={isBusy}
+        />
       </AnimatedQuestion>
 
       <QuizPlayerActions

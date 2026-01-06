@@ -3,9 +3,8 @@
 import '@/features/results/ui/results.css'
 
 import { useMemo } from 'react'
-import { useParams } from 'next/navigation'
 import { useRouter } from '@/shared/i18n/lib/navigation'
-import { useTranslations, useLocale, type _Translator } from 'next-intl'
+import { useTranslations, type _Translator } from 'next-intl'
 import { Alert } from 'antd'
 
 import { useQuizPlayerStore } from '@/features/quiz-player/model/store'
@@ -19,8 +18,7 @@ import { CareerMatches } from '@/features/results/ui/CareerMatches'
 import { ResultsActions } from '@/features/results/ui/ResultsActions'
 import { ResultsSkeleton } from '@/features/results/ui/ResultsSkeleton'
 
-import { TraitDto, ProfessionDto } from '@/shared/api/generated/model';
-
+import { TraitDto, ProfessionDto } from '@/shared/api/generated/model'
 
 function safeProfessionTitle(
   rec: { professionId: number; explanation?: string },
@@ -36,11 +34,7 @@ function safeProfessionTitle(
   return t('Results.fallbackProfessionTitle', { id: rec.professionId })
 }
 
-function topTraitName(
-  result: AttemptResult,
-  traitByCode: Map<string, TraitDto>,
-  t: _Translator,
-) {
+function topTraitName(result: AttemptResult, traitByCode: Map<string, TraitDto>, t: _Translator) {
   const sorted = (result.traitScores ?? []).slice().sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
   const top = sorted[0]
   if (!top) return t('Results.heroFallbackType')
@@ -50,22 +44,12 @@ function topTraitName(
 export default function ResultPage() {
   const t = useTranslations()
   const router = useRouter()
-  const params = useParams<{ attemptId?: string }>()
 
   const quizId = useQuizPlayerStore((s) => s.quizId)
-  const storedAttemptId = useQuizPlayerStore((s) => s.attemptId)
   const storedResult = useQuizPlayerStore((s) => s.result)
 
   const status = useSessionStore((s) => s.status)
   const isAuthenticated = status === 'auth'
-
-  const attemptIdStr = params?.attemptId
-  const attemptIdFromUrl = attemptIdStr ? Number(attemptIdStr) : NaN
-  const attemptIdReady = Boolean(attemptIdStr)
-  const attemptIdValid = Number.isFinite(attemptIdFromUrl)
-
-  const hasStoreResult =
-    attemptIdValid && storedAttemptId === attemptIdFromUrl && storedResult != null
 
   const goToQuiz = () => {
     const safeQuizId = Number.isFinite(quizId) && quizId > 0 ? quizId : 1
@@ -77,7 +61,7 @@ export default function ResultPage() {
     goToQuiz()
   }
 
-  const catalogEnabled = hasStoreResult && Number.isFinite(quizId) && quizId > 0
+  const catalogEnabled = Boolean(storedResult) && Number.isFinite(quizId) && quizId > 0
   const catalogQ = useQuizCatalogForResults(catalogEnabled ? quizId : 0)
 
   const traits = (catalogQ.data?.traits ?? []) as TraitDto[]
@@ -100,18 +84,10 @@ export default function ResultPage() {
     return m
   }, [professions])
 
-  if (!attemptIdReady) {
+  if (!storedResult) {
     return (
       <div className="cp-results-content">
-        <ResultsSkeleton />
-      </div>
-    )
-  }
-
-  if (!attemptIdValid) {
-    return (
-      <div className="cp-results-content">
-        <Alert type="error" showIcon title={t('Results.invalidAttemptId')} />
+        <Alert type="warning" showIcon title={t('Results.noSessionResult')} />
         <div style={{ marginTop: 16 }}>
           <ResultsActions
             primaryLabel={t('Results.goToQuiz')}
@@ -123,27 +99,6 @@ export default function ResultPage() {
             loginBody={t('Results.loginBody')}
             loginOkText={t('Results.loginOkText')}
             loginCancelText={t('Results.loginCancelText')}
-          />
-        </div>
-      </div>
-    )
-  }
-
-  if (!hasStoreResult) {
-    return (
-      <div className="cp-results-content">
-        <Alert type="warning" showIcon message={t('Results.noSessionResult')} />
-        <div style={{ marginTop: 16 }}>
-          <ResultsActions
-            primaryLabel={t('Results.goToQuiz')}
-            secondaryLabel={t('Results.retake')}
-            onPrimary={goToQuiz}
-            onSecondary={retake}
-            isAuthenticated={isAuthenticated}
-                          loginTitle={t('Results.loginTitle')}
-              loginBody={t('Results.loginBody')}
-              loginOkText={t('Results.loginOkText')}
-              loginCancelText={t('Results.loginCancelText')}
           />
         </div>
       </div>
@@ -194,9 +149,7 @@ export default function ResultPage() {
           <Alert
             type="warning"
             showIcon
-            title={
-              catalogQ.error instanceof Error ? catalogQ.error.message : t('Results.catalogError')
-            }
+            title={catalogQ.error instanceof Error ? catalogQ.error.message : t('Results.catalogError')}
             style={{ marginBottom: 16 }}
           />
         ) : null}

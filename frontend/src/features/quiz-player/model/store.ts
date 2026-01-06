@@ -63,7 +63,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
       startFresh: (quizId, quizVersionId) => {
         const s = get();
-        const alreadyFresh =
+        const already =
           s.quizId === quizId &&
           s.quizVersionId === quizVersionId &&
           s.attemptId == null &&
@@ -76,7 +76,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           s.result == null &&
           s.bulkSentAttemptId == null;
 
-        if (alreadyFresh) return;
+        if (already) return;
 
         set({
           quizId,
@@ -107,14 +107,14 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
         if (canResume) {
           const nextIndex = clampIndex(s.currentIndex, s.totalQuestions);
 
-          const alreadyResumed =
-            s.quizId === quizId &&
-            s.quizVersionId === quizVersionId &&
+          const already =
             s.status === 'in-progress' &&
             s.error == null &&
-            s.currentIndex === nextIndex;
+            s.currentIndex === nextIndex &&
+            s.quizId === quizId &&
+            s.quizVersionId === quizVersionId;
 
-          if (alreadyResumed) return;
+          if (already) return;
 
           set({
             quizId,
@@ -158,14 +158,13 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
       setAttempt: (attemptId, guestToken) => {
         const s = get();
-        if (
+        const already =
           s.attemptId === attemptId &&
           s.guestToken === guestToken &&
           s.status === 'in-progress' &&
-          s.error == null
-        ) {
-          return;
-        }
+          s.error == null;
+
+        if (already) return;
 
         useGuestStore.getState().setGuestToken(guestToken);
 
@@ -192,6 +191,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           set({ error: null });
           return;
         }
+
         set({ error, status: 'error' });
       },
 
@@ -254,8 +254,8 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
       },
     }),
     {
-      name: 'quiz-player:v2',
-      version: 2,
+      name: 'quiz-player:v5',
+      version: 5,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({
         quizId: s.quizId,
