@@ -59,36 +59,18 @@ paths:
               $ref: "#/components/schemas/UpdateTranslationRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Invalid request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Translation updated successfully
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/TranslationDto"
+        "400":
+          description: Invalid request
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
         "403":
           description: Access denied (ADMIN role required)
           content:
@@ -109,30 +91,6 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "204":
           description: Translation deleted successfully
         "403":
@@ -157,36 +115,18 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Trait not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Trait found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/TraitDto"
+        "404":
+          description: Trait not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
     put:
       tags:
       - Trait
@@ -207,30 +147,6 @@ paths:
               $ref: "#/components/schemas/CreateTraitRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Trait not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Trait updated successfully
           content:
@@ -239,6 +155,12 @@ paths:
                 $ref: "#/components/schemas/TraitDto"
         "403":
           description: Access denied (ADMIN role required)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "404":
+          description: Trait not found
           content:
             '*/*':
               schema:
@@ -257,30 +179,6 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "204":
           description: Trait deleted successfully
         "403":
@@ -305,36 +203,18 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Quiz not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Quiz found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/QuizDto"
+        "404":
+          description: Quiz not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
     put:
       tags:
       - Quiz
@@ -355,36 +235,18 @@ paths:
               $ref: "#/components/schemas/UpdateQuizRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Quiz not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Quiz updated
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/QuizDto"
+        "404":
+          description: Quiz not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
         "403":
           description: Access denied
           content:
@@ -405,30 +267,6 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "204":
           description: Quiz deleted
         "403":
@@ -459,38 +297,26 @@ paths:
               $ref: "#/components/schemas/UpdateQuestionRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Validation error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Question not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Question updated
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/QuestionDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/QuestionDto"
         "403":
           description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/QuestionDto"
+        "404":
+          description: Question not found
           content:
             '*/*':
               schema:
@@ -509,34 +335,12 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Question not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Question deleted
         "403":
           description: Forbidden
+        "404":
+          description: Question not found
   /questions/{id}/order/{ord}:
     put:
       tags:
@@ -558,30 +362,6 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Question not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Order updated
           content:
@@ -590,6 +370,12 @@ paths:
                 $ref: "#/components/schemas/QuestionDto"
         "403":
           description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/QuestionDto"
+        "404":
+          description: Question not found
           content:
             '*/*':
               schema:
@@ -609,32 +395,14 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Profession not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Profession found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionDto"
+        "404":
+          description: Profession not found
           content:
             '*/*':
               schema:
@@ -659,38 +427,26 @@ paths:
               $ref: "#/components/schemas/CreateProfessionRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Validation error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Profession not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Profession updated
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ProfessionDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionDto"
         "403":
           description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionDto"
+        "404":
+          description: Profession not found
           content:
             '*/*':
               schema:
@@ -709,34 +465,12 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Profession not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Profession deleted
         "403":
           description: Forbidden
+        "404":
+          description: Profession not found
   /options/{optionId}/traits:
     put:
       tags:
@@ -761,34 +495,14 @@ paths:
               $ref: "#/components/schemas/OptionTraitListRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Invalid request payload
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Option not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Traits successfully updated
+        "400":
+          description: Invalid request payload
         "403":
           description: Forbidden
+        "404":
+          description: Option not found
     post:
       tags:
       - Option Trait
@@ -812,34 +526,14 @@ paths:
               $ref: "#/components/schemas/OptionTraitListRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Invalid request payload
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Option not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Traits successfully assigned
+        "400":
+          description: Invalid request payload
         "403":
           description: Forbidden
+        "404":
+          description: Option not found
   /options/{id}:
     put:
       tags:
@@ -863,12 +557,12 @@ paths:
               $ref: "#/components/schemas/UpdateOptionRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
+        "200":
+          description: Option updated
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/ExceptionDto"
+                $ref: "#/components/schemas/OptionDto"
         "400":
           description: Validation error
           content:
@@ -877,18 +571,6 @@ paths:
                 $ref: "#/components/schemas/ExceptionDto"
         "404":
           description: Option not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "200":
-          description: Option updated
           content:
             '*/*':
               schema:
@@ -915,32 +597,10 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Option not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Option deleted
+        "404":
+          description: Option not found
         "403":
           description: Forbidden
   /options/{id}/order/{ord}:
@@ -966,32 +626,20 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
+        "200":
+          description: Option order updated
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/ExceptionDto"
+                $ref: "#/components/schemas/OptionDto"
         "400":
           description: Invalid order value
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/ExceptionDto"
+                $ref: "#/components/schemas/OptionDto"
         "404":
           description: Option not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "200":
-          description: Option order updated
           content:
             '*/*':
               schema:
@@ -1024,38 +672,26 @@ paths:
               $ref: "#/components/schemas/CreateCategoryRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Validation error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Category not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Category updated
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ProfessionCategoryDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionCategoryDto"
         "403":
           description: Forbidden
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionCategoryDto"
+        "404":
+          description: Category not found
           content:
             '*/*':
               schema:
@@ -1074,34 +710,12 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Category not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Category deleted
         "403":
           description: Forbidden
+        "404":
+          description: Category not found
   /translations:
     get:
       tags:
@@ -1127,36 +741,18 @@ paths:
         schema:
           type: string
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Invalid request parameters
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Translations found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/TranslationDto"
+        "400":
+          description: Invalid request parameters
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
     post:
       tags:
       - Translation
@@ -1171,12 +767,12 @@ paths:
               $ref: "#/components/schemas/CreateTranslationRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
+        "200":
+          description: Translation created successfully
           content:
-            '*/*':
+            application/json:
               schema:
-                $ref: "#/components/schemas/ExceptionDto"
+                $ref: "#/components/schemas/TranslationDto"
         "400":
           description: Validation error
           content:
@@ -1188,24 +784,6 @@ paths:
                 time: 2025-05-20T15:00:00Z
                 message:
                   locale: "locale must be a valid language code (e.g., en, en-US)"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "200":
-          description: Translation created successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TranslationDto"
         "403":
           description: Access denied (ADMIN role required)
           content:
@@ -1220,30 +798,6 @@ paths:
       description: Returns all traits localized according to the current request locale
       operationId: getAll
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: List of traits
           content:
@@ -1263,30 +817,6 @@ paths:
               $ref: "#/components/schemas/CreateTraitRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Invalid request payload
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Trait created successfully
           content:
@@ -1295,6 +825,12 @@ paths:
                 $ref: "#/components/schemas/TraitDto"
         "403":
           description: Access denied (ADMIN role required)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+        "400":
+          description: Invalid request payload
           content:
             '*/*':
               schema:
@@ -1318,7 +854,7 @@ paths:
       parameters:
       - name: page
         in: query
-        description: Page number (0-based)
+        description: Page number
         required: false
         schema:
           type: string
@@ -1335,30 +871,6 @@ paths:
         schema:
           type: string
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Page of quizzes
           content:
@@ -1378,36 +890,18 @@ paths:
               $ref: "#/components/schemas/CreateQuizRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Invalid request payload
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Quiz created
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/QuizDto"
+        "400":
+          description: Invalid request payload
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
         "403":
           description: Access denied
           content:
@@ -1430,30 +924,6 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Quiz published
           content:
@@ -1476,30 +946,6 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Quiz version copied
           content:
@@ -1521,32 +967,14 @@ paths:
               $ref: "#/components/schemas/CreateQuestionRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Validation error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Question successfully created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/QuestionDto"
+        "400":
+          description: Validation error
           content:
             '*/*':
               schema:
@@ -1576,7 +1004,7 @@ paths:
       parameters:
       - name: page
         in: query
-        description: Page number (0-based)
+        description: Page number
         required: false
         schema:
           type: string
@@ -1593,30 +1021,6 @@ paths:
         schema:
           type: string
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Page of professions
           content:
@@ -1636,32 +1040,14 @@ paths:
               $ref: "#/components/schemas/CreateProfessionRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Validation error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Profession created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionDto"
+        "400":
+          description: Validation error
           content:
             '*/*':
               schema:
@@ -1688,36 +1074,18 @@ paths:
               $ref: "#/components/schemas/CreateOptionRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Validation error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Option successfully created
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/OptionDto"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
         "403":
           description: Forbidden
           content:
@@ -1732,30 +1100,6 @@ paths:
       description: Returns a list of all profession categories.
       operationId: getAll_3
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: List of profession categories
           content:
@@ -1775,32 +1119,14 @@ paths:
               $ref: "#/components/schemas/CreateCategoryRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Validation error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Category created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ProfessionCategoryDto"
+        "400":
+          description: Validation error
           content:
             '*/*':
               schema:
@@ -1825,36 +1151,18 @@ paths:
               $ref: "#/components/schemas/RegisterUserDto"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Validation error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: User successfully registered
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/User"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
   /auth/reset-password:
     post:
       tags:
@@ -1869,36 +1177,18 @@ paths:
               $ref: "#/components/schemas/ResetPasswordDto"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Invalid or expired token
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Password reset successful
           content:
             '*/*':
               schema:
                 type: object
+        "400":
+          description: Invalid or expired token
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
   /auth/request-password-reset:
     post:
       tags:
@@ -1913,30 +1203,6 @@ paths:
               $ref: "#/components/schemas/RequestResetPasswordDto"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Reset link sent (if email exists)
           content:
@@ -1957,32 +1223,14 @@ paths:
               $ref: "#/components/schemas/RefreshTokenRequest"
         required: true
       responses:
-        "401":
-          description: Invalid or expired refresh token
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Token refreshed
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Invalid or expired refresh token
           content:
             '*/*':
               schema:
@@ -2002,32 +1250,20 @@ paths:
         schema:
           type: string
       responses:
-        "401":
-          description: Unauthorized
+        "200":
+          description: Successfully logged out
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/ExceptionDto"
+                type: object
         "400":
           description: Missing or invalid Authorization header
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "200":
-          description: Successfully logged out
+                type: object
+        "401":
+          description: Unauthorized
           content:
             '*/*':
               schema:
@@ -2046,36 +1282,18 @@ paths:
               $ref: "#/components/schemas/LoginUserDto"
         required: true
       responses:
-        "401":
-          description: Invalid credentials
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Authentication successful
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
   /auth/google-onetap:
     post:
       tags:
@@ -2090,36 +1308,18 @@ paths:
               $ref: "#/components/schemas/GoogleOneTapLoginRequest"
         required: true
       responses:
-        "401":
-          description: Invalid Google token
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Authentication successful
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Invalid Google token
+          content:
+            '*/*':
+              schema:
+                type: object
   /attempts/{attemptId}/submit:
     post:
       tags:
@@ -2140,36 +1340,18 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Attempt already submitted or incomplete
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Attempt successfully submitted and scored
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/AttemptResultDto"
+        "400":
+          description: Attempt already submitted or incomplete
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
   /attempts/{attemptId}/answers:
     post:
       tags:
@@ -2191,32 +1373,14 @@ paths:
               $ref: "#/components/schemas/AddAnswerRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Answer added successfully
         "400":
           description: Attempt already submitted or invalid option
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "200":
-          description: Answer added successfully
   /attempts/{attemptId}/answers/question:
     post:
       tags:
@@ -2243,32 +1407,14 @@ paths:
               $ref: "#/components/schemas/AddAnswersForQuestionRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Answers saved for the question
         "400":
           description: Invalid attempt state or invalid option/question mapping
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "200":
-          description: Answers saved for the question
   /attempts/{attemptId}/answers/bulk:
     post:
       tags:
@@ -2290,32 +1436,14 @@ paths:
               $ref: "#/components/schemas/AddAnswersBulkRequest"
         required: true
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
+        "200":
+          description: Answers added successfully
         "400":
           description: Invalid request or attempt state
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "200":
-          description: Answers added successfully
   /attempts/start:
     post:
       tags:
@@ -2335,36 +1463,18 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Invalid quiz version
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Attempt successfully started
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/AttemptStartResponse"
+        "400":
+          description: Invalid quiz version
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
   /api/import/translations:
     post:
       tags:
@@ -2388,36 +1498,18 @@ paths:
               required:
               - file
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Invalid CSV format or validation errors
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Translations imported successfully
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ImportResultDto"
+        "400":
+          description: Invalid CSV format or validation errors
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
         "403":
           description: Forbidden
           content:
@@ -2447,36 +1539,18 @@ paths:
               required:
               - file
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Invalid CSV format or validation errors
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Questions imported successfully
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ImportResultDto"
+        "400":
+          description: Invalid CSV format or validation errors
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
         "403":
           description: Forbidden
           content:
@@ -2499,7 +1573,7 @@ paths:
       parameters:
       - name: page
         in: query
-        description: Page number (0-based)
+        description: Page number
         required: false
         schema:
           type: string
@@ -2516,30 +1590,6 @@ paths:
         schema:
           type: string
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Users retrieved successfully
           content:
@@ -2564,6 +1614,12 @@ paths:
       description: Returns the profile of the currently authenticated user
       operationId: authenticatedUser
       responses:
+        "200":
+          description: Authenticated user returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
         "401":
           description: User is not authenticated
           content:
@@ -2574,30 +1630,6 @@ paths:
                 code: 401
                 time: 2025-05-20T14:50:00Z
                 message: Unauthorized
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "200":
-          description: Authenticated user returned successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
         "403":
           description: Authenticated but insufficient permissions
           content:
@@ -2622,30 +1654,6 @@ paths:
         schema:
           type: string
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Translations returned successfully
           content:
@@ -2667,30 +1675,6 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: List of quiz versions
           content:
@@ -2718,36 +1702,18 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Quiz version not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Quiz version found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/QuizVersionDto"
+        "404":
+          description: Quiz version not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
   /quizzes/{id}/versions/current:
     get:
       tags:
@@ -2763,30 +1729,6 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Current quiz version
           content:
@@ -2797,61 +1739,61 @@ paths:
     get:
       tags:
       - Quiz
-      summary: Search and sort quizzes
-      description: "Search quizzes by title, code, or description and sort by category\
-        \ or creation/update time. Supports pagination and localization."
-      operationId: searchQuizzes
+      summary: Search and filter quizzes
+      description: "Search quizzes by title, code, or description and filter by category\
+        \ or duration time. Supports pagination and localization."
+      operationId: search_1
       parameters:
       - name: search
         in: query
+        description: "Search text (title, code or description)"
         required: false
         schema:
           type: string
-      - name: sortBy
+        example: career
+      - name: categoryId
         in: query
+        description: Profession category ID
         required: false
         schema:
-          type: string
-          default: id
+          type: integer
+          format: int32
+        example: 1
+      - name: minDurationSec
+        in: query
+        description: Minimum estimated duration in seconds
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 300
+      - name: maxDurationSec
+        in: query
+        description: Maximum estimated duration in seconds
+        required: false
+        schema:
+          type: integer
+          format: int32
+        example: 1200
       - name: page
         in: query
+        description: Page number
         required: false
         schema:
-          type: integer
-          format: int32
-          default: 1
+          type: string
       - name: size
         in: query
+        description: Number of items per page
         required: false
         schema:
-          type: integer
-          format: int32
-          default: 10
+          type: string
+      - name: sort
+        in: query
+        description: Sort by field
+        required: false
+        schema:
+          type: string
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: No quizzes found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Quizzes found
           content:
@@ -2860,6 +1802,12 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/QuizDto"
+        "404":
+          description: No quizzes found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
   /quizzes/code/{code}:
     get:
       tags:
@@ -2875,36 +1823,18 @@ paths:
         schema:
           type: string
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Quiz not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Quiz found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/QuizDto"
+        "404":
+          description: Quiz not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
   /questions/{questionId}/options:
     get:
       tags:
@@ -2922,30 +1852,6 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Question not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: List of options for the question
           content:
@@ -2953,6 +1859,14 @@ paths:
               schema:
                 type: array
                 $ref: "#/components/schemas/OptionDto"
+        "404":
+          description: Question not found
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OptionDto"
   /questions/quiz/{quizId}:
     get:
       tags:
@@ -2976,15 +1890,9 @@ paths:
         schema:
           type: integer
           format: int32
-      - name: locale
-        in: query
-        required: false
-        schema:
-          type: string
-          default: en
       - name: page
         in: query
-        description: Page number (0-based)
+        description: Page number
         required: false
         schema:
           type: string
@@ -3001,30 +1909,6 @@ paths:
         schema:
           type: string
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Page of questions
           content:
@@ -3060,15 +1944,9 @@ paths:
         schema:
           type: integer
           format: int32
-      - name: locale
-        in: query
-        required: false
-        schema:
-          type: string
-          default: en
       - name: page
         in: query
-        description: Page number (0-based)
+        description: Page number
         required: false
         schema:
           type: string
@@ -3085,36 +1963,18 @@ paths:
         schema:
           type: string
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Quiz version not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Page of questions
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/QuestionDto"
+        "404":
+          description: Quiz version not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageQuestionDto"
   /attempts:
     get:
       tags:
@@ -3133,30 +1993,6 @@ paths:
         schema:
           type: string
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: List of attempt summaries
           content:
@@ -3179,36 +2015,18 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Attempt not found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Attempt result
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/AttemptResultDto"
+        "404":
+          description: Attempt not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
   /attempts/search:
     get:
       tags:
@@ -3221,7 +2039,7 @@ paths:
         - user
         - quiz
         - date range
-      operationId: search_1
+      operationId: search_2
       parameters:
       - name: userId
         in: query
@@ -3248,30 +2066,6 @@ paths:
           type: string
           format: date-time
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Filtered list of attempts
           content:
@@ -3291,30 +2085,6 @@ paths:
       summary: Get public quiz metrics
       operationId: getAllMetrics
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: OK
           content:
@@ -3322,7 +2092,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/QuizPublicMetricsView"
+                  $ref: "#/components/schemas/QuizPublicMetricsDto"
   /api/v1/quizzes/metrics/{quizId}:
     get:
       tags:
@@ -3337,36 +2107,12 @@ paths:
           type: integer
           format: int32
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: OK
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/QuizPublicMetricsView"
+                $ref: "#/components/schemas/QuizPublicMetricsDto"
   /api/export/excel:
     get:
       tags:
@@ -3377,30 +2123,6 @@ paths:
         Each entity is exported into a separate sheet.
       operationId: exportExcel
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "200":
           description: Excel file generated successfully
           content:
@@ -3432,34 +2154,16 @@ paths:
           - translations
         example: questions
       responses:
-        "401":
-          description: Unauthorized
+        "200":
+          description: CSV file generated successfully
           content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
+            text/csv: {}
         "400":
           description: Unsupported entity type
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "200":
-          description: CSV file generated successfully
-          content:
-            text/csv: {}
   /auth/account:
     delete:
       tags:
@@ -3474,61 +2178,12 @@ paths:
         schema:
           type: string
       responses:
-        "401":
-          description: Unauthorized
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "400":
-          description: Bad Request
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "404":
-          description: Not Found
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "500":
-          description: Internal Server Error
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
         "204":
           description: Account deleted
+        "401":
+          description: Unauthorized
 components:
   schemas:
-    ExceptionDto:
-      type: object
-      description: Standardized API error response returned for all handled exceptions
-      properties:
-        code:
-          type: integer
-          format: int32
-          description: HTTP status code representing the error type
-          examples:
-          - "400"
-        time:
-          type: string
-          format: date-time
-          description: Timestamp indicating when the error occurred (ISO-8601 format)
-          examples:
-          - 2025-01-15T14:32:10Z
-        message:
-          type: object
-          description: |
-            Error details. May be:
-            - a string message (e.g. 'Invalid credentials')
-            - a structured object containing validation errors
-          examples:
-          - Invalid email or password
-          oneOf:
-          - type: string
-          - {}
     UpdateTranslationRequest:
       type: object
       description: Request payload for updating a localized translation value
@@ -3574,6 +2229,33 @@ components:
           description: Localized text value
           examples:
           - Software Engineer
+    ExceptionDto:
+      type: object
+      description: Standardized API error response returned for all handled exceptions
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: HTTP status code representing the error type
+          examples:
+          - "400"
+        time:
+          type: string
+          format: date-time
+          description: Timestamp indicating when the error occurred (ISO-8601 format)
+          examples:
+          - 2025-01-15T14:32:10Z
+        message:
+          type: object
+          description: |
+            Error details. May be:
+            - a string message (e.g. 'Invalid credentials')
+            - a structured object containing validation errors
+          examples:
+          - Invalid email or password
+          oneOf:
+          - type: string
+          - {}
     CreateTraitRequest:
       type: object
       description: Request payload for creating a psychological trait
@@ -4536,6 +3218,38 @@ components:
           type: boolean
         unsorted:
           type: boolean
+    PageQuestionDto:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuestionDto"
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        first:
+          type: boolean
+        last:
+          type: boolean
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        empty:
+          type: boolean
     AttemptSummaryDto:
       type: object
       description: Summary information about a quiz attempt
@@ -4582,12 +3296,9 @@ components:
           description: Indicates whether the attempt has been completed
           examples:
           - "true"
-    QuizPublicMetricsView:
+    QuizPublicMetricsDto:
       type: object
       properties:
-        estimatedDurationSeconds:
-          type: integer
-          format: int32
         quizId:
           type: integer
           format: int32
@@ -4609,7 +3320,9 @@ components:
           format: int32
         avgDurationSeconds:
           type: number
-          format: double
+        estimatedDurationSeconds:
+          type: integer
+          format: int32
   securitySchemes:
     Bearer Authentication:
       type: http
