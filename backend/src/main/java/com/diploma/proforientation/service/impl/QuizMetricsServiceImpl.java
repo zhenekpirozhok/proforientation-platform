@@ -1,6 +1,7 @@
 package com.diploma.proforientation.service.impl;
 
-import com.diploma.proforientation.model.view.QuizPublicMetricsView;
+import com.diploma.proforientation.dto.QuizPublicMetricsDto;
+import com.diploma.proforientation.model.view.QuizPublicMetricsEntity;
 import com.diploma.proforientation.repository.QuizPublicMetricsRepository;
 import com.diploma.proforientation.service.QuizMetricsService;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,13 +20,17 @@ public class QuizMetricsServiceImpl implements QuizMetricsService {
 
     private final QuizPublicMetricsRepository repository;
 
-    public List<QuizPublicMetricsView> getAllPublicMetrics() {
-        return repository.findAllMetrics();
+    @Override
+    public List<QuizPublicMetricsDto> getAllPublicMetrics() {
+        return repository.findAll().stream()
+                .map(QuizPublicMetricsDto::from)
+                .toList();
     }
 
-    public QuizPublicMetricsView getMetricsForQuiz(Integer quizId) {
-        return repository.findByQuizId(quizId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException(QUIZ_METRICS_NOT_FOUND));
+    @Override
+    public QuizPublicMetricsDto getMetricsForQuiz(Integer quizId) {
+        QuizPublicMetricsEntity e = repository.findById(quizId)
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_METRICS_NOT_FOUND));
+        return QuizPublicMetricsDto.from(e);
     }
 }

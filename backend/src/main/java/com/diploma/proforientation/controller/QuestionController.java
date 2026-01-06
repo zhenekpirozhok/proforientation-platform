@@ -119,7 +119,7 @@ public class QuestionController {
     )
     public Page<QuestionDto> getQuestionsForQuiz(
             @PathVariable Integer quizId,
-            @Parameter(description = "Page number (0-based)", schema = @Schema(defaultValue = "1"))
+            @Parameter(description = "Page number", schema = @Schema(defaultValue = "1"))
             @RequestParam(required = false, defaultValue = "1") int page,
             @Parameter(description = "Number of items per page", schema = @Schema(defaultValue = "20"))
             @RequestParam(required = false, defaultValue = "20") int size,
@@ -154,7 +154,7 @@ public class QuestionController {
     public Page<QuestionDto> getQuestionsForQuizVersion(
             @PathVariable Integer quizId,
             @PathVariable Integer version,
-            @Parameter(description = "Page number (0-based)", schema = @Schema(defaultValue = "1"))
+            @Parameter(description = "Page number", schema = @Schema(defaultValue = "1"))
             @RequestParam(required = false, defaultValue = "1") int page,
             @Parameter(description = "Number of items per page", schema = @Schema(defaultValue = "20"))
             @RequestParam(required = false, defaultValue = "20") int size,

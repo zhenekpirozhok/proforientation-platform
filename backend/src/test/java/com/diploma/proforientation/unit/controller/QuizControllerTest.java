@@ -182,35 +182,70 @@ class QuizControllerTest {
     }
 
     @Test
-    void searchQuizzes_shouldReturnPageOfDtos() {
+    void search_shouldReturnPageOfDtos_withCustomPagination() {
+        Integer categoryId = 5;
+        Integer minDurationSec = 300;
+        Integer maxDurationSec = 900;
 
-        QuizDto dto = new QuizDto(1, "Q1", "Тест 1", "draft", "ml", 5, 1, "Описание", 30);
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<QuizDto> pageResult = new PageImpl<>(List.of(dto), pageable, 1);
+        int page = 2;
+        int size = 10;
+        String sort = "id";
 
-        when(quizService.searchAndSort("Тест", "id", pageable)).thenReturn(pageResult);
+        Pageable expectedPageable = PageRequest.of(page - 1, size, Sort.by(sort));
 
-        Page<QuizDto> result = controller.searchQuizzes("Тест", "id", 1, 10);
+        QuizDto dto = new QuizDto(
+                1, "Q1", "Тест 1", "DRAFT", "ML",
+                5, 1, "Описание", 30
+        );
+
+        Page<QuizDto> pageResult = new PageImpl<>(List.of(dto), expectedPageable, 1);
+
+        when(quizService.search("Тест", categoryId, minDurationSec, maxDurationSec, expectedPageable))
+                .thenReturn(pageResult);
+
+        Page<QuizDto> result = controller.search(
+                "Тест",
+                categoryId,
+                minDurationSec,
+                maxDurationSec,
+                page,
+                size,
+                sort
+        );
 
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().title()).isEqualTo("Тест 1");
 
-        verify(quizService).searchAndSort("Тест", "id", pageable);
+        verify(quizService).search("Тест", categoryId, minDurationSec, maxDurationSec, expectedPageable);
+        verifyNoMoreInteractions(quizService);
     }
 
     @Test
-    void searchQuizzes_emptyResult_shouldReturnEmptyPage() {
-        String locale = "en";
-        LocaleContextHolder.setLocale(Locale.of(locale));
+    void search_emptyResult_shouldReturnEmptyPage_withDefaults() {
+        int page = 1;
+        int size = 20;
+        String sort = "id";
 
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<QuizDto> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+        Pageable expectedPageable = PageRequest.of(page - 1, size, Sort.by(sort));
+        Page<QuizDto> emptyPage = new PageImpl<>(List.of(), expectedPageable, 0);
 
-        when(quizService.searchAndSort("", "id", pageable)).thenReturn(emptyPage);
+        when(quizService.search("", null, null, null, expectedPageable))
+                .thenReturn(emptyPage);
 
-        Page<QuizDto> result = controller.searchQuizzes("", "id", 1, 10);
+        Page<QuizDto> result = controller.search(
+                "",
+                null,
+                null,
+                null,
+                page,
+                size,
+                sort
+        );
 
         assertThat(result.getTotalElements()).isZero();
-        verify(quizService).searchAndSort("", "id", pageable);
+        assertThat(result.getContent()).isEmpty();
+
+        verify(quizService).search("", null, null, null, expectedPageable);
+        verifyNoMoreInteractions(quizService);
     }
 }

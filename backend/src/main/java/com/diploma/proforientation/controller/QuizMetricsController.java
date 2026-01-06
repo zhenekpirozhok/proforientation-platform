@@ -1,6 +1,6 @@
 package com.diploma.proforientation.controller;
 
-import com.diploma.proforientation.model.view.QuizPublicMetricsView;
+import com.diploma.proforientation.dto.QuizPublicMetricsDto;
 import com.diploma.proforientation.service.QuizMetricsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,13 +22,13 @@ public class QuizMetricsController {
 
     @GetMapping
     @Operation(summary = "Get public quiz metrics")
-    public List<QuizPublicMetricsView> getAllMetrics() {
+    public List<QuizPublicMetricsDto> getAllMetrics() {
         return service.getAllPublicMetrics();
     }
 
     @GetMapping("/{quizId}")
     @Operation(summary = "Get public metrics for a quiz")
-    public QuizPublicMetricsView getMetrics(
+    public QuizPublicMetricsDto getMetrics(
             @PathVariable Integer quizId
     ) {
         return service.getMetricsForQuiz(quizId);

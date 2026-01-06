@@ -52,11 +52,9 @@ public class CsvImportServiceImpl implements CsvImportService {
             processQuestionRows(reader, idx, errors, rowNum, success);
 
         } catch (IOException e) {
-            // file read / stream errors -> usually server/client upload issue
             throw new CsvImportException(CSV_IMPORT_FAILED, e);
         } catch (CsvValidationException e) {
-            // CSV is malformed (bad quotes, broken row, etc.)
-            throw new CsvImportException("Invalid CSV format: " + e.getMessage(), e);
+            throw new CsvImportException(INVALID_CSV + e.getMessage(), e);
         }
 
         return new ImportResultDto(rowNum[0] - 1, success[0], errors);
@@ -70,7 +68,7 @@ public class CsvImportServiceImpl implements CsvImportService {
         int rowNum = 1;
 
         if (file == null || file.isEmpty()) {
-            throw new CsvImportException("CSV file is empty");
+            throw new CsvImportException(EMPTY_CSV);
         }
 
         try (CSVReader reader = new CSVReader(
@@ -78,7 +76,7 @@ public class CsvImportServiceImpl implements CsvImportService {
         )) {
             String[] header = reader.readNext();
             if (header == null) {
-                throw new CsvImportException("CSV file has no header row");
+                throw new CsvImportException(NO_HEADER_IN_CSV);
             }
 
             Map<String, Integer> idx = indexMap(header);
@@ -98,7 +96,7 @@ public class CsvImportServiceImpl implements CsvImportService {
         } catch (IOException e) {
             throw new CsvImportException(TRANSLATION_CSV_IMPORT_FAILED, e);
         } catch (CsvValidationException e) {
-            throw new CsvImportException("Invalid CSV format: " + e.getMessage(), e);
+            throw new CsvImportException(INVALID_CSV + e.getMessage(), e);
         }
     }
 
@@ -126,7 +124,7 @@ public class CsvImportServiceImpl implements CsvImportService {
             errors.add(new ImportErrorDto(
                     rowNum,
                     FIELD_ROW,
-                    "Database constraint violation"
+                    DB_CONSTRAINT_VIOLATION
             ));
             return false;
         }

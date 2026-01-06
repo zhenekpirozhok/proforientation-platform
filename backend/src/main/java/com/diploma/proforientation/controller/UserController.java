@@ -125,7 +125,7 @@ public class UserController {
             )
     )
     public ResponseEntity<Page<UserDto>> allUsers(
-            @Parameter(description = "Page number (0-based)", schema = @Schema(defaultValue = "1"))
+            @Parameter(description = "Page number", schema = @Schema(defaultValue = "1"))
             @RequestParam(required = false, defaultValue = "1") int page,
             @Parameter(description = "Number of items per page", schema = @Schema(defaultValue = "20"))
             @RequestParam(required = false, defaultValue = "20") int size,

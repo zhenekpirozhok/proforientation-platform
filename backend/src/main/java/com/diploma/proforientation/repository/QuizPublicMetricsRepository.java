@@ -1,27 +1,23 @@
 package com.diploma.proforientation.repository;
 
-import com.diploma.proforientation.model.Quiz;
-import com.diploma.proforientation.model.view.QuizPublicMetricsView;
+import com.diploma.proforientation.model.view.QuizPublicMetricsEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
-public interface QuizPublicMetricsRepository
-        extends JpaRepository<Quiz, Integer> {
+public interface QuizPublicMetricsRepository extends JpaRepository<QuizPublicMetricsEntity, Integer>,
+        JpaSpecificationExecutor<QuizPublicMetricsEntity> {
 
-    @Query(
-            value = "SELECT * FROM v_quiz_public_metrics",
-            nativeQuery = true
-    )
-    List<QuizPublicMetricsView> findAllMetrics();
-
-    @Query(
-            value = "SELECT * FROM v_quiz_public_metrics WHERE quiz_id = :quizId",
-            nativeQuery = true
-    )
-    Optional<QuizPublicMetricsView> findByQuizId(Integer quizId);
+    @Query("""
+        select m.quizId
+        from QuizPublicMetricsEntity m
+        where (:minDur is null or m.estimatedDurationSeconds >= :minDur)
+          and (:maxDur is null or m.estimatedDurationSeconds <= :maxDur)
+    """)
+    List<Integer> findQuizIdsByDuration(Integer minDur, Integer maxDur);
+    List<QuizPublicMetricsEntity> findAll();
+    Optional<QuizPublicMetricsEntity> findById(Integer quizId);
 }

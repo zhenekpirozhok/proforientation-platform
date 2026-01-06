@@ -16,9 +16,11 @@ public interface QuizService {
     QuizDto create(CreateQuizRequest req);
     QuizDto update(Integer id, UpdateQuizRequest req);
     void delete(Integer id);
-    Page<QuizDto> searchAndSort(
+    Page<QuizDto> search(
             String search,
-            String sortBy,
+            Integer categoryId,
+            Integer minDurationSec,
+            Integer maxDurationSec,
             Pageable pageable
     );
 }
