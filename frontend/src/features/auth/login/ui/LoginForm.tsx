@@ -1,20 +1,21 @@
-'use client';
+'use client'
 
-import { Form, Input, Button, Typography, message } from 'antd';
-import Link from 'next/link';
-import { useRouter } from '@/shared/i18n/lib/navigation';
-import { useTranslations } from 'next-intl';
-import { applyZodErrorsToAntdForm } from '@/shared/validation/antdZod';
-import { loginSchema, type LoginSchemaValues } from '@/shared/validation/loginSchema';
-import { useLoginUser } from '@/features/auth/login/model/useLoginUser';
+import { Form, Input, Button, Typography, message } from 'antd'
+import Link from 'next/link'
+import { useRouter } from '@/shared/i18n/lib/navigation'
+import { useTranslations } from 'next-intl'
+import { applyZodErrorsToAntdForm } from '@/shared/validation/antdZod'
+import { loginSchema, type LoginSchemaValues } from '@/shared/validation/loginSchema'
+import { useLoginUser } from '@/features/auth/login/model/useLoginUser'
+import { useSessionStore } from '@/entities/session/model/store'
 
-const { Title, Text } = Typography;
+const { Title, Text } = Typography
 
 export function LoginForm() {
-  const t = useTranslations('LoginPage');
-  const [form] = Form.useForm<LoginSchemaValues>();
-  const router = useRouter();
-  const { submit, isPending } = useLoginUser();
+  const t = useTranslations('LoginPage')
+  const [form] = Form.useForm<LoginSchemaValues>()
+  const router = useRouter()
+  const { submit, isPending } = useLoginUser()
 
   return (
     <div className="mx-auto w-full max-w-[480px] px-4">
@@ -34,41 +35,64 @@ export function LoginForm() {
             layout="vertical"
             requiredMark={false}
             onFinish={async (values) => {
-              const parsed = loginSchema.safeParse(values);
+              const parsed = loginSchema.safeParse(values)
               if (!parsed.success) {
-                applyZodErrorsToAntdForm(form, parsed.error);
-                return;
+                applyZodErrorsToAntdForm(form, parsed.error)
+                return
               }
 
-              const res = await submit(parsed.data);
+              const res = await submit(parsed.data)
 
               if (!res.ok) {
                 if (res.zodError) {
-                  applyZodErrorsToAntdForm(form, res.zodError);
-                  return;
+                  applyZodErrorsToAntdForm(form, res.zodError)
+                  return
                 }
-                message.error(res.message ?? t('Errors.Generic'));
-                return;
+                message.error(res.message ?? t('Errors.Generic'))
+                return
               }
 
-              message.success(t('Success'));
-              router.push('/me/results');
+              const meRes = await fetch('/api/users/me', { credentials: 'include' }).catch(() => null)
+
+              if (!meRes || !meRes.ok) {
+                useSessionStore.getState().setUser(null)
+                message.error(t('Errors.Generic'))
+                return
+              }
+
+              const me = await meRes.json().catch(() => null)
+              useSessionStore.getState().setUser(me as any)
+
+              message.success(t('Success'))
+              router.replace('/me/results')
             }}
           >
-            <Form.Item name="email" label={<span className="text-slate-900 dark:text-slate-100">{t('EmailLabel')}</span>}>
+            <Form.Item
+              name="email"
+              label={<span className="text-slate-900 dark:text-slate-100">{t('EmailLabel')}</span>}
+            >
               <Input placeholder={t('EmailPlaceholder')} autoComplete="email" />
             </Form.Item>
 
-            <Form.Item name="password" label={<span className="text-slate-900 dark:text-slate-100">{t('PasswordLabel')}</span>}>
+            <Form.Item
+              name="password"
+              label={<span className="text-slate-900 dark:text-slate-100">{t('PasswordLabel')}</span>}
+            >
               <Input.Password autoComplete="current-password" placeholder={t('PasswordPlaceholder')} />
             </Form.Item>
 
             <div className="mb-3 flex items-center justify-between text-sm">
-              <Link href="/" className="text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100">
+              <Link
+                href="/"
+                className="text-slate-600 hover:text-slate-800 dark:text-slate-300 dark:hover:text-slate-100"
+              >
                 {t('BackToHome')}
               </Link>
 
-              <Link href="/forgot-password" className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300">
+              <Link
+                href="/forgot-password"
+                className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+              >
                 {t('ForgotPassword')}
               </Link>
             </div>
@@ -84,7 +108,10 @@ export function LoginForm() {
             <div className="mt-4 text-center">
               <Text className="!text-slate-600 dark:!text-slate-300">
                 {t('NoAccount')}{' '}
-                <Link href="/register" className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300">
+                <Link
+                  href="/register"
+                  className="text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                >
                   {t('CreateOne')}
                 </Link>
               </Text>
@@ -93,5 +120,5 @@ export function LoginForm() {
         </div>
       </div>
     </div>
-  );
+  )
 }

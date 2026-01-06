@@ -12,14 +12,18 @@ type Props = {
 
 export function AuthGuard({ children, fallback = null }: Props) {
   const router = useRouter();
-  const pathname = usePathname();
   const status = useSessionStore((s) => s.status);
-
-  const next = useMemo(() => encodeURIComponent(pathname || '/'), [pathname]);
+    const user = useSessionStore((s) => s.user);
+    const pathname = usePathname();
 
   useEffect(() => {
-    if (status === 'guest') router.replace(`/login?next=${next}`);
-  }, [status, router, next]);
+    if (status === 'guest') router.replace(`/login`);
+  }, [status, router]);
+
+  useEffect(() => {
+  console.log('[AuthGuard]', { pathname, status, hasUser: Boolean(user) })
+}, [pathname, status, user])
+
 
   if (status === 'unknown') return <>{fallback}</>;
   if (status === 'guest') return <>{fallback}</>;

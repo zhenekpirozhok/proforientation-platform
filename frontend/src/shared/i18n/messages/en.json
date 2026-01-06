@@ -139,7 +139,8 @@
     "results": "Results",
     "settings": "Settings",
     "language": "Language",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "logout": "Sign out"
   },
   "Landing": {
     "title": "Find your best career direction",

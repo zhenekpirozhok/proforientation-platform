@@ -29,15 +29,7 @@ export function ResultsActions({
   const [open, setOpen] = useState(false);
 
   const goToLogin = () => {
-    const next =
-      typeof window !== 'undefined'
-        ? window.location.pathname + window.location.search
-        : '/';
-
-    const hasQuery = loginHref.includes('?');
-    const url = loginHref + (hasQuery ? '&' : '?') + 'next=' + encodeURIComponent(next);
-
-    window.location.href = url;
+    window.location.href = loginHref;
   };
 
   const handlePrimaryClick = () => {

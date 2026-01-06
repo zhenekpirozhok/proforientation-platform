@@ -139,7 +139,8 @@
     "results": "Результаты",
     "settings": "Настройки",
     "language": "Язык",
-    "signIn": "Войти"
+    "signIn": "Войти",
+    "logout": "Выйти"
   },
   "Landing": {
     "title": "Найди свою профессию",
