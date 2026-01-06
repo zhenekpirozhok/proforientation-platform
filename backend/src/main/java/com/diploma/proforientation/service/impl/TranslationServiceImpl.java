@@ -6,7 +6,6 @@ import com.diploma.proforientation.dto.request.update.UpdateTranslationRequest;
 import com.diploma.proforientation.model.Translation;
 import com.diploma.proforientation.repository.TranslationRepository;
 import com.diploma.proforientation.service.TranslationService;
-import com.diploma.proforientation.util.LocaleProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -25,7 +24,6 @@ public class TranslationServiceImpl implements TranslationService {
     private static final String CACHE_VALUE = "translations";
 
     private final TranslationRepository repo;
-    private final LocaleProvider localeProvider;
 
     @Override
     @CacheEvict(

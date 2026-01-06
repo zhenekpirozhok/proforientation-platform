@@ -2,6 +2,7 @@ package com.diploma.proforientation.service.impl;
 
 import com.diploma.proforientation.dto.importexport.ImportErrorDto;
 import com.diploma.proforientation.dto.importexport.ImportResultDto;
+import com.diploma.proforientation.exception.CsvImportException;
 import com.diploma.proforientation.service.CsvImportService;
 import com.diploma.proforientation.model.Question;
 import com.diploma.proforientation.model.QuizVersion;
@@ -13,6 +14,7 @@ import com.diploma.proforientation.repository.TranslationRepository;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,8 +51,12 @@ public class CsvImportServiceImpl implements CsvImportService {
 
             processQuestionRows(reader, idx, errors, rowNum, success);
 
-        } catch (Exception e) {
-            throw new RuntimeException(CSV_IMPORT_FAILED, e);
+        } catch (IOException e) {
+            // file read / stream errors -> usually server/client upload issue
+            throw new CsvImportException(CSV_IMPORT_FAILED, e);
+        } catch (CsvValidationException e) {
+            // CSV is malformed (bad quotes, broken row, etc.)
+            throw new CsvImportException("Invalid CSV format: " + e.getMessage(), e);
         }
 
         return new ImportResultDto(rowNum[0] - 1, success[0], errors);
@@ -63,41 +69,67 @@ public class CsvImportServiceImpl implements CsvImportService {
         int success = 0;
         int rowNum = 1;
 
-        try (
-                CSVReader reader = new CSVReader(
-                        new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8)
-                )
-        ) {
-            String[] header = reader.readNext();
-            Map<String, Integer> idx = indexMap(header);
+        if (file == null || file.isEmpty()) {
+            throw new CsvImportException("CSV file is empty");
+        }
 
+        try (CSVReader reader = new CSVReader(
+                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8)
+        )) {
+            String[] header = reader.readNext();
+            if (header == null) {
+                throw new CsvImportException("CSV file has no header row");
+            }
+
+            Map<String, Integer> idx = indexMap(header);
             validateTranslationHeader(idx);
 
             String[] row;
             while ((row = reader.readNext()) != null) {
                 rowNum++;
 
-                try {
-                    Translation translation =
-                            parseTranslation(row, idx, rowNum, errors);
-
-                    if (translation != null) {
-                        translationRepo.save(translation);
-                        success++;
-                    }
-
-                } catch (Exception e) {
-                    errors.add(
-                            new ImportErrorDto(rowNum, FIELD_ROW, e.getMessage())
-                    );
+                if (processTranslationRow(row, idx, rowNum, errors)) {
+                    success++;
                 }
             }
 
-        } catch (Exception e) {
-            throw new RuntimeException(TRANSLATION_CSV_IMPORT_FAILED, e);
-        }
+            return new ImportResultDto(rowNum - 1, success, errors);
 
-        return new ImportResultDto(rowNum - 1, success, errors);
+        } catch (IOException e) {
+            throw new CsvImportException(TRANSLATION_CSV_IMPORT_FAILED, e);
+        } catch (CsvValidationException e) {
+            throw new CsvImportException("Invalid CSV format: " + e.getMessage(), e);
+        }
+    }
+
+    private boolean processTranslationRow(
+            String[] row,
+            Map<String, Integer> idx,
+            int rowNum,
+            List<ImportErrorDto> errors
+    ) {
+        try {
+            Translation translation = parseTranslation(row, idx, rowNum, errors);
+
+            if (translation == null) {
+                return false;
+            }
+
+            translationRepo.save(translation);
+            return true;
+
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            errors.add(new ImportErrorDto(rowNum, FIELD_ROW, e.getMessage()));
+            return false;
+
+        } catch (DataIntegrityViolationException e) {
+            errors.add(new ImportErrorDto(
+                    rowNum,
+                    FIELD_ROW,
+                    "Database constraint violation"
+            ));
+            return false;
+        }
     }
 
     private void processQuestionRows(

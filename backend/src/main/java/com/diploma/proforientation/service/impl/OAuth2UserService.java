@@ -22,20 +22,26 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
     }
 
     @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User user = super.loadUser(userRequest);
+    public OAuth2User loadUser(OAuth2UserRequest userRequest)
+            throws OAuth2AuthenticationException {
 
-        String email = user.getAttribute(EMAIL_ATTRIBUTE);
+        OAuth2User oauthUser = super.loadUser(userRequest);
+
+        String email = oauthUser.getAttribute(EMAIL_ATTRIBUTE);
 
         userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setEmail(email);
-                    newUser.setDisplayName(user.getAttribute(NAME_ATTRIBUTE));
-                    newUser.setPasswordHash(EMPTY_STRING);
-                    return userRepository.save(newUser);
-                });
+                .ifPresentOrElse(
+                        u -> {},
+                        () -> {
+                            User newUser = new User();
+                            newUser.setEmail(email);
+                            newUser.setDisplayName(oauthUser.getAttribute(NAME_ATTRIBUTE));
+                            newUser.setPasswordHash(EMPTY_STRING);
+                            userRepository.save(newUser);
+                        }
+                );
 
-        return user;
+        return oauthUser;
     }
+
 }

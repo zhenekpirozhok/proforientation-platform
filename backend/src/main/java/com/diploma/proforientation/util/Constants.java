@@ -35,8 +35,6 @@ public final class Constants {
 
     public static final String INVALID_CRED = "Invalid email or password";
     public static final String INVALID_PASS = "Password verification failed";
-    public static final String FAILED_GOOGLE_TOKEN = "Failed to verify Google token";
-    public static final String INVALID_GOOGLE_ID = "Invalid Google ID token";
     public static final String UNKNOWN_USER = "Unknown user";
     public static final String UNKNOWN_OPTIONS = "Some options do not belong to questionId=";
 

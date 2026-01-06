@@ -44,6 +44,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Transactional
     public User signup(RegisterUserDto input) {
+        if (userRepository.existsByEmail(input.getEmail())) {
+            throw new EmailAlreadyExistsException(input.getEmail());
+        }
+
         User user = new User(input.getEmail(), passwordEncoder.encode(input.getPassword()),
                 input.getDisplayName(), UserRole.USER);
         log.debug("Added user: {}", user.getEmail());
@@ -106,7 +110,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         try {
             GoogleIdToken idToken = googleIdTokenVerifier.verify(idTokenString);
             if (idToken == null) {
-                throw new RuntimeException(INVALID_GOOGLE_ID);
+                throw new InvalidGoogleIdTokenException();
             }
 
             String email = idToken.getPayload().getEmail();
@@ -121,7 +125,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         return userRepository.save(newUser);
                     });
         } catch (Exception e) {
-            throw new RuntimeException(FAILED_GOOGLE_TOKEN, e);
+            throw new GoogleTokenVerificationFailedException(e);
         }
     }
 

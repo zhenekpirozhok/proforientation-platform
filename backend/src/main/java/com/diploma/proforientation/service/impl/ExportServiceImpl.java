@@ -1,10 +1,13 @@
 package com.diploma.proforientation.service.impl;
 
+import com.diploma.proforientation.exception.CsvExportException;
+import com.diploma.proforientation.exception.ExcelExportException;
 import com.diploma.proforientation.service.ExportService;
 import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.repository.*;
 import com.opencsv.CSVWriter;
 import com.opencsv.ICSVWriter;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -13,8 +16,12 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Consumer;
 
 import static com.diploma.proforientation.util.Constants.*;
 
@@ -30,138 +37,44 @@ public class ExportServiceImpl implements ExportService {
     private final AttemptRepository attemptRepo;
     private final TranslationRepository translationRepo;
 
+    private final Map<String, Consumer<CSVWriter>> csvExporters = new LinkedHashMap<>();
+
+    @PostConstruct
+    void initExporters() {
+        csvExporters.put(ENTITY_QUIZZES, this::writeQuizzesCsv);
+        csvExporters.put(ENTITY_QUIZ_VERSIONS, this::writeQuizVersionsCsv);
+        csvExporters.put(ENTITY_QUESTIONS, this::writeQuestionsCsv);
+        csvExporters.put(ENTITY_QUESTION_OPTIONS, this::writeOptionsCsv);
+        csvExporters.put(ENTITY_PROFESSIONS, this::writeProfessionsCsv);
+        csvExporters.put(ENTITY_ATTEMPTS, this::writeAttemptsCsv);
+        csvExporters.put(ENTITY_TRANSLATIONS, this::writeTranslationsCsv);
+    }
+
     @Override
     public byte[] exportEntityToCsv(String entity) {
+        Consumer<CSVWriter> exporter = csvExporters.get(entity);
 
-        try (
-                StringWriter sw = new StringWriter();
-                CSVWriter writer = new CSVWriter(sw,
-                        ICSVWriter.DEFAULT_SEPARATOR,
-                        ICSVWriter.NO_QUOTE_CHARACTER,
-                        ICSVWriter.DEFAULT_ESCAPE_CHARACTER,
-                        ICSVWriter.DEFAULT_LINE_END)
-        ) {
+        if (exporter == null) {
+            // Unsupported entity is a client error -> 400
+            throw new CsvExportException(UNSUPPORTED_EXPORT_ENTITY + entity);
+        }
 
-            switch (entity) {
+        try (StringWriter sw = new StringWriter();
+             CSVWriter writer = new CSVWriter(
+                     sw,
+                     ICSVWriter.DEFAULT_SEPARATOR,
+                     ICSVWriter.NO_QUOTE_CHARACTER,
+                     ICSVWriter.DEFAULT_ESCAPE_CHARACTER,
+                     ICSVWriter.DEFAULT_LINE_END
+             )) {
 
-                case ENTITY_QUIZZES -> {
-                    writer.writeNext(HEADERS_QUIZZES);
-
-                    for (Quiz q : quizRepo.findAll()) {
-                        writer.writeNext(new String[]{
-                                stringValue(q.getId()),
-                                q.getCode(),
-                                q.getTitleDefault(),
-                                q.getDescriptionDefault(),
-                                q.getStatus().name(),
-                                q.getProcessingMode().name(),
-                                stringValue(q.getCategory().getId()),
-                                stringValue(q.getAuthor().getId()),
-                                stringValue(q.getSecondsPerQuestionDefault())
-                        });
-                    }
-                }
-
-                case ENTITY_QUIZ_VERSIONS -> {
-                    writer.writeNext(HEADERS_QUIZ_VERSIONS);
-
-                    for (QuizVersion v : quizVersionRepo.findAll()) {
-                        writer.writeNext(new String[]{
-                                stringValue(v.getId()),
-                                stringValue(v.getQuiz().getId()),
-                                stringValue(v.getVersion()),
-                                String.valueOf(v.isCurrent()),
-                                stringValue(v.getPublishedAt())
-                        });
-                    }
-                }
-
-                case ENTITY_QUESTIONS -> {
-                    writer.writeNext(HEADERS_QUESTIONS);
-
-                    for (Question q : questionRepo.findAll()) {
-                        writer.writeNext(new String[]{
-                                stringValue(q.getId()),
-                                stringValue(q.getQuizVersion().getId()),
-                                stringValue(q.getOrd()),
-                                q.getQtype().name(),
-                                q.getTextDefault()
-                        });
-                    }
-                }
-
-                case ENTITY_QUESTION_OPTIONS -> {
-                    writer.writeNext(HEADERS_QUESTION_OPTIONS);
-
-                    for (QuestionOption o : optionRepo.findAll()) {
-                        writer.writeNext(new String[]{
-                                stringValue(o.getId()),
-                                stringValue(o.getQuestion().getId()),
-                                stringValue(o.getOrd()),
-                                o.getLabelDefault()
-                        });
-                    }
-                }
-
-                case ENTITY_PROFESSIONS -> {
-                    writer.writeNext(HEADERS_PROFESSIONS);
-
-                    for (Profession p : professionRepo.findAll()) {
-                        writer.writeNext(new String[]{
-                                stringValue(p.getId()),
-                                p.getCode(),
-                                p.getTitleDefault(),
-                                p.getDescription(),
-                                p.getMlClassCode(),
-                                stringValue(p.getCategory().getId())
-                        });
-                    }
-                }
-
-                case ENTITY_ATTEMPTS -> {
-                    writer.writeNext(HEADERS_ATTEMPTS);
-
-                    for (Attempt a : attemptRepo.findAll()) {
-                        writer.writeNext(new String[]{
-                                stringValue(a.getId()),
-                                stringValue(a.getQuizVersion().getId()),
-                                a.getUser() != null ? stringValue(a.getUser().getId()) : EMPTY_STRING,
-                                a.getGuestToken(),
-                                a.getLocale(),
-                                stringValue(a.getStartedAt()),
-                                stringValue(a.getSubmittedAt()),
-                                stringValue(a.getUuid())
-                        });
-                    }
-                }
-
-                case ENTITY_TRANSLATIONS -> {
-                    writer.writeNext(HEADERS_TRANSLATIONS);
-
-                    for (Translation t : translationRepo.findAll()) {
-                        writer.writeNext(new String[]{
-                                stringValue(t.getId()),
-                                t.getEntityType(),
-                                stringValue(t.getEntityId()),
-                                t.getLocale(),
-                                t.getField(),
-                                t.getText()
-                        });
-                    }
-                }
-
-                default -> throw new IllegalArgumentException(
-                        UNSUPPORTED_EXPORT_ENTITY + entity
-                );
-            }
-
+            exporter.accept(writer);
             writer.flush();
+
             return sw.toString().getBytes(StandardCharsets.UTF_8);
 
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException(CSV_EXPORT_FAILED + entity, e);
+        } catch (IOException | RuntimeException e) {
+            throw new CsvExportException(CSV_EXPORT_FAILED + entity, e);
         }
     }
 
@@ -181,8 +94,8 @@ public class ExportServiceImpl implements ExportService {
             wb.write(out);
             return out.toByteArray();
 
-        } catch (Exception e) {
-            throw new RuntimeException(EXCEL_EXPORT_FAILED, e);
+        } catch (IOException | RuntimeException e){
+            throw new ExcelExportException(EXCEL_EXPORT_FAILED, e);
         }
     }
 
@@ -318,5 +231,111 @@ public class ExportServiceImpl implements ExportService {
 
     private String stringValue(Object o) {
         return o == null ? EMPTY_STRING : o.toString();
+    }
+
+    private void writeQuizzesCsv(CSVWriter writer) {
+        writer.writeNext(HEADERS_QUIZZES);
+
+        for (Quiz q : quizRepo.findAll()) {
+            writer.writeNext(new String[]{
+                    stringValue(q.getId()),
+                    q.getCode(),
+                    q.getTitleDefault(),
+                    q.getDescriptionDefault(),
+                    q.getStatus().name(),
+                    q.getProcessingMode().name(),
+                    stringValue(q.getCategory().getId()),
+                    stringValue(q.getAuthor().getId()),
+                    stringValue(q.getSecondsPerQuestionDefault())
+            });
+        }
+    }
+
+    private void writeAttemptsCsv(CSVWriter writer) {
+        writer.writeNext(HEADERS_ATTEMPTS);
+
+        for (Attempt a : attemptRepo.findAll()) {
+            writer.writeNext(new String[]{
+                    stringValue(a.getId()),
+                    stringValue(a.getQuizVersion().getId()),
+                    a.getUser() != null ? stringValue(a.getUser().getId()) : EMPTY_STRING,
+                    a.getGuestToken(),
+                    a.getLocale(),
+                    stringValue(a.getStartedAt()),
+                    stringValue(a.getSubmittedAt()),
+                    stringValue(a.getUuid())
+            });
+        }
+    }
+
+    private void writeQuizVersionsCsv(CSVWriter writer) {
+        writer.writeNext(HEADERS_QUIZ_VERSIONS);
+
+        for (QuizVersion v : quizVersionRepo.findAll()) {
+            writer.writeNext(new String[]{
+                    stringValue(v.getId()),
+                    stringValue(v.getQuiz().getId()),
+                    stringValue(v.getVersion()),
+                    String.valueOf(v.isCurrent()),
+                    stringValue(v.getPublishedAt())
+            });
+        }
+    }
+
+    private void writeQuestionsCsv(CSVWriter writer) {
+        writer.writeNext(HEADERS_QUESTIONS);
+
+        for (Question q : questionRepo.findAll()) {
+            writer.writeNext(new String[]{
+                    stringValue(q.getId()),
+                    stringValue(q.getQuizVersion().getId()),
+                    stringValue(q.getOrd()),
+                    q.getQtype().name(),
+                    q.getTextDefault()
+            });
+        }
+    }
+
+    private void writeOptionsCsv(CSVWriter writer) {
+        writer.writeNext(HEADERS_QUESTION_OPTIONS);
+
+        for (QuestionOption o : optionRepo.findAll()) {
+            writer.writeNext(new String[]{
+                    stringValue(o.getId()),
+                    stringValue(o.getQuestion().getId()),
+                    stringValue(o.getOrd()),
+                    o.getLabelDefault()
+            });
+        }
+    }
+
+    private void writeProfessionsCsv(CSVWriter writer) {
+        writer.writeNext(HEADERS_PROFESSIONS);
+
+        for (Profession p : professionRepo.findAll()) {
+            writer.writeNext(new String[]{
+                    stringValue(p.getId()),
+                    p.getCode(),
+                    p.getTitleDefault(),
+                    p.getDescription(),
+                    p.getMlClassCode(),
+                    stringValue(p.getCategory().getId())
+            });
+        }
+    }
+
+    private void writeTranslationsCsv(CSVWriter writer) {
+        writer.writeNext(HEADERS_TRANSLATIONS);
+
+        for (Translation t : translationRepo.findAll()) {
+            writer.writeNext(new String[]{
+                    stringValue(t.getId()),
+                    t.getEntityType(),
+                    stringValue(t.getEntityId()),
+                    t.getLocale(),
+                    t.getField(),
+                    t.getText()
+            });
+        }
     }
 }

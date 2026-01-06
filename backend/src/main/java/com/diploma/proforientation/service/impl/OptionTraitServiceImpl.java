@@ -18,7 +18,6 @@ import java.util.List;
 
 import static com.diploma.proforientation.util.Constants.OPTION_NOT_FOUND;
 import static com.diploma.proforientation.util.Constants.TRAIT_NOT_FOUND;
-
 @Service
 @RequiredArgsConstructor
 public class OptionTraitServiceImpl implements OptionTraitService {
@@ -33,6 +32,25 @@ public class OptionTraitServiceImpl implements OptionTraitService {
         QuestionOption option = optionRepo.findById(optionId)
                 .orElseThrow(() -> new EntityNotFoundException(OPTION_NOT_FOUND));
 
+        assignTraitsInternal(option, traits);
+    }
+
+    @Override
+    @Transactional
+    public void updateTraits(Integer optionId, List<OptionTraitRequest> traits) {
+        QuestionOption option = optionRepo.findById(optionId)
+                .orElseThrow(() -> new EntityNotFoundException(OPTION_NOT_FOUND));
+
+        qotRepo.deleteByOption(option);
+
+        assignTraitsInternal(option, traits);
+    }
+
+    /**
+     * Internal helper method. Not transactional on purpose:
+     * it's always called inside an existing @Transactional method.
+     */
+    private void assignTraitsInternal(QuestionOption option, List<OptionTraitRequest> traits) {
         for (OptionTraitRequest req : traits) {
             TraitProfile trait = traitRepo.findById(req.traitId())
                     .orElseThrow(() -> new EntityNotFoundException(TRAIT_NOT_FOUND + req.traitId()));
@@ -44,16 +62,5 @@ public class OptionTraitServiceImpl implements OptionTraitService {
 
             qotRepo.save(entity);
         }
-    }
-
-    @Override
-    @Transactional
-    public void updateTraits(Integer optionId, List<OptionTraitRequest> traits) {
-        QuestionOption option = optionRepo.findById(optionId)
-                .orElseThrow(() -> new EntityNotFoundException(OPTION_NOT_FOUND));
-
-        qotRepo.deleteByOption(option);
-
-        assignTraits(optionId, traits);
     }
 }
