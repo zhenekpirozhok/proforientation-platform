@@ -7,7 +7,7 @@
 
 export type GetAll2Params = {
 /**
- * Page number (0-based)
+ * Page number
  */
 page?: string;
 /**

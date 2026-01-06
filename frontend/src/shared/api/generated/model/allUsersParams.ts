@@ -7,7 +7,7 @@
 
 export type AllUsersParams = {
 /**
- * Page number (0-based)
+ * Page number
  */
 page?: string;
 /**

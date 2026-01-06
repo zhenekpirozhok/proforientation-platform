@@ -4,15 +4,15 @@
  * Quiz API
  * OpenAPI spec version: 1.0
  */
-import type { PageContentItem } from './pageContentItem';
+import type { QuestionDto } from './questionDto';
 import type { SortObject } from './sortObject';
 import type { PageableObject } from './pageableObject';
 
-export interface Page {
+export interface PageQuestionDto {
   totalElements?: number;
   totalPages?: number;
   size?: number;
-  content?: PageContentItem[];
+  content?: QuestionDto[];
   number?: number;
   sort?: SortObject;
   first?: boolean;

@@ -900,10 +900,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Search and sort quizzes
-         * @description Search quizzes by title, code, or description and sort by category or creation/update time. Supports pagination and localization.
+         * Search and filter quizzes
+         * @description Search quizzes by title, code, or description and filter by category or duration time. Supports pagination and localization.
          */
-        get: operations["searchQuizzes"];
+        get: operations["search_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1068,7 +1068,7 @@ export interface paths {
          *     - quiz
          *     - date range
          */
-        get: operations["search_1"];
+        get: operations["search_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1178,28 +1178,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** @description Standardized API error response returned for all handled exceptions */
-        ExceptionDto: {
-            /**
-             * Format: int32
-             * @description HTTP status code representing the error type
-             * @example 400
-             */
-            code?: number;
-            /**
-             * Format: date-time
-             * @description Timestamp indicating when the error occurred (ISO-8601 format)
-             * @example 2025-01-15T14:32:10Z
-             */
-            time?: string;
-            /**
-             * @description Error details. May be:
-             *     - a string message (e.g. 'Invalid credentials')
-             *     - a structured object containing validation errors
-             * @example Invalid email or password
-             */
-            message?: string | unknown;
-        };
         /** @description Request payload for updating a localized translation value */
         UpdateTranslationRequest: {
             /**
@@ -1242,6 +1220,28 @@ export interface components {
              * @example Software Engineer
              */
             text?: string;
+        };
+        /** @description Standardized API error response returned for all handled exceptions */
+        ExceptionDto: {
+            /**
+             * Format: int32
+             * @description HTTP status code representing the error type
+             * @example 400
+             */
+            code?: number;
+            /**
+             * Format: date-time
+             * @description Timestamp indicating when the error occurred (ISO-8601 format)
+             * @example 2025-01-15T14:32:10Z
+             */
+            time?: string;
+            /**
+             * @description Error details. May be:
+             *     - a string message (e.g. 'Invalid credentials')
+             *     - a structured object containing validation errors
+             * @example Invalid email or password
+             */
+            message?: string | unknown;
         };
         /** @description Request payload for creating a psychological trait */
         CreateTraitRequest: {
@@ -2007,11 +2007,11 @@ export interface components {
             /** Format: int32 */
             number?: number;
             sort?: components["schemas"]["SortObject"];
+            first?: boolean;
+            last?: boolean;
             /** Format: int32 */
             numberOfElements?: number;
             pageable?: components["schemas"]["PageableObject"];
-            first?: boolean;
-            last?: boolean;
             empty?: boolean;
         };
         PageableObject: {
@@ -2029,6 +2029,24 @@ export interface components {
             empty?: boolean;
             sorted?: boolean;
             unsorted?: boolean;
+        };
+        PageQuestionDto: {
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            /** Format: int32 */
+            size?: number;
+            content?: components["schemas"]["QuestionDto"][];
+            /** Format: int32 */
+            number?: number;
+            sort?: components["schemas"]["SortObject"];
+            first?: boolean;
+            last?: boolean;
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            empty?: boolean;
         };
         /** @description Summary information about a quiz attempt */
         AttemptSummaryDto: {
@@ -2073,9 +2091,7 @@ export interface components {
              */
             isCompleted?: boolean;
         };
-        QuizPublicMetricsView: {
-            /** Format: int32 */
-            estimatedDurationSeconds?: number;
+        QuizPublicMetricsDto: {
             /** Format: int32 */
             quizId?: number;
             quizCode?: string;
@@ -2088,8 +2104,9 @@ export interface components {
             attemptsTotal?: number;
             /** Format: int32 */
             attemptsSubmitted?: number;
-            /** Format: double */
             avgDurationSeconds?: number;
+            /** Format: int32 */
+            estimatedDurationSeconds?: number;
         };
     };
     responses: never;
@@ -2133,35 +2150,8 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Access denied (ADMIN role required) */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2189,44 +2179,8 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Access denied (ADMIN role required) */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2256,35 +2210,8 @@ export interface operations {
                     "application/json": components["schemas"]["TraitDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Trait not found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2318,24 +2245,6 @@ export interface operations {
                     "application/json": components["schemas"]["TraitDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Access denied (ADMIN role required) */
             403: {
                 headers: {
@@ -2347,15 +2256,6 @@ export interface operations {
             };
             /** @description Trait not found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2383,44 +2283,8 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Access denied (ADMIN role required) */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2450,35 +2314,8 @@ export interface operations {
                     "application/json": components["schemas"]["QuizDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Quiz not found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2512,24 +2349,6 @@ export interface operations {
                     "application/json": components["schemas"]["QuizDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Access denied */
             403: {
                 headers: {
@@ -2541,15 +2360,6 @@ export interface operations {
             };
             /** @description Quiz not found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2577,44 +2387,8 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Access denied */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2654,16 +2428,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["QuestionDto"];
                 };
             };
             /** @description Forbidden */
@@ -2681,16 +2446,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["QuestionDto"];
                 };
             };
         };
@@ -2713,24 +2469,6 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -2743,18 +2481,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -2779,24 +2506,6 @@ export interface operations {
                     "*/*": components["schemas"]["QuestionDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -2812,16 +2521,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["QuestionDto"];
                 };
             };
         };
@@ -2846,40 +2546,13 @@ export interface operations {
                     "*/*": components["schemas"]["ProfessionDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Profession not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["ProfessionDto"];
                 };
             };
         };
@@ -2914,16 +2587,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["ProfessionDto"];
                 };
             };
             /** @description Forbidden */
@@ -2941,16 +2605,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["ProfessionDto"];
                 };
             };
         };
@@ -2973,24 +2628,6 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -3003,18 +2640,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -3045,18 +2671,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
+                content?: never;
             };
             /** @description Forbidden */
             403: {
@@ -3070,18 +2685,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -3112,18 +2716,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
+                content?: never;
             };
             /** @description Forbidden */
             403: {
@@ -3137,18 +2730,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -3185,15 +2767,6 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -3209,16 +2782,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["OptionDto"];
                 };
             };
         };
@@ -3241,24 +2805,6 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -3271,18 +2817,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -3313,16 +2848,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["OptionDto"];
                 };
             };
             /** @description Forbidden */
@@ -3340,16 +2866,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["OptionDto"];
                 };
             };
         };
@@ -3384,16 +2901,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["ProfessionCategoryDto"];
                 };
             };
             /** @description Forbidden */
@@ -3411,16 +2919,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["ProfessionCategoryDto"];
                 };
             };
         };
@@ -3443,24 +2942,6 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -3473,18 +2954,7 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
+                content?: never;
             };
         };
     };
@@ -3512,33 +2982,6 @@ export interface operations {
             };
             /** @description Invalid request parameters */
             400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3588,35 +3031,8 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Access denied (ADMIN role required) */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3642,42 +3058,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TraitDto"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -3713,35 +3093,8 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Access denied (ADMIN role required) */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3754,7 +3107,7 @@ export interface operations {
     getAll_1: {
         parameters: {
             query?: {
-                /** @description Page number (0-based) */
+                /** @description Page number */
                 page?: string;
                 /** @description Number of items per page */
                 size?: string;
@@ -3774,42 +3127,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QuizDto"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -3845,35 +3162,8 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Access denied */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3903,42 +3193,6 @@ export interface operations {
                     "application/json": components["schemas"]["QuizVersionDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
         };
     };
     copyLatest: {
@@ -3959,42 +3213,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QuizVersionDto"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -4027,16 +3245,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["QuestionDto"];
                 };
             };
             /** @description Forbidden */
@@ -4048,30 +3257,12 @@ export interface operations {
                     "*/*": components["schemas"]["QuestionDto"];
                 };
             };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
         };
     };
     getAll_2: {
         parameters: {
             query?: {
-                /** @description Page number (0-based) */
+                /** @description Page number */
                 page?: string;
                 /** @description Number of items per page */
                 size?: string;
@@ -4091,42 +3282,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ProfessionDto"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -4159,16 +3314,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["ProfessionDto"];
                 };
             };
             /** @description Forbidden */
@@ -4178,24 +3324,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ProfessionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -4231,15 +3359,6 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -4247,24 +3366,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["OptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -4285,42 +3386,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ProfessionCategoryDto"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -4353,16 +3418,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["ProfessionCategoryDto"];
                 };
             };
             /** @description Forbidden */
@@ -4372,24 +3428,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ProfessionCategoryDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -4418,33 +3456,6 @@ export interface operations {
             };
             /** @description Validation error */
             400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4485,33 +3496,6 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
         };
     };
     requestReset: {
@@ -4534,42 +3518,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": Record<string, never>;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -4596,40 +3544,13 @@ export interface operations {
                     "*/*": components["schemas"]["LoginResponse"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Invalid or expired refresh token */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["LoginResponse"];
                 };
             };
         };
@@ -4660,7 +3581,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": Record<string, never>;
                 };
             };
             /** @description Unauthorized */
@@ -4669,25 +3590,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": Record<string, never>;
                 };
             };
         };
@@ -4714,35 +3617,8 @@ export interface operations {
                     "*/*": components["schemas"]["LoginResponse"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Invalid credentials */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4774,40 +3650,13 @@ export interface operations {
                     "*/*": components["schemas"]["LoginResponse"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Invalid Google token */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": Record<string, never>;
                 };
             };
         };
@@ -4834,33 +3683,6 @@ export interface operations {
             };
             /** @description Attempt already submitted or incomplete */
             400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4901,33 +3723,6 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
         };
     };
     addAnswersForQuestion: {
@@ -4954,33 +3749,6 @@ export interface operations {
             };
             /** @description Invalid attempt state or invalid option/question mapping */
             400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5021,33 +3789,6 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
         };
     };
     startAttempt: {
@@ -5072,33 +3813,6 @@ export interface operations {
             };
             /** @description Invalid quiz version */
             400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5145,15 +3859,6 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -5161,24 +3866,6 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ImportResultDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -5220,15 +3907,6 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Forbidden */
             403: {
                 headers: {
@@ -5238,30 +3916,12 @@ export interface operations {
                     "*/*": components["schemas"]["ImportResultDto"];
                 };
             };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
         };
     };
     allUsers: {
         parameters: {
             query?: {
-                /** @description Page number (0-based) */
+                /** @description Page number */
                 page?: string;
                 /** @description Number of items per page */
                 size?: string;
@@ -5283,24 +3943,6 @@ export interface operations {
                     "application/json": components["schemas"]["Page"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Access denied (admin role required) */
             403: {
                 headers: {
@@ -5314,24 +3956,6 @@ export interface operations {
                      *       "message": "Access denied: insufficient permissions"
                      *     }
                      */
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
@@ -5353,15 +3977,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["User"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
             /** @description User is not authenticated */
@@ -5396,24 +4011,6 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
         };
     };
     getAllForEntityType: {
@@ -5436,42 +4033,6 @@ export interface operations {
                     "application/json": components["schemas"]["TranslationDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
         };
     };
     getVersions: {
@@ -5492,42 +4053,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QuizVersionDto"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -5553,35 +4078,8 @@ export interface operations {
                     "application/json": components["schemas"]["QuizVersionDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Quiz version not found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5611,51 +4109,37 @@ export interface operations {
                     "application/json": components["schemas"]["QuizVersionDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
         };
     };
-    searchQuizzes: {
+    search_1: {
         parameters: {
             query?: {
+                /**
+                 * @description Search text (title, code or description)
+                 * @example career
+                 */
                 search?: string;
-                sortBy?: string;
-                page?: number;
-                size?: number;
+                /**
+                 * @description Profession category ID
+                 * @example 1
+                 */
+                categoryId?: number;
+                /**
+                 * @description Minimum estimated duration in seconds
+                 * @example 300
+                 */
+                minDurationSec?: number;
+                /**
+                 * @description Maximum estimated duration in seconds
+                 * @example 1200
+                 */
+                maxDurationSec?: number;
+                /** @description Page number */
+                page?: string;
+                /** @description Number of items per page */
+                size?: string;
+                /** @description Sort by field */
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -5672,24 +4156,6 @@ export interface operations {
                     "application/json": components["schemas"]["QuizDto"][];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description No quizzes found */
             404: {
                 headers: {
@@ -5697,15 +4163,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -5730,35 +4187,8 @@ export interface operations {
                     "application/json": components["schemas"]["QuizDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Quiz not found */
             404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5788,40 +4218,13 @@ export interface operations {
                     "application/json": components["schemas"]["OptionDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Question not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["OptionDto"][];
                 };
             };
         };
@@ -5829,8 +4232,7 @@ export interface operations {
     getQuestionsForQuiz: {
         parameters: {
             query?: {
-                locale?: string;
-                /** @description Page number (0-based) */
+                /** @description Page number */
                 page?: string;
                 /** @description Number of items per page */
                 size?: string;
@@ -5854,49 +4256,12 @@ export interface operations {
                     "*/*": components["schemas"]["QuestionDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
         };
     };
     getQuestionsForQuizVersion: {
         parameters: {
             query?: {
-                locale?: string;
-                /** @description Page number (0-based) */
+                /** @description Page number */
                 page?: string;
                 /** @description Number of items per page */
                 size?: string;
@@ -5921,40 +4286,13 @@ export interface operations {
                     "*/*": components["schemas"]["QuestionDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Quiz version not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["PageQuestionDto"];
                 };
             };
         };
@@ -5979,42 +4317,6 @@ export interface operations {
                     "*/*": components["schemas"]["AttemptSummaryDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
         };
     };
     getResult: {
@@ -6037,24 +4339,6 @@ export interface operations {
                     "*/*": components["schemas"]["AttemptResultDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Attempt not found */
             404: {
                 headers: {
@@ -6064,18 +4348,9 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
         };
     };
-    search_1: {
+    search_2: {
         parameters: {
             query?: {
                 userId?: number;
@@ -6098,44 +4373,8 @@ export interface operations {
                     "*/*": components["schemas"]["AttemptSummaryDto"];
                 };
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Access denied */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6160,43 +4399,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["QuizPublicMetricsView"][];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["QuizPublicMetricsDto"][];
                 };
             };
         };
@@ -6218,43 +4421,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["QuizPublicMetricsView"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["QuizPublicMetricsDto"];
                 };
             };
         };
@@ -6275,42 +4442,6 @@ export interface operations {
                 };
                 content: {
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -6348,33 +4479,6 @@ export interface operations {
                     "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
         };
     };
     deleteAccount: {
@@ -6395,41 +4499,12 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
             /** @description Unauthorized */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
-            };
-            /** @description Internal Server Error */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
-                };
+                content?: never;
             };
         };
     };

@@ -45,21 +45,25 @@ import type {
   GetQuestionsForQuizParams,
   GetQuestionsForQuizVersionParams,
   GoogleOneTapLoginRequest,
+  HandleGoogleOneTap401,
   ImportQuestionsBody,
   ImportResultDto,
   ImportTranslationsBody,
   LoginResponse,
   LoginUserDto,
   Logout200,
+  Logout400,
+  Logout401,
   MyAttemptsParams,
   OptionDto,
   OptionTraitListRequest,
   Page,
+  PageQuestionDto,
   ProfessionCategoryDto,
   ProfessionDto,
   QuestionDto,
   QuizDto,
-  QuizPublicMetricsView,
+  QuizPublicMetricsDto,
   QuizVersionDto,
   RefreshTokenRequest,
   RegisterUserDto,
@@ -68,8 +72,8 @@ import type {
   ResetPassword200,
   ResetPasswordDto,
   Search1Params,
+  Search2Params,
   SearchParams,
-  SearchQuizzesParams,
   StartAttemptParams,
   TraitDto,
   TranslationDto,
@@ -113,7 +117,7 @@ export const update = async (id: number,
 
 
 
-export const getUpdateMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getUpdateMutationOptions = <TError = ExceptionDto | ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update>>, TError,{id: number;data: UpdateTranslationRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof update>>, TError,{id: number;data: UpdateTranslationRequest}, TContext> => {
 
@@ -140,12 +144,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateMutationResult = NonNullable<Awaited<ReturnType<typeof update>>>
     export type UpdateMutationBody = UpdateTranslationRequest
-    export type UpdateMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type UpdateMutationError = ExceptionDto | ExceptionDto
 
     /**
  * @summary Update translation
  */
-export const useUpdate = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useUpdate = <TError = ExceptionDto | ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update>>, TError,{id: number;data: UpdateTranslationRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof update>>,
@@ -185,7 +189,7 @@ export const _delete = async (id: number, options?: RequestInit): Promise<void> 
 
 
 
-export const getDeleteMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getDeleteMutationOptions = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof _delete>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof _delete>>, TError,{id: number}, TContext> => {
 
@@ -212,12 +216,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type _DeleteMutationResult = NonNullable<Awaited<ReturnType<typeof _delete>>>
     
-    export type _DeleteMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type _DeleteMutationError = ExceptionDto
 
     /**
  * @summary Delete translation
  */
-export const useDelete = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useDelete = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof _delete>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof _delete>>,
@@ -265,7 +269,7 @@ export const getGetByIdQueryKey = (id?: number,) => {
     }
 
     
-export const getGetByIdQueryOptions = <TData = Awaited<ReturnType<typeof getById>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetByIdQueryOptions = <TData = Awaited<ReturnType<typeof getById>>, TError = ExceptionDto>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -284,10 +288,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getById>>>
-export type GetByIdQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetByIdQueryError = ExceptionDto
 
 
-export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError = ExceptionDto>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getById>>,
@@ -297,7 +301,7 @@ export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError =
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError = ExceptionDto>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getById>>,
@@ -307,7 +311,7 @@ export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError =
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError = ExceptionDto>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -315,7 +319,7 @@ export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError =
  * @summary Get trait by ID
  */
 
-export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError = ExceptionDto>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -360,7 +364,7 @@ export const update1 = async (id: number,
 
 
 
-export const getUpdate1MutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getUpdate1MutationOptions = <TError = ExceptionDto | ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update1>>, TError,{id: number;data: CreateTraitRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof update1>>, TError,{id: number;data: CreateTraitRequest}, TContext> => {
 
@@ -387,12 +391,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Update1MutationResult = NonNullable<Awaited<ReturnType<typeof update1>>>
     export type Update1MutationBody = CreateTraitRequest
-    export type Update1MutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type Update1MutationError = ExceptionDto | ExceptionDto
 
     /**
  * @summary Update trait
  */
-export const useUpdate1 = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useUpdate1 = <TError = ExceptionDto | ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update1>>, TError,{id: number;data: CreateTraitRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof update1>>,
@@ -432,7 +436,7 @@ export const delete1 = async (id: number, options?: RequestInit): Promise<void> 
 
 
 
-export const getDelete1MutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getDelete1MutationOptions = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete1>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof delete1>>, TError,{id: number}, TContext> => {
 
@@ -459,12 +463,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Delete1MutationResult = NonNullable<Awaited<ReturnType<typeof delete1>>>
     
-    export type Delete1MutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type Delete1MutationError = ExceptionDto
 
     /**
  * @summary Delete trait
  */
-export const useDelete1 = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useDelete1 = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete1>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof delete1>>,
@@ -512,7 +516,7 @@ export const getGetById1QueryKey = (id?: number,) => {
     }
 
     
-export const getGetById1QueryOptions = <TData = Awaited<ReturnType<typeof getById1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetById1QueryOptions = <TData = Awaited<ReturnType<typeof getById1>>, TError = ExceptionDto>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -531,10 +535,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetById1QueryResult = NonNullable<Awaited<ReturnType<typeof getById1>>>
-export type GetById1QueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetById1QueryError = ExceptionDto
 
 
-export function useGetById1<TData = Awaited<ReturnType<typeof getById1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetById1<TData = Awaited<ReturnType<typeof getById1>>, TError = ExceptionDto>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById1>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getById1>>,
@@ -544,7 +548,7 @@ export function useGetById1<TData = Awaited<ReturnType<typeof getById1>>, TError
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetById1<TData = Awaited<ReturnType<typeof getById1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetById1<TData = Awaited<ReturnType<typeof getById1>>, TError = ExceptionDto>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById1>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getById1>>,
@@ -554,7 +558,7 @@ export function useGetById1<TData = Awaited<ReturnType<typeof getById1>>, TError
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetById1<TData = Awaited<ReturnType<typeof getById1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetById1<TData = Awaited<ReturnType<typeof getById1>>, TError = ExceptionDto>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -562,7 +566,7 @@ export function useGetById1<TData = Awaited<ReturnType<typeof getById1>>, TError
  * @summary Get quiz by ID
  */
 
-export function useGetById1<TData = Awaited<ReturnType<typeof getById1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetById1<TData = Awaited<ReturnType<typeof getById1>>, TError = ExceptionDto>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -607,7 +611,7 @@ export const update2 = async (id: number,
 
 
 
-export const getUpdate2MutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getUpdate2MutationOptions = <TError = ExceptionDto | ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update2>>, TError,{id: number;data: UpdateQuizRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof update2>>, TError,{id: number;data: UpdateQuizRequest}, TContext> => {
 
@@ -634,12 +638,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Update2MutationResult = NonNullable<Awaited<ReturnType<typeof update2>>>
     export type Update2MutationBody = UpdateQuizRequest
-    export type Update2MutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type Update2MutationError = ExceptionDto | ExceptionDto
 
     /**
  * @summary Update quiz
  */
-export const useUpdate2 = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useUpdate2 = <TError = ExceptionDto | ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update2>>, TError,{id: number;data: UpdateQuizRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof update2>>,
@@ -679,7 +683,7 @@ export const delete2 = async (id: number, options?: RequestInit): Promise<void> 
 
 
 
-export const getDelete2MutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getDelete2MutationOptions = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete2>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof delete2>>, TError,{id: number}, TContext> => {
 
@@ -706,12 +710,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Delete2MutationResult = NonNullable<Awaited<ReturnType<typeof delete2>>>
     
-    export type Delete2MutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type Delete2MutationError = ExceptionDto
 
     /**
  * @summary Delete quiz
  */
-export const useDelete2 = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useDelete2 = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete2>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof delete2>>,
@@ -753,7 +757,7 @@ export const update3 = async (id: number,
 
 
 
-export const getUpdate3MutationOptions = <TError = ExceptionDto | ExceptionDto | QuestionDto | ExceptionDto | ExceptionDto,
+export const getUpdate3MutationOptions = <TError = QuestionDto | QuestionDto | QuestionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update3>>, TError,{id: number;data: UpdateQuestionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof update3>>, TError,{id: number;data: UpdateQuestionRequest}, TContext> => {
 
@@ -780,12 +784,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Update3MutationResult = NonNullable<Awaited<ReturnType<typeof update3>>>
     export type Update3MutationBody = UpdateQuestionRequest
-    export type Update3MutationError = ExceptionDto | ExceptionDto | QuestionDto | ExceptionDto | ExceptionDto
+    export type Update3MutationError = QuestionDto | QuestionDto | QuestionDto
 
     /**
  * @summary Update a question
  */
-export const useUpdate3 = <TError = ExceptionDto | ExceptionDto | QuestionDto | ExceptionDto | ExceptionDto,
+export const useUpdate3 = <TError = QuestionDto | QuestionDto | QuestionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update3>>, TError,{id: number;data: UpdateQuestionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof update3>>,
@@ -825,7 +829,7 @@ export const delete3 = async (id: number, options?: RequestInit): Promise<void> 
 
 
 
-export const getDelete3MutationOptions = <TError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto,
+export const getDelete3MutationOptions = <TError = void | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete3>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof delete3>>, TError,{id: number}, TContext> => {
 
@@ -852,12 +856,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Delete3MutationResult = NonNullable<Awaited<ReturnType<typeof delete3>>>
     
-    export type Delete3MutationError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto
+    export type Delete3MutationError = void | void
 
     /**
  * @summary Delete a question
  */
-export const useDelete3 = <TError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto,
+export const useDelete3 = <TError = void | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete3>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof delete3>>,
@@ -899,7 +903,7 @@ export const updateOrder = async (id: number,
 
 
 
-export const getUpdateOrderMutationOptions = <TError = ExceptionDto | ExceptionDto | QuestionDto | ExceptionDto | ExceptionDto,
+export const getUpdateOrderMutationOptions = <TError = QuestionDto | QuestionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOrder>>, TError,{id: number;ord: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateOrder>>, TError,{id: number;ord: number}, TContext> => {
 
@@ -926,12 +930,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateOrderMutationResult = NonNullable<Awaited<ReturnType<typeof updateOrder>>>
     
-    export type UpdateOrderMutationError = ExceptionDto | ExceptionDto | QuestionDto | ExceptionDto | ExceptionDto
+    export type UpdateOrderMutationError = QuestionDto | QuestionDto
 
     /**
  * @summary Update question order
  */
-export const useUpdateOrder = <TError = ExceptionDto | ExceptionDto | QuestionDto | ExceptionDto | ExceptionDto,
+export const useUpdateOrder = <TError = QuestionDto | QuestionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOrder>>, TError,{id: number;ord: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateOrder>>,
@@ -979,7 +983,7 @@ export const getGetById2QueryKey = (id?: number,) => {
     }
 
     
-export const getGetById2QueryOptions = <TData = Awaited<ReturnType<typeof getById2>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetById2QueryOptions = <TData = Awaited<ReturnType<typeof getById2>>, TError = ProfessionDto>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -998,10 +1002,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetById2QueryResult = NonNullable<Awaited<ReturnType<typeof getById2>>>
-export type GetById2QueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetById2QueryError = ProfessionDto
 
 
-export function useGetById2<TData = Awaited<ReturnType<typeof getById2>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetById2<TData = Awaited<ReturnType<typeof getById2>>, TError = ProfessionDto>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById2>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getById2>>,
@@ -1011,7 +1015,7 @@ export function useGetById2<TData = Awaited<ReturnType<typeof getById2>>, TError
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetById2<TData = Awaited<ReturnType<typeof getById2>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetById2<TData = Awaited<ReturnType<typeof getById2>>, TError = ProfessionDto>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById2>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getById2>>,
@@ -1021,7 +1025,7 @@ export function useGetById2<TData = Awaited<ReturnType<typeof getById2>>, TError
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetById2<TData = Awaited<ReturnType<typeof getById2>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetById2<TData = Awaited<ReturnType<typeof getById2>>, TError = ProfessionDto>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -1029,7 +1033,7 @@ export function useGetById2<TData = Awaited<ReturnType<typeof getById2>>, TError
  * @summary Get profession by ID
  */
 
-export function useGetById2<TData = Awaited<ReturnType<typeof getById2>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetById2<TData = Awaited<ReturnType<typeof getById2>>, TError = ProfessionDto>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -1074,7 +1078,7 @@ export const update4 = async (id: number,
 
 
 
-export const getUpdate4MutationOptions = <TError = ExceptionDto | ExceptionDto | ProfessionDto | ExceptionDto | ExceptionDto,
+export const getUpdate4MutationOptions = <TError = ProfessionDto | ProfessionDto | ProfessionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update4>>, TError,{id: number;data: CreateProfessionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof update4>>, TError,{id: number;data: CreateProfessionRequest}, TContext> => {
 
@@ -1101,12 +1105,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Update4MutationResult = NonNullable<Awaited<ReturnType<typeof update4>>>
     export type Update4MutationBody = CreateProfessionRequest
-    export type Update4MutationError = ExceptionDto | ExceptionDto | ProfessionDto | ExceptionDto | ExceptionDto
+    export type Update4MutationError = ProfessionDto | ProfessionDto | ProfessionDto
 
     /**
  * @summary Update a profession
  */
-export const useUpdate4 = <TError = ExceptionDto | ExceptionDto | ProfessionDto | ExceptionDto | ExceptionDto,
+export const useUpdate4 = <TError = ProfessionDto | ProfessionDto | ProfessionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update4>>, TError,{id: number;data: CreateProfessionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof update4>>,
@@ -1146,7 +1150,7 @@ export const delete4 = async (id: number, options?: RequestInit): Promise<void> 
 
 
 
-export const getDelete4MutationOptions = <TError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto,
+export const getDelete4MutationOptions = <TError = void | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete4>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof delete4>>, TError,{id: number}, TContext> => {
 
@@ -1173,12 +1177,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Delete4MutationResult = NonNullable<Awaited<ReturnType<typeof delete4>>>
     
-    export type Delete4MutationError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto
+    export type Delete4MutationError = void | void
 
     /**
  * @summary Delete a profession
  */
-export const useDelete4 = <TError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto,
+export const useDelete4 = <TError = void | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete4>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof delete4>>,
@@ -1223,7 +1227,7 @@ export const updateTraits = async (optionId: number,
 
 
 
-export const getUpdateTraitsMutationOptions = <TError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto,
+export const getUpdateTraitsMutationOptions = <TError = void | void | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTraits>>, TError,{optionId: number;data: OptionTraitListRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateTraits>>, TError,{optionId: number;data: OptionTraitListRequest}, TContext> => {
 
@@ -1250,12 +1254,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateTraitsMutationResult = NonNullable<Awaited<ReturnType<typeof updateTraits>>>
     export type UpdateTraitsMutationBody = OptionTraitListRequest
-    export type UpdateTraitsMutationError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto
+    export type UpdateTraitsMutationError = void | void | void
 
     /**
  * @summary Update traits for an option
  */
-export const useUpdateTraits = <TError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto,
+export const useUpdateTraits = <TError = void | void | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTraits>>, TError,{optionId: number;data: OptionTraitListRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateTraits>>,
@@ -1300,7 +1304,7 @@ export const assignTraits = async (optionId: number,
 
 
 
-export const getAssignTraitsMutationOptions = <TError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto,
+export const getAssignTraitsMutationOptions = <TError = void | void | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignTraits>>, TError,{optionId: number;data: OptionTraitListRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof assignTraits>>, TError,{optionId: number;data: OptionTraitListRequest}, TContext> => {
 
@@ -1327,12 +1331,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type AssignTraitsMutationResult = NonNullable<Awaited<ReturnType<typeof assignTraits>>>
     export type AssignTraitsMutationBody = OptionTraitListRequest
-    export type AssignTraitsMutationError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto
+    export type AssignTraitsMutationError = void | void | void
 
     /**
  * @summary Assign traits to an option
  */
-export const useAssignTraits = <TError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto,
+export const useAssignTraits = <TError = void | void | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignTraits>>, TError,{optionId: number;data: OptionTraitListRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof assignTraits>>,
@@ -1376,7 +1380,7 @@ export const update5 = async (id: number,
 
 
 
-export const getUpdate5MutationOptions = <TError = ExceptionDto | ExceptionDto | OptionDto | ExceptionDto | ExceptionDto,
+export const getUpdate5MutationOptions = <TError = ExceptionDto | OptionDto | OptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update5>>, TError,{id: number;data: UpdateOptionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof update5>>, TError,{id: number;data: UpdateOptionRequest}, TContext> => {
 
@@ -1403,12 +1407,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Update5MutationResult = NonNullable<Awaited<ReturnType<typeof update5>>>
     export type Update5MutationBody = UpdateOptionRequest
-    export type Update5MutationError = ExceptionDto | ExceptionDto | OptionDto | ExceptionDto | ExceptionDto
+    export type Update5MutationError = ExceptionDto | OptionDto | OptionDto
 
     /**
  * @summary Update an option
  */
-export const useUpdate5 = <TError = ExceptionDto | ExceptionDto | OptionDto | ExceptionDto | ExceptionDto,
+export const useUpdate5 = <TError = ExceptionDto | OptionDto | OptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update5>>, TError,{id: number;data: UpdateOptionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof update5>>,
@@ -1450,7 +1454,7 @@ export const delete5 = async (id: number, options?: RequestInit): Promise<void> 
 
 
 
-export const getDelete5MutationOptions = <TError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto,
+export const getDelete5MutationOptions = <TError = void | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete5>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof delete5>>, TError,{id: number}, TContext> => {
 
@@ -1477,12 +1481,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Delete5MutationResult = NonNullable<Awaited<ReturnType<typeof delete5>>>
     
-    export type Delete5MutationError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto
+    export type Delete5MutationError = void | void
 
     /**
  * @summary Delete an option
  */
-export const useDelete5 = <TError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto,
+export const useDelete5 = <TError = void | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete5>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof delete5>>,
@@ -1526,7 +1530,7 @@ export const updateOrder1 = async (id: number,
 
 
 
-export const getUpdateOrder1MutationOptions = <TError = ExceptionDto | ExceptionDto | OptionDto | ExceptionDto | ExceptionDto,
+export const getUpdateOrder1MutationOptions = <TError = OptionDto | OptionDto | OptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOrder1>>, TError,{id: number;ord: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateOrder1>>, TError,{id: number;ord: number}, TContext> => {
 
@@ -1553,12 +1557,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateOrder1MutationResult = NonNullable<Awaited<ReturnType<typeof updateOrder1>>>
     
-    export type UpdateOrder1MutationError = ExceptionDto | ExceptionDto | OptionDto | ExceptionDto | ExceptionDto
+    export type UpdateOrder1MutationError = OptionDto | OptionDto | OptionDto
 
     /**
  * @summary Update option order
  */
-export const useUpdateOrder1 = <TError = ExceptionDto | ExceptionDto | OptionDto | ExceptionDto | ExceptionDto,
+export const useUpdateOrder1 = <TError = OptionDto | OptionDto | OptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOrder1>>, TError,{id: number;ord: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateOrder1>>,
@@ -1600,7 +1604,7 @@ export const update6 = async (id: number,
 
 
 
-export const getUpdate6MutationOptions = <TError = ExceptionDto | ExceptionDto | ProfessionCategoryDto | ExceptionDto | ExceptionDto,
+export const getUpdate6MutationOptions = <TError = ProfessionCategoryDto | ProfessionCategoryDto | ProfessionCategoryDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update6>>, TError,{id: number;data: CreateCategoryRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof update6>>, TError,{id: number;data: CreateCategoryRequest}, TContext> => {
 
@@ -1627,12 +1631,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Update6MutationResult = NonNullable<Awaited<ReturnType<typeof update6>>>
     export type Update6MutationBody = CreateCategoryRequest
-    export type Update6MutationError = ExceptionDto | ExceptionDto | ProfessionCategoryDto | ExceptionDto | ExceptionDto
+    export type Update6MutationError = ProfessionCategoryDto | ProfessionCategoryDto | ProfessionCategoryDto
 
     /**
  * @summary Update a profession category
  */
-export const useUpdate6 = <TError = ExceptionDto | ExceptionDto | ProfessionCategoryDto | ExceptionDto | ExceptionDto,
+export const useUpdate6 = <TError = ProfessionCategoryDto | ProfessionCategoryDto | ProfessionCategoryDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update6>>, TError,{id: number;data: CreateCategoryRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof update6>>,
@@ -1672,7 +1676,7 @@ export const delete6 = async (id: number, options?: RequestInit): Promise<void> 
 
 
 
-export const getDelete6MutationOptions = <TError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto,
+export const getDelete6MutationOptions = <TError = void | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete6>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof delete6>>, TError,{id: number}, TContext> => {
 
@@ -1699,12 +1703,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Delete6MutationResult = NonNullable<Awaited<ReturnType<typeof delete6>>>
     
-    export type Delete6MutationError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto
+    export type Delete6MutationError = void | void
 
     /**
  * @summary Delete a profession category
  */
-export const useDelete6 = <TError = ExceptionDto | ExceptionDto | void | ExceptionDto | ExceptionDto,
+export const useDelete6 = <TError = void | void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete6>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof delete6>>,
@@ -1759,7 +1763,7 @@ export const getSearchQueryKey = (params?: SearchParams,) => {
     }
 
     
-export const getSearchQueryOptions = <TData = Awaited<ReturnType<typeof search>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(params: SearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getSearchQueryOptions = <TData = Awaited<ReturnType<typeof search>>, TError = ExceptionDto>(params: SearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -1778,10 +1782,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type SearchQueryResult = NonNullable<Awaited<ReturnType<typeof search>>>
-export type SearchQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type SearchQueryError = ExceptionDto
 
 
-export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = ExceptionDto>(
  params: SearchParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof search>>,
@@ -1791,7 +1795,7 @@ export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = E
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = ExceptionDto>(
  params: SearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof search>>,
@@ -1801,7 +1805,7 @@ export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = E
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = ExceptionDto>(
  params: SearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -1809,7 +1813,7 @@ export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = E
  * @summary Search translations
  */
 
-export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useSearch<TData = Awaited<ReturnType<typeof search>>, TError = ExceptionDto>(
  params: SearchParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -1853,7 +1857,7 @@ export const create = async (createTranslationRequest: CreateTranslationRequest,
 
 
 
-export const getCreateMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getCreateMutationOptions = <TError = ExceptionDto | ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create>>, TError,{data: CreateTranslationRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof create>>, TError,{data: CreateTranslationRequest}, TContext> => {
 
@@ -1880,12 +1884,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateMutationResult = NonNullable<Awaited<ReturnType<typeof create>>>
     export type CreateMutationBody = CreateTranslationRequest
-    export type CreateMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type CreateMutationError = ExceptionDto | ExceptionDto
 
     /**
  * @summary Create translation
  */
-export const useCreate = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useCreate = <TError = ExceptionDto | ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create>>, TError,{data: CreateTranslationRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof create>>,
@@ -1933,7 +1937,7 @@ export const getGetAllQueryKey = () => {
     }
 
     
-export const getGetAllQueryOptions = <TData = Awaited<ReturnType<typeof getAll>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetAllQueryOptions = <TData = Awaited<ReturnType<typeof getAll>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -1952,10 +1956,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetAllQueryResult = NonNullable<Awaited<ReturnType<typeof getAll>>>
-export type GetAllQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetAllQueryError = unknown
 
 
-export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAll>>,
@@ -1965,7 +1969,7 @@ export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = E
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAll>>,
@@ -1975,7 +1979,7 @@ export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = E
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -1983,7 +1987,7 @@ export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = E
  * @summary Get all traits
  */
 
-export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -2027,7 +2031,7 @@ export const create1 = async (createTraitRequest: CreateTraitRequest, options?: 
 
 
 
-export const getCreate1MutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getCreate1MutationOptions = <TError = ExceptionDto | ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create1>>, TError,{data: CreateTraitRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof create1>>, TError,{data: CreateTraitRequest}, TContext> => {
 
@@ -2054,12 +2058,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Create1MutationResult = NonNullable<Awaited<ReturnType<typeof create1>>>
     export type Create1MutationBody = CreateTraitRequest
-    export type Create1MutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type Create1MutationError = ExceptionDto | ExceptionDto
 
     /**
  * @summary Create trait
  */
-export const useCreate1 = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useCreate1 = <TError = ExceptionDto | ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create1>>, TError,{data: CreateTraitRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof create1>>,
@@ -2123,7 +2127,7 @@ export const getGetAll1QueryKey = (params?: GetAll1Params,) => {
     }
 
     
-export const getGetAll1QueryOptions = <TData = Awaited<ReturnType<typeof getAll1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(params?: GetAll1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetAll1QueryOptions = <TData = Awaited<ReturnType<typeof getAll1>>, TError = unknown>(params?: GetAll1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -2142,10 +2146,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetAll1QueryResult = NonNullable<Awaited<ReturnType<typeof getAll1>>>
-export type GetAll1QueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetAll1QueryError = unknown
 
 
-export function useGetAll1<TData = Awaited<ReturnType<typeof getAll1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll1<TData = Awaited<ReturnType<typeof getAll1>>, TError = unknown>(
  params: undefined |  GetAll1Params, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll1>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAll1>>,
@@ -2155,7 +2159,7 @@ export function useGetAll1<TData = Awaited<ReturnType<typeof getAll1>>, TError =
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAll1<TData = Awaited<ReturnType<typeof getAll1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll1<TData = Awaited<ReturnType<typeof getAll1>>, TError = unknown>(
  params?: GetAll1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll1>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAll1>>,
@@ -2165,7 +2169,7 @@ export function useGetAll1<TData = Awaited<ReturnType<typeof getAll1>>, TError =
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAll1<TData = Awaited<ReturnType<typeof getAll1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll1<TData = Awaited<ReturnType<typeof getAll1>>, TError = unknown>(
  params?: GetAll1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -2173,7 +2177,7 @@ export function useGetAll1<TData = Awaited<ReturnType<typeof getAll1>>, TError =
  * @summary Get all quizzes (paginated)
  */
 
-export function useGetAll1<TData = Awaited<ReturnType<typeof getAll1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll1<TData = Awaited<ReturnType<typeof getAll1>>, TError = unknown>(
  params?: GetAll1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -2217,7 +2221,7 @@ export const create2 = async (createQuizRequest: CreateQuizRequest, options?: Re
 
 
 
-export const getCreate2MutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getCreate2MutationOptions = <TError = ExceptionDto | ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create2>>, TError,{data: CreateQuizRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof create2>>, TError,{data: CreateQuizRequest}, TContext> => {
 
@@ -2244,12 +2248,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Create2MutationResult = NonNullable<Awaited<ReturnType<typeof create2>>>
     export type Create2MutationBody = CreateQuizRequest
-    export type Create2MutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type Create2MutationError = ExceptionDto | ExceptionDto
 
     /**
  * @summary Create quiz
  */
-export const useCreate2 = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useCreate2 = <TError = ExceptionDto | ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create2>>, TError,{data: CreateQuizRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof create2>>,
@@ -2289,7 +2293,7 @@ export const publish = async (id: number, options?: RequestInit): Promise<QuizVe
 
 
 
-export const getPublishMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getPublishMutationOptions = <TError = unknown,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publish>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof publish>>, TError,{id: number}, TContext> => {
 
@@ -2316,12 +2320,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type PublishMutationResult = NonNullable<Awaited<ReturnType<typeof publish>>>
     
-    export type PublishMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type PublishMutationError = unknown
 
     /**
  * @summary Publish quiz
  */
-export const usePublish = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const usePublish = <TError = unknown,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof publish>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof publish>>,
@@ -2361,7 +2365,7 @@ export const copyLatest = async (id: number, options?: RequestInit): Promise<Qui
 
 
 
-export const getCopyLatestMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getCopyLatestMutationOptions = <TError = unknown,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof copyLatest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof copyLatest>>, TError,{id: number}, TContext> => {
 
@@ -2388,12 +2392,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CopyLatestMutationResult = NonNullable<Awaited<ReturnType<typeof copyLatest>>>
     
-    export type CopyLatestMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type CopyLatestMutationError = unknown
 
     /**
  * @summary Copy latest quiz version
  */
-export const useCopyLatest = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useCopyLatest = <TError = unknown,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof copyLatest>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof copyLatest>>,
@@ -2434,7 +2438,7 @@ export const create3 = async (createQuestionRequest: CreateQuestionRequest, opti
 
 
 
-export const getCreate3MutationOptions = <TError = ExceptionDto | ExceptionDto | QuestionDto | ExceptionDto | ExceptionDto,
+export const getCreate3MutationOptions = <TError = QuestionDto | QuestionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create3>>, TError,{data: CreateQuestionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof create3>>, TError,{data: CreateQuestionRequest}, TContext> => {
 
@@ -2461,12 +2465,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Create3MutationResult = NonNullable<Awaited<ReturnType<typeof create3>>>
     export type Create3MutationBody = CreateQuestionRequest
-    export type Create3MutationError = ExceptionDto | ExceptionDto | QuestionDto | ExceptionDto | ExceptionDto
+    export type Create3MutationError = QuestionDto | QuestionDto
 
     /**
  * @summary Create a question
  */
-export const useCreate3 = <TError = ExceptionDto | ExceptionDto | QuestionDto | ExceptionDto | ExceptionDto,
+export const useCreate3 = <TError = QuestionDto | QuestionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create3>>, TError,{data: CreateQuestionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof create3>>,
@@ -2530,7 +2534,7 @@ export const getGetAll2QueryKey = (params?: GetAll2Params,) => {
     }
 
     
-export const getGetAll2QueryOptions = <TData = Awaited<ReturnType<typeof getAll2>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(params?: GetAll2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetAll2QueryOptions = <TData = Awaited<ReturnType<typeof getAll2>>, TError = unknown>(params?: GetAll2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -2549,10 +2553,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetAll2QueryResult = NonNullable<Awaited<ReturnType<typeof getAll2>>>
-export type GetAll2QueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetAll2QueryError = unknown
 
 
-export function useGetAll2<TData = Awaited<ReturnType<typeof getAll2>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll2<TData = Awaited<ReturnType<typeof getAll2>>, TError = unknown>(
  params: undefined |  GetAll2Params, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll2>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAll2>>,
@@ -2562,7 +2566,7 @@ export function useGetAll2<TData = Awaited<ReturnType<typeof getAll2>>, TError =
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAll2<TData = Awaited<ReturnType<typeof getAll2>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll2<TData = Awaited<ReturnType<typeof getAll2>>, TError = unknown>(
  params?: GetAll2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll2>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAll2>>,
@@ -2572,7 +2576,7 @@ export function useGetAll2<TData = Awaited<ReturnType<typeof getAll2>>, TError =
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAll2<TData = Awaited<ReturnType<typeof getAll2>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll2<TData = Awaited<ReturnType<typeof getAll2>>, TError = unknown>(
  params?: GetAll2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -2580,7 +2584,7 @@ export function useGetAll2<TData = Awaited<ReturnType<typeof getAll2>>, TError =
  * @summary Get all professions (paginated)
  */
 
-export function useGetAll2<TData = Awaited<ReturnType<typeof getAll2>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll2<TData = Awaited<ReturnType<typeof getAll2>>, TError = unknown>(
  params?: GetAll2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -2624,7 +2628,7 @@ export const create4 = async (createProfessionRequest: CreateProfessionRequest, 
 
 
 
-export const getCreate4MutationOptions = <TError = ExceptionDto | ExceptionDto | ProfessionDto | ExceptionDto | ExceptionDto,
+export const getCreate4MutationOptions = <TError = ProfessionDto | ProfessionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create4>>, TError,{data: CreateProfessionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof create4>>, TError,{data: CreateProfessionRequest}, TContext> => {
 
@@ -2651,12 +2655,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Create4MutationResult = NonNullable<Awaited<ReturnType<typeof create4>>>
     export type Create4MutationBody = CreateProfessionRequest
-    export type Create4MutationError = ExceptionDto | ExceptionDto | ProfessionDto | ExceptionDto | ExceptionDto
+    export type Create4MutationError = ProfessionDto | ProfessionDto
 
     /**
  * @summary Create a profession
  */
-export const useCreate4 = <TError = ExceptionDto | ExceptionDto | ProfessionDto | ExceptionDto | ExceptionDto,
+export const useCreate4 = <TError = ProfessionDto | ProfessionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create4>>, TError,{data: CreateProfessionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof create4>>,
@@ -2699,7 +2703,7 @@ export const create5 = async (createOptionRequest: CreateOptionRequest, options?
 
 
 
-export const getCreate5MutationOptions = <TError = ExceptionDto | ExceptionDto | OptionDto | ExceptionDto | ExceptionDto,
+export const getCreate5MutationOptions = <TError = ExceptionDto | OptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create5>>, TError,{data: CreateOptionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof create5>>, TError,{data: CreateOptionRequest}, TContext> => {
 
@@ -2726,12 +2730,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Create5MutationResult = NonNullable<Awaited<ReturnType<typeof create5>>>
     export type Create5MutationBody = CreateOptionRequest
-    export type Create5MutationError = ExceptionDto | ExceptionDto | OptionDto | ExceptionDto | ExceptionDto
+    export type Create5MutationError = ExceptionDto | OptionDto
 
     /**
  * @summary Create an answer option
  */
-export const useCreate5 = <TError = ExceptionDto | ExceptionDto | OptionDto | ExceptionDto | ExceptionDto,
+export const useCreate5 = <TError = ExceptionDto | OptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create5>>, TError,{data: CreateOptionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof create5>>,
@@ -2779,7 +2783,7 @@ export const getGetAll3QueryKey = () => {
     }
 
     
-export const getGetAll3QueryOptions = <TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll3>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetAll3QueryOptions = <TData = Awaited<ReturnType<typeof getAll3>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll3>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -2798,10 +2802,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetAll3QueryResult = NonNullable<Awaited<ReturnType<typeof getAll3>>>
-export type GetAll3QueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetAll3QueryError = unknown
 
 
-export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll3>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAll3>>,
@@ -2811,7 +2815,7 @@ export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError =
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll3>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAll3>>,
@@ -2821,7 +2825,7 @@ export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError =
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll3>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -2829,7 +2833,7 @@ export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError =
  * @summary Get all profession categories
  */
 
-export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAll3<TData = Awaited<ReturnType<typeof getAll3>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll3>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -2873,7 +2877,7 @@ export const create6 = async (createCategoryRequest: CreateCategoryRequest, opti
 
 
 
-export const getCreate6MutationOptions = <TError = ExceptionDto | ExceptionDto | ProfessionCategoryDto | ExceptionDto | ExceptionDto,
+export const getCreate6MutationOptions = <TError = ProfessionCategoryDto | ProfessionCategoryDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create6>>, TError,{data: CreateCategoryRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof create6>>, TError,{data: CreateCategoryRequest}, TContext> => {
 
@@ -2900,12 +2904,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type Create6MutationResult = NonNullable<Awaited<ReturnType<typeof create6>>>
     export type Create6MutationBody = CreateCategoryRequest
-    export type Create6MutationError = ExceptionDto | ExceptionDto | ProfessionCategoryDto | ExceptionDto | ExceptionDto
+    export type Create6MutationError = ProfessionCategoryDto | ProfessionCategoryDto
 
     /**
  * @summary Create a profession category
  */
-export const useCreate6 = <TError = ExceptionDto | ExceptionDto | ProfessionCategoryDto | ExceptionDto | ExceptionDto,
+export const useCreate6 = <TError = ProfessionCategoryDto | ProfessionCategoryDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create6>>, TError,{data: CreateCategoryRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof create6>>,
@@ -2946,7 +2950,7 @@ export const register = async (registerUserDto: RegisterUserDto, options?: Reque
 
 
 
-export const getRegisterMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getRegisterMutationOptions = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterUserDto}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterUserDto}, TContext> => {
 
@@ -2973,12 +2977,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type RegisterMutationResult = NonNullable<Awaited<ReturnType<typeof register>>>
     export type RegisterMutationBody = RegisterUserDto
-    export type RegisterMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type RegisterMutationError = ExceptionDto
 
     /**
  * @summary Register a new user
  */
-export const useRegister = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useRegister = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: RegisterUserDto}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof register>>,
@@ -3019,7 +3023,7 @@ export const resetPassword = async (resetPasswordDto: ResetPasswordDto, options?
 
 
 
-export const getResetPasswordMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getResetPasswordMutationOptions = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: ResetPasswordDto}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: ResetPasswordDto}, TContext> => {
 
@@ -3046,12 +3050,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type ResetPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof resetPassword>>>
     export type ResetPasswordMutationBody = ResetPasswordDto
-    export type ResetPasswordMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type ResetPasswordMutationError = ExceptionDto
 
     /**
  * @summary Reset password
  */
-export const useResetPassword = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useResetPassword = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resetPassword>>, TError,{data: ResetPasswordDto}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof resetPassword>>,
@@ -3092,7 +3096,7 @@ export const requestReset = async (requestResetPasswordDto: RequestResetPassword
 
 
 
-export const getRequestResetMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getRequestResetMutationOptions = <TError = unknown,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestReset>>, TError,{data: RequestResetPasswordDto}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof requestReset>>, TError,{data: RequestResetPasswordDto}, TContext> => {
 
@@ -3119,12 +3123,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type RequestResetMutationResult = NonNullable<Awaited<ReturnType<typeof requestReset>>>
     export type RequestResetMutationBody = RequestResetPasswordDto
-    export type RequestResetMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type RequestResetMutationError = unknown
 
     /**
  * @summary Request password reset
  */
-export const useRequestReset = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useRequestReset = <TError = unknown,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestReset>>, TError,{data: RequestResetPasswordDto}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof requestReset>>,
@@ -3165,7 +3169,7 @@ export const refreshToken = async (refreshTokenRequest: RefreshTokenRequest, opt
 
 
 
-export const getRefreshTokenMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getRefreshTokenMutationOptions = <TError = LoginResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshToken>>, TError,{data: RefreshTokenRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof refreshToken>>, TError,{data: RefreshTokenRequest}, TContext> => {
 
@@ -3192,12 +3196,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type RefreshTokenMutationResult = NonNullable<Awaited<ReturnType<typeof refreshToken>>>
     export type RefreshTokenMutationBody = RefreshTokenRequest
-    export type RefreshTokenMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type RefreshTokenMutationError = LoginResponse
 
     /**
  * @summary Refresh access token
  */
-export const useRefreshToken = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useRefreshToken = <TError = LoginResponse,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshToken>>, TError,{data: RefreshTokenRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof refreshToken>>,
@@ -3237,7 +3241,7 @@ export const logout = async ( options?: RequestInit): Promise<Logout200> => {
 
 
 
-export const getLogoutMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getLogoutMutationOptions = <TError = Logout400 | Logout401,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext> => {
 
@@ -3264,12 +3268,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>
     
-    export type LogoutMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type LogoutMutationError = Logout400 | Logout401
 
     /**
  * @summary Logout user
  */
-export const useLogout = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useLogout = <TError = Logout400 | Logout401,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof logout>>,
@@ -3310,7 +3314,7 @@ export const authenticate = async (loginUserDto: LoginUserDto, options?: Request
 
 
 
-export const getAuthenticateMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getAuthenticateMutationOptions = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authenticate>>, TError,{data: LoginUserDto}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof authenticate>>, TError,{data: LoginUserDto}, TContext> => {
 
@@ -3337,12 +3341,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type AuthenticateMutationResult = NonNullable<Awaited<ReturnType<typeof authenticate>>>
     export type AuthenticateMutationBody = LoginUserDto
-    export type AuthenticateMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type AuthenticateMutationError = ExceptionDto
 
     /**
  * @summary Authenticate user
  */
-export const useAuthenticate = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useAuthenticate = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof authenticate>>, TError,{data: LoginUserDto}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof authenticate>>,
@@ -3383,7 +3387,7 @@ export const handleGoogleOneTap = async (googleOneTapLoginRequest: GoogleOneTapL
 
 
 
-export const getHandleGoogleOneTapMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getHandleGoogleOneTapMutationOptions = <TError = HandleGoogleOneTap401,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof handleGoogleOneTap>>, TError,{data: GoogleOneTapLoginRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof handleGoogleOneTap>>, TError,{data: GoogleOneTapLoginRequest}, TContext> => {
 
@@ -3410,12 +3414,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type HandleGoogleOneTapMutationResult = NonNullable<Awaited<ReturnType<typeof handleGoogleOneTap>>>
     export type HandleGoogleOneTapMutationBody = GoogleOneTapLoginRequest
-    export type HandleGoogleOneTapMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type HandleGoogleOneTapMutationError = HandleGoogleOneTap401
 
     /**
  * @summary Google One Tap login
  */
-export const useHandleGoogleOneTap = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useHandleGoogleOneTap = <TError = HandleGoogleOneTap401,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof handleGoogleOneTap>>, TError,{data: GoogleOneTapLoginRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof handleGoogleOneTap>>,
@@ -3460,7 +3464,7 @@ export const submit = async (attemptId: number, options?: RequestInit): Promise<
 
 
 
-export const getSubmitMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getSubmitMutationOptions = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submit>>, TError,{attemptId: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof submit>>, TError,{attemptId: number}, TContext> => {
 
@@ -3487,12 +3491,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type SubmitMutationResult = NonNullable<Awaited<ReturnType<typeof submit>>>
     
-    export type SubmitMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type SubmitMutationError = ExceptionDto
 
     /**
  * @summary Submit attempt
  */
-export const useSubmit = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useSubmit = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submit>>, TError,{attemptId: number}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof submit>>,
@@ -3534,7 +3538,7 @@ export const addAnswer = async (attemptId: number,
 
 
 
-export const getAddAnswerMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getAddAnswerMutationOptions = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAnswer>>, TError,{attemptId: number;data: AddAnswerRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof addAnswer>>, TError,{attemptId: number;data: AddAnswerRequest}, TContext> => {
 
@@ -3561,12 +3565,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type AddAnswerMutationResult = NonNullable<Awaited<ReturnType<typeof addAnswer>>>
     export type AddAnswerMutationBody = AddAnswerRequest
-    export type AddAnswerMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type AddAnswerMutationError = ExceptionDto
 
     /**
  * @summary Submit a single answer
  */
-export const useAddAnswer = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useAddAnswer = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAnswer>>, TError,{attemptId: number;data: AddAnswerRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof addAnswer>>,
@@ -3613,7 +3617,7 @@ export const addAnswersForQuestion = async (attemptId: number,
 
 
 
-export const getAddAnswersForQuestionMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getAddAnswersForQuestionMutationOptions = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAnswersForQuestion>>, TError,{attemptId: number;data: AddAnswersForQuestionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof addAnswersForQuestion>>, TError,{attemptId: number;data: AddAnswersForQuestionRequest}, TContext> => {
 
@@ -3640,12 +3644,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type AddAnswersForQuestionMutationResult = NonNullable<Awaited<ReturnType<typeof addAnswersForQuestion>>>
     export type AddAnswersForQuestionMutationBody = AddAnswersForQuestionRequest
-    export type AddAnswersForQuestionMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type AddAnswersForQuestionMutationError = ExceptionDto
 
     /**
  * @summary Submit answers for one question (single or multi-select)
  */
-export const useAddAnswersForQuestion = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useAddAnswersForQuestion = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAnswersForQuestion>>, TError,{attemptId: number;data: AddAnswersForQuestionRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof addAnswersForQuestion>>,
@@ -3687,7 +3691,7 @@ export const addAnswersBulk = async (attemptId: number,
 
 
 
-export const getAddAnswersBulkMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getAddAnswersBulkMutationOptions = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAnswersBulk>>, TError,{attemptId: number;data: AddAnswersBulkRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof addAnswersBulk>>, TError,{attemptId: number;data: AddAnswersBulkRequest}, TContext> => {
 
@@ -3714,12 +3718,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type AddAnswersBulkMutationResult = NonNullable<Awaited<ReturnType<typeof addAnswersBulk>>>
     export type AddAnswersBulkMutationBody = AddAnswersBulkRequest
-    export type AddAnswersBulkMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type AddAnswersBulkMutationError = ExceptionDto
 
     /**
  * @summary Submit multiple answers at once
  */
-export const useAddAnswersBulk = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useAddAnswersBulk = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAnswersBulk>>, TError,{attemptId: number;data: AddAnswersBulkRequest}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof addAnswersBulk>>,
@@ -3770,7 +3774,7 @@ export const startAttempt = async (params: StartAttemptParams, options?: Request
 
 
 
-export const getStartAttemptMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getStartAttemptMutationOptions = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startAttempt>>, TError,{params: StartAttemptParams}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof startAttempt>>, TError,{params: StartAttemptParams}, TContext> => {
 
@@ -3797,12 +3801,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type StartAttemptMutationResult = NonNullable<Awaited<ReturnType<typeof startAttempt>>>
     
-    export type StartAttemptMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type StartAttemptMutationError = ExceptionDto
 
     /**
  * @summary Start a quiz attempt
  */
-export const useStartAttempt = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useStartAttempt = <TError = ExceptionDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startAttempt>>, TError,{params: StartAttemptParams}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof startAttempt>>,
@@ -3848,7 +3852,7 @@ formData.append(`file`, importTranslationsBody.file)
 
 
 
-export const getImportTranslationsMutationOptions = <TError = ExceptionDto | ExceptionDto | ImportResultDto | ExceptionDto | ExceptionDto,
+export const getImportTranslationsMutationOptions = <TError = ExceptionDto | ImportResultDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importTranslations>>, TError,{data: ImportTranslationsBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof importTranslations>>, TError,{data: ImportTranslationsBody}, TContext> => {
 
@@ -3875,12 +3879,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type ImportTranslationsMutationResult = NonNullable<Awaited<ReturnType<typeof importTranslations>>>
     export type ImportTranslationsMutationBody = ImportTranslationsBody
-    export type ImportTranslationsMutationError = ExceptionDto | ExceptionDto | ImportResultDto | ExceptionDto | ExceptionDto
+    export type ImportTranslationsMutationError = ExceptionDto | ImportResultDto
 
     /**
  * @summary Import translations from CSV
  */
-export const useImportTranslations = <TError = ExceptionDto | ExceptionDto | ImportResultDto | ExceptionDto | ExceptionDto,
+export const useImportTranslations = <TError = ExceptionDto | ImportResultDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importTranslations>>, TError,{data: ImportTranslationsBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof importTranslations>>,
@@ -3926,7 +3930,7 @@ formData.append(`file`, importQuestionsBody.file)
 
 
 
-export const getImportQuestionsMutationOptions = <TError = ExceptionDto | ExceptionDto | ImportResultDto | ExceptionDto | ExceptionDto,
+export const getImportQuestionsMutationOptions = <TError = ExceptionDto | ImportResultDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importQuestions>>, TError,{data: ImportQuestionsBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof importQuestions>>, TError,{data: ImportQuestionsBody}, TContext> => {
 
@@ -3953,12 +3957,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type ImportQuestionsMutationResult = NonNullable<Awaited<ReturnType<typeof importQuestions>>>
     export type ImportQuestionsMutationBody = ImportQuestionsBody
-    export type ImportQuestionsMutationError = ExceptionDto | ExceptionDto | ImportResultDto | ExceptionDto | ExceptionDto
+    export type ImportQuestionsMutationError = ExceptionDto | ImportResultDto
 
     /**
  * @summary Import questions from CSV
  */
-export const useImportQuestions = <TError = ExceptionDto | ExceptionDto | ImportResultDto | ExceptionDto | ExceptionDto,
+export const useImportQuestions = <TError = ExceptionDto | ImportResultDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importQuestions>>, TError,{data: ImportQuestionsBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof importQuestions>>,
@@ -4019,7 +4023,7 @@ export const getAllUsersQueryKey = (params?: AllUsersParams,) => {
     }
 
     
-export const getAllUsersQueryOptions = <TData = Awaited<ReturnType<typeof allUsers>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(params?: AllUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof allUsers>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getAllUsersQueryOptions = <TData = Awaited<ReturnType<typeof allUsers>>, TError = ExceptionDto>(params?: AllUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof allUsers>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -4038,10 +4042,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type AllUsersQueryResult = NonNullable<Awaited<ReturnType<typeof allUsers>>>
-export type AllUsersQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type AllUsersQueryError = ExceptionDto
 
 
-export function useAllUsers<TData = Awaited<ReturnType<typeof allUsers>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useAllUsers<TData = Awaited<ReturnType<typeof allUsers>>, TError = ExceptionDto>(
  params: undefined |  AllUsersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof allUsers>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof allUsers>>,
@@ -4051,7 +4055,7 @@ export function useAllUsers<TData = Awaited<ReturnType<typeof allUsers>>, TError
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAllUsers<TData = Awaited<ReturnType<typeof allUsers>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useAllUsers<TData = Awaited<ReturnType<typeof allUsers>>, TError = ExceptionDto>(
  params?: AllUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof allUsers>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof allUsers>>,
@@ -4061,7 +4065,7 @@ export function useAllUsers<TData = Awaited<ReturnType<typeof allUsers>>, TError
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAllUsers<TData = Awaited<ReturnType<typeof allUsers>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useAllUsers<TData = Awaited<ReturnType<typeof allUsers>>, TError = ExceptionDto>(
  params?: AllUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof allUsers>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -4069,7 +4073,7 @@ export function useAllUsers<TData = Awaited<ReturnType<typeof allUsers>>, TError
  * @summary Get all users (admin only)
  */
 
-export function useAllUsers<TData = Awaited<ReturnType<typeof allUsers>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useAllUsers<TData = Awaited<ReturnType<typeof allUsers>>, TError = ExceptionDto>(
  params?: AllUsersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof allUsers>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -4120,7 +4124,7 @@ export const getAuthenticatedUserQueryKey = () => {
     }
 
     
-export const getAuthenticatedUserQueryOptions = <TData = Awaited<ReturnType<typeof authenticatedUser>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authenticatedUser>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getAuthenticatedUserQueryOptions = <TData = Awaited<ReturnType<typeof authenticatedUser>>, TError = ExceptionDto | ExceptionDto>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authenticatedUser>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -4139,10 +4143,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type AuthenticatedUserQueryResult = NonNullable<Awaited<ReturnType<typeof authenticatedUser>>>
-export type AuthenticatedUserQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type AuthenticatedUserQueryError = ExceptionDto | ExceptionDto
 
 
-export function useAuthenticatedUser<TData = Awaited<ReturnType<typeof authenticatedUser>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useAuthenticatedUser<TData = Awaited<ReturnType<typeof authenticatedUser>>, TError = ExceptionDto | ExceptionDto>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof authenticatedUser>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof authenticatedUser>>,
@@ -4152,7 +4156,7 @@ export function useAuthenticatedUser<TData = Awaited<ReturnType<typeof authentic
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthenticatedUser<TData = Awaited<ReturnType<typeof authenticatedUser>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useAuthenticatedUser<TData = Awaited<ReturnType<typeof authenticatedUser>>, TError = ExceptionDto | ExceptionDto>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authenticatedUser>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof authenticatedUser>>,
@@ -4162,7 +4166,7 @@ export function useAuthenticatedUser<TData = Awaited<ReturnType<typeof authentic
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useAuthenticatedUser<TData = Awaited<ReturnType<typeof authenticatedUser>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useAuthenticatedUser<TData = Awaited<ReturnType<typeof authenticatedUser>>, TError = ExceptionDto | ExceptionDto>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authenticatedUser>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -4170,7 +4174,7 @@ export function useAuthenticatedUser<TData = Awaited<ReturnType<typeof authentic
  * @summary Get current authenticated user
  */
 
-export function useAuthenticatedUser<TData = Awaited<ReturnType<typeof authenticatedUser>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useAuthenticatedUser<TData = Awaited<ReturnType<typeof authenticatedUser>>, TError = ExceptionDto | ExceptionDto>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof authenticatedUser>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -4221,7 +4225,7 @@ export const getGetAllForEntityTypeQueryKey = (entityType?: string,) => {
     }
 
     
-export const getGetAllForEntityTypeQueryOptions = <TData = Awaited<ReturnType<typeof getAllForEntityType>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(entityType: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllForEntityType>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetAllForEntityTypeQueryOptions = <TData = Awaited<ReturnType<typeof getAllForEntityType>>, TError = unknown>(entityType: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllForEntityType>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -4240,10 +4244,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetAllForEntityTypeQueryResult = NonNullable<Awaited<ReturnType<typeof getAllForEntityType>>>
-export type GetAllForEntityTypeQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetAllForEntityTypeQueryError = unknown
 
 
-export function useGetAllForEntityType<TData = Awaited<ReturnType<typeof getAllForEntityType>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAllForEntityType<TData = Awaited<ReturnType<typeof getAllForEntityType>>, TError = unknown>(
  entityType: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllForEntityType>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllForEntityType>>,
@@ -4253,7 +4257,7 @@ export function useGetAllForEntityType<TData = Awaited<ReturnType<typeof getAllF
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllForEntityType<TData = Awaited<ReturnType<typeof getAllForEntityType>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAllForEntityType<TData = Awaited<ReturnType<typeof getAllForEntityType>>, TError = unknown>(
  entityType: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllForEntityType>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllForEntityType>>,
@@ -4263,7 +4267,7 @@ export function useGetAllForEntityType<TData = Awaited<ReturnType<typeof getAllF
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllForEntityType<TData = Awaited<ReturnType<typeof getAllForEntityType>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAllForEntityType<TData = Awaited<ReturnType<typeof getAllForEntityType>>, TError = unknown>(
  entityType: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllForEntityType>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -4271,7 +4275,7 @@ export function useGetAllForEntityType<TData = Awaited<ReturnType<typeof getAllF
  * @summary Get all translations for entity type
  */
 
-export function useGetAllForEntityType<TData = Awaited<ReturnType<typeof getAllForEntityType>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAllForEntityType<TData = Awaited<ReturnType<typeof getAllForEntityType>>, TError = unknown>(
  entityType: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllForEntityType>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -4322,7 +4326,7 @@ export const getGetVersionsQueryKey = (id?: number,) => {
     }
 
     
-export const getGetVersionsQueryOptions = <TData = Awaited<ReturnType<typeof getVersions>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVersions>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetVersionsQueryOptions = <TData = Awaited<ReturnType<typeof getVersions>>, TError = unknown>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVersions>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -4341,10 +4345,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetVersionsQueryResult = NonNullable<Awaited<ReturnType<typeof getVersions>>>
-export type GetVersionsQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetVersionsQueryError = unknown
 
 
-export function useGetVersions<TData = Awaited<ReturnType<typeof getVersions>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetVersions<TData = Awaited<ReturnType<typeof getVersions>>, TError = unknown>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVersions>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getVersions>>,
@@ -4354,7 +4358,7 @@ export function useGetVersions<TData = Awaited<ReturnType<typeof getVersions>>, 
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetVersions<TData = Awaited<ReturnType<typeof getVersions>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetVersions<TData = Awaited<ReturnType<typeof getVersions>>, TError = unknown>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVersions>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getVersions>>,
@@ -4364,7 +4368,7 @@ export function useGetVersions<TData = Awaited<ReturnType<typeof getVersions>>, 
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetVersions<TData = Awaited<ReturnType<typeof getVersions>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetVersions<TData = Awaited<ReturnType<typeof getVersions>>, TError = unknown>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVersions>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -4372,7 +4376,7 @@ export function useGetVersions<TData = Awaited<ReturnType<typeof getVersions>>, 
  * @summary Get quiz versions
  */
 
-export function useGetVersions<TData = Awaited<ReturnType<typeof getVersions>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetVersions<TData = Awaited<ReturnType<typeof getVersions>>, TError = unknown>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVersions>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -4426,7 +4430,7 @@ export const getGetVersionQueryKey = (id?: number,
     }
 
     
-export const getGetVersionQueryOptions = <TData = Awaited<ReturnType<typeof getVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(id: number,
+export const getGetVersionQueryOptions = <TData = Awaited<ReturnType<typeof getVersion>>, TError = ExceptionDto>(id: number,
     version: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVersion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
@@ -4446,10 +4450,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetVersionQueryResult = NonNullable<Awaited<ReturnType<typeof getVersion>>>
-export type GetVersionQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetVersionQueryError = ExceptionDto
 
 
-export function useGetVersion<TData = Awaited<ReturnType<typeof getVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetVersion<TData = Awaited<ReturnType<typeof getVersion>>, TError = ExceptionDto>(
  id: number,
     version: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVersion>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -4460,7 +4464,7 @@ export function useGetVersion<TData = Awaited<ReturnType<typeof getVersion>>, TE
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetVersion<TData = Awaited<ReturnType<typeof getVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetVersion<TData = Awaited<ReturnType<typeof getVersion>>, TError = ExceptionDto>(
  id: number,
     version: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVersion>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -4471,7 +4475,7 @@ export function useGetVersion<TData = Awaited<ReturnType<typeof getVersion>>, TE
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetVersion<TData = Awaited<ReturnType<typeof getVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetVersion<TData = Awaited<ReturnType<typeof getVersion>>, TError = ExceptionDto>(
  id: number,
     version: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVersion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
@@ -4480,7 +4484,7 @@ export function useGetVersion<TData = Awaited<ReturnType<typeof getVersion>>, TE
  * @summary Get specific quiz version
  */
 
-export function useGetVersion<TData = Awaited<ReturnType<typeof getVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetVersion<TData = Awaited<ReturnType<typeof getVersion>>, TError = ExceptionDto>(
  id: number,
     version: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getVersion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
@@ -4532,7 +4536,7 @@ export const getGetCurrentVersionQueryKey = (id?: number,) => {
     }
 
     
-export const getGetCurrentVersionQueryOptions = <TData = Awaited<ReturnType<typeof getCurrentVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCurrentVersion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetCurrentVersionQueryOptions = <TData = Awaited<ReturnType<typeof getCurrentVersion>>, TError = unknown>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCurrentVersion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -4551,10 +4555,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetCurrentVersionQueryResult = NonNullable<Awaited<ReturnType<typeof getCurrentVersion>>>
-export type GetCurrentVersionQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetCurrentVersionQueryError = unknown
 
 
-export function useGetCurrentVersion<TData = Awaited<ReturnType<typeof getCurrentVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetCurrentVersion<TData = Awaited<ReturnType<typeof getCurrentVersion>>, TError = unknown>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCurrentVersion>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCurrentVersion>>,
@@ -4564,7 +4568,7 @@ export function useGetCurrentVersion<TData = Awaited<ReturnType<typeof getCurren
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCurrentVersion<TData = Awaited<ReturnType<typeof getCurrentVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetCurrentVersion<TData = Awaited<ReturnType<typeof getCurrentVersion>>, TError = unknown>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCurrentVersion>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCurrentVersion>>,
@@ -4574,7 +4578,7 @@ export function useGetCurrentVersion<TData = Awaited<ReturnType<typeof getCurren
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCurrentVersion<TData = Awaited<ReturnType<typeof getCurrentVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetCurrentVersion<TData = Awaited<ReturnType<typeof getCurrentVersion>>, TError = unknown>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCurrentVersion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -4582,7 +4586,7 @@ export function useGetCurrentVersion<TData = Awaited<ReturnType<typeof getCurren
  * @summary Get current quiz version
  */
 
-export function useGetCurrentVersion<TData = Awaited<ReturnType<typeof getCurrentVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetCurrentVersion<TData = Awaited<ReturnType<typeof getCurrentVersion>>, TError = unknown>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCurrentVersion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -4600,10 +4604,10 @@ export function useGetCurrentVersion<TData = Awaited<ReturnType<typeof getCurren
 
 
 /**
- * Search quizzes by title, code, or description and sort by category or creation/update time. Supports pagination and localization.
- * @summary Search and sort quizzes
+ * Search quizzes by title, code, or description and filter by category or duration time. Supports pagination and localization.
+ * @summary Search and filter quizzes
  */
-export const getSearchQuizzesUrl = (params?: SearchQuizzesParams,) => {
+export const getSearch1Url = (params?: Search1Params,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -4618,9 +4622,9 @@ export const getSearchQuizzesUrl = (params?: SearchQuizzesParams,) => {
   return stringifiedParams.length > 0 ? `/quizzes/search?${stringifiedParams}` : `/quizzes/search`
 }
 
-export const searchQuizzes = async (params?: SearchQuizzesParams, options?: RequestInit): Promise<QuizDto[]> => {
+export const search1 = async (params?: Search1Params, options?: RequestInit): Promise<QuizDto[]> => {
   
-  return orvalFetch<QuizDto[]>(getSearchQuizzesUrl(params),
+  return orvalFetch<QuizDto[]>(getSearch1Url(params),
   {      
     ...options,
     method: 'GET'
@@ -4633,69 +4637,69 @@ export const searchQuizzes = async (params?: SearchQuizzesParams, options?: Requ
 
 
 
-export const getSearchQuizzesQueryKey = (params?: SearchQuizzesParams,) => {
+export const getSearch1QueryKey = (params?: Search1Params,) => {
     return [
     `/quizzes/search`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getSearchQuizzesQueryOptions = <TData = Awaited<ReturnType<typeof searchQuizzes>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(params?: SearchQuizzesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchQuizzes>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getSearch1QueryOptions = <TData = Awaited<ReturnType<typeof search1>>, TError = ExceptionDto>(params?: Search1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getSearchQuizzesQueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getSearch1QueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchQuizzes>>> = ({ signal }) => searchQuizzes(params, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof search1>>> = ({ signal }) => search1(params, { signal, ...requestOptions });
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchQuizzes>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof search1>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type SearchQuizzesQueryResult = NonNullable<Awaited<ReturnType<typeof searchQuizzes>>>
-export type SearchQuizzesQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type Search1QueryResult = NonNullable<Awaited<ReturnType<typeof search1>>>
+export type Search1QueryError = ExceptionDto
 
 
-export function useSearchQuizzes<TData = Awaited<ReturnType<typeof searchQuizzes>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
- params: undefined |  SearchQuizzesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchQuizzes>>, TError, TData>> & Pick<
+export function useSearch1<TData = Awaited<ReturnType<typeof search1>>, TError = ExceptionDto>(
+ params: undefined |  Search1Params, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof search1>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof searchQuizzes>>,
+          Awaited<ReturnType<typeof search1>>,
           TError,
-          Awaited<ReturnType<typeof searchQuizzes>>
+          Awaited<ReturnType<typeof search1>>
         > , 'initialData'
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearchQuizzes<TData = Awaited<ReturnType<typeof searchQuizzes>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
- params?: SearchQuizzesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchQuizzes>>, TError, TData>> & Pick<
+export function useSearch1<TData = Awaited<ReturnType<typeof search1>>, TError = ExceptionDto>(
+ params?: Search1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search1>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof searchQuizzes>>,
+          Awaited<ReturnType<typeof search1>>,
           TError,
-          Awaited<ReturnType<typeof searchQuizzes>>
+          Awaited<ReturnType<typeof search1>>
         > , 'initialData'
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearchQuizzes<TData = Awaited<ReturnType<typeof searchQuizzes>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
- params?: SearchQuizzesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchQuizzes>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export function useSearch1<TData = Awaited<ReturnType<typeof search1>>, TError = ExceptionDto>(
+ params?: Search1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Search and sort quizzes
+ * @summary Search and filter quizzes
  */
 
-export function useSearchQuizzes<TData = Awaited<ReturnType<typeof searchQuizzes>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
- params?: SearchQuizzesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof searchQuizzes>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export function useSearch1<TData = Awaited<ReturnType<typeof search1>>, TError = ExceptionDto>(
+ params?: Search1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getSearchQuizzesQueryOptions(params,options)
+  const queryOptions = getSearch1QueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -4741,7 +4745,7 @@ export const getGetByCodeQueryKey = (code?: string,) => {
     }
 
     
-export const getGetByCodeQueryOptions = <TData = Awaited<ReturnType<typeof getByCode>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(code: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByCode>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetByCodeQueryOptions = <TData = Awaited<ReturnType<typeof getByCode>>, TError = ExceptionDto>(code: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByCode>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -4760,10 +4764,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetByCodeQueryResult = NonNullable<Awaited<ReturnType<typeof getByCode>>>
-export type GetByCodeQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetByCodeQueryError = ExceptionDto
 
 
-export function useGetByCode<TData = Awaited<ReturnType<typeof getByCode>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetByCode<TData = Awaited<ReturnType<typeof getByCode>>, TError = ExceptionDto>(
  code: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByCode>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getByCode>>,
@@ -4773,7 +4777,7 @@ export function useGetByCode<TData = Awaited<ReturnType<typeof getByCode>>, TErr
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetByCode<TData = Awaited<ReturnType<typeof getByCode>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetByCode<TData = Awaited<ReturnType<typeof getByCode>>, TError = ExceptionDto>(
  code: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByCode>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getByCode>>,
@@ -4783,7 +4787,7 @@ export function useGetByCode<TData = Awaited<ReturnType<typeof getByCode>>, TErr
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetByCode<TData = Awaited<ReturnType<typeof getByCode>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetByCode<TData = Awaited<ReturnType<typeof getByCode>>, TError = ExceptionDto>(
  code: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByCode>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -4791,7 +4795,7 @@ export function useGetByCode<TData = Awaited<ReturnType<typeof getByCode>>, TErr
  * @summary Get quiz by code
  */
 
-export function useGetByCode<TData = Awaited<ReturnType<typeof getByCode>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetByCode<TData = Awaited<ReturnType<typeof getByCode>>, TError = ExceptionDto>(
  code: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByCode>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -4844,7 +4848,7 @@ export const getGetOptionsForQuestionQueryKey = (questionId?: number,) => {
     }
 
     
-export const getGetOptionsForQuestionQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsForQuestion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(questionId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOptionsForQuestion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetOptionsForQuestionQueryOptions = <TData = Awaited<ReturnType<typeof getOptionsForQuestion>>, TError = OptionDto[]>(questionId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOptionsForQuestion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -4863,10 +4867,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetOptionsForQuestionQueryResult = NonNullable<Awaited<ReturnType<typeof getOptionsForQuestion>>>
-export type GetOptionsForQuestionQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetOptionsForQuestionQueryError = OptionDto[]
 
 
-export function useGetOptionsForQuestion<TData = Awaited<ReturnType<typeof getOptionsForQuestion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetOptionsForQuestion<TData = Awaited<ReturnType<typeof getOptionsForQuestion>>, TError = OptionDto[]>(
  questionId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOptionsForQuestion>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getOptionsForQuestion>>,
@@ -4876,7 +4880,7 @@ export function useGetOptionsForQuestion<TData = Awaited<ReturnType<typeof getOp
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetOptionsForQuestion<TData = Awaited<ReturnType<typeof getOptionsForQuestion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetOptionsForQuestion<TData = Awaited<ReturnType<typeof getOptionsForQuestion>>, TError = OptionDto[]>(
  questionId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOptionsForQuestion>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getOptionsForQuestion>>,
@@ -4886,7 +4890,7 @@ export function useGetOptionsForQuestion<TData = Awaited<ReturnType<typeof getOp
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetOptionsForQuestion<TData = Awaited<ReturnType<typeof getOptionsForQuestion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetOptionsForQuestion<TData = Awaited<ReturnType<typeof getOptionsForQuestion>>, TError = OptionDto[]>(
  questionId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOptionsForQuestion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -4894,7 +4898,7 @@ export function useGetOptionsForQuestion<TData = Awaited<ReturnType<typeof getOp
  * @summary Get options for a question
  */
 
-export function useGetOptionsForQuestion<TData = Awaited<ReturnType<typeof getOptionsForQuestion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetOptionsForQuestion<TData = Awaited<ReturnType<typeof getOptionsForQuestion>>, TError = OptionDto[]>(
  questionId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getOptionsForQuestion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -4964,7 +4968,7 @@ export const getGetQuestionsForQuizQueryKey = (quizId?: number,
     }
 
     
-export const getGetQuestionsForQuizQueryOptions = <TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(quizId: number,
+export const getGetQuestionsForQuizQueryOptions = <TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = unknown>(quizId: number,
     params?: GetQuestionsForQuizParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
@@ -4984,10 +4988,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetQuestionsForQuizQueryResult = NonNullable<Awaited<ReturnType<typeof getQuestionsForQuiz>>>
-export type GetQuestionsForQuizQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetQuestionsForQuizQueryError = unknown
 
 
-export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = unknown>(
  quizId: number,
     params: undefined |  GetQuestionsForQuizParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
@@ -4998,7 +5002,7 @@ export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQues
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = unknown>(
  quizId: number,
     params?: GetQuestionsForQuizParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
@@ -5009,7 +5013,7 @@ export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQues
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = unknown>(
  quizId: number,
     params?: GetQuestionsForQuizParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
@@ -5018,7 +5022,7 @@ export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQues
  * @summary Get questions for current quiz version (paginated)
  */
 
-export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetQuestionsForQuiz<TData = Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError = unknown>(
  quizId: number,
     params?: GetQuestionsForQuizParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuiz>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
@@ -5092,7 +5096,7 @@ export const getGetQuestionsForQuizVersionQueryKey = (quizId?: number,
     }
 
     
-export const getGetQuestionsForQuizVersionQueryOptions = <TData = Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(quizId: number,
+export const getGetQuestionsForQuizVersionQueryOptions = <TData = Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError = PageQuestionDto>(quizId: number,
     version: number,
     params?: GetQuestionsForQuizVersionParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
@@ -5113,10 +5117,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetQuestionsForQuizVersionQueryResult = NonNullable<Awaited<ReturnType<typeof getQuestionsForQuizVersion>>>
-export type GetQuestionsForQuizVersionQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetQuestionsForQuizVersionQueryError = PageQuestionDto
 
 
-export function useGetQuestionsForQuizVersion<TData = Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetQuestionsForQuizVersion<TData = Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError = PageQuestionDto>(
  quizId: number,
     version: number,
     params: undefined |  GetQuestionsForQuizVersionParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError, TData>> & Pick<
@@ -5128,7 +5132,7 @@ export function useGetQuestionsForQuizVersion<TData = Awaited<ReturnType<typeof 
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetQuestionsForQuizVersion<TData = Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetQuestionsForQuizVersion<TData = Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError = PageQuestionDto>(
  quizId: number,
     version: number,
     params?: GetQuestionsForQuizVersionParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError, TData>> & Pick<
@@ -5140,7 +5144,7 @@ export function useGetQuestionsForQuizVersion<TData = Awaited<ReturnType<typeof 
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetQuestionsForQuizVersion<TData = Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetQuestionsForQuizVersion<TData = Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError = PageQuestionDto>(
  quizId: number,
     version: number,
     params?: GetQuestionsForQuizVersionParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
@@ -5150,7 +5154,7 @@ export function useGetQuestionsForQuizVersion<TData = Awaited<ReturnType<typeof 
  * @summary Get questions for a specific quiz version (paginated)
  */
 
-export function useGetQuestionsForQuizVersion<TData = Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetQuestionsForQuizVersion<TData = Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError = PageQuestionDto>(
  quizId: number,
     version: number,
     params?: GetQuestionsForQuizVersionParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getQuestionsForQuizVersion>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
@@ -5214,7 +5218,7 @@ export const getMyAttemptsQueryKey = (params?: MyAttemptsParams,) => {
     }
 
     
-export const getMyAttemptsQueryOptions = <TData = Awaited<ReturnType<typeof myAttempts>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(params?: MyAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myAttempts>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getMyAttemptsQueryOptions = <TData = Awaited<ReturnType<typeof myAttempts>>, TError = unknown>(params?: MyAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myAttempts>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -5233,10 +5237,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type MyAttemptsQueryResult = NonNullable<Awaited<ReturnType<typeof myAttempts>>>
-export type MyAttemptsQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type MyAttemptsQueryError = unknown
 
 
-export function useMyAttempts<TData = Awaited<ReturnType<typeof myAttempts>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useMyAttempts<TData = Awaited<ReturnType<typeof myAttempts>>, TError = unknown>(
  params: undefined |  MyAttemptsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof myAttempts>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof myAttempts>>,
@@ -5246,7 +5250,7 @@ export function useMyAttempts<TData = Awaited<ReturnType<typeof myAttempts>>, TE
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMyAttempts<TData = Awaited<ReturnType<typeof myAttempts>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useMyAttempts<TData = Awaited<ReturnType<typeof myAttempts>>, TError = unknown>(
  params?: MyAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myAttempts>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof myAttempts>>,
@@ -5256,7 +5260,7 @@ export function useMyAttempts<TData = Awaited<ReturnType<typeof myAttempts>>, TE
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useMyAttempts<TData = Awaited<ReturnType<typeof myAttempts>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useMyAttempts<TData = Awaited<ReturnType<typeof myAttempts>>, TError = unknown>(
  params?: MyAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myAttempts>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -5264,7 +5268,7 @@ export function useMyAttempts<TData = Awaited<ReturnType<typeof myAttempts>>, TE
  * @summary Get user's attempts
  */
 
-export function useMyAttempts<TData = Awaited<ReturnType<typeof myAttempts>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useMyAttempts<TData = Awaited<ReturnType<typeof myAttempts>>, TError = unknown>(
  params?: MyAttemptsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof myAttempts>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -5315,7 +5319,7 @@ export const getGetResultQueryKey = (id?: number,) => {
     }
 
     
-export const getGetResultQueryOptions = <TData = Awaited<ReturnType<typeof getResult>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getResult>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetResultQueryOptions = <TData = Awaited<ReturnType<typeof getResult>>, TError = ExceptionDto>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getResult>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -5334,10 +5338,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetResultQueryResult = NonNullable<Awaited<ReturnType<typeof getResult>>>
-export type GetResultQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetResultQueryError = ExceptionDto
 
 
-export function useGetResult<TData = Awaited<ReturnType<typeof getResult>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetResult<TData = Awaited<ReturnType<typeof getResult>>, TError = ExceptionDto>(
  id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getResult>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getResult>>,
@@ -5347,7 +5351,7 @@ export function useGetResult<TData = Awaited<ReturnType<typeof getResult>>, TErr
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetResult<TData = Awaited<ReturnType<typeof getResult>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetResult<TData = Awaited<ReturnType<typeof getResult>>, TError = ExceptionDto>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getResult>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getResult>>,
@@ -5357,7 +5361,7 @@ export function useGetResult<TData = Awaited<ReturnType<typeof getResult>>, TErr
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetResult<TData = Awaited<ReturnType<typeof getResult>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetResult<TData = Awaited<ReturnType<typeof getResult>>, TError = ExceptionDto>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getResult>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -5365,7 +5369,7 @@ export function useGetResult<TData = Awaited<ReturnType<typeof getResult>>, TErr
  * @summary Get attempt result
  */
 
-export function useGetResult<TData = Awaited<ReturnType<typeof getResult>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetResult<TData = Awaited<ReturnType<typeof getResult>>, TError = ExceptionDto>(
  id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getResult>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -5392,7 +5396,7 @@ Supports filtering by:
 
  * @summary Admin search attempts
  */
-export const getSearch1Url = (params?: Search1Params,) => {
+export const getSearch2Url = (params?: Search2Params,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -5407,9 +5411,9 @@ export const getSearch1Url = (params?: Search1Params,) => {
   return stringifiedParams.length > 0 ? `/attempts/search?${stringifiedParams}` : `/attempts/search`
 }
 
-export const search1 = async (params?: Search1Params, options?: RequestInit): Promise<AttemptSummaryDto> => {
+export const search2 = async (params?: Search2Params, options?: RequestInit): Promise<AttemptSummaryDto> => {
   
-  return orvalFetch<AttemptSummaryDto>(getSearch1Url(params),
+  return orvalFetch<AttemptSummaryDto>(getSearch2Url(params),
   {      
     ...options,
     method: 'GET'
@@ -5422,69 +5426,69 @@ export const search1 = async (params?: Search1Params, options?: RequestInit): Pr
 
 
 
-export const getSearch1QueryKey = (params?: Search1Params,) => {
+export const getSearch2QueryKey = (params?: Search2Params,) => {
     return [
     `/attempts/search`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getSearch1QueryOptions = <TData = Awaited<ReturnType<typeof search1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(params?: Search1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getSearch2QueryOptions = <TData = Awaited<ReturnType<typeof search2>>, TError = ExceptionDto>(params?: Search2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getSearch1QueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getSearch2QueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof search1>>> = ({ signal }) => search1(params, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof search2>>> = ({ signal }) => search2(params, { signal, ...requestOptions });
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof search1>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type Search1QueryResult = NonNullable<Awaited<ReturnType<typeof search1>>>
-export type Search1QueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type Search2QueryResult = NonNullable<Awaited<ReturnType<typeof search2>>>
+export type Search2QueryError = ExceptionDto
 
 
-export function useSearch1<TData = Awaited<ReturnType<typeof search1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
- params: undefined |  Search1Params, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof search1>>, TError, TData>> & Pick<
+export function useSearch2<TData = Awaited<ReturnType<typeof search2>>, TError = ExceptionDto>(
+ params: undefined |  Search2Params, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof search1>>,
+          Awaited<ReturnType<typeof search2>>,
           TError,
-          Awaited<ReturnType<typeof search1>>
+          Awaited<ReturnType<typeof search2>>
         > , 'initialData'
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearch1<TData = Awaited<ReturnType<typeof search1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
- params?: Search1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search1>>, TError, TData>> & Pick<
+export function useSearch2<TData = Awaited<ReturnType<typeof search2>>, TError = ExceptionDto>(
+ params?: Search2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof search1>>,
+          Awaited<ReturnType<typeof search2>>,
           TError,
-          Awaited<ReturnType<typeof search1>>
+          Awaited<ReturnType<typeof search2>>
         > , 'initialData'
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearch1<TData = Awaited<ReturnType<typeof search1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
- params?: Search1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export function useSearch2<TData = Awaited<ReturnType<typeof search2>>, TError = ExceptionDto>(
+ params?: Search2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Admin search attempts
  */
 
-export function useSearch1<TData = Awaited<ReturnType<typeof search1>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
- params?: Search1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search1>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export function useSearch2<TData = Awaited<ReturnType<typeof search2>>, TError = ExceptionDto>(
+ params?: Search2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getSearch1QueryOptions(params,options)
+  const queryOptions = getSearch2QueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -5507,9 +5511,9 @@ export const getGetAllMetricsUrl = () => {
   return `/api/v1/quizzes/metrics`
 }
 
-export const getAllMetrics = async ( options?: RequestInit): Promise<QuizPublicMetricsView[]> => {
+export const getAllMetrics = async ( options?: RequestInit): Promise<QuizPublicMetricsDto[]> => {
   
-  return orvalFetch<QuizPublicMetricsView[]>(getGetAllMetricsUrl(),
+  return orvalFetch<QuizPublicMetricsDto[]>(getGetAllMetricsUrl(),
   {      
     ...options,
     method: 'GET'
@@ -5529,7 +5533,7 @@ export const getGetAllMetricsQueryKey = () => {
     }
 
     
-export const getGetAllMetricsQueryOptions = <TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetAllMetricsQueryOptions = <TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -5548,10 +5552,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetAllMetricsQueryResult = NonNullable<Awaited<ReturnType<typeof getAllMetrics>>>
-export type GetAllMetricsQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetAllMetricsQueryError = unknown
 
 
-export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMetrics>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllMetrics>>,
@@ -5561,7 +5565,7 @@ export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMetrics>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getAllMetrics>>,
@@ -5571,7 +5575,7 @@ export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -5579,7 +5583,7 @@ export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics
  * @summary Get public quiz metrics
  */
 
-export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -5607,9 +5611,9 @@ export const getGetMetricsUrl = (quizId: number,) => {
   return `/api/v1/quizzes/metrics/${quizId}`
 }
 
-export const getMetrics = async (quizId: number, options?: RequestInit): Promise<QuizPublicMetricsView> => {
+export const getMetrics = async (quizId: number, options?: RequestInit): Promise<QuizPublicMetricsDto> => {
   
-  return orvalFetch<QuizPublicMetricsView>(getGetMetricsUrl(quizId),
+  return orvalFetch<QuizPublicMetricsDto>(getGetMetricsUrl(quizId),
   {      
     ...options,
     method: 'GET'
@@ -5629,7 +5633,7 @@ export const getGetMetricsQueryKey = (quizId?: number,) => {
     }
 
     
-export const getGetMetricsQueryOptions = <TData = Awaited<ReturnType<typeof getMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getGetMetricsQueryOptions = <TData = Awaited<ReturnType<typeof getMetrics>>, TError = unknown>(quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -5648,10 +5652,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetMetricsQueryResult = NonNullable<Awaited<ReturnType<typeof getMetrics>>>
-export type GetMetricsQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type GetMetricsQueryError = unknown
 
 
-export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TError = unknown>(
  quizId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMetrics>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMetrics>>,
@@ -5661,7 +5665,7 @@ export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TE
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TError = unknown>(
  quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMetrics>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getMetrics>>,
@@ -5671,7 +5675,7 @@ export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TE
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TError = unknown>(
  quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -5679,7 +5683,7 @@ export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TE
  * @summary Get public metrics for a quiz
  */
 
-export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TError = unknown>(
  quizId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -5732,7 +5736,7 @@ export const getExportExcelQueryKey = () => {
     }
 
     
-export const getExportExcelQueryOptions = <TData = Awaited<ReturnType<typeof exportExcel>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportExcel>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getExportExcelQueryOptions = <TData = Awaited<ReturnType<typeof exportExcel>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportExcel>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -5751,10 +5755,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ExportExcelQueryResult = NonNullable<Awaited<ReturnType<typeof exportExcel>>>
-export type ExportExcelQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type ExportExcelQueryError = unknown
 
 
-export function useExportExcel<TData = Awaited<ReturnType<typeof exportExcel>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useExportExcel<TData = Awaited<ReturnType<typeof exportExcel>>, TError = unknown>(
   options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportExcel>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof exportExcel>>,
@@ -5764,7 +5768,7 @@ export function useExportExcel<TData = Awaited<ReturnType<typeof exportExcel>>, 
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useExportExcel<TData = Awaited<ReturnType<typeof exportExcel>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useExportExcel<TData = Awaited<ReturnType<typeof exportExcel>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportExcel>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof exportExcel>>,
@@ -5774,7 +5778,7 @@ export function useExportExcel<TData = Awaited<ReturnType<typeof exportExcel>>, 
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useExportExcel<TData = Awaited<ReturnType<typeof exportExcel>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useExportExcel<TData = Awaited<ReturnType<typeof exportExcel>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportExcel>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -5782,7 +5786,7 @@ export function useExportExcel<TData = Awaited<ReturnType<typeof exportExcel>>, 
  * @summary Export all data to Excel
  */
 
-export function useExportExcel<TData = Awaited<ReturnType<typeof exportExcel>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useExportExcel<TData = Awaited<ReturnType<typeof exportExcel>>, TError = unknown>(
   options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportExcel>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -5836,7 +5840,7 @@ export const getExportCsvQueryKey = (entity?: 'quizzes' | 'quiz_versions' | 'que
     }
 
     
-export const getExportCsvQueryOptions = <TData = Awaited<ReturnType<typeof exportCsv>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(entity: 'quizzes' | 'quiz_versions' | 'questions' | 'question_options' | 'professions' | 'attempts' | 'translations', options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportCsv>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getExportCsvQueryOptions = <TData = Awaited<ReturnType<typeof exportCsv>>, TError = ExceptionDto>(entity: 'quizzes' | 'quiz_versions' | 'questions' | 'question_options' | 'professions' | 'attempts' | 'translations', options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportCsv>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -5855,10 +5859,10 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type ExportCsvQueryResult = NonNullable<Awaited<ReturnType<typeof exportCsv>>>
-export type ExportCsvQueryError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+export type ExportCsvQueryError = ExceptionDto
 
 
-export function useExportCsv<TData = Awaited<ReturnType<typeof exportCsv>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useExportCsv<TData = Awaited<ReturnType<typeof exportCsv>>, TError = ExceptionDto>(
  entity: 'quizzes' | 'quiz_versions' | 'questions' | 'question_options' | 'professions' | 'attempts' | 'translations', options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportCsv>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof exportCsv>>,
@@ -5868,7 +5872,7 @@ export function useExportCsv<TData = Awaited<ReturnType<typeof exportCsv>>, TErr
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useExportCsv<TData = Awaited<ReturnType<typeof exportCsv>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useExportCsv<TData = Awaited<ReturnType<typeof exportCsv>>, TError = ExceptionDto>(
  entity: 'quizzes' | 'quiz_versions' | 'questions' | 'question_options' | 'professions' | 'attempts' | 'translations', options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportCsv>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof exportCsv>>,
@@ -5878,7 +5882,7 @@ export function useExportCsv<TData = Awaited<ReturnType<typeof exportCsv>>, TErr
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useExportCsv<TData = Awaited<ReturnType<typeof exportCsv>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useExportCsv<TData = Awaited<ReturnType<typeof exportCsv>>, TError = ExceptionDto>(
  entity: 'quizzes' | 'quiz_versions' | 'questions' | 'question_options' | 'professions' | 'attempts' | 'translations', options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportCsv>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
@@ -5886,7 +5890,7 @@ export function useExportCsv<TData = Awaited<ReturnType<typeof exportCsv>>, TErr
  * @summary Export entity to CSV
  */
 
-export function useExportCsv<TData = Awaited<ReturnType<typeof exportCsv>>, TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto>(
+export function useExportCsv<TData = Awaited<ReturnType<typeof exportCsv>>, TError = ExceptionDto>(
  entity: 'quizzes' | 'quiz_versions' | 'questions' | 'question_options' | 'professions' | 'attempts' | 'translations', options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportCsv>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
@@ -5936,7 +5940,7 @@ export const deleteAccount = async (params: DeleteAccountParams, options?: Reque
 
 
 
-export const getDeleteAccountMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const getDeleteAccountMutationOptions = <TError = void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,{params: DeleteAccountParams}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,{params: DeleteAccountParams}, TContext> => {
 
@@ -5963,12 +5967,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAccount>>>
     
-    export type DeleteAccountMutationError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto
+    export type DeleteAccountMutationError = void
 
     /**
  * @summary Delete user account
  */
-export const useDeleteAccount = <TError = ExceptionDto | ExceptionDto | ExceptionDto | ExceptionDto,
+export const useDeleteAccount = <TError = void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAccount>>, TError,{params: DeleteAccountParams}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteAccount>>,

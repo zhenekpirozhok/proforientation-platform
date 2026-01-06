@@ -5,9 +5,4 @@
  * OpenAPI spec version: 1.0
  */
 
-export type SearchQuizzesParams = {
-search?: string;
-sortBy?: string;
-page?: number;
-size?: number;
-};
+export type Logout400 = { [key: string]: unknown };

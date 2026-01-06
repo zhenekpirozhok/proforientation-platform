@@ -5,8 +5,7 @@
  * OpenAPI spec version: 1.0
  */
 
-export interface QuizPublicMetricsView {
-  estimatedDurationSeconds?: number;
+export interface QuizPublicMetricsDto {
   quizId?: number;
   quizCode?: string;
   quizStatus?: string;
@@ -15,4 +14,5 @@ export interface QuizPublicMetricsView {
   attemptsTotal?: number;
   attemptsSubmitted?: number;
   avgDurationSeconds?: number;
+  estimatedDurationSeconds?: number;
 }
