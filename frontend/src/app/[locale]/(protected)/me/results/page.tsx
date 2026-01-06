@@ -6,7 +6,7 @@ import { useRouter } from '@/shared/i18n/lib/navigation';
 import { Alert, Card, Input, Select, Skeleton, Empty, Button, Tag } from 'antd';
 
 import { useMyAttemptsQuery } from '@/entities/attempt/api/useMyAttemptsQuery';
-import { useAttemptResultQuery } from '@/entities/attempt/api/useAttemptResultQuery';
+import { useAttemptViewQuery } from '@/entities/attempt/api/useAttemptViewQuery';
 import { TraitsSliders } from '@/features/results/ui/TraitsSliders';
 import { CareerMatches } from '@/features/results/ui/CareerMatches';
 import { HttpError } from '@/shared/api/httpError';
@@ -86,36 +86,34 @@ export default function MyResultsPage() {
     return (attempts as any[]).find((a) => a?.id === resolvedSelectedId || a?.attemptId === resolvedSelectedId) ?? null;
   }, [attempts, resolvedSelectedId]);
 
-  const resultQuery = useAttemptResultQuery(resolvedSelectedId);
-  if (resultQuery.isError) throwIfForbidden(resultQuery.error);
+  const viewQuery = useAttemptViewQuery(resolvedSelectedId);
+  if (viewQuery.isError) throwIfForbidden(viewQuery.error);
 
   const traitRows = useMemo(() => {
-    const r: any = resultQuery.data;
-    const scores = Array.isArray(r?.traitScores) ? r.traitScores : [];
-    return scores
+    const traits = viewQuery.data?.traits ?? [];
+    return traits
       .slice()
-      .sort((a: any, b: any) => (b?.score ?? 0) - (a?.score ?? 0))
-      .map((s: any) => ({
-        key: String(s?.traitCode ?? s?.code ?? Math.random()),
-        label: String(s?.traitName ?? s?.traitCode ?? ''),
-        description: s?.description ? String(s.description) : undefined,
-        value: typeof s?.score === 'number' ? s.score : 0,
+      .sort((a, b) => (b.score01 ?? 0) - (a.score01 ?? 0))
+      .map((s) => ({
+        key: s.code,
+        label: s.name,
+        description: s.description,
+        value: typeof s.score01 === 'number' ? s.score01 : 0,
       }));
-  }, [resultQuery.data]);
+  }, [viewQuery.data]);
 
   const professionRows = useMemo(() => {
-    const r: any = resultQuery.data;
-    const recs = Array.isArray(r?.recommendations) ? r.recommendations : [];
-    return recs
+    const profs = viewQuery.data?.professions ?? [];
+    return profs
       .slice()
-      .sort((a: any, b: any) => (b?.score ?? 0) - (a?.score ?? 0))
-      .map((rec: any) => ({
-        id: Number(rec?.professionId ?? rec?.id ?? 0),
-        title: String(rec?.title ?? rec?.professionTitle ?? rec?.name ?? t('FallbackProfessionTitle', { id: rec?.professionId ?? 0 })),
-        description: rec?.description ? String(rec.description) : undefined,
-        score01: typeof rec?.score === 'number' ? rec.score : 0,
+      .sort((a, b) => (b.score01 ?? 0) - (a.score01 ?? 0))
+      .map((p) => ({
+        id: p.id,
+        title: p.title || t('FallbackProfessionTitle', { id: p.id }),
+        description: p.description,
+        score01: typeof p.score01 === 'number' ? p.score01 : 0,
       }));
-  }, [resultQuery.data, t]);
+  }, [viewQuery.data, t]);
 
   const headerTitle = useMemo(() => {
     const title = String(selectedAttempt?.quizTitle ?? selectedAttempt?.quizName ?? '').trim() || t('DefaultQuizTitle');
@@ -128,11 +126,9 @@ export default function MyResultsPage() {
   }, [locale, selectedAttempt?.createdAt, selectedAttempt?.submittedAt, selectedAttempt?.finishedAt]);
 
   const topScore = useMemo(() => {
-    const r: any = resultQuery.data;
-    const recs = Array.isArray(r?.recommendations) ? r.recommendations : [];
-    const best = recs.slice().sort((a: any, b: any) => (b?.score ?? 0) - (a?.score ?? 0))[0];
-    return toPercent01(best?.score);
-  }, [resultQuery.data]);
+    const best = professionRows.slice().sort((a, b) => (b.score01 ?? 0) - (a.score01 ?? 0))[0];
+    return toPercent01(best?.score01);
+  }, [professionRows]);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6">
@@ -246,13 +242,9 @@ export default function MyResultsPage() {
               </span>
             </div>
 
-            {resultQuery.isError ? (
-              <Alert
-                type="error"
-                showIcon
-                message={resultQuery.error instanceof Error ? resultQuery.error.message : t('ResultLoadError')}
-              />
-            ) : resultQuery.isLoading ? (
+            {viewQuery.isError ? (
+              <Alert type="error" showIcon message={viewQuery.error instanceof Error ? viewQuery.error.message : t('ResultLoadError')} />
+            ) : viewQuery.isLoading ? (
               <div className="space-y-4">
                 <Skeleton active paragraph={{ rows: 3 }} />
                 <Skeleton active paragraph={{ rows: 6 }} />
