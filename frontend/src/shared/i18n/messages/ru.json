@@ -192,7 +192,13 @@
     "Match": "Совпадение",
     "TakeAnother": "Пройти другой тест",
     "OpenDetails": "Открыть полный результат",
-    "FallbackProfessionTitle": "Профессия №{id}"
+    "FallbackProfessionTitle": "Профессия №{id}",
+  "ShowMore": "Показать больше",
+  "ShowLess": "Показать меньше",
+  "DownloadPdf": "Скачать PDF",
+  "PdfSoon": "Скачивание PDF скоро будет доступно",
+  "TopProfessionsTitle": "Лучшие профессии",
+  "EmptyProfessions": "Рекомендаций пока нет"
 },
   "LoginPage": {
     "Title": "Вход",
