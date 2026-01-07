@@ -8,6 +8,7 @@ public final class Constants {
     public static final String CATEGORY_NOT_FOUND = "Category not found";
     public static final String QUIZ_NOT_FOUND = "Quiz not found";
     public static final String AUTHOR_NOT_FOUND = "Author not found";
+    public static final String USER_NOT_FOUND = "User not found";
     public static final String QUIZ_VERSION_NOT_FOUND = "Quiz version not found";
     public static final String CURRENT_QUIZ_VERSION_NOT_FOUND = "Current version not found";
     public static final String NO_QUIZ_VERSIONS = "No versions to copy";
@@ -38,6 +39,7 @@ public final class Constants {
     public static final String EXCEL_EXPORT_FAILED = "Excel export failed";
     public static final String DB_CONSTRAINT_VIOLATION = "Database constraint violation";
     public static final String SECONDS_COUNT_SHOULD_BE_GRATER_THEN_ZERO = "secondsPerQuestionDefault must be > 0";
+    public static final String CANNOT_CHANGE_OWN_ROLE = "Cannot change your own role";
 
     public static final String INVALID_CRED = "Invalid email or password";
     public static final String INVALID_PASS = "Password verification failed";

@@ -3,6 +3,7 @@ package com.diploma.proforientation.controller;
 import com.diploma.proforientation.dto.ExceptionDto;
 import com.diploma.proforientation.dto.UserDto;
 import com.diploma.proforientation.model.User;
+import com.diploma.proforientation.model.enumeration.UserRole;
 import com.diploma.proforientation.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,10 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/users")
 @RestController
@@ -142,5 +140,85 @@ public class UserController {
                 ));
 
         return ResponseEntity.ok(users);
+    }
+
+    @PatchMapping("/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Update user role (admin only)",
+            description = """
+            Changes the role of a user.
+
+            Notes:
+            - Only admins can call this endpoint.
+            - Request body is a plain string containing the new role.
+            - Allowed values: USER, ADMIN
+            - Typically you should prevent changing your own role in the service layer.
+        """
+    )
+    @ApiResponse(
+            responseCode = "204",
+            description = "User role updated successfully"
+    )
+    @ApiResponse(
+            responseCode = "400",
+            description = "Invalid role value",
+            content = @Content(
+                    schema = @Schema(implementation = ExceptionDto.class),
+                    examples = @ExampleObject(value = """
+                    {
+                      "code": 400,
+                      "time": "2025-05-20T14:52:00Z",
+                      "message": "Invalid role: SUPER_ADMIN"
+                    }
+                """)
+            )
+    )
+    @ApiResponse(
+            responseCode = "403",
+            description = "Access denied (admin role required)",
+            content = @Content(
+                    schema = @Schema(implementation = ExceptionDto.class),
+                    examples = @ExampleObject(value = """
+                    {
+                      "code": 403,
+                      "time": "2025-05-20T14:52:00Z",
+                      "message": "Access denied: insufficient permissions"
+                    }
+                """)
+            )
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "User not found",
+            content = @Content(
+                    schema = @Schema(implementation = ExceptionDto.class),
+                    examples = @ExampleObject(value = """
+                    {
+                      "code": 404,
+                      "time": "2025-05-20T14:52:00Z",
+                      "message": "User not found"
+                    }
+                """)
+            )
+    )
+    public ResponseEntity<Void> updateUserRole(
+            @PathVariable Integer id,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "New role as plain string (USER or ADMIN)",
+                    required = true,
+                    content = @Content(
+                            mediaType = "text/plain",
+                            schema = @Schema(
+                                    type = "string",
+                                    allowableValues = {"USER", "ADMIN"},
+                                    example = "ADMIN"
+                            )
+                    )
+            )
+            @RequestBody String role
+    ) {
+        userService.changeUserRole(id, UserRole.valueOf(role.trim().toUpperCase()));
+        return ResponseEntity.noContent().build();
     }
 }
