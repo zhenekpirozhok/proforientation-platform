@@ -18,6 +18,7 @@ type QuizMetric = {
   attemptsTotal?: number;
   questionsTotal?: number;
   estimatedDurationSeconds?: number;
+  avgDurationSeconds?: number;
 };
 
 function clampInt(n: number, min: number, max: number) {
@@ -36,7 +37,7 @@ function formatTaken(n: number) {
 }
 
 function minutesFromSeconds(sec?: number | null) {
-  if (sec == null || !Number.isFinite(sec)) return null;
+  if (sec == null || !Number.isFinite(sec) || sec <= 0) return null;
   const min = Math.round(sec / 60);
   return clampInt(min, 1, 180);
 }
@@ -63,6 +64,16 @@ function getDescriptionDefault(quiz: QuizDto): string {
   return typeof d === 'string' ? d : '';
 }
 
+function pickDurationSeconds(metric?: QuizMetric) {
+  const s =
+    typeof metric?.avgDurationSeconds === 'number'
+      ? metric.avgDurationSeconds
+      : typeof metric?.estimatedDurationSeconds === 'number'
+        ? metric.estimatedDurationSeconds
+        : null;
+  return s;
+}
+
 export function QuizCard({
   locale,
   quiz,
@@ -84,8 +95,8 @@ export function QuizCard({
     typeof metric?.attemptsTotal === 'number' ? metric.attemptsTotal : 0;
   const questionsTotal =
     typeof metric?.questionsTotal === 'number' ? metric.questionsTotal : null;
-  const durationMin =
-    minutesFromSeconds(metric?.estimatedDurationSeconds) ?? 15;
+
+  const durationMin = minutesFromSeconds(pickDurationSeconds(metric)) ?? 15;
 
   const catLabel = category?.name ?? t('category');
   const catColor = category?.colorCode;

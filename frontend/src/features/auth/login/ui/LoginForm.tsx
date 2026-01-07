@@ -1,6 +1,6 @@
 'use client';
 
-import { Form, Input, Button, Typography, message } from 'antd';
+import { App, Form, Input, Button, Typography } from 'antd';
 import Link from 'next/link';
 import { useRouter } from '@/shared/i18n/lib/navigation';
 import { useTranslations } from 'next-intl';
@@ -27,15 +27,18 @@ function normalizeAuthorities(
   a?: GrantedAuthority[],
 ): SessionAuthority[] | undefined {
   if (!a?.length) return undefined;
+
   const list = a
     .map((x) => (typeof x.authority === 'string' ? x.authority : null))
     .filter((v): v is string => typeof v === 'string' && v.length > 0)
     .map((authority) => ({ authority }));
+
   return list.length ? list : undefined;
 }
 
 function toSessionUser(u: User): SessionUser | null {
   if (typeof u.id !== 'number') return null;
+
   return {
     id: u.id,
     email: u.email ?? '',
@@ -49,6 +52,8 @@ export function LoginForm() {
   const t = useTranslations('LoginPage');
   const [form] = Form.useForm<LoginSchemaValues>();
   const router = useRouter();
+
+  const { message } = App.useApp();
 
   const passwordLogin = useLoginUser();
   const googleLogin = useGoogleOneTapLogin();
@@ -68,6 +73,7 @@ export function LoginForm() {
 
     const meJson: unknown = await meRes.json().catch(() => null);
     const me = meJson && typeof meJson === 'object' ? (meJson as User) : null;
+
     useSessionStore.getState().setUser(me ? toSessionUser(me) : null);
 
     message.success(t('Success'));

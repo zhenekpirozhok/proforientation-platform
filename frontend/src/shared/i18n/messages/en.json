@@ -114,7 +114,8 @@
     "loginTitle": "Sign in to save your results",
     "loginBody": "You need to sign in to save your results and access them later.",
     "loginOkText": "Sign in",
-    "loginCancelText": "Cancel"
+    "loginCancelText": "Cancel",
+    "downloadPdf": "Download PDF"
   },
   "Header": {
     "brand": "CareerPath",

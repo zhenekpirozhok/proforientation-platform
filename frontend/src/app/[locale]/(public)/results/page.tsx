@@ -19,6 +19,8 @@ import { ResultsActions } from '@/features/results/ui/ResultsActions';
 import { ResultsSkeleton } from '@/features/results/ui/ResultsSkeleton';
 
 import type { TraitDto, ProfessionDto } from '@/shared/api/generated/model';
+import { renderResultsPdfDom } from '@/shared/lib/pdf/renderResultsPdfDom';
+import { downloadPdfFromNode } from '@/shared/lib/pdf/downloadPdfFromNode';
 
 function safeProfessionTitle(
   rec: { professionId: number; explanation?: string },
@@ -141,19 +143,40 @@ export default function ResultPage() {
 
   const primaryLabel = !isAuthenticated
     ? t('Results.save')
-    : t('Results.goToQuiz');
-  const onPrimary = isAuthenticated ? () => {} : goToQuiz;
+    : t('Results.downloadPdf');
+
+  const onPrimary = isAuthenticated
+    ? async () => {
+        const built = renderResultsPdfDom({
+          title: t('Results.completeTitle'),
+          typeTitle: t('Results.heroTypeTitle', { type: heroType }),
+          traitsTitle: t('Results.traitsTitle'),
+          matchesTitle: t('Results.topMatchesTitle'),
+          matchesSubtitle: t('Results.topMatchesSubtitle'),
+          matchLabel: t('Results.match'),
+          traitRows,
+          matchRows: matchRows.slice(0, 3),
+        });
+
+        try {
+          await downloadPdfFromNode(built.node, { filename: 'results.pdf' });
+        } finally {
+          built.cleanup();
+        }
+      }
+    : goToQuiz;
 
   const showSkeleton = catalogEnabled && catalogQ.isLoading;
 
   return (
     <div className="cp-results">
-      <ResultsHero
-        title={t('Results.completeTitle')}
-        subtitleTitle={t('Results.heroTypeTitle', { type: heroType })}
-        subtitleText={t('Results.heroTypeSubtitle')}
-      />
-
+      <div id="pdf-hero">
+        <ResultsHero
+          title={t('Results.completeTitle')}
+          subtitleTitle={t('Results.heroTypeTitle', { type: heroType })}
+          subtitleText={t('Results.heroTypeSubtitle')}
+        />
+      </div>
       <div className="cp-results-content">
         {catalogEnabled && catalogQ.isError ? (
           <Alert

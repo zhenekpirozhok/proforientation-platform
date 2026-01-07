@@ -71,9 +71,7 @@ export function QuizzesFilters({
         value={value.category}
         onChange={(v) => onChange({ ...value, category: v })}
         className="cp-filter-select"
-        classNames={{
-          popup: { root: 'cp-filter-dropdown' },
-        }}
+        classNames={{ popup: { root: 'cp-filter-dropdown' } }}
         options={categoryOptions}
       />
 
@@ -82,9 +80,7 @@ export function QuizzesFilters({
         value={value.duration}
         onChange={(v) => onChange({ ...value, duration: v })}
         className="cp-filter-select"
-        classNames={{
-          popup: { root: 'cp-filter-dropdown' },
-        }}
+        classNames={{ popup: { root: 'cp-filter-dropdown' } }}
         options={durationOptions}
       />
 

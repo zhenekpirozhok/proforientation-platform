@@ -11,28 +11,12 @@ import { useGetAllMetrics } from '@/shared/api/generated/api';
 import { useCategories } from '@/entities/category/api/useCategories';
 import { useSearchQuizzesLocalized } from '@/entities/quiz/api/useSearchQuizzes';
 import { useDebounce } from '@/shared/lib/useDebounce';
-
-type PageLike<T> = {
-  content?: T[];
-  items?: T[];
-  totalElements?: number;
-  total?: number;
-};
-
-type QuizMetric = {
-  quizId?: number;
-  categoryId?: number;
-  attemptsTotal?: number;
-  questionsTotal?: number;
-  estimatedDurationSeconds?: number;
-};
-
-type SearchQuizzesParams = {
-  search: string;
-  page?: number;
-  size?: number;
-  sortBy?: string;
-};
+import type {
+  QuizCatalogItem,
+  PageLike,
+  SearchQuizzesParams,
+  QuizMetric,
+} from './types';
 
 function extractItems<T>(data: unknown): T[] {
   if (Array.isArray(data)) return data as T[];
@@ -50,10 +34,31 @@ function hasNumberId(q: QuizDto): q is QuizDto & { id: number } {
   return typeof q.id === 'number' && Number.isFinite(q.id);
 }
 
-export type QuizCatalogItem = (QuizDto & { id: number }) & {
-  metric?: QuizMetric;
-  category?: ProfessionCategoryDto;
-};
+function pickDurationSeconds(metric?: QuizMetric): number | null {
+  const v =
+    typeof metric?.avgDurationSeconds === 'number'
+      ? metric.avgDurationSeconds
+      : typeof metric?.estimatedDurationSeconds === 'number'
+        ? metric.estimatedDurationSeconds
+        : null;
+
+  if (v == null || !Number.isFinite(v) || v <= 0) return null;
+  return v;
+}
+
+function matchesDuration(seconds: number | null, duration: string): boolean {
+  if (duration === 'any') return true;
+  if (seconds == null) return false;
+
+  const shortMax = 15 * 60;
+  const midMax = 35 * 60;
+
+  if (duration === 'short') return seconds <= shortMax;
+  if (duration === 'mid') return seconds > shortMax && seconds <= midMax;
+  if (duration === 'long') return seconds > midMax;
+
+  return true;
+}
 
 export function useQuizzesCatalog(params: {
   locale: string;
@@ -121,6 +126,10 @@ export function useQuizzesCatalog(params: {
           typeof o.estimatedDurationSeconds === 'number'
             ? o.estimatedDurationSeconds
             : undefined,
+        avgDurationSeconds:
+          typeof o.avgDurationSeconds === 'number'
+            ? o.avgDurationSeconds
+            : undefined,
       };
 
       metricsByQuizId.set(quizId, metric);
@@ -156,8 +165,14 @@ export function useQuizzesCatalog(params: {
       );
     }
 
+    if (params.filters.duration !== 'any') {
+      list = list.filter((x) =>
+        matchesDuration(pickDurationSeconds(x.metric), params.filters.duration),
+      );
+    }
+
     return list;
-  }, [itemsAll, params.filters.category]);
+  }, [itemsAll, params.filters.category, params.filters.duration]);
 
   const total = useMemo(() => {
     const t = extractTotal(quizzesSource.data);

@@ -149,9 +149,10 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           npm i -g vercel@latest
-          vercel pull --yes --environment=${{ inputs.target }} --token=$VERCEL_TOKEN --cwd frontend
+          vercel pull --yes --environment=${{ inputs.target }} --token=$VERCEL_TOKEN
           if [ "${{ inputs.target }}" = "production" ]; then
-            vercel deploy --prod --yes --token=$VERCEL_TOKEN --cwd frontend
+            vercel deploy --prod --yes --token=$VERCEL_TOKEN
           else
-            vercel deploy --yes --token=$VERCEL_TOKEN --cwd frontend
+            vercel deploy --yes --token=$VERCEL_TOKEN
           fi
+

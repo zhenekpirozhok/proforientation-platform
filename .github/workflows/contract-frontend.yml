@@ -14,9 +14,9 @@ concurrency:
 jobs:
   generate-types:
     if: |
+      !startsWith(github.ref, 'refs/heads/chore/auto-regenerate-api-types') &&
       github.actor != 'github-actions[bot]' &&
-      github.actor != 'peter-evans[bot]' &&
-      github.event.head_commit.message != 'chore(contract): regenerate frontend API types'
+      github.actor != 'peter-evans[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -30,6 +30,33 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Stop if frontend changed in this push
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="${{ github.event.before }}"
+          head="${{ github.sha }}"
+          if [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            exit 0
+          fi
+          if git diff --name-only "$base" "$head" | grep -qE '^frontend/'; then
+            echo "Detected changes in frontend/. Exiting."
+            exit 0
+          fi
+
+      - name: Stop if last commit is auto-regeneration
+        shell: bash
+        run: |
+          set -euo pipefail
+          last_subject="$(git log -1 --pretty=%s)"
+          echo "Last commit subject: $last_subject"
+          if [ "$last_subject" = "chore(contract): regenerate frontend API types" ] || \
+             [ "$last_subject" = "chore(contract): regenerate frontend API types [skip ci]" ]; then
+            echo "Auto-regeneration commit detected. Exiting."
+            exit 0
+          fi
+
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -38,6 +65,7 @@ jobs:
           cache-dependency-path: "frontend/package-lock.json"
 
       - name: Verify OpenAPI in repo
+        shell: bash
         run: |
           set -euo pipefail
           test -s documentation/api-docs/reference/openapi.yaml
@@ -51,6 +79,7 @@ jobs:
 
       - name: Generate API types (from repo OpenAPI)
         working-directory: frontend
+        shell: bash
         run: |
           set -euo pipefail
           test -s ../documentation/api-docs/reference/openapi.yaml
@@ -62,6 +91,7 @@ jobs:
 
       - name: Detect generated changes
         id: changes
+        shell: bash
         run: |
           set -euo pipefail
           if git diff --quiet -- frontend/src/shared/api/generated/; then
@@ -78,16 +108,17 @@ jobs:
         id: cpr
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "chore(contract): regenerate frontend API types"
+          branch: chore/auto-regenerate-api-types
+          delete-branch: true
+          commit-message: "chore(contract): regenerate frontend API types [skip ci]"
           title: "chore(contract): regenerate frontend API types"
           body: |
             Автоматически обновлены сгенерированные API types после изменения documentation/api-docs/reference/openapi.yaml.
-          branch: chore/auto-regenerate-api-types
-          delete-branch: true
           add-paths: |
             frontend/src/shared/api/generated/
 
       - name: Summary
+        shell: bash
         run: |
           echo "### Contract → Frontend summary" >> $GITHUB_STEP_SUMMARY
           if [ "${{ steps.changes.outputs.changed }}" = "true" ]; then
