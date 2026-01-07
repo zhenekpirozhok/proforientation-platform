@@ -3,9 +3,16 @@
 import type React from 'react';
 import Link from 'next/link';
 import { Button, Card } from 'antd';
-import { ClockCircleOutlined, QuestionCircleOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  ClockCircleOutlined,
+  QuestionCircleOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import { useTranslations } from 'next-intl';
-import type { QuizDto, ProfessionCategoryDto } from '@/shared/api/generated/model';
+import type {
+  QuizDto,
+  ProfessionCategoryDto,
+} from '@/shared/api/generated/model';
 
 type QuizMetric = {
   attemptsTotal?: number;
@@ -38,7 +45,8 @@ function minutesFromSeconds(sec?: number | null) {
 function categoryStyles(color?: string) {
   if (!color) {
     return {
-      className: 'bg-slate-100 text-slate-700 dark:bg-slate-800/70 dark:text-slate-200',
+      className:
+        'bg-slate-100 text-slate-700 dark:bg-slate-800/70 dark:text-slate-200',
       style: undefined as React.CSSProperties | undefined,
     };
   }
@@ -83,11 +91,12 @@ export function QuizCard({
   const title = quiz.title ?? t('fallbackTitle', { id: quiz.id });
   const description = getDescriptionDefault(quiz);
 
-  const taken = typeof metric?.attemptsTotal === 'number' ? metric.attemptsTotal : 0;
-  const questionsTotal = typeof metric?.questionsTotal === 'number' ? metric.questionsTotal : null;
+  const taken =
+    typeof metric?.attemptsTotal === 'number' ? metric.attemptsTotal : 0;
+  const questionsTotal =
+    typeof metric?.questionsTotal === 'number' ? metric.questionsTotal : null;
 
-  const durationMin =
-    minutesFromSeconds(pickDurationSeconds(metric)) ?? 15;
+  const durationMin = minutesFromSeconds(pickDurationSeconds(metric)) ?? 15;
 
   const catLabel = category?.name ?? t('category');
   const catColor = category?.colorCode;
@@ -152,7 +161,11 @@ export function QuizCard({
           </div>
 
           <div className="mt-auto pt-5">
-            <Button type="primary" size="large" className="w-full rounded-2xl pointer-events-none">
+            <Button
+              type="primary"
+              size="large"
+              className="w-full rounded-2xl pointer-events-none"
+            >
               {t('start')}
             </Button>
           </div>

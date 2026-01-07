@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Alert } from 'antd';
 
 import { useQuizzesCatalog } from '@/features/quizzes/model/useQuizzesCatalog';
+import type { QuizCatalogItem } from '@/features/quizzes/model/types';
 import { QuizzesHeader } from '@/features/quizzes/ui/QuizzesHeader';
 import { QuizzesFilters } from '@/features/quizzes/ui/QuizzesFilters';
 import { QuizGridSkeleton } from '@/features/quizzes/ui/QuizGridSkeleton';
@@ -14,12 +15,22 @@ import { QuizCard } from '@/entities/quiz/ui/QuizCard';
 import { QuizzesPagination } from '@/features/quizzes/ui/QuizzesPagination';
 import type { FiltersValue } from '@/features/quizzes/model/types';
 
-function durationSeconds(item: any) {
-  const v = item?.metric?.estimatedDurationSeconds;
-  return typeof v === 'number' && Number.isFinite(v) ? v : null;
+function durationSeconds(item: QuizCatalogItem): number | null {
+  const v =
+    typeof item.metric?.avgDurationSeconds === 'number'
+      ? item.metric.avgDurationSeconds
+      : typeof item.metric?.estimatedDurationSeconds === 'number'
+        ? item.metric.estimatedDurationSeconds
+        : null;
+
+  if (v == null || !Number.isFinite(v) || v <= 0) return null;
+  return v;
 }
 
-function matchesDurationFilter(item: any, duration: FiltersValue['duration']) {
+function matchesDurationFilter(
+  item: QuizCatalogItem,
+  duration: FiltersValue['duration'],
+): boolean {
   if (duration === 'any') return true;
 
   const s = durationSeconds(item);
@@ -64,8 +75,10 @@ export default function QuizzesPage() {
     filters,
   });
 
-  const visibleItems = useMemo(() => {
-    return items.filter((item) => matchesDurationFilter(item, filters.duration));
+  const visibleItems = useMemo<QuizCatalogItem[]>(() => {
+    return items.filter((item) =>
+      matchesDurationFilter(item, filters.duration),
+    );
   }, [items, filters.duration]);
 
   const onFiltersChange = (next: FiltersValue) => {
@@ -78,7 +91,8 @@ export default function QuizzesPage() {
     setFilters({ search: '', category: 'all', duration: 'any' });
   };
 
-  const headerTotal = filters.duration === 'any' ? total || items.length : visibleItems.length;
+  const headerTotal =
+    filters.duration === 'any' ? total || items.length : visibleItems.length;
 
   return (
     <div className="pb-4">

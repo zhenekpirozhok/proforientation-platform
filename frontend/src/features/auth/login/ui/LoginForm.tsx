@@ -5,9 +5,15 @@ import Link from 'next/link';
 import { useRouter } from '@/shared/i18n/lib/navigation';
 import { useTranslations } from 'next-intl';
 import { applyZodErrorsToAntdForm } from '@/shared/validation/antdZod';
-import { loginSchema, type LoginSchemaValues } from '@/shared/validation/loginSchema';
+import {
+  loginSchema,
+  type LoginSchemaValues,
+} from '@/shared/validation/loginSchema';
 import { useLoginUser } from '@/features/auth/login/model/useLoginUser';
-import { useSessionStore, type SessionUser } from '@/entities/session/model/store';
+import {
+  useSessionStore,
+  type SessionUser,
+} from '@/entities/session/model/store';
 import { useGoogleOneTapLogin } from '@/features/auth/login/model/useGoogleOneTapLogin';
 import { GoogleOneTapInit } from '@/features/auth/login/ui/GoogleOneTapInit';
 import { authFetch } from '@/shared/api/authFetch';
@@ -17,7 +23,9 @@ const { Title, Text } = Typography;
 
 type SessionAuthority = { authority: string };
 
-function normalizeAuthorities(a?: GrantedAuthority[]): SessionAuthority[] | undefined {
+function normalizeAuthorities(
+  a?: GrantedAuthority[],
+): SessionAuthority[] | undefined {
   if (!a?.length) return undefined;
 
   const list = a

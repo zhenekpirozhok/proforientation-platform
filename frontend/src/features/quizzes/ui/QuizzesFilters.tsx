@@ -15,10 +15,17 @@ type Props = {
 };
 
 function hasActiveFilters(v: FiltersValue) {
-  return Boolean(v.search.trim()) || v.category !== 'all' || v.duration !== 'any';
+  return (
+    Boolean(v.search.trim()) || v.category !== 'all' || v.duration !== 'any'
+  );
 }
 
-export function QuizzesFilters({ value, onChange, onClear, categories }: Props) {
+export function QuizzesFilters({
+  value,
+  onChange,
+  onClear,
+  categories,
+}: Props) {
   const t = useTranslations('Quizzes');
   const [open, setOpen] = useState(false);
 
@@ -78,11 +85,20 @@ export function QuizzesFilters({ value, onChange, onClear, categories }: Props) 
       />
 
       <div className="flex items-center justify-between pt-2">
-        <Button type="link" className="px-0" onClick={onClear} disabled={!active}>
+        <Button
+          type="link"
+          className="px-0"
+          onClick={onClear}
+          disabled={!active}
+        >
           {t('clearFilters')}
         </Button>
 
-        <Button type="primary" className="rounded-xl" onClick={() => setOpen(false)}>
+        <Button
+          type="primary"
+          className="rounded-xl"
+          onClick={() => setOpen(false)}
+        >
           OK
         </Button>
       </div>

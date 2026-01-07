@@ -145,38 +145,37 @@ export default function ResultPage() {
     ? t('Results.save')
     : t('Results.downloadPdf');
 
-const onPrimary = isAuthenticated
-  ? async () => {
-      const built = renderResultsPdfDom({
-        title: t('Results.completeTitle'),
-        typeTitle: t('Results.heroTypeTitle', { type: heroType }),
-        traitsTitle: t('Results.traitsTitle'),
-        matchesTitle: t('Results.topMatchesTitle'),
-        matchesSubtitle: t('Results.topMatchesSubtitle'),
-        matchLabel: t('Results.match'),
-        traitRows,
-        matchRows: matchRows.slice(0, 3),
-      });
+  const onPrimary = isAuthenticated
+    ? async () => {
+        const built = renderResultsPdfDom({
+          title: t('Results.completeTitle'),
+          typeTitle: t('Results.heroTypeTitle', { type: heroType }),
+          traitsTitle: t('Results.traitsTitle'),
+          matchesTitle: t('Results.topMatchesTitle'),
+          matchesSubtitle: t('Results.topMatchesSubtitle'),
+          matchLabel: t('Results.match'),
+          traitRows,
+          matchRows: matchRows.slice(0, 3),
+        });
 
-      try {
-        await downloadPdfFromNode(built.node, { filename: 'results.pdf' });
-      } finally {
-        built.cleanup();
+        try {
+          await downloadPdfFromNode(built.node, { filename: 'results.pdf' });
+        } finally {
+          built.cleanup();
+        }
       }
-    }
-  : goToQuiz;
-
+    : goToQuiz;
 
   const showSkeleton = catalogEnabled && catalogQ.isLoading;
 
   return (
     <div className="cp-results">
       <div id="pdf-hero">
-      <ResultsHero
-        title={t('Results.completeTitle')}
-        subtitleTitle={t('Results.heroTypeTitle', { type: heroType })}
-        subtitleText={t('Results.heroTypeSubtitle')}
-      />
+        <ResultsHero
+          title={t('Results.completeTitle')}
+          subtitleTitle={t('Results.heroTypeTitle', { type: heroType })}
+          subtitleText={t('Results.heroTypeSubtitle')}
+        />
       </div>
       <div className="cp-results-content">
         {catalogEnabled && catalogQ.isError ? (

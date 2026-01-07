@@ -3,17 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/shared/i18n/lib/navigation';
-import {
-  Alert,
-  Card,
-  Input,
-  Select,
-  Skeleton,
-  Empty,
-  Button,
-  Tag,
-  message,
-} from 'antd';
+import { Alert, Card, Input, Select, Skeleton, Empty, Button, Tag } from 'antd';
 
 import { useMyAttemptsQuery } from '@/entities/attempt/api/useMyAttemptsQuery';
 import { useAttemptViewQuery } from '@/entities/attempt/api/useAttemptViewQuery';
@@ -186,33 +176,32 @@ export default function MyResultsPage() {
 
   const isAuthenticated = true;
 
-const downloadPdf = async () => {
-  const built = renderResultsPdfDom({
-    title: headerTitle,
-    typeTitle: `${headerDate || t('UnknownDate')} • ${t('TopMatchLabel')} ${topScore}%`,
-    traitsTitle: t('TraitsTitle'),
-    matchesTitle: t('ProfessionsTitle'),
-    matchesSubtitle: t('ProfessionsSubtitle'),
-    matchLabel: t('Match'),
-    traitRows: traitRows.map((r) => ({
-      label: r.label,
-      description: r.description,
-      value: Math.round(r.value * 100),
-    })),
-    matchRows: professionRowsAll.slice(0, 6).map((p) => ({
-      title: p.title,
-      description: p.description,
-      score01: p.score01,
-    })),
-  });
+  const downloadPdf = async () => {
+    const built = renderResultsPdfDom({
+      title: headerTitle,
+      typeTitle: `${headerDate || t('UnknownDate')} • ${t('TopMatchLabel')} ${topScore}%`,
+      traitsTitle: t('TraitsTitle'),
+      matchesTitle: t('ProfessionsTitle'),
+      matchesSubtitle: t('ProfessionsSubtitle'),
+      matchLabel: t('Match'),
+      traitRows: traitRows.map((r) => ({
+        label: r.label,
+        description: r.description,
+        value: Math.round(r.value * 100),
+      })),
+      matchRows: professionRowsAll.slice(0, 6).map((p) => ({
+        title: p.title,
+        description: p.description,
+        score01: p.score01,
+      })),
+    });
 
-  try {
-    await downloadPdfFromNode(built.node, { filename: 'my-results.pdf' });
-  } finally {
-    built.cleanup();
-  }
-};
-
+    try {
+      await downloadPdfFromNode(built.node, { filename: 'my-results.pdf' });
+    } finally {
+      built.cleanup();
+    }
+  };
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6">
