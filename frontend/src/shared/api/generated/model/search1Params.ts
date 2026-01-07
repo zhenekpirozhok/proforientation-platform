@@ -6,8 +6,32 @@
  */
 
 export type Search1Params = {
-userId?: number;
-quizId?: number;
-from?: string;
-to?: string;
+/**
+ * Search text (title, code or description)
+ */
+search?: string;
+/**
+ * Profession category ID
+ */
+categoryId?: number;
+/**
+ * Minimum estimated duration in seconds
+ */
+minDurationSec?: number;
+/**
+ * Maximum estimated duration in seconds
+ */
+maxDurationSec?: number;
+/**
+ * Page number
+ */
+page?: string;
+/**
+ * Number of items per page
+ */
+size?: string;
+/**
+ * Sort by field
+ */
+sort?: string;
 };

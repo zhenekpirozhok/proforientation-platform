@@ -6,9 +6,8 @@
  */
 
 export type GetQuestionsForQuizParams = {
-locale?: string;
 /**
- * Page number (0-based)
+ * Page number
  */
 page?: string;
 /**
