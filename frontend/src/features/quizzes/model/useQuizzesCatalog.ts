@@ -3,9 +3,7 @@
 import { useMemo } from 'react';
 import type {
   QuizDto,
-  QuizPublicMetricsView,
   ProfessionCategoryDto,
-  SearchQuizzesParams,
 } from '@/shared/api/generated/model';
 
 import { useQuizzes } from '@/entities/quiz/api/useQuizzes';
@@ -21,6 +19,21 @@ type PageLike<T> = {
   total?: number;
 };
 
+type QuizMetric = {
+  quizId?: number;
+  categoryId?: number;
+  attemptsTotal?: number;
+  questionsTotal?: number;
+  estimatedDurationSeconds?: number;
+};
+
+type SearchQuizzesParams = {
+  search: string;
+  page?: number;
+  size?: number;
+  sortBy?: string;
+};
+
 function extractItems<T>(data: unknown): T[] {
   if (Array.isArray(data)) return data as T[];
   const page = data as PageLike<T> | null | undefined;
@@ -29,7 +42,8 @@ function extractItems<T>(data: unknown): T[] {
 
 function extractTotal(data: unknown): number {
   const page = data as PageLike<unknown> | null | undefined;
-  return (page?.totalElements ?? page?.total ?? 0) as number;
+  const v = page?.totalElements ?? page?.total ?? 0;
+  return typeof v === 'number' ? v : 0;
 }
 
 function hasNumberId(q: QuizDto): q is QuizDto & { id: number } {
@@ -37,7 +51,7 @@ function hasNumberId(q: QuizDto): q is QuizDto & { id: number } {
 }
 
 export type QuizCatalogItem = (QuizDto & { id: number }) & {
-  metric?: QuizPublicMetricsView;
+  metric?: QuizMetric;
   category?: ProfessionCategoryDto;
 };
 
@@ -74,7 +88,7 @@ export function useQuizzesCatalog(params: {
 
   const categoriesQ = useCategories(params.locale);
 
-  const itemsAll = useMemo(() => {
+  const itemsAll = useMemo<QuizCatalogItem[]>(() => {
     const base = extractItems<QuizDto>(quizzesSource.data).filter(hasNumberId);
 
     const quizzes =
@@ -84,17 +98,40 @@ export function useQuizzesCatalog(params: {
           )
         : base;
 
-    const metricsByQuizId = new Map<number, QuizPublicMetricsView>();
-    (metricsQ.data ?? []).forEach((m) => {
-      if (typeof m.quizId === 'number') metricsByQuizId.set(m.quizId, m);
-    });
+    const metricsArr = Array.isArray(metricsQ.data)
+      ? (metricsQ.data as unknown[])
+      : [];
+    const metricsByQuizId = new Map<number, QuizMetric>();
+
+    for (const m of metricsArr) {
+      if (typeof m !== 'object' || m === null) continue;
+      const o = m as Record<string, unknown>;
+
+      const quizId = typeof o.quizId === 'number' ? o.quizId : undefined;
+      if (!quizId) continue;
+
+      const metric: QuizMetric = {
+        quizId,
+        categoryId: typeof o.categoryId === 'number' ? o.categoryId : undefined,
+        attemptsTotal:
+          typeof o.attemptsTotal === 'number' ? o.attemptsTotal : undefined,
+        questionsTotal:
+          typeof o.questionsTotal === 'number' ? o.questionsTotal : undefined,
+        estimatedDurationSeconds:
+          typeof o.estimatedDurationSeconds === 'number'
+            ? o.estimatedDurationSeconds
+            : undefined,
+      };
+
+      metricsByQuizId.set(quizId, metric);
+    }
 
     const categoriesById = new Map<number, ProfessionCategoryDto>();
-    (categoriesQ.data ?? []).forEach((c) => {
-      if (typeof c.id === 'number') categoriesById.set(c.id, c);
-    });
+    for (const c of categoriesQ.data ?? []) {
+      if (typeof c?.id === 'number') categoriesById.set(c.id, c);
+    }
 
-    return quizzes.map<QuizCatalogItem>((q) => {
+    return quizzes.map((q) => {
       const metric = metricsByQuizId.get(q.id);
       const category =
         metric?.categoryId != null
