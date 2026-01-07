@@ -29,6 +29,8 @@ import { sliceOrAll, canToggle } from '@/features/results/model/visibility';
 import '@/features/results/ui/results.css';
 
 import type { AttemptSummaryDto } from '@/shared/api/generated/model';
+import { renderResultsPdfDom } from '@/shared/lib/pdf/renderResultsPdfDom';
+import { downloadPdfFromNode } from '@/shared/lib/pdf/downloadPdfFromNode';
 
 type SortKey = 'newest' | 'oldest';
 
@@ -183,6 +185,34 @@ export default function MyResultsPage() {
   );
 
   const isAuthenticated = true;
+
+const downloadPdf = async () => {
+  const built = renderResultsPdfDom({
+    title: headerTitle,
+    typeTitle: `${headerDate || t('UnknownDate')} • ${t('TopMatchLabel')} ${topScore}%`,
+    traitsTitle: t('TraitsTitle'),
+    matchesTitle: t('ProfessionsTitle'),
+    matchesSubtitle: t('ProfessionsSubtitle'),
+    matchLabel: t('Match'),
+    traitRows: traitRows.map((r) => ({
+      label: r.label,
+      description: r.description,
+      value: Math.round(r.value * 100),
+    })),
+    matchRows: professionRowsAll.slice(0, 6).map((p) => ({
+      title: p.title,
+      description: p.description,
+      score01: p.score01,
+    })),
+  });
+
+  try {
+    await downloadPdfFromNode(built.node, { filename: 'my-results.pdf' });
+  } finally {
+    built.cleanup();
+  }
+};
+
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6">
@@ -398,7 +428,7 @@ export default function MyResultsPage() {
                 <ResultsActions
                   primaryLabel={t('DownloadPdf')}
                   secondaryLabel={t('TakeAnother')}
-                  onPrimary={() => message.info(t('PdfSoon'))}
+                  onPrimary={downloadPdf}
                   onSecondary={() => router.push('/quizzes')}
                   isAuthenticated={isAuthenticated}
                 />

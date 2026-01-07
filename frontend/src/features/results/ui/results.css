@@ -403,3 +403,32 @@
   justify-content: center;
   flex-wrap: wrap;
 }
+
+
+body.pdf-export {
+  background: #fff;
+}
+
+body.pdf-export * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+body.pdf-export .cp-results {
+  background: #fff !important;
+}
+
+body.pdf-export .cp-results-content {
+  padding-bottom: 0 !important;
+}
+
+body.pdf-export header,
+body.pdf-export nav,
+body.pdf-export .no-pdf {
+  display: none !important;
+}
+
+body.pdf-export .no-pdf {
+  display: none !important;
+}
