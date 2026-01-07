@@ -47,12 +47,22 @@ export function CareerMatchesCompact({
     <section>
       <div className="mb-2 flex items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{title}</div>
-          {subtitle ? <div className="text-xs text-slate-600 dark:text-slate-300">{subtitle}</div> : null}
+          <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+            {title}
+          </div>
+          {subtitle ? (
+            <div className="text-xs text-slate-600 dark:text-slate-300">
+              {subtitle}
+            </div>
+          ) : null}
         </div>
 
         {canToggle ? (
-          <Button type="link" className="px-0 text-sm" onClick={() => setExpanded((v) => !v)}>
+          <Button
+            type="link"
+            className="px-0 text-sm"
+            onClick={() => setExpanded((v) => !v)}
+          >
             {expanded ? showLessLabel : showMoreLabel}
           </Button>
         ) : null}
@@ -60,7 +70,9 @@ export function CareerMatchesCompact({
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
         {visible.length === 0 ? (
-          <div className="text-sm text-slate-600 dark:text-slate-300">{/* empty handled by caller if нужно */}</div>
+          <div className="text-sm text-slate-600 dark:text-slate-300">
+            {/* empty handled by caller if нужно */}
+          </div>
         ) : (
           <div className="space-y-3">
             {visible.map((r) => {
@@ -85,8 +97,12 @@ export function CareerMatchesCompact({
                     </div>
 
                     <div className="shrink-0 text-right">
-                      <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">{p}%</div>
-                      <div className="text-xs text-slate-600 dark:text-slate-300">{matchLabel}</div>
+                      <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                        {p}%
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-300">
+                        {matchLabel}
+                      </div>
                     </div>
                   </div>
 

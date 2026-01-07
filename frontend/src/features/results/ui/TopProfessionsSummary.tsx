@@ -3,13 +3,15 @@
 import { Tag } from 'antd';
 import type { ProfessionDto } from '@/shared/api/generated/model';
 
-export function TopProfessionsSummary(props: {
-  t: (k: string, p?: any) => string;
-  professions: ProfessionDto[];
-}) {
-  const { t, professions } = props;
+type TranslateParams = Record<string, string | number>;
 
-  const top = (professions ?? []).slice(0, 3);
+type Props = {
+  t: (key: string, params?: TranslateParams) => string;
+  professions: ProfessionDto[];
+};
+
+export function TopProfessionsSummary({ t, professions }: Props) {
+  const top = professions.slice(0, 3);
 
   if (top.length === 0) return null;
 

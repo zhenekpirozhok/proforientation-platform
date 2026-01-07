@@ -18,11 +18,14 @@ export async function GET(req: Request) {
     });
   }
 
-  const upstream = await bffAuthFetch(`/attempts/${id}/result`, { method: 'GET' });
+  const upstream = await bffAuthFetch(`/attempts/${id}/result`, {
+    method: 'GET',
+  });
   const body = await upstream.text();
 
   const headers = new Headers(upstream.headers);
-  if (!headers.get('content-type')) headers.set('content-type', 'application/json');
+  if (!headers.get('content-type'))
+    headers.set('content-type', 'application/json');
 
   return new Response(body, { status: upstream.status, headers });
 }

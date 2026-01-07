@@ -170,7 +170,7 @@
     "toHome": "На главную",
     "toQuizzes": "К тестам"
   },
-"MyResultsPage": {
+  "MyResultsPage": {
     "Title": "Мои результаты",
     "Subtitle": "Посмотрите завершённые тесты и изучите лучшие совпадения.",
     "AttemptsTitle": "Завершённые тесты",
@@ -193,13 +193,13 @@
     "TakeAnother": "Пройти другой тест",
     "OpenDetails": "Открыть полный результат",
     "FallbackProfessionTitle": "Профессия №{id}",
-  "ShowMore": "Показать больше",
-  "ShowLess": "Показать меньше",
-  "DownloadPdf": "Скачать PDF",
-  "PdfSoon": "Скачивание PDF скоро будет доступно",
-  "TopProfessionsTitle": "Лучшие профессии",
-  "EmptyProfessions": "Рекомендаций пока нет"
-},
+    "ShowMore": "Показать больше",
+    "ShowLess": "Показать меньше",
+    "DownloadPdf": "Скачать PDF",
+    "PdfSoon": "Скачивание PDF скоро будет доступно",
+    "TopProfessionsTitle": "Лучшие профессии",
+    "EmptyProfessions": "Рекомендаций пока нет"
+  },
   "LoginPage": {
     "Title": "Вход",
     "Subtitle": "С возвращением! Войдите, чтобы продолжить.",

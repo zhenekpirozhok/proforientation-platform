@@ -19,7 +19,8 @@ export async function GET(req: NextRequest) {
   return new Response(body, {
     status: upstreamRes.status,
     headers: {
-      'content-type': upstreamRes.headers.get('content-type') ?? 'application/json',
+      'content-type':
+        upstreamRes.headers.get('content-type') ?? 'application/json',
     },
   });
 }

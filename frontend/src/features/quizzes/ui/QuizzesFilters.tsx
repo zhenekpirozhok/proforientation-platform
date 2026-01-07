@@ -7,7 +7,6 @@ import { useTranslations } from 'next-intl';
 import type { ProfessionCategoryDto } from '@/shared/api/generated/model';
 import { FiltersValue } from '@/features/quizzes/model/types';
 
-
 type Props = {
   value: FiltersValue;
   onChange: (next: FiltersValue) => void;
@@ -16,7 +15,9 @@ type Props = {
 };
 
 function hasActiveFilters(v: FiltersValue) {
-  return Boolean(v.search.trim()) || v.category !== 'all' || v.duration !== 'any';
+  return (
+    Boolean(v.search.trim()) || v.category !== 'all' || v.duration !== 'any'
+  );
 }
 
 export function QuizzesFilters({

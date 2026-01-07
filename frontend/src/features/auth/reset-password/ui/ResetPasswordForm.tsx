@@ -6,7 +6,10 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { applyZodErrorsToAntdForm } from '@/shared/validation/antdZod';
-import { resetPasswordSchema, type ResetPasswordSchemaValues } from '@/shared/validation/resetPasswordSchema';
+import {
+  resetPasswordSchema,
+  type ResetPasswordSchemaValues,
+} from '@/shared/validation/resetPasswordSchema';
 import { useResetPassword } from '@/features/auth/reset-password/model/useResetPassword';
 import { useRouter } from '@/shared/i18n/lib/navigation';
 
@@ -25,7 +28,8 @@ export function ResetPasswordForm() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    form.setFieldsValue({ token: tokenFromUrl } as any);
+    if (!tokenFromUrl) return;
+    form.setFieldsValue({ token: tokenFromUrl });
   }, [form, tokenFromUrl]);
 
   if (!tokenFromUrl && !done) {
@@ -42,7 +46,9 @@ export function ResetPasswordForm() {
           <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
             <Alert type="warning" showIcon message={t('MissingTokenAlert')} />
             <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-between">
-              <Button onClick={() => router.push('/forgot-password')}>{t('RequestNewLink')}</Button>
+              <Button onClick={() => router.push('/forgot-password')}>
+                {t('RequestNewLink')}
+              </Button>
               <Button type="primary" href="/login">
                 {t('GoToLogin')}
               </Button>
@@ -65,7 +71,9 @@ export function ResetPasswordForm() {
           </div>
 
           <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-            <div className="text-sm text-slate-700 dark:text-slate-200">{t('SuccessBody')}</div>
+            <div className="text-sm text-slate-700 dark:text-slate-200">
+              {t('SuccessBody')}
+            </div>
             <div className="mt-6">
               <Button type="primary" className="w-full" href="/login">
                 {t('SignIn')}
@@ -88,7 +96,9 @@ export function ResetPasswordForm() {
         </div>
 
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-          {errorMsg ? <Alert type="error" showIcon message={errorMsg} className="mb-4" /> : null}
+          {errorMsg ? (
+            <Alert type="error" showIcon message={errorMsg} className="mb-4" />
+          ) : null}
 
           <Form
             form={form}
@@ -133,16 +143,26 @@ export function ResetPasswordForm() {
               <Input.Password autoComplete="new-password" />
             </Form.Item>
 
-            <div className="mb-3 text-xs text-slate-600 dark:text-slate-300">{t('PasswordHint')}</div>
+            <div className="mb-3 text-xs text-slate-600 dark:text-slate-300">
+              {t('PasswordHint')}
+            </div>
 
-            <Button htmlType="submit" type="primary" className="w-full" loading={isPending}>
+            <Button
+              htmlType="submit"
+              type="primary"
+              className="w-full"
+              loading={isPending}
+            >
               {t('Submit')}
             </Button>
 
             <div className="mt-4 text-center">
               <Text type="secondary">
                 {t('BackToLoginPrefix')}{' '}
-                <Link href="/login" className="text-blue-600 hover:text-blue-700">
+                <Link
+                  href="/login"
+                  className="text-blue-600 hover:text-blue-700"
+                >
                   {t('BackToLoginLink')}
                 </Link>
               </Text>

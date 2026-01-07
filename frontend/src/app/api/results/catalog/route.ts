@@ -38,42 +38,44 @@ async function fetchJsonOrThrow<T>(res: Response, tag: string) {
 }
 
 async function fetchAllProfessions(headers?: Record<string, string>) {
-  const out: ProfessionDto[] = []
-  let page = 1
-  const size = 200
+  const out: ProfessionDto[] = [];
+  let page = 1;
+  const size = 200;
 
   for (let guard = 0; guard < 200; guard++) {
     const sp = new URLSearchParams({
       page: String(page),
       size: String(size),
       sortBy: 'id',
-    })
+    });
 
     const res = await bffFetch(`/professions?${sp.toString()}`, {
       method: 'GET',
       headers,
-    })
+    });
 
     if (!res.ok) {
-      const body = await res.text()
-      throw new Error(`/professions failed: ${res.status} ${body}`)
+      const body = await res.text();
+      throw new Error(`/professions failed: ${res.status} ${body}`);
     }
 
-    const data = await parseResponse<PageLike<ProfessionDto> | ProfessionDto[]>(res)
+    const data = await parseResponse<PageLike<ProfessionDto> | ProfessionDto[]>(
+      res,
+    );
 
     if (Array.isArray(data)) {
-      out.push(...data)
-      break
+      out.push(...data);
+      break;
     }
 
-    out.push(...(data.content ?? []))
+    out.push(...(data.content ?? []));
 
-    if (data.last === true) break
+    if (data.last === true) break;
 
-    page += 1
+    page += 1;
   }
 
-  return out
+  return out;
 }
 
 export async function GET(req: Request) {

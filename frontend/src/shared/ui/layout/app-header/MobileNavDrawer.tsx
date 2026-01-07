@@ -8,7 +8,6 @@ import { useSessionStore } from '@/entities/session/model/store';
 import { hasRole } from '@/entities/session/model/roles';
 import { useLogoutUser } from '@/features/auth/logout/model/useLogoutUser';
 
-
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -34,12 +33,16 @@ export function MobileNavDrawer({ open, onClose }: Props) {
 
   const isAuthenticated = status === 'auth';
   const isAdmin = hasRole(user, 'ADMIN');
-  const logoutM = useLogoutUser()
-
+  const logoutM = useLogoutUser();
 
   const navItems: NavItem[] = [
     { key: 'quizzes', label: tDrawer('quizzes'), href: '/quizzes', show: true },
-    { key: 'profile', label: tDrawer('profile') ?? 'Profile', href: '/me/results', show: isAuthenticated },
+    {
+      key: 'profile',
+      label: tDrawer('profile') ?? 'Profile',
+      href: '/me/results',
+      show: isAuthenticated,
+    },
     { key: 'admin', label: tDrawer('admin'), href: '/admin', show: isAdmin },
   ];
 
@@ -65,15 +68,15 @@ export function MobileNavDrawer({ open, onClose }: Props) {
   };
 
   const onSignIn = () => {
-    router.push(`/login`)
+    router.push(`/login`);
     onClose();
   };
 
   const onLogout = async () => {
-    await logoutM.mutateAsync().catch(() => {})
-    router.push('/')
-    onClose()
-  }
+    await logoutM.mutateAsync().catch(() => {});
+    router.push('/');
+    onClose();
+  };
 
   const userLabel = user?.displayName?.trim() || user?.email || 'User';
 

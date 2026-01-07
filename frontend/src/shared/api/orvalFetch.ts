@@ -16,19 +16,39 @@ function toBffUrl(url: string) {
   return '/api/' + url;
 }
 
-export async function orvalFetch<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(toBffUrl(url), { ...init, credentials: "include" });
+type MessageEnvelope = { message?: unknown };
 
-  const text = await res.text().catch(() => "");
-  const data = text ? (() => { try { return JSON.parse(text); } catch { return text; } })() : null;
+function tryGetMessage(v: unknown): string | null {
+  if (typeof v !== 'object' || v === null) return null;
+  if (!('message' in v)) return null;
+
+  const msg = (v as MessageEnvelope).message;
+  return typeof msg === 'string' ? msg : null;
+}
+
+export async function orvalFetch<T>(
+  url: string,
+  init?: RequestInit,
+): Promise<T> {
+  const res = await fetch(toBffUrl(url), { ...init, credentials: 'include' });
+
+  const text = await res.text().catch(() => '');
+  const data: unknown = text
+    ? (() => {
+        try {
+          return JSON.parse(text) as unknown;
+        } catch {
+          return text;
+        }
+      })()
+    : null;
 
   if (!res.ok) {
+    const msg = tryGetMessage(data);
     const message =
-      typeof data === "object" && data && "message" in data && typeof (data as any).message === "string"
-        ? (data as any).message
-        : typeof data === "string" ? data : `API error ${res.status}`;
+      msg ?? (typeof data === 'string' ? data : `API error ${res.status}`);
     throw new Error(message);
   }
 
-  return (data as T);
+  return data as T;
 }

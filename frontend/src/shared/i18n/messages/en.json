@@ -193,12 +193,12 @@
     "TakeAnother": "Take another quiz",
     "OpenDetails": "Open full result",
     "FallbackProfessionTitle": "Profession #{id}",
-  "ShowMore": "Show more",
-  "ShowLess": "Show less",
-  "DownloadPdf": "Download PDF",
-  "PdfSoon": "PDF download will be available soon",
-  "TopProfessionsTitle": "Top professions",
-  "EmptyProfessions": "No recommendations yet"
+    "ShowMore": "Show more",
+    "ShowLess": "Show less",
+    "DownloadPdf": "Download PDF",
+    "PdfSoon": "PDF download will be available soon",
+    "TopProfessionsTitle": "Top professions",
+    "EmptyProfessions": "No recommendations yet"
   },
   "LoginPage": {
     "Title": "Sign in",

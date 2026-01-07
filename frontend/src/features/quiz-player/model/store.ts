@@ -185,7 +185,8 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
       setError: (error) => {
         const s = get();
-        if (s.error === error && (error == null || s.status === 'error')) return;
+        if (s.error === error && (error == null || s.status === 'error'))
+          return;
 
         if (error == null) {
           set({ error: null });

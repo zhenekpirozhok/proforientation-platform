@@ -35,8 +35,16 @@ export default function ResultsSkeleton() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1 space-y-2">
-                  <Skeleton.Input active size="small" style={{ width: '55%' }} />
-                  <Skeleton.Input active size="small" style={{ width: '85%' }} />
+                  <Skeleton.Input
+                    active
+                    size="small"
+                    style={{ width: '55%' }}
+                  />
+                  <Skeleton.Input
+                    active
+                    size="small"
+                    style={{ width: '85%' }}
+                  />
                 </div>
 
                 <div className="shrink-0 space-y-2 text-right">
@@ -72,14 +80,26 @@ export default function ResultsSkeleton() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1 space-y-2">
-                    <Skeleton.Input active size="small" style={{ width: '45%' }} />
-                    <Skeleton.Input active size="small" style={{ width: '90%' }} />
+                    <Skeleton.Input
+                      active
+                      size="small"
+                      style={{ width: '45%' }}
+                    />
+                    <Skeleton.Input
+                      active
+                      size="small"
+                      style={{ width: '90%' }}
+                    />
                   </div>
                   <Skeleton.Input active size="small" style={{ width: 44 }} />
                 </div>
 
                 <div className="mt-3">
-                  <Skeleton.Input active size="small" style={{ width: '100%' }} />
+                  <Skeleton.Input
+                    active
+                    size="small"
+                    style={{ width: '100%' }}
+                  />
                 </div>
               </div>
             ))}

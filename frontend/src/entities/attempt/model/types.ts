@@ -13,21 +13,21 @@ export type AttemptResult = {
 };
 
 export type AttemptViewTrait = {
-  code: string
-  name: string
-  description?: string
-  score01: number
-}
+  code: string;
+  name: string;
+  description?: string;
+  score01: number;
+};
 
 export type AttemptViewProfession = {
-  id: number
-  title: string
-  description?: string
-  score01: number
-}
+  id: number;
+  title: string;
+  description?: string;
+  score01: number;
+};
 
 export type AttemptViewDto = {
-  attemptId: number
-  traits: AttemptViewTrait[]
-  professions: AttemptViewProfession[]
-}
+  attemptId: number;
+  traits: AttemptViewTrait[];
+  professions: AttemptViewProfession[];
+};

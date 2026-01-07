@@ -3,7 +3,17 @@
 import { useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from '@/shared/i18n/lib/navigation';
-import { Alert, Card, Input, Select, Skeleton, Empty, Button, Tag, message } from 'antd';
+import {
+  Alert,
+  Card,
+  Input,
+  Select,
+  Skeleton,
+  Empty,
+  Button,
+  Tag,
+  message,
+} from 'antd';
 
 import { useMyAttemptsQuery } from '@/entities/attempt/api/useMyAttemptsQuery';
 import { useAttemptViewQuery } from '@/entities/attempt/api/useAttemptViewQuery';
@@ -13,12 +23,30 @@ import { CareerMatchesCompact } from '@/features/results/ui/CareerMatchesCompact
 import { TraitsSliders } from '@/features/results/ui/TraitsSliders';
 import { ResultsActions } from '@/features/results/ui/ResultsActions';
 import { ResultsSkeleton } from '@/features/results/ui/ResultsSkeleton';
-import {TopProfessionsSummary} from '@/features/results/ui/TopProfessionsSummary';
+import { TopProfessionsSummary } from '@/features/results/ui/TopProfessionsSummary';
 
 import { sliceOrAll, canToggle } from '@/features/results/model/visibility';
 import '@/features/results/ui/results.css';
 
+import type { AttemptSummaryDto } from '@/shared/api/generated/model';
+
 type SortKey = 'newest' | 'oldest';
+
+type TParams = Record<string, string | number>;
+
+type ProfessionRow = {
+  id: number;
+  title: string;
+  description?: string;
+  score01: number;
+};
+
+type TraitRow = {
+  key: string;
+  label: string;
+  description?: string;
+  value: number;
+};
 
 function safeDate(v?: string) {
   const d = v ? new Date(v) : null;
@@ -42,6 +70,14 @@ function throwIfForbidden(e: unknown) {
   if (e instanceof HttpError && (e.status === 401 || e.status === 403)) throw e;
 }
 
+function attemptIdOf(a: AttemptSummaryDto): number | null {
+  return typeof a.id === 'number' ? a.id : null;
+}
+
+function isCompletedAttempt(a: AttemptSummaryDto): boolean {
+  return a.isCompleted === true || a.status === 'completed';
+}
+
 export default function MyResultsPage() {
   const t = useTranslations('MyResultsPage');
   const locale = useLocale();
@@ -49,7 +85,9 @@ export default function MyResultsPage() {
 
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SortKey>('newest');
-  const [selectedAttemptId, setSelectedAttemptId] = useState<number | null>(null);
+  const [selectedAttemptId, setSelectedAttemptId] = useState<number | null>(
+    null,
+  );
 
   const [showAllTraits, setShowAllTraits] = useState(false);
   const [showAllProfessions, setShowAllProfessions] = useState(false);
@@ -60,110 +98,112 @@ export default function MyResultsPage() {
   const attemptsQuery = useMyAttemptsQuery();
   if (attemptsQuery.isError) throwIfForbidden(attemptsQuery.error);
 
-  const attemptsRaw = attemptsQuery.data?.list ?? [];
-
-  const attempts = useMemo(() => {
+  const attempts = useMemo<AttemptSummaryDto[]>(() => {
+    const raw = attemptsQuery.data?.list ?? [];
     const q = query.trim().toLowerCase();
 
-    const filtered = attemptsRaw
-      .filter((a: any) => a?.isCompleted === true || a?.status === 'completed')
-      .filter((a: any) => {
-        if (!q) return true;
-        const title = String(a?.quizTitle ?? a?.quizName ?? a?.quizCode ?? '').toLowerCase();
-        return title.includes(q);
-      });
+    const filtered = raw.filter(isCompletedAttempt).filter((a) => {
+      if (!q) return true;
+      const title = String(a.quizTitle ?? '').toLowerCase();
+      return title.includes(q);
+    });
 
-    filtered.sort((a: any, b: any) => {
-      const da = safeDate(a?.submittedAt ?? a?.finishedAt ?? a?.createdAt)?.getTime() ?? 0;
-      const db = safeDate(b?.submittedAt ?? b?.finishedAt ?? b?.createdAt)?.getTime() ?? 0;
+    filtered.sort((a, b) => {
+      const da = safeDate(a.submittedAt ?? a.startedAt)?.getTime() ?? 0;
+      const db = safeDate(b.submittedAt ?? b.startedAt)?.getTime() ?? 0;
       return sort === 'newest' ? db - da : da - db;
     });
 
     return filtered;
-  }, [attemptsRaw, query, sort]);
+  }, [attemptsQuery.data?.list, query, sort]);
 
   const resolvedSelectedId = useMemo(() => {
     if (selectedAttemptId != null) return selectedAttemptId;
-    const first: any = attempts[0];
-    const id =
-      typeof first?.id === 'number'
-        ? first.id
-        : typeof first?.attemptId === 'number'
-          ? first.attemptId
-          : null;
-    return id;
+    const first = attempts[0];
+    return first ? attemptIdOf(first) : null;
   }, [attempts, selectedAttemptId]);
 
-  const selectedAttempt = useMemo(() => {
+  const selectedAttempt = useMemo<AttemptSummaryDto | null>(() => {
     if (!resolvedSelectedId) return null;
-    return (attempts as any[]).find((a) => a?.id === resolvedSelectedId || a?.attemptId === resolvedSelectedId) ?? null;
+    return attempts.find((a) => attemptIdOf(a) === resolvedSelectedId) ?? null;
   }, [attempts, resolvedSelectedId]);
 
   const viewQuery = useAttemptViewQuery(resolvedSelectedId);
   if (viewQuery.isError) throwIfForbidden(viewQuery.error);
 
   const headerTitle = useMemo(() => {
-    return String(selectedAttempt?.quizTitle ?? selectedAttempt?.quizName ?? '').trim() || t('DefaultQuizTitle');
-  }, [selectedAttempt?.quizTitle, selectedAttempt?.quizName, t]);
+    return (
+      String(selectedAttempt?.quizTitle ?? '').trim() || t('DefaultQuizTitle')
+    );
+  }, [selectedAttempt?.quizTitle, t]);
 
   const headerDate = useMemo(() => {
-    const iso = selectedAttempt?.submittedAt ?? selectedAttempt?.finishedAt ?? selectedAttempt?.createdAt;
+    const iso = selectedAttempt?.submittedAt ?? selectedAttempt?.startedAt;
     return formatDate(locale, iso);
-  }, [locale, selectedAttempt?.createdAt, selectedAttempt?.submittedAt, selectedAttempt?.finishedAt]);
+  }, [locale, selectedAttempt?.startedAt, selectedAttempt?.submittedAt]);
 
-  const professionRowsAll = useMemo(() => {
+  const professionRowsAll = useMemo<ProfessionRow[]>(() => {
     const profs = viewQuery.data?.professions ?? [];
     return profs
       .slice()
       .sort((a, b) => (b.score01 ?? 0) - (a.score01 ?? 0))
       .map((p) => ({
-        id: p.id,
-        title: p.title || t('FallbackProfessionTitle', { id: p.id }),
+        id: typeof p.id === 'number' ? p.id : 0,
+        title:
+          p.title ||
+          t('FallbackProfessionTitle', { id: p.id ?? 0 } satisfies TParams),
         description: p.description,
         score01: typeof p.score01 === 'number' ? p.score01 : 0,
-      }));
+      }))
+      .filter((p) => p.id > 0);
   }, [viewQuery.data, t]);
 
-  const traitRowsAll = useMemo(() => {
+  const traitRowsAll = useMemo<TraitRow[]>(() => {
     const traits = viewQuery.data?.traits ?? [];
     return traits
       .slice()
       .sort((a, b) => (b.score01 ?? 0) - (a.score01 ?? 0))
       .map((s) => ({
-        key: s.code,
-        label: s.name,
+        key: String(s.code ?? ''),
+        label: String(s.name ?? ''),
         description: s.description,
         value: typeof s.score01 === 'number' ? s.score01 : 0,
-      }));
+      }))
+      .filter((r) => r.key.length > 0);
   }, [viewQuery.data]);
 
-  const professionRows = useMemo(() => {
-    return sliceOrAll(professionRowsAll, showAllProfessions, PROFESSIONS_VISIBLE);
-  }, [professionRowsAll, showAllProfessions]);
+  const traitRows = useMemo(
+    () => sliceOrAll(traitRowsAll, showAllTraits, TRAITS_VISIBLE),
+    [traitRowsAll, showAllTraits],
+  );
 
-  const traitRows = useMemo(() => {
-    return sliceOrAll(traitRowsAll, showAllTraits, TRAITS_VISIBLE);
-  }, [traitRowsAll, showAllTraits]);
-
-  const topScore = useMemo(() => {
-    const best = professionRowsAll[0];
-    return toPercent01(best?.score01);
-  }, [professionRowsAll]);
+  const topScore = useMemo(
+    () => toPercent01(professionRowsAll[0]?.score01),
+    [professionRowsAll],
+  );
 
   const isAuthenticated = true;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6">
       <div className="mb-5">
-        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{t('Title')}</h1>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{t('Subtitle')}</p>
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+          {t('Title')}
+        </h1>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          {t('Subtitle')}
+        </p>
       </div>
 
       {attemptsQuery.isError ? (
         <Alert
           type="error"
           showIcon
-          message={attemptsQuery.error instanceof Error ? attemptsQuery.error.message : t('LoadError')}
+          title={
+            attemptsQuery.error instanceof Error
+              ? attemptsQuery.error.message
+              : t('LoadError')
+          }
           className="mb-4"
         />
       ) : null}
@@ -192,8 +232,12 @@ export default function MyResultsPage() {
           <div className="lg:sticky lg:top-6">
             <Card className="dark:!bg-slate-950 dark:!border-slate-800">
               <div className="mb-3 flex items-center justify-between">
-                <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{t('AttemptsTitle')}</div>
-                <Tag className="dark:!bg-slate-900 dark:!border-slate-700 dark:!text-slate-200">{attempts.length}</Tag>
+                <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  {t('AttemptsTitle')}
+                </div>
+                <Tag className="dark:!bg-slate-900 dark:!border-slate-700 dark:!text-slate-200">
+                  {attempts.length}
+                </Tag>
               </div>
 
               {attemptsQuery.isLoading ? (
@@ -205,20 +249,28 @@ export default function MyResultsPage() {
               ) : attempts.length === 0 ? (
                 <Empty
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description={<span className="text-slate-600 dark:text-slate-300">{t('Empty')}</span>}
+                  description={
+                    <span className="text-slate-600 dark:text-slate-300">
+                      {t('Empty')}
+                    </span>
+                  }
                 >
-                  <Button type="primary" onClick={() => router.push('/quizzes')}>
+                  <Button
+                    type="primary"
+                    onClick={() => router.push('/quizzes')}
+                  >
                     {t('GoToQuizzes')}
                   </Button>
                 </Empty>
               ) : (
                 <div className="max-h-[60vh] space-y-2 overflow-auto pr-1">
-                  {attempts.map((a: any) => {
-                    const id = typeof a?.id === 'number' ? a.id : a?.attemptId;
+                  {attempts.map((a) => {
+                    const id = attemptIdOf(a);
                     if (typeof id !== 'number') return null;
 
-                    const title = String(a?.quizTitle ?? a?.quizName ?? '').trim() || t('DefaultQuizTitle');
-                    const iso = a?.submittedAt ?? a?.finishedAt ?? a?.createdAt;
+                    const title =
+                      String(a.quizTitle ?? '').trim() || t('DefaultQuizTitle');
+                    const iso = a.submittedAt ?? a.startedAt;
                     const date = formatDate(locale, iso);
                     const active = resolvedSelectedId === id;
 
@@ -240,8 +292,12 @@ export default function MyResultsPage() {
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
-                            <div className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{title}</div>
-                            <div className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">{date || t('UnknownDate')}</div>
+                            <div className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
+                              {title}
+                            </div>
+                            <div className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
+                              {date || t('UnknownDate')}
+                            </div>
                           </div>
 
                           {active ? (
@@ -261,7 +317,9 @@ export default function MyResultsPage() {
 
         <div className="lg:col-span-8">
           <Card className="dark:!bg-slate-950 dark:!border-slate-800">
-            <div className="mb-1 text-lg font-semibold text-slate-900 dark:text-slate-100">{headerTitle}</div>
+            <div className="mb-1 text-lg font-semibold text-slate-900 dark:text-slate-100">
+              {headerTitle}
+            </div>
             <div className="mb-4 flex flex-wrap items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
               <span>{headerDate || t('UnknownDate')}</span>
               <span className="text-slate-300 dark:text-slate-700">•</span>
@@ -271,29 +329,42 @@ export default function MyResultsPage() {
             </div>
 
             {viewQuery.isError ? (
-              <Alert type="error" showIcon message={viewQuery.error instanceof Error ? viewQuery.error.message : t('ResultLoadError')} />
+              <Alert
+                type="error"
+                showIcon
+                title={
+                  viewQuery.error instanceof Error
+                    ? viewQuery.error.message
+                    : t('ResultLoadError')
+                }
+              />
             ) : viewQuery.isLoading ? (
               <ResultsSkeleton />
             ) : (
               <div className="space-y-4">
-                <TopProfessionsSummary t={t as any} professions={professionRowsAll.slice(0, 3) as any} />
+                <TopProfessionsSummary
+                  t={t}
+                  professions={viewQuery.data?.professions ?? []}
+                />
 
-<CareerMatchesCompact
-  title={t('ProfessionsTitle')}
-  subtitle={t('ProfessionsSubtitle')}
-  rows={professionRowsAll}
-  matchLabel={t('Match')}
-  collapsedCount={3}
-  expandedCount={5}
-  showMoreLabel={t('ShowMore')}
-  showLessLabel={t('ShowLess')}
-/>
-
-
+                <CareerMatchesCompact
+                  title={t('ProfessionsTitle')}
+                  subtitle={t('ProfessionsSubtitle')}
+                  rows={professionRowsAll}
+                  matchLabel={t('Match')}
+                  collapsedCount={3}
+                  expandedCount={5}
+                  showMoreLabel={t('ShowMore')}
+                  showLessLabel={t('ShowLess')}
+                />
 
                 {canToggle(professionRowsAll.length, PROFESSIONS_VISIBLE) ? (
                   <div className="-mt-2 flex justify-end">
-                    <Button type="link" className="px-0" onClick={() => setShowAllProfessions((v) => !v)}>
+                    <Button
+                      type="link"
+                      className="px-0"
+                      onClick={() => setShowAllProfessions((v) => !v)}
+                    >
                       {showAllProfessions ? t('ShowLess') : t('ShowMore')}
                     </Button>
                   </div>
@@ -302,18 +373,26 @@ export default function MyResultsPage() {
                 <div>
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{t('TraitsTitle')}</div>
-                      <div className="text-xs text-slate-600 dark:text-slate-300">{t('TraitsSubtitle')}</div>
+                      <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                        {t('TraitsTitle')}
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-300">
+                        {t('TraitsSubtitle')}
+                      </div>
                     </div>
 
                     {canToggle(traitRowsAll.length, TRAITS_VISIBLE) ? (
-                      <Button type="link" className="px-0" onClick={() => setShowAllTraits((v) => !v)}>
+                      <Button
+                        type="link"
+                        className="px-0"
+                        onClick={() => setShowAllTraits((v) => !v)}
+                      >
                         {showAllTraits ? t('ShowLess') : t('ShowMore')}
                       </Button>
                     ) : null}
                   </div>
 
-                  <TraitsSliders title="" rows={traitRows as any} />
+                  <TraitsSliders title="" rows={traitRows} />
                 </div>
 
                 <ResultsActions

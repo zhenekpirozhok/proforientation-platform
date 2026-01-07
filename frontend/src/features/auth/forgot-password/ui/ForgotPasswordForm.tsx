@@ -5,7 +5,10 @@ import { Form, Input, Button, Typography, Alert } from 'antd';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { applyZodErrorsToAntdForm } from '@/shared/validation/antdZod';
-import { forgotPasswordSchema, type ForgotPasswordSchemaValues } from '@/shared/validation/forgotPasswordSchema';
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordSchemaValues,
+} from '@/shared/validation/forgotPasswordSchema';
 import { useRequestPasswordReset } from '@/features/auth/forgot-password/model/useRequestPasswordReset';
 
 const { Title, Text } = Typography;
@@ -32,7 +35,9 @@ export function ForgotPasswordForm() {
           <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
             <div className="space-y-3 text-sm text-slate-700 dark:text-slate-200">
               <div>{t('CheckEmailBody1')}</div>
-              <div className="text-slate-600 dark:text-slate-300">{t('CheckEmailBody2')}</div>
+              <div className="text-slate-600 dark:text-slate-300">
+                {t('CheckEmailBody2')}
+              </div>
             </div>
 
             <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-between">
@@ -58,7 +63,9 @@ export function ForgotPasswordForm() {
         </div>
 
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-          {errorMsg ? <Alert type="error" showIcon message={errorMsg} className="mb-4" /> : null}
+          {errorMsg ? (
+            <Alert type="error" showIcon message={errorMsg} className="mb-4" />
+          ) : null}
 
           <Form
             form={form}
@@ -87,17 +94,29 @@ export function ForgotPasswordForm() {
             }}
           >
             <Form.Item name="email" label={t('EmailLabel')}>
-              <Input placeholder="john.doe@example.com" autoComplete="email" inputMode="email" />
+              <Input
+                placeholder="john.doe@example.com"
+                autoComplete="email"
+                inputMode="email"
+              />
             </Form.Item>
 
-            <Button htmlType="submit" type="primary" className="w-full" loading={isPending}>
+            <Button
+              htmlType="submit"
+              type="primary"
+              className="w-full"
+              loading={isPending}
+            >
               {t('Submit')}
             </Button>
 
             <div className="mt-4 text-center">
               <Text type="secondary">
                 {t('BackToLoginPrefix')}{' '}
-                <Link href="/login" className="text-blue-600 hover:text-blue-700">
+                <Link
+                  href="/login"
+                  className="text-blue-600 hover:text-blue-700"
+                >
                   {t('BackToLoginLink')}
                 </Link>
               </Text>

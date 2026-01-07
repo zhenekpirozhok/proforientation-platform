@@ -1,4 +1,4 @@
-import { QuestionDtoQtype } from "@/shared/api/generated/model";
+import { QuestionDtoQtype } from '@/shared/api/generated/model';
 
 export type QuestionOption = {
   id: number;

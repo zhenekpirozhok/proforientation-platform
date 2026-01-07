@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { useLoginUser } from '@/features/auth/login/model/useLoginUser'
-import { useGoogleOneTapLogin } from '@/features/auth/login/model/useGoogleOneTapLogin'
+import { useLoginUser } from '@/features/auth/login/model/useLoginUser';
+import { useGoogleOneTapLogin } from '@/features/auth/login/model/useGoogleOneTapLogin';
 
 export function useAuthLogin() {
-    const password = useLoginUser()
-    const google = useGoogleOneTapLogin()
+  const password = useLoginUser();
+  const google = useGoogleOneTapLogin();
 
-    return {
-        submitPassword: password.submit,
-        submitGoogleOneTap: google.submit,
-        isPending: password.isPending || google.isPending,
-    }
+  return {
+    submitPassword: password.submit,
+    submitGoogleOneTap: google.submit,
+    isPending: password.isPending || google.isPending,
+  };
 }
