@@ -165,4 +165,52 @@ class ProfessionControllerTest {
 
         verify(service).delete(1);
     }
+
+    @Test
+    void search_shouldReturnPageAndCallServiceWithExpectedPageable() {
+        String q = "dev";
+        Integer categoryId = 10;
+
+        int page = 2;
+        int size = 5;
+        String sort = "id";
+
+        Pageable expectedPageable = PageRequest.of(page - 1, size, Sort.by(sort));
+
+        Page<ProfessionDto> pageResult =
+                new PageImpl<>(List.of(dto1), expectedPageable, 1);
+
+        when(service.searchLocalized(q, categoryId, expectedPageable))
+                .thenReturn(pageResult);
+
+        Page<ProfessionDto> result = controller.search(q, categoryId, page, size, sort);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("DEV", result.getContent().getFirst().code());
+
+        verify(service).searchLocalized(q, categoryId, expectedPageable);
+        verifyNoMoreInteractions(service);
+    }
+
+    @Test
+    void search_withEmptyQueryAndNullCategory_shouldStillCallService() {
+        int page = 1;
+        int size = 20;
+        String sort = "id";
+
+        Pageable expectedPageable = PageRequest.of(page - 1, size, Sort.by(sort));
+        Page<ProfessionDto> pageResult = new PageImpl<>(List.of(), expectedPageable, 0);
+
+        when(service.searchLocalized("", null, expectedPageable))
+                .thenReturn(pageResult);
+
+        Page<ProfessionDto> result = controller.search("", null, page, size, sort);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+
+        verify(service).searchLocalized("", null, expectedPageable);
+        verifyNoMoreInteractions(service);
+    }
 }

@@ -205,4 +205,70 @@ class ProfessionServiceTest {
 
         verify(repo).deleteById(1);
     }
+
+    @Test
+    void searchLocalized_shouldReturnLocalizedPage_andCallRepoSearch() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Profession> page = new PageImpl<>(List.of(profession), pageable, 1);
+
+        when(localeProvider.currentLanguage()).thenReturn("en");
+        when(repo.search("dev", 10, pageable)).thenReturn(page);
+
+        when(translationResolver.resolve(any(), any(), eq("title"), eq("en"), any()))
+                .thenReturn("Developer EN");
+        when(translationResolver.resolve(any(), any(), eq("description"), eq("en"), any()))
+                .thenReturn("Writes code EN");
+
+        Page<ProfessionDto> result = service.searchLocalized("dev", 10, pageable);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+
+        ProfessionDto dto = result.getContent().getFirst();
+        assertEquals("Developer EN", dto.title());
+        assertEquals("Writes code EN", dto.description());
+
+        verify(localeProvider).currentLanguage();
+        verify(repo).search("dev", 10, pageable);
+        verify(translationResolver, times(2)).resolve(any(), any(), any(), eq("en"), any());
+        verifyNoMoreInteractions(repo, localeProvider, translationResolver);
+    }
+
+    @Test
+    void searchLocalized_emptyQueryAndNullCategory_shouldCallRepoAndReturnPage() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Profession> page = new PageImpl<>(List.of(profession), pageable, 1);
+
+        when(localeProvider.currentLanguage()).thenReturn("en");
+        when(repo.search("", null, pageable)).thenReturn(page);
+
+        when(translationResolver.resolve(any(), any(), eq("title"), eq("en"), any()))
+                .thenReturn("Developer EN");
+        when(translationResolver.resolve(any(), any(), eq("description"), eq("en"), any()))
+                .thenReturn("Writes code EN");
+
+        Page<ProfessionDto> result = service.searchLocalized("", null, pageable);
+
+        assertEquals(1, result.getContent().size());
+        verify(repo).search("", null, pageable);
+    }
+
+    @Test
+    void searchLocalized_emptyResult_shouldReturnEmptyPage() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Profession> emptyPage = Page.empty(pageable);
+
+        when(localeProvider.currentLanguage()).thenReturn("en");
+        when(repo.search("zzz", null, pageable)).thenReturn(emptyPage);
+
+        Page<ProfessionDto> result = service.searchLocalized("zzz", null, pageable);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+        assertEquals(0, result.getTotalElements());
+
+        verify(repo).search("zzz", null, pageable);
+        // translationResolver should not be called because no elements
+        verifyNoInteractions(translationResolver);
+    }
 }
