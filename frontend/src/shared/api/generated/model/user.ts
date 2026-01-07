@@ -19,7 +19,7 @@ export interface User {
   enabled?: boolean;
   active?: boolean;
   authorities?: GrantedAuthority[];
-  accountNonExpired?: boolean;
   accountNonLocked?: boolean;
+  accountNonExpired?: boolean;
   credentialsNonExpired?: boolean;
 }
