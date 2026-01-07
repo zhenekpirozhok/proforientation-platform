@@ -148,9 +148,16 @@ class QuizServiceTest {
 
     @Test
     void create_shouldCreateQuiz() {
-        CreateQuizRequest req =
-                new CreateQuizRequest("QX", "New Quiz", "ML_RIASEC", 5, 1);
-
+        CreateQuizRequest req = new CreateQuizRequest(
+                "QX",
+                "New Quiz",
+                "ML_RIASEC",
+                "DRAFT",
+                "Default quiz description",
+                30,
+                5,
+                1
+        );
         when(categoryRepo.findById(5)).thenReturn(Optional.of(category));
         when(userRepo.findById(1)).thenReturn(Optional.of(author));
 
@@ -174,7 +181,16 @@ class QuizServiceTest {
     @Test
     void create_shouldThrowWhenCategoryNotFound() {
         CreateQuizRequest req =
-                new CreateQuizRequest("QX", "Title", "ml_riasec", 100, 1);
+                new CreateQuizRequest(
+                        "QX",
+                        "Title",
+                        "ML_RIASEC",
+                        "DRAFT",
+                        null,
+                        null,
+                        100,
+                        1
+                );
 
         when(categoryRepo.findById(100)).thenReturn(Optional.empty());
 
@@ -185,7 +201,16 @@ class QuizServiceTest {
     @Test
     void create_shouldThrowWhenAuthorNotFound() {
         CreateQuizRequest req =
-                new CreateQuizRequest("QX", "Title", "ml_riasec", 5, 999);
+                new CreateQuizRequest(
+                        "QX",
+                        "Title",
+                        "ML_RIASEC",
+                        "DRAFT",
+                        null,
+                        null,
+                        5,
+                        999
+                );
 
         when(categoryRepo.findById(5)).thenReturn(Optional.of(category));
         when(userRepo.findById(999)).thenReturn(Optional.empty());
@@ -206,7 +231,7 @@ class QuizServiceTest {
         when(quizRepo.save(quiz)).thenReturn(quiz);
 
         UpdateQuizRequest req =
-                new UpdateQuizRequest("Updated", "ML_RIASEC", 5);
+                new UpdateQuizRequest("Updated", "ML_RIASEC", null, null,30,5);
 
         QuizDto result = service.update(5, req);
 
@@ -219,7 +244,7 @@ class QuizServiceTest {
         when(quizRepo.findById(77)).thenReturn(Optional.empty());
 
         UpdateQuizRequest req =
-                new UpdateQuizRequest("Updated", "ml_riasec", 5);
+                new UpdateQuizRequest("Updated", "ml_riasec", null, null, 30,5);
 
         assertThatThrownBy(() -> service.update(77, req))
                 .isInstanceOf(EntityNotFoundException.class);
@@ -353,7 +378,7 @@ class QuizServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         when(quizPublicMetricsRepo.findQuizIdsByDuration(300, 900))
-                .thenReturn(List.of()); // no matches
+                .thenReturn(List.of());
 
         Page<QuizDto> result = service.search(
                 null,
@@ -364,7 +389,7 @@ class QuizServiceTest {
         );
 
         assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0);
+        assertThat(result.getTotalElements()).isZero();
 
         verify(quizPublicMetricsRepo).findQuizIdsByDuration(300, 900);
         verifyNoInteractions(quizRepo);

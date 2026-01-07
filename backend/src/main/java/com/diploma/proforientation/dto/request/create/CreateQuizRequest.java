@@ -23,6 +23,31 @@ public record CreateQuizRequest(
                 }
         )
         String processingMode,
+
+        @Schema(
+                description = "Quiz status",
+                examples = "DRAFT",
+                allowableValues = {
+                        "DRAFT",
+                        "PUBLISHED",
+                        "ARCHIVED"
+                }
+        )
+        String status,
+
+        @Schema(
+                description = "Quiz description (default language)",
+                examples = "This quiz helps determine suitable career paths."
+        )
+        String descriptionDefault,
+
+        @Schema(
+                description = "Time limit per question in seconds",
+                examples = "30",
+                defaultValue = "30"
+        )
+        Integer secondsPerQuestionDefault,
+
         @Schema(
                 description = "Identifier of the quiz category",
                 examples = "2"

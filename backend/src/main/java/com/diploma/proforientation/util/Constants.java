@@ -19,6 +19,7 @@ public final class Constants {
     public static final String ATTEMPT_SUBMITTED = "Attempt already submitted";
     public static final String TRANSLATION_NOT_FOUND = "Translation not found";
     public static final String QUIZ_METRICS_NOT_FOUND = "Quiz metrics not found";
+    public static final String QUIZ_CODE_NOT_FOUND = "Quiz not found with code: ";
 
     public static final String CSV_IMPORT_FAILED = "CSV import failed";
     public static final String TRANSLATION_CSV_IMPORT_FAILED = "Translation CSV import failed";
@@ -36,6 +37,7 @@ public final class Constants {
     public static final String CSV_EXPORT_FAILED = "CSV export failed for ";
     public static final String EXCEL_EXPORT_FAILED = "Excel export failed";
     public static final String DB_CONSTRAINT_VIOLATION = "Database constraint violation";
+    public static final String SECONDS_COUNT_SHOULD_BE_GRATER_THEN_ZERO = "secondsPerQuestionDefault must be > 0";
 
     public static final String INVALID_CRED = "Invalid email or password";
     public static final String INVALID_PASS = "Password verification failed";
