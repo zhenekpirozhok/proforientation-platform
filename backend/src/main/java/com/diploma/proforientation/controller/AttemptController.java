@@ -3,6 +3,7 @@ package com.diploma.proforientation.controller;
 import com.diploma.proforientation.dto.AttemptResultDto;
 import com.diploma.proforientation.dto.AttemptSummaryDto;
 import com.diploma.proforientation.dto.ExceptionDto;
+import com.diploma.proforientation.dto.request.DeleteAttemptsRequest;
 import com.diploma.proforientation.dto.request.add.AddAnswerRequest;
 import com.diploma.proforientation.dto.request.add.AddAnswersBulkRequest;
 import com.diploma.proforientation.dto.request.add.AddAnswersForQuestionRequest;
@@ -11,6 +12,7 @@ import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.util.AuthUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -213,5 +215,58 @@ public class AttemptController {
             @Valid @RequestBody AddAnswersForQuestionRequest request
     ) {
         attemptService.addAnswersForQuestion(attemptId, request.questionId(), request.optionIds());
+    }
+
+    @DeleteMapping("/delete")
+    @Operation(
+            summary = "Delete selected attempts (user confirmation required)",
+            description = """
+            Deletes one or more attempts belonging to the current user.
+
+            Important notes:
+            - This operation requires explicit confirmation from the client.
+            - The frontend should show a confirmation dialog before calling this endpoint.
+            - Attempts are removed only if they belong to the current user (or guest session).
+            - Deletion is irreversible from the user's perspective.
+        """
+    )
+    @ApiResponse(
+            responseCode = "204",
+            description = "Attempts deleted successfully"
+    )
+    @ApiResponse(
+            responseCode = "400",
+            description = "Confirmation not provided or request is invalid",
+            content = @Content(
+                    schema = @Schema(implementation = ExceptionDto.class),
+                    examples = @ExampleObject(value = """
+                    {
+                      "code": 400,
+                      "time": "2025-05-20T14:52:00Z",
+                      "message": "Confirmation required to delete attempts"
+                    }
+                """)
+            )
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "One or more attempts not found or do not belong to the user",
+            content = @Content(
+                    schema = @Schema(implementation = ExceptionDto.class),
+                    examples = @ExampleObject(value = """
+                    {
+                      "code": 404,
+                      "time": "2025-05-20T14:52:00Z",
+                      "message": "Attempt not found"
+                    }
+                """)
+            )
+    )
+    public void deleteMyAttempts(
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) String guestToken,
+            @Valid @RequestBody DeleteAttemptsRequest req
+    ) {
+        attemptService.deleteSelectedAttempts(userId, guestToken, req.attemptIds(), req.confirm());
     }
 }

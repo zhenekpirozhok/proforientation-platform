@@ -40,6 +40,7 @@ public final class Constants {
     public static final String DB_CONSTRAINT_VIOLATION = "Database constraint violation";
     public static final String SECONDS_COUNT_SHOULD_BE_GRATER_THEN_ZERO = "secondsPerQuestionDefault must be > 0";
     public static final String CANNOT_CHANGE_OWN_ROLE = "Cannot change your own role";
+    public static final String DELETE_ATTEMPT_CONFIRMATION_REQUIRED = "Confirmation required to delete attempts.";
 
     public static final String INVALID_CRED = "Invalid email or password";
     public static final String INVALID_PASS = "Password verification failed";

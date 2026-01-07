@@ -221,4 +221,113 @@ class AttemptControllerTest {
 
         verifyNoInteractions(attemptService);
     }
+
+    @Test
+    void deleteMyAttempts_validRequest_callsService_returns200() throws Exception {
+        String body = """
+        {
+          "attemptIds": [10, 11, 12],
+          "confirm": true
+        }
+        """;
+
+        mockMvc.perform(delete("/attempts/delete")
+                        .param("userId", "33")
+                        .param("guestToken", "guest-abc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
+
+        verify(attemptService).deleteSelectedAttempts(
+                33, "guest-abc", List.of(10, 11, 12), true
+        );
+        verifyNoMoreInteractions(attemptService);
+    }
+
+    @Test
+    void deleteMyAttempts_onlyUserId_callsService_returns200() throws Exception {
+        String body = """
+        {
+          "attemptIds": [1],
+          "confirm": true
+        }
+        """;
+
+        mockMvc.perform(delete("/attempts/delete")
+                        .param("userId", "10")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
+
+        verify(attemptService).deleteSelectedAttempts(
+                10, null, List.of(1), true
+        );
+        verifyNoMoreInteractions(attemptService);
+    }
+
+    @Test
+    void deleteMyAttempts_onlyGuestToken_callsService_returns200() throws Exception {
+        String body = """
+        {
+          "attemptIds": [5, 6],
+          "confirm": true
+        }
+        """;
+
+        mockMvc.perform(delete("/attempts/delete")
+                        .param("guestToken", "guest-xyz")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk());
+
+        verify(attemptService).deleteSelectedAttempts(
+                null, "guest-xyz", List.of(5, 6), true
+        );
+        verifyNoMoreInteractions(attemptService);
+    }
+
+    @Test
+    void deleteMyAttempts_missingAttemptIds_returns400() throws Exception {
+        String body = """
+        {
+          "confirm": true
+        }
+        """;
+
+        mockMvc.perform(delete("/attempts/delete")
+                        .param("userId", "10")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(attemptService);
+    }
+
+    @Test
+    void deleteMyAttempts_missingConfirm_returns400() throws Exception {
+        String body = """
+        {
+          "attemptIds": [1, 2]
+        }
+        """;
+
+        mockMvc.perform(delete("/attempts/delete")
+                        .param("userId", "10")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(attemptService);
+    }
+
+    @Test
+    void deleteMyAttempts_emptyBody_returns400() throws Exception {
+        mockMvc.perform(delete("/attempts/delete")
+                        .param("userId", "10")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(attemptService);
+    }
 }

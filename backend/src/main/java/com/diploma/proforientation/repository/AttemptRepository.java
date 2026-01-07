@@ -9,9 +9,9 @@ import java.time.Instant;
 import java.util.List;
 
 public interface AttemptRepository extends JpaRepository<Attempt, Integer> {
-    List<Attempt> findByUserIdOrderByStartedAtDesc(Integer userId);
-    List<Attempt> findByGuestTokenOrderByStartedAtDesc(String token);
-    List<Attempt> findAllByGuestToken(String guestToken);
+    List<Attempt> findByUserIdAndDeletedAtIsNullOrderByStartedAtDesc(Integer userId);
+    List<Attempt> findByGuestTokenAndDeletedAtIsNullOrderByStartedAtDesc(String token);
+    List<Attempt> findAllByGuestTokenAndDeletedAtIsNull(String guestToken);
     @Query("""
     SELECT a FROM Attempt a
     WHERE (:userId IS NULL OR a.user.id = :userId)

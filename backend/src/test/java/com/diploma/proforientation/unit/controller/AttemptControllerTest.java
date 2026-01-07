@@ -4,6 +4,7 @@ import com.diploma.proforientation.controller.AttemptController;
 import com.diploma.proforientation.dto.AttemptResultDto;
 import com.diploma.proforientation.dto.AttemptSummaryDto;
 import com.diploma.proforientation.dto.RecommendationDto;
+import com.diploma.proforientation.dto.request.DeleteAttemptsRequest;
 import com.diploma.proforientation.dto.request.add.AddAnswerRequest;
 import com.diploma.proforientation.dto.request.add.AddAnswersBulkRequest;
 import com.diploma.proforientation.dto.request.add.AddAnswersForQuestionRequest;
@@ -367,5 +368,86 @@ class AttemptControllerTest {
         );
 
         assertEquals("Some options do not belong to question", ex.getMessage());
+    }
+
+    @Test
+    void testDeleteMyAttempts_success_callsServiceWithSameParams() {
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(10, 11, 12),
+                true
+        );
+
+        attemptController.deleteMyAttempts(33, "guest-abc", req);
+
+        verify(attemptService).deleteSelectedAttempts(33, "guest-abc", List.of(10, 11, 12), true);
+        verifyNoMoreInteractions(attemptService);
+    }
+
+    @Test
+    void testDeleteMyAttempts_nullGuestToken_callsService() {
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(1, 2),
+                true
+        );
+
+        attemptController.deleteMyAttempts(10, null, req);
+
+        verify(attemptService).deleteSelectedAttempts(10, null, List.of(1, 2), true);
+        verifyNoMoreInteractions(attemptService);
+    }
+
+    @Test
+    void testDeleteMyAttempts_nullUserId_callsService() {
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(5),
+                true
+        );
+
+        attemptController.deleteMyAttempts(null, "guest-xyz", req);
+
+        verify(attemptService).deleteSelectedAttempts(null, "guest-xyz", List.of(5), true);
+        verifyNoMoreInteractions(attemptService);
+    }
+
+    @Test
+    void testDeleteMyAttempts_nullUserIdAndGuestToken_callsService() {
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(7, 8),
+                true
+        );
+
+        attemptController.deleteMyAttempts(null, null, req);
+
+        verify(attemptService).deleteSelectedAttempts(null, null, List.of(7, 8), true);
+        verifyNoMoreInteractions(attemptService);
+    }
+
+    @Test
+    void testDeleteMyAttempts_nullRequest_throwsNpe() {
+        assertThrows(NullPointerException.class,
+                () -> attemptController.deleteMyAttempts(1, "guest", null));
+
+        verifyNoInteractions(attemptService);
+    }
+
+    @Test
+    void testDeleteMyAttempts_serviceThrows_propagates() {
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(77),
+                true
+        );
+
+        doThrow(new IllegalStateException("Confirmation required"))
+                .when(attemptService)
+                .deleteSelectedAttempts(1, null, List.of(77), true);
+
+        IllegalStateException ex = assertThrows(
+                IllegalStateException.class,
+                () -> attemptController.deleteMyAttempts(1, null, req)
+        );
+
+        assertEquals("Confirmation required", ex.getMessage());
+        verify(attemptService).deleteSelectedAttempts(1, null, List.of(77), true);
+        verifyNoMoreInteractions(attemptService);
     }
 }

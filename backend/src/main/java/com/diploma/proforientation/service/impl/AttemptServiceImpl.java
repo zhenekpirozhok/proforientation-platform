@@ -127,9 +127,9 @@ public class AttemptServiceImpl implements AttemptService {
         List<Attempt> attempts;
 
         if (userId != null) {
-            attempts = attemptRepo.findByUserIdOrderByStartedAtDesc(userId);
+            attempts = attemptRepo.findByUserIdAndDeletedAtIsNullOrderByStartedAtDesc(userId);
         } else {
-            attempts = attemptRepo.findByGuestTokenOrderByStartedAtDesc(guestToken);
+            attempts = attemptRepo.findByGuestTokenAndDeletedAtIsNullOrderByStartedAtDesc(guestToken);
         }
 
         return attempts.stream()
@@ -182,7 +182,7 @@ public class AttemptServiceImpl implements AttemptService {
     public void attachGuestAttempts(String guestToken, User user) {
         if (guestToken == null) return;
 
-        List<Attempt> attempts = attemptRepo.findAllByGuestToken(guestToken);
+        List<Attempt> attempts = attemptRepo.findAllByGuestTokenAndDeletedAtIsNull(guestToken);
 
         for (Attempt attempt : attempts) {
             attempt.setUser(user);
@@ -209,6 +209,41 @@ public class AttemptServiceImpl implements AttemptService {
         }
 
         answerRepo.saveAll(buildAnswers(attempt, options));
+    }
+
+    @Override
+    @Transactional
+    public void deleteSelectedAttempts(Integer userId, String guestToken, List<Integer> attemptIds, boolean confirm) {
+        if (!confirm) {
+            throw new IllegalStateException(DELETE_ATTEMPT_CONFIRMATION_REQUIRED);
+        }
+        if (attemptIds == null || attemptIds.isEmpty()) {
+            return;
+        }
+
+        List<Attempt> attempts = attemptRepo.findAllById(attemptIds);
+
+        if (attempts.size() != attemptIds.size()) {
+            throw new EntityNotFoundException(ATTEMPT_NOT_FOUND);
+        }
+
+        for (Attempt a : attempts) {
+            boolean ownedByUser = userId != null
+                    && a.getUser() != null
+                    && Objects.equals(a.getUser().getId(), userId);
+
+            boolean ownedByGuest = userId == null
+                    && guestToken != null
+                    && Objects.equals(a.getGuestToken(), guestToken);
+
+            if (!ownedByUser && !ownedByGuest) {
+                throw new EntityNotFoundException(ATTEMPT_NOT_FOUND);
+            }
+
+            if (a.getDeletedAt() == null) {
+                a.setDeletedAt(Instant.now());
+            }
+        }
     }
 
     private List<TraitScoreDto> toTraitScoreDtos(

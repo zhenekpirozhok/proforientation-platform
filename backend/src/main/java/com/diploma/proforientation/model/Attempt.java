@@ -34,6 +34,13 @@ public class Attempt {
     @Column(name = "submitted_at")
     private Instant submittedAt;
 
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     @Column(columnDefinition = "uuid")
     private UUID uuid = UUID.randomUUID();
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
 }
