@@ -1,19 +1,13 @@
 'use client';
 
-import { Form, Input, Button, Typography, message } from 'antd';
+import { App, Form, Input, Button, Typography } from 'antd';
 import Link from 'next/link';
 import { useRouter } from '@/shared/i18n/lib/navigation';
 import { useTranslations } from 'next-intl';
 import { applyZodErrorsToAntdForm } from '@/shared/validation/antdZod';
-import {
-  loginSchema,
-  type LoginSchemaValues,
-} from '@/shared/validation/loginSchema';
+import { loginSchema, type LoginSchemaValues } from '@/shared/validation/loginSchema';
 import { useLoginUser } from '@/features/auth/login/model/useLoginUser';
-import {
-  useSessionStore,
-  type SessionUser,
-} from '@/entities/session/model/store';
+import { useSessionStore, type SessionUser } from '@/entities/session/model/store';
 import { useGoogleOneTapLogin } from '@/features/auth/login/model/useGoogleOneTapLogin';
 import { GoogleOneTapInit } from '@/features/auth/login/ui/GoogleOneTapInit';
 import { authFetch } from '@/shared/api/authFetch';
@@ -23,19 +17,20 @@ const { Title, Text } = Typography;
 
 type SessionAuthority = { authority: string };
 
-function normalizeAuthorities(
-  a?: GrantedAuthority[],
-): SessionAuthority[] | undefined {
+function normalizeAuthorities(a?: GrantedAuthority[]): SessionAuthority[] | undefined {
   if (!a?.length) return undefined;
+
   const list = a
     .map((x) => (typeof x.authority === 'string' ? x.authority : null))
     .filter((v): v is string => typeof v === 'string' && v.length > 0)
     .map((authority) => ({ authority }));
+
   return list.length ? list : undefined;
 }
 
 function toSessionUser(u: User): SessionUser | null {
   if (typeof u.id !== 'number') return null;
+
   return {
     id: u.id,
     email: u.email ?? '',
@@ -49,6 +44,8 @@ export function LoginForm() {
   const t = useTranslations('LoginPage');
   const [form] = Form.useForm<LoginSchemaValues>();
   const router = useRouter();
+
+  const { message } = App.useApp();
 
   const passwordLogin = useLoginUser();
   const googleLogin = useGoogleOneTapLogin();
@@ -68,6 +65,7 @@ export function LoginForm() {
 
     const meJson: unknown = await meRes.json().catch(() => null);
     const me = meJson && typeof meJson === 'object' ? (meJson as User) : null;
+
     useSessionStore.getState().setUser(me ? toSessionUser(me) : null);
 
     message.success(t('Success'));

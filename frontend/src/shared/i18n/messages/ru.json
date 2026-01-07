@@ -114,7 +114,8 @@
     "loginTitle": "Войдите, чтобы сохранить результат",
     "loginBody": "Чтобы сохранить результат и вернуться к нему позже, нужно войти в аккаунт.",
     "loginOkText": "Войти",
-    "loginCancelText": "Отмена"
+    "loginCancelText": "Отмена",
+    "downloadPdf": "Скачать PDF"
   },
   "Header": {
     "brand": "CareerPath",
