@@ -110,7 +110,11 @@
     "goToQuiz": "Go to quiz",
     "catalogError": "Catalog is temporarily unavailable",
     "fallbackProfessionTitle": "Profession #{id}",
-    "takeAnother": "Take another quiz"
+    "takeAnother": "Take another quiz",
+    "loginTitle": "Sign in to save your results",
+    "loginBody": "You need to sign in to save your results and access them later.",
+    "loginOkText": "Sign in",
+    "loginCancelText": "Cancel"
   },
   "Header": {
     "brand": "CareerPath",
@@ -120,7 +124,8 @@
     "results": "Results",
     "settings": "Settings",
     "signIn": "Sign in",
-    "userMenu": "Account"
+    "userMenu": "Account",
+    "logout": "Sign out"
   },
   "Footer": {
     "privacy": "Privacy",
@@ -134,7 +139,8 @@
     "results": "Results",
     "settings": "Settings",
     "language": "Language",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "logout": "Sign out"
   },
   "Landing": {
     "title": "Find your best career direction",
@@ -163,5 +169,108 @@
     "subtitle": "The page you’re looking for doesn’t exist.",
     "toHome": "Go home",
     "toQuizzes": "Go to quizzes"
+  },
+  "MyResultsPage": {
+    "Title": "My Results",
+    "Subtitle": "Review your completed assessments and explore your best matches.",
+    "AttemptsTitle": "Completed quizzes",
+    "SearchPlaceholder": "Search by quiz name",
+    "SortNewest": "Newest first",
+    "SortOldest": "Oldest first",
+    "Empty": "No results yet",
+    "GoToQuizzes": "Go to quizzes",
+    "DefaultQuizTitle": "Quiz result",
+    "UnknownDate": "Unknown date",
+    "Selected": "Selected",
+    "LoadError": "Unable to load results list",
+    "ResultLoadError": "Unable to load result details",
+    "TopMatchLabel": "Top match:",
+    "TraitsTitle": "Your trait scores",
+    "TraitsSubtitle": "Higher values indicate stronger alignment with a trait.",
+    "ProfessionsTitle": "Recommended professions",
+    "ProfessionsSubtitle": "Based on your answers and model scoring.",
+    "Match": "Match",
+    "TakeAnother": "Take another quiz",
+    "OpenDetails": "Open full result",
+    "FallbackProfessionTitle": "Profession #{id}",
+    "ShowMore": "Show more",
+    "ShowLess": "Show less",
+    "DownloadPdf": "Download PDF",
+    "PdfSoon": "PDF download will be available soon",
+    "TopProfessionsTitle": "Top professions",
+    "EmptyProfessions": "No recommendations yet"
+  },
+  "LoginPage": {
+    "Title": "Sign in",
+    "Subtitle": "Welcome back! Continue to your dashboard.",
+    "EmailLabel": "Email",
+    "EmailPlaceholder": "john.doe@example.com",
+    "PasswordLabel": "Password",
+    "PasswordPlaceholder": "Enter your password",
+    "BackToHome": "Back to Home",
+    "ForgotPassword": "Forgot password?",
+    "Submit": "Sign in",
+    "Google": "Continue with Google",
+    "NoAccount": "No account?",
+    "CreateOne": "Create one",
+    "Success": "Signed in",
+    "Errors": {
+      "Generic": "Login failed"
+    }
+  },
+  "RegisterPage": {
+    "Title": "Sign up",
+    "Subtitle": "Create your account to continue.",
+    "EmailLabel": "Email",
+    "EmailPlaceholder": "john.doe@example.com",
+    "NameLabel": "Name",
+    "NamePlaceholder": "John Doe",
+    "PasswordLabel": "Password",
+    "PasswordPlaceholder": "Create a password",
+    "ConfirmPasswordLabel": "Confirm password",
+    "ConfirmPasswordPlaceholder": "Repeat your password",
+    "Submit": "Create account",
+    "Google": "Continue with Google",
+    "HaveAccount": "Already have an account?",
+    "SignIn": "Sign in",
+    "Success": "Account created",
+    "Errors": {
+      "Generic": "Something went wrong"
+    }
+  },
+  "ForgotPasswordPage": {
+    "Title": "Forgot password",
+    "Subtitle": "Enter your email and we’ll send you a reset link.",
+    "EmailLabel": "Email",
+    "Submit": "Send reset link",
+    "GenericError": "Request failed",
+    "BackToLoginPrefix": "Remembered your password?",
+    "BackToLoginLink": "Sign in",
+    "CheckEmailTitle": "Check your email",
+    "CheckEmailSubtitle": "If an account exists for this email, you’ll receive a reset link.",
+    "CheckEmailBody1": "We’ve sent a password reset link to your email (if it exists in our system).",
+    "CheckEmailBody2": "Check spam/junk if you don’t see it within a few minutes.",
+    "SendAgain": "Send again",
+    "GoToLogin": "Go to login"
+  },
+  "ResetPasswordPage": {
+    "Title": "Reset password",
+    "Subtitle": "Set a new password for your account.",
+    "PasswordLabel": "New password",
+    "ConfirmPasswordLabel": "Confirm new password",
+    "PasswordHint": "Password must be at least 6 characters and contain at least one number.",
+    "Submit": "Update password",
+    "GenericError": "Reset failed",
+    "BackToLoginPrefix": "Back to",
+    "BackToLoginLink": "Sign in",
+    "MissingTokenTitle": "Invalid link",
+    "MissingTokenSubtitle": "This reset link is missing a token or has expired.",
+    "MissingTokenAlert": "Please request a new password reset link.",
+    "RequestNewLink": "Request new link",
+    "GoToLogin": "Go to login",
+    "SuccessTitle": "Password updated",
+    "SuccessSubtitle": "You can now sign in with your new password.",
+    "SuccessBody": "Your password was successfully updated.",
+    "SignIn": "Sign in"
   }
 }

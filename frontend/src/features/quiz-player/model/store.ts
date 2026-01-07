@@ -1,6 +1,9 @@
+'use client';
+
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { QuizPlayerState, QuizPlayerStatus, AttemptResult } from './types';
+import { useGuestStore } from '@/entities/guest/model/store';
 
 type QuizPlayerActions = {
   startFresh(quizId: number, quizVersionId: number): void;
@@ -60,7 +63,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
       startFresh: (quizId, quizVersionId) => {
         const s = get();
-        const same =
+        const already =
           s.quizId === quizId &&
           s.quizVersionId === quizVersionId &&
           s.attemptId == null &&
@@ -73,7 +76,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           s.result == null &&
           s.bulkSentAttemptId == null;
 
-        if (same) return;
+        if (already) return;
 
         set({
           quizId,
@@ -92,7 +95,6 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
       resumeOrStart: (quizId, quizVersionId) => {
         const s = get();
-
         const isCompleted = s.result != null || s.status === 'finished';
 
         const canResume =
@@ -104,10 +106,13 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
         if (canResume) {
           const nextIndex = clampIndex(s.currentIndex, s.totalQuestions);
+
           const already =
             s.status === 'in-progress' &&
             s.error == null &&
-            s.currentIndex === nextIndex;
+            s.currentIndex === nextIndex &&
+            s.quizId === quizId &&
+            s.quizVersionId === quizVersionId;
 
           if (already) return;
 
@@ -121,7 +126,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           return;
         }
 
-        const alreadyStarting =
+        const alreadyReset =
           s.quizId === quizId &&
           s.quizVersionId === quizVersionId &&
           s.attemptId == null &&
@@ -134,7 +139,7 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           s.result == null &&
           s.bulkSentAttemptId == null;
 
-        if (alreadyStarting) return;
+        if (alreadyReset) return;
 
         set({
           quizId,
@@ -153,14 +158,16 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
 
       setAttempt: (attemptId, guestToken) => {
         const s = get();
-        if (
+        const already =
           s.attemptId === attemptId &&
           s.guestToken === guestToken &&
           s.status === 'in-progress' &&
-          s.error == null
-        ) {
-          return;
-        }
+          s.error == null;
+
+        if (already) return;
+
+        useGuestStore.getState().setGuestToken(guestToken);
+
         set({
           attemptId,
           guestToken,
@@ -170,43 +177,86 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
         });
       },
 
-      setStatus: (status) => set({ status }),
-      setError: (error) => set({ error, status: 'error' }),
+      setStatus: (status) => {
+        const s = get();
+        if (s.status === status) return;
+        set({ status });
+      },
+
+      setError: (error) => {
+        const s = get();
+        if (s.error === error && (error == null || s.status === 'error'))
+          return;
+
+        if (error == null) {
+          set({ error: null });
+          return;
+        }
+
+        set({ error, status: 'error' });
+      },
 
       setIndex: (index) =>
-        set((s) => ({ currentIndex: clampIndex(index, s.totalQuestions) })),
+        set((s) => {
+          const next = clampIndex(index, s.totalQuestions);
+          if (s.currentIndex === next) return {};
+          return { currentIndex: next };
+        }),
+
       goNext: () =>
-        set((s) => ({
-          currentIndex: clampIndex(s.currentIndex + 1, s.totalQuestions),
-        })),
+        set((s) => {
+          const next = clampIndex(s.currentIndex + 1, s.totalQuestions);
+          if (s.currentIndex === next) return {};
+          return { currentIndex: next };
+        }),
+
       goPrev: () =>
-        set((s) => ({
-          currentIndex: clampIndex(s.currentIndex - 1, s.totalQuestions),
-        })),
+        set((s) => {
+          const next = clampIndex(s.currentIndex - 1, s.totalQuestions);
+          if (s.currentIndex === next) return {};
+          return { currentIndex: next };
+        }),
 
       setTotalQuestions: (total) =>
-        set((s) => ({
-          totalQuestions: total,
-          currentIndex: clampIndex(s.currentIndex, total),
-        })),
+        set((s) => {
+          const nextIndex = clampIndex(s.currentIndex, total);
+          const sameTotal = s.totalQuestions === total;
+          const sameIndex = s.currentIndex === nextIndex;
+          if (sameTotal && sameIndex) return {};
+          return { totalQuestions: total, currentIndex: nextIndex };
+        }),
 
       selectOption: (questionId, optionId) =>
-        set((s) => ({
-          answersByQuestionId: {
-            ...s.answersByQuestionId,
-            [questionId]: optionId,
-          },
-        })),
+        set((s) => {
+          if (s.answersByQuestionId[questionId] === optionId) return {};
+          return {
+            answersByQuestionId: {
+              ...s.answersByQuestionId,
+              [questionId]: optionId,
+            },
+          };
+        }),
 
-      setResult: (result) => set({ result }),
+      setResult: (result) => {
+        const s = get();
+        if (s.result === result) return;
+        set({ result });
+      },
 
-      setBulkSent: (attemptId) => set({ bulkSentAttemptId: attemptId }),
+      setBulkSent: (attemptId) => {
+        const s = get();
+        if (s.bulkSentAttemptId === attemptId) return;
+        set({ bulkSentAttemptId: attemptId });
+      },
 
-      resetAll: () => set(initialState),
+      resetAll: () => {
+        useGuestStore.getState().clearGuestToken();
+        set(initialState);
+      },
     }),
     {
-      name: 'quiz-player:v2',
-      version: 2,
+      name: 'quiz-player:v5',
+      version: 5,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({
         quizId: s.quizId,
@@ -221,8 +271,8 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        state.setStatus('idle');
-        state.setError(null);
+        if (state.status !== 'idle') state.setStatus('idle');
+        if (state.error != null) state.setError(null);
       },
     },
   ),

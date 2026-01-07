@@ -1,5 +1,6 @@
 'use client';
 
+import type React from 'react';
 import Link from 'next/link';
 import { Button, Card } from 'antd';
 import {
@@ -10,9 +11,14 @@ import {
 import { useTranslations } from 'next-intl';
 import type {
   QuizDto,
-  QuizPublicMetricsView,
   ProfessionCategoryDto,
 } from '@/shared/api/generated/model';
+
+type QuizMetric = {
+  attemptsTotal?: number;
+  questionsTotal?: number;
+  estimatedDurationSeconds?: number;
+};
 
 function clampInt(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
@@ -65,7 +71,7 @@ export function QuizCard({
 }: {
   locale: string;
   quiz: QuizDto & { id: number };
-  metric?: QuizPublicMetricsView;
+  metric?: QuizMetric;
   category?: ProfessionCategoryDto;
 }) {
   const t = useTranslations('Quizzes');

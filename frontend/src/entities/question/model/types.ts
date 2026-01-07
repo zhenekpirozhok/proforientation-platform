@@ -1,8 +1,4 @@
-export type QuestionType =
-  | 'single_choice'
-  | 'multi_choice'
-  | 'liker_scale_5'
-  | 'liker_scale_7';
+import { QuestionDtoQtype } from '@/shared/api/generated/model';
 
 export type QuestionOption = {
   id: number;
@@ -16,7 +12,7 @@ export type Question = {
   id: number;
   quizVersionId: number;
   ord?: number;
-  qtype: QuestionType;
+  qtype: QuestionDtoQtype;
   text: string;
   options: QuestionOption[];
   [k: string]: unknown;

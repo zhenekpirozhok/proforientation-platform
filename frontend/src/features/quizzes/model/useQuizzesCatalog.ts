@@ -3,19 +3,35 @@
 import { useMemo } from 'react';
 import type {
   QuizDto,
-  QuizPublicMetricsView,
   ProfessionCategoryDto,
 } from '@/shared/api/generated/model';
 
 import { useQuizzes } from '@/entities/quiz/api/useQuizzes';
 import { useGetAllMetrics } from '@/shared/api/generated/api';
 import { useCategories } from '@/entities/category/api/useCategories';
+import { useSearchQuizzesLocalized } from '@/entities/quiz/api/useSearchQuizzes';
+import { useDebounce } from '@/shared/lib/useDebounce';
 
 type PageLike<T> = {
   content?: T[];
   items?: T[];
   totalElements?: number;
   total?: number;
+};
+
+type QuizMetric = {
+  quizId?: number;
+  categoryId?: number;
+  attemptsTotal?: number;
+  questionsTotal?: number;
+  estimatedDurationSeconds?: number;
+};
+
+type SearchQuizzesParams = {
+  search: string;
+  page?: number;
+  size?: number;
+  sortBy?: string;
 };
 
 function extractItems<T>(data: unknown): T[] {
@@ -26,7 +42,8 @@ function extractItems<T>(data: unknown): T[] {
 
 function extractTotal(data: unknown): number {
   const page = data as PageLike<unknown> | null | undefined;
-  return (page?.totalElements ?? page?.total ?? 0) as number;
+  const v = page?.totalElements ?? page?.total ?? 0;
+  return typeof v === 'number' ? v : 0;
 }
 
 function hasNumberId(q: QuizDto): q is QuizDto & { id: number } {
@@ -34,55 +51,104 @@ function hasNumberId(q: QuizDto): q is QuizDto & { id: number } {
 }
 
 export type QuizCatalogItem = (QuizDto & { id: number }) & {
-  metric?: QuizPublicMetricsView;
+  metric?: QuizMetric;
   category?: ProfessionCategoryDto;
 };
 
 export function useQuizzesCatalog(params: {
+  locale: string;
   page: number;
   size: number;
-  filters: { q: string; category: string; duration: string };
+  filters: { search: string; category: string; duration: string };
 }) {
-  const quizzesQ = useQuizzes({ page: params.page, size: params.size });
+  const rawSearch = params.filters.search.trim();
+  const debouncedSearch = useDebounce(rawSearch, 350);
+  const shouldSearch = debouncedSearch.length >= 2;
+
+  const searchParams = useMemo<SearchQuizzesParams | undefined>(() => {
+    if (!shouldSearch) return undefined;
+    return {
+      search: debouncedSearch,
+      page: params.page,
+      size: params.size,
+    };
+  }, [shouldSearch, debouncedSearch, params.page, params.size]);
+
+  const listQ = useQuizzes({ page: params.page, size: params.size });
+  const searchQ = useSearchQuizzesLocalized(params.locale, searchParams);
+  const quizzesSource = shouldSearch ? searchQ : listQ;
 
   const metricsQ = useGetAllMetrics({
-    query: { staleTime: 60_000, gcTime: 5 * 60_000 },
+    query: {
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      refetchOnWindowFocus: false,
+    },
   });
 
-  const categoriesQ = useCategories();
+  const categoriesQ = useCategories(params.locale);
 
-  const itemsAll = useMemo(() => {
-    const quizzes = extractItems<QuizDto>(quizzesQ.data).filter(hasNumberId);
+  const itemsAll = useMemo<QuizCatalogItem[]>(() => {
+    const base = extractItems<QuizDto>(quizzesSource.data).filter(hasNumberId);
 
-    const metricsByQuizId = new Map<number, QuizPublicMetricsView>();
-    (metricsQ.data ?? []).forEach((m) => {
-      if (typeof m.quizId === 'number') metricsByQuizId.set(m.quizId, m);
-    });
+    const quizzes =
+      rawSearch && !shouldSearch
+        ? base.filter((x) =>
+            (x.title ?? '').toLowerCase().includes(rawSearch.toLowerCase()),
+          )
+        : base;
+
+    const metricsArr = Array.isArray(metricsQ.data)
+      ? (metricsQ.data as unknown[])
+      : [];
+    const metricsByQuizId = new Map<number, QuizMetric>();
+
+    for (const m of metricsArr) {
+      if (typeof m !== 'object' || m === null) continue;
+      const o = m as Record<string, unknown>;
+
+      const quizId = typeof o.quizId === 'number' ? o.quizId : undefined;
+      if (!quizId) continue;
+
+      const metric: QuizMetric = {
+        quizId,
+        categoryId: typeof o.categoryId === 'number' ? o.categoryId : undefined,
+        attemptsTotal:
+          typeof o.attemptsTotal === 'number' ? o.attemptsTotal : undefined,
+        questionsTotal:
+          typeof o.questionsTotal === 'number' ? o.questionsTotal : undefined,
+        estimatedDurationSeconds:
+          typeof o.estimatedDurationSeconds === 'number'
+            ? o.estimatedDurationSeconds
+            : undefined,
+      };
+
+      metricsByQuizId.set(quizId, metric);
+    }
 
     const categoriesById = new Map<number, ProfessionCategoryDto>();
-    (categoriesQ.data ?? []).forEach((c) => {
-      if (typeof c.id === 'number') categoriesById.set(c.id, c);
-    });
+    for (const c of categoriesQ.data ?? []) {
+      if (typeof c?.id === 'number') categoriesById.set(c.id, c);
+    }
 
-    return quizzes.map<QuizCatalogItem>((q) => {
+    return quizzes.map((q) => {
       const metric = metricsByQuizId.get(q.id);
       const category =
         metric?.categoryId != null
           ? categoriesById.get(metric.categoryId)
           : undefined;
-
       return { ...q, metric, category };
     });
-  }, [quizzesQ.data, metricsQ.data, categoriesQ.data]);
+  }, [
+    quizzesSource.data,
+    metricsQ.data,
+    categoriesQ.data,
+    rawSearch,
+    shouldSearch,
+  ]);
 
   const filtered = useMemo(() => {
-    const q = params.filters.q.trim().toLowerCase();
-
     let list = itemsAll;
-
-    if (q) {
-      list = list.filter((x) => (x.title ?? '').toLowerCase().includes(q));
-    }
 
     if (params.filters.category !== 'all') {
       list = list.filter(
@@ -91,23 +157,27 @@ export function useQuizzesCatalog(params: {
     }
 
     return list;
-  }, [itemsAll, params.filters]);
+  }, [itemsAll, params.filters.category]);
 
-  const total = useMemo(() => extractTotal(quizzesQ.data), [quizzesQ.data]);
+  const total = useMemo(() => {
+    const t = extractTotal(quizzesSource.data);
+    if (t) return t;
+    return extractItems<QuizDto>(quizzesSource.data).length;
+  }, [quizzesSource.data]);
 
   return {
     items: filtered,
     total,
+    categories: categoriesQ.data ?? [],
 
     isLoading:
-      quizzesQ.isLoading || metricsQ.isLoading || categoriesQ.isLoading,
-    quizzesError: quizzesQ.error,
-
+      quizzesSource.isLoading || metricsQ.isLoading || categoriesQ.isLoading,
+    quizzesError: quizzesSource.error,
     metricsError: metricsQ.error,
     categoriesError: categoriesQ.error,
 
     refetch: () => {
-      quizzesQ.refetch();
+      quizzesSource.refetch();
       metricsQ.refetch();
       categoriesQ.refetch();
     },

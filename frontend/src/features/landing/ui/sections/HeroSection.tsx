@@ -36,7 +36,7 @@ export function HeroSection() {
           <Button
             size="large"
             className="rounded-2xl"
-            onClick={() => router.push('/signup')}
+            onClick={() => router.push('/register')}
           >
             {t('ctaSecondary')}
           </Button>

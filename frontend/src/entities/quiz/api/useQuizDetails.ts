@@ -1,16 +1,14 @@
 import { useMemo } from 'react';
-import type {
-  QuizDto,
-  QuizPublicMetricsView,
-  QuizVersionDto,
-} from '@/shared/api/generated/model';
+import type { QuizDto, QuizVersionDto } from '@/shared/api/generated/model';
 import { useQuiz } from './useQuiz';
 import { useQuizMetrics } from './useQuizMetrics';
 import { useCurrentQuizVersion } from './useCurrentQuizVersion';
 
+type QuizMetrics = Awaited<ReturnType<typeof useQuizMetrics>>['data'];
+
 export type QuizDetailsAggregate = {
   quiz: QuizDto | null;
-  metrics: QuizPublicMetricsView | null;
+  metrics: NonNullable<QuizMetrics> | null;
   version: QuizVersionDto | null;
 
   questionCount: number | null;
@@ -28,8 +26,7 @@ export function useQuizDetails(quizId: number): QuizDetailsAggregate {
   const versionQ = useCurrentQuizVersion(quizId);
 
   const isLoading = quizQ.isLoading || metricsQ.isLoading || versionQ.isLoading;
-
-  const error = quizQ.error || metricsQ.error || versionQ.error;
+  const error: unknown = quizQ.error || metricsQ.error || versionQ.error;
 
   const questionCount = useMemo(() => {
     const n = metricsQ.data?.questionsTotal;
@@ -43,7 +40,7 @@ export function useQuizDetails(quizId: number): QuizDetailsAggregate {
 
   return {
     quiz: quizQ.data ?? null,
-    metrics: metricsQ.data ?? null,
+    metrics: (metricsQ.data ?? null) as NonNullable<QuizMetrics> | null,
     version: versionQ.data ?? null,
 
     questionCount,

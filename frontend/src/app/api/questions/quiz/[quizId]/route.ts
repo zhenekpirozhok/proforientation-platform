@@ -17,7 +17,12 @@ export async function GET(
 
   const upstreamRes = await bffFetch(
     `/questions/quiz/${encodeURIComponent(quizId)}?${url.searchParams.toString()}`,
-    { method: 'GET' },
+    {
+      method: 'GET',
+      headers: {
+        ...(locale ? { 'x-locale': locale } : {}),
+      },
+    },
   );
 
   const body = await upstreamRes.text();

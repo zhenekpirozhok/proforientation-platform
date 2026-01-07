@@ -39,14 +39,14 @@ async function fetchJsonOrThrow<T>(res: Response, tag: string) {
 
 async function fetchAllProfessions(headers?: Record<string, string>) {
   const out: ProfessionDto[] = [];
-  let page = 0;
+  let page = 1;
   const size = 200;
 
   for (let guard = 0; guard < 200; guard++) {
     const sp = new URLSearchParams({
       page: String(page),
       size: String(size),
-      sort: 'id,asc',
+      sortBy: 'id',
     });
 
     const res = await bffFetch(`/professions?${sp.toString()}`, {
@@ -72,7 +72,7 @@ async function fetchAllProfessions(headers?: Record<string, string>) {
 
     if (data.last === true) break;
 
-    page = typeof data.number === 'number' ? data.number + 1 : page + 1;
+    page += 1;
   }
 
   return out;

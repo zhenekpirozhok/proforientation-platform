@@ -5,7 +5,15 @@ export async function GET(req: NextRequest) {
   const search = req.nextUrl.search;
   const upstreamPath = `/categories${search}`;
 
-  const upstreamRes = await bffFetch(upstreamPath, { method: 'GET' });
+  const xLocale = req.headers.get('x-locale') ?? '';
+
+  const upstreamRes = await bffFetch(upstreamPath, {
+    method: 'GET',
+    headers: {
+      ...(xLocale ? { 'x-locale': xLocale } : {}),
+    },
+  });
+
   const body = await upstreamRes.text();
 
   return new Response(body, {

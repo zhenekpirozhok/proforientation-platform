@@ -110,7 +110,11 @@
     "goToQuiz": "Перейти к тесту",
     "catalogError": "Каталог временно недоступен",
     "fallbackProfessionTitle": "Профессия №{id}",
-    "takeAnother": "Пройти ещё один тест"
+    "takeAnother": "Пройти ещё один тест",
+    "loginTitle": "Войдите, чтобы сохранить результат",
+    "loginBody": "Чтобы сохранить результат и вернуться к нему позже, нужно войти в аккаунт.",
+    "loginOkText": "Войти",
+    "loginCancelText": "Отмена"
   },
   "Header": {
     "brand": "CareerPath",
@@ -120,7 +124,8 @@
     "results": "Результаты",
     "settings": "Настройки",
     "signIn": "Войти",
-    "userMenu": "Аккаунт"
+    "userMenu": "Аккаунт",
+    "logout": "Выйти"
   },
   "Footer": {
     "privacy": "Конфиденциальность",
@@ -134,7 +139,8 @@
     "results": "Результаты",
     "settings": "Настройки",
     "language": "Язык",
-    "signIn": "Войти"
+    "signIn": "Войти",
+    "logout": "Выйти"
   },
   "Landing": {
     "title": "Найди свою профессию",
@@ -163,5 +169,108 @@
     "subtitle": "Похоже, такой страницы нет.",
     "toHome": "На главную",
     "toQuizzes": "К тестам"
+  },
+  "MyResultsPage": {
+    "Title": "Мои результаты",
+    "Subtitle": "Посмотрите завершённые тесты и изучите лучшие совпадения.",
+    "AttemptsTitle": "Завершённые тесты",
+    "SearchPlaceholder": "Поиск по названию теста",
+    "SortNewest": "Сначала новые",
+    "SortOldest": "Сначала старые",
+    "Empty": "Пока нет результатов",
+    "GoToQuizzes": "Перейти к тестам",
+    "DefaultQuizTitle": "Результат теста",
+    "UnknownDate": "Дата неизвестна",
+    "Selected": "Выбрано",
+    "LoadError": "Не удалось загрузить список результатов",
+    "ResultLoadError": "Не удалось загрузить детали результата",
+    "TopMatchLabel": "Лучшее совпадение:",
+    "TraitsTitle": "Результаты по шкалам",
+    "TraitsSubtitle": "Чем выше значение, тем сильнее выражена шкала.",
+    "ProfessionsTitle": "Рекомендованные профессии",
+    "ProfessionsSubtitle": "На основе ваших ответов и скоринга модели.",
+    "Match": "Совпадение",
+    "TakeAnother": "Пройти другой тест",
+    "OpenDetails": "Открыть полный результат",
+    "FallbackProfessionTitle": "Профессия №{id}",
+    "ShowMore": "Показать больше",
+    "ShowLess": "Показать меньше",
+    "DownloadPdf": "Скачать PDF",
+    "PdfSoon": "Скачивание PDF скоро будет доступно",
+    "TopProfessionsTitle": "Лучшие профессии",
+    "EmptyProfessions": "Рекомендаций пока нет"
+  },
+  "LoginPage": {
+    "Title": "Вход",
+    "Subtitle": "С возвращением! Войдите, чтобы продолжить.",
+    "EmailLabel": "Email",
+    "EmailPlaceholder": "john.doe@example.com",
+    "PasswordLabel": "Пароль",
+    "PasswordPlaceholder": "Введите пароль",
+    "BackToHome": "На главную",
+    "ForgotPassword": "Забыли пароль?",
+    "Submit": "Войти",
+    "Google": "Продолжить с Google",
+    "NoAccount": "Нет аккаунта?",
+    "CreateOne": "Создать",
+    "Success": "Вы вошли",
+    "Errors": {
+      "Generic": "Не удалось войти"
+    }
+  },
+  "RegisterPage": {
+    "Title": "Регистрация",
+    "Subtitle": "Создайте аккаунт, чтобы продолжить.",
+    "EmailLabel": "Email",
+    "EmailPlaceholder": "john.doe@example.com",
+    "NameLabel": "Имя",
+    "NamePlaceholder": "Иван Иванов",
+    "PasswordLabel": "Пароль",
+    "PasswordPlaceholder": "Придумайте пароль",
+    "ConfirmPasswordLabel": "Повторите пароль",
+    "ConfirmPasswordPlaceholder": "Повторите пароль",
+    "Submit": "Создать аккаунт",
+    "Google": "Продолжить с Google",
+    "HaveAccount": "Уже есть аккаунт?",
+    "SignIn": "Войти",
+    "Success": "Аккаунт создан",
+    "Errors": {
+      "Generic": "Что-то пошло не так"
+    }
+  },
+  "ForgotPasswordPage": {
+    "Title": "Забыли пароль",
+    "Subtitle": "Введите email — мы отправим ссылку для сброса пароля.",
+    "EmailLabel": "Email",
+    "Submit": "Отправить ссылку",
+    "GenericError": "Не удалось отправить запрос",
+    "BackToLoginPrefix": "Вспомнили пароль?",
+    "BackToLoginLink": "Войти",
+    "CheckEmailTitle": "Проверьте почту",
+    "CheckEmailSubtitle": "Если аккаунт существует, вы получите письмо со ссылкой.",
+    "CheckEmailBody1": "Мы отправили ссылку для сброса пароля на вашу почту (если она есть в системе).",
+    "CheckEmailBody2": "Если письма нет несколько минут — проверьте спам.",
+    "SendAgain": "Отправить ещё раз",
+    "GoToLogin": "К входу"
+  },
+  "ResetPasswordPage": {
+    "Title": "Сброс пароля",
+    "Subtitle": "Задайте новый пароль для аккаунта.",
+    "PasswordLabel": "Новый пароль",
+    "ConfirmPasswordLabel": "Повторите пароль",
+    "PasswordHint": "Минимум 6 символов и хотя бы одна цифра.",
+    "Submit": "Обновить пароль",
+    "GenericError": "Не удалось сбросить пароль",
+    "BackToLoginPrefix": "Назад к",
+    "BackToLoginLink": "входу",
+    "MissingTokenTitle": "Некорректная ссылка",
+    "MissingTokenSubtitle": "В ссылке нет токена или она уже истекла.",
+    "MissingTokenAlert": "Запросите новую ссылку для сброса пароля.",
+    "RequestNewLink": "Запросить новую ссылку",
+    "GoToLogin": "К входу",
+    "SuccessTitle": "Пароль обновлён",
+    "SuccessSubtitle": "Теперь можно войти с новым паролем.",
+    "SuccessBody": "Пароль успешно изменён.",
+    "SignIn": "Войти"
   }
 }
