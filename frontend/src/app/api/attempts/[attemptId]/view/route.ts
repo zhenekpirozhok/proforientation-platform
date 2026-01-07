@@ -1,8 +1,15 @@
 import { bffAuthFetch } from '@/shared/api/bffAuthFetch'
-import { parseResponse } from '@/shared/api/parseResponse'
-import type { AttemptResultDto, TraitDto, ProfessionDto, Page } from '@/shared/api/generated/model'
-import type { AttemptViewDto, AttemptViewTrait, AttemptViewProfession } from '@/entities/attempt/model/types'
 import { bffFetch } from '@/shared/api/bff/proxy'
+import { parseResponse } from '@/shared/api/parseResponse'
+import type { AttemptResultDto, TraitDto, ProfessionDto } from '@/shared/api/generated/model'
+import type { AttemptViewDto, AttemptViewTrait, AttemptViewProfession } from '@/entities/attempt/model/types'
+
+type PageLike<T> = {
+    content?: T[]
+    totalElements?: number
+    last?: boolean
+    number?: number
+}
 
 function parseAttemptIdFromPath(pathname: string) {
     const m = pathname.match(/^\/api\/attempts\/(\d+)\/view\/?$/)
@@ -19,6 +26,12 @@ function toId(v: unknown): number {
     return typeof v === 'number' && Number.isFinite(v) ? v : 0
 }
 
+function pickLocale(req: Request): 'en' | 'ru' {
+    const x = req.headers.get('x-locale')?.trim()
+    const raw = (x || req.headers.get('accept-language') || 'en').toLowerCase()
+    return raw.startsWith('ru') ? 'ru' : 'en'
+}
+
 export async function GET(req: Request) {
     const url = new URL(req.url)
     const attemptId = parseAttemptIdFromPath(url.pathname)
@@ -30,38 +43,26 @@ export async function GET(req: Request) {
         })
     }
 
-    const locale = req.headers.get('accept-language') ?? 'en'
+    const locale = pickLocale(req)
+    const headers = { 'x-locale': locale } as Record<string, string>
 
     const [resultRes, traitsRes, professionsRes] = await Promise.all([
-        bffAuthFetch(`/attempts/${attemptId}/result`, {
-            method: 'GET',
-            headers: { 'accept-language': locale },
-        }),
-        bffFetch('/traits', {
-            method: 'GET',
-            headers: { 'accept-language': locale },
-        }),
-        bffFetch('/professions?page=1&size=200', {
-            method: 'GET',
-            headers: { 'accept-language': locale },
-        }),
+        bffAuthFetch(`/attempts/${attemptId}/result`, { method: 'GET', headers }),
+        bffFetch('/traits', { method: 'GET', headers }),
+        bffFetch('/professions?page=1&size=200&sortBy=id', { method: 'GET', headers }),
     ])
 
-    if (!resultRes.ok) {
-        return new Response(await resultRes.text(), { status: resultRes.status, headers: resultRes.headers })
-    }
-    if (!traitsRes.ok) {
-        return new Response(await traitsRes.text(), { status: traitsRes.status, headers: traitsRes.headers })
-    }
-    if (!professionsRes.ok) {
-        return new Response(await professionsRes.text(), { status: professionsRes.status, headers: professionsRes.headers })
-    }
+    if (!resultRes.ok) return new Response(await resultRes.text(), { status: resultRes.status, headers: resultRes.headers })
+    if (!traitsRes.ok) return new Response(await traitsRes.text(), { status: traitsRes.status, headers: traitsRes.headers })
+    if (!professionsRes.ok) return new Response(await professionsRes.text(), { status: professionsRes.status, headers: professionsRes.headers })
 
     const result = await parseResponse<AttemptResultDto>(resultRes)
     const traits = await parseResponse<TraitDto[]>(traitsRes)
-    const professionsPage = await parseResponse<Page>(professionsRes)
 
-    const professions = Array.isArray(professionsPage.content) ? (professionsPage.content as ProfessionDto[]) : []
+    const professionsData = await parseResponse<PageLike<ProfessionDto> | ProfessionDto[]>(professionsRes)
+    const professions: ProfessionDto[] = Array.isArray(professionsData)
+        ? professionsData
+        : (professionsData.content ?? [])
 
     const traitMap = new Map<string, TraitDto>()
     for (const t of traits) {
@@ -79,7 +80,6 @@ export async function GET(req: Request) {
     const mergedTraits: AttemptViewTrait[] = traitScores.map((s) => {
         const code = typeof s.traitCode === 'string' ? s.traitCode : ''
         const meta = code ? traitMap.get(code) : undefined
-
         return {
             code,
             name: meta?.name ?? code,
@@ -91,7 +91,6 @@ export async function GET(req: Request) {
     const mergedProfessions: AttemptViewProfession[] = recs.map((r) => {
         const id = toId(r.professionId)
         const meta = professionMap.get(id)
-
         return {
             id,
             title: meta?.title ?? String(id),
@@ -108,6 +107,9 @@ export async function GET(req: Request) {
 
     return new Response(JSON.stringify(dto), {
         status: 200,
-        headers: { 'content-type': 'application/json' },
+        headers: {
+            'content-type': 'application/json',
+            'x-locale': locale,
+        },
     })
 }
