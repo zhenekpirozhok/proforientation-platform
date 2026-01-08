@@ -263,10 +263,16 @@ public class AttemptController {
             )
     )
     public void deleteMyAttempts(
-            @RequestParam(required = false) Integer userId,
             @RequestParam(required = false) String guestToken,
             @Valid @RequestBody DeleteAttemptsRequest req
     ) {
-        attemptService.deleteSelectedAttempts(userId, guestToken, req.attemptIds(), req.confirm());
+        Integer userId = authUtils.getAuthenticatedUserId();
+
+        attemptService.deleteSelectedAttempts(
+                userId,
+                guestToken,
+                req.attemptIds(),
+                req.confirm()
+        );
     }
 }

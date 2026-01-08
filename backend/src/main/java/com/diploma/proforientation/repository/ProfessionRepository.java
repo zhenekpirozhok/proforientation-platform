@@ -13,6 +13,7 @@ public interface ProfessionRepository extends JpaRepository<Profession, Integer>
     Optional<Profession> findByTitleDefault(String titleDefault);
     @Query("SELECT p.id FROM Profession p WHERE p.mlClassCode = :code")
     Optional<Integer> findIdByMlClassCode(String code);
+    Optional<Profession> findByCode(String code);
     @Query("""
         SELECT p
         FROM Profession p

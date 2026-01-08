@@ -371,67 +371,81 @@ class AttemptControllerTest {
     }
 
     @Test
-    void testDeleteMyAttempts_success_callsServiceWithSameParams() {
-        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
-                List.of(10, 11, 12),
-                true
-        );
-
-        attemptController.deleteMyAttempts(33, "guest-abc", req);
-
-        verify(attemptService).deleteSelectedAttempts(33, "guest-abc", List.of(10, 11, 12), true);
-        verifyNoMoreInteractions(attemptService);
-    }
-
-    @Test
-    void testDeleteMyAttempts_nullGuestToken_callsService() {
-        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
-                List.of(1, 2),
-                true
-        );
-
-        attemptController.deleteMyAttempts(10, null, req);
-
-        verify(attemptService).deleteSelectedAttempts(10, null, List.of(1, 2), true);
-        verifyNoMoreInteractions(attemptService);
-    }
-
-    @Test
-    void testDeleteMyAttempts_nullUserId_callsService() {
-        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
-                List.of(5),
-                true
-        );
-
-        attemptController.deleteMyAttempts(null, "guest-xyz", req);
-
-        verify(attemptService).deleteSelectedAttempts(null, "guest-xyz", List.of(5), true);
-        verifyNoMoreInteractions(attemptService);
-    }
-
-    @Test
-    void testDeleteMyAttempts_nullUserIdAndGuestToken_callsService() {
-        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
-                List.of(7, 8),
-                true
-        );
-
-        attemptController.deleteMyAttempts(null, null, req);
-
-        verify(attemptService).deleteSelectedAttempts(null, null, List.of(7, 8), true);
-        verifyNoMoreInteractions(attemptService);
-    }
-
-    @Test
     void testDeleteMyAttempts_nullRequest_throwsNpe() {
         assertThrows(NullPointerException.class,
-                () -> attemptController.deleteMyAttempts(1, "guest", null));
+                () -> attemptController.deleteMyAttempts( "guest", null));
 
         verifyNoInteractions(attemptService);
     }
 
     @Test
+    void testDeleteMyAttempts_success_callsServiceWithAuthUserIdAndGuestToken() {
+        when(authUtils.getAuthenticatedUserId()).thenReturn(33);
+
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(10, 11, 12),
+                true
+        );
+
+        attemptController.deleteMyAttempts("guest-abc", req);
+
+        verify(authUtils).getAuthenticatedUserId();
+        verify(attemptService).deleteSelectedAttempts(33, "guest-abc", List.of(10, 11, 12), true);
+        verifyNoMoreInteractions(attemptService, authUtils);
+    }
+
+    @Test
+    void testDeleteMyAttempts_nullGuestToken_callsServiceWithAuthUserId() {
+        when(authUtils.getAuthenticatedUserId()).thenReturn(10);
+
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(1, 2),
+                true
+        );
+
+        attemptController.deleteMyAttempts(null, req);
+
+        verify(authUtils).getAuthenticatedUserId();
+        verify(attemptService).deleteSelectedAttempts(10, null, List.of(1, 2), true);
+        verifyNoMoreInteractions(attemptService, authUtils);
+    }
+
+    @Test
+    void testDeleteMyAttempts_authReturnsNull_userIsGuest_onlyGuestTokenPassed() {
+        when(authUtils.getAuthenticatedUserId()).thenReturn(null);
+
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(5),
+                true
+        );
+
+        attemptController.deleteMyAttempts("guest-xyz", req);
+
+        verify(authUtils).getAuthenticatedUserId();
+        verify(attemptService).deleteSelectedAttempts(null, "guest-xyz", List.of(5), true);
+        verifyNoMoreInteractions(attemptService, authUtils);
+    }
+
+    @Test
+    void testDeleteMyAttempts_authReturnsNull_andGuestTokenNull_stillCallsService() {
+        when(authUtils.getAuthenticatedUserId()).thenReturn(null);
+
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(7, 8),
+                true
+        );
+
+        attemptController.deleteMyAttempts(null, req);
+
+        verify(authUtils).getAuthenticatedUserId();
+        verify(attemptService).deleteSelectedAttempts(null, null, List.of(7, 8), true);
+        verifyNoMoreInteractions(attemptService, authUtils);
+    }
+
+    @Test
     void testDeleteMyAttempts_serviceThrows_propagates() {
+        when(authUtils.getAuthenticatedUserId()).thenReturn(1);
+
         DeleteAttemptsRequest req = new DeleteAttemptsRequest(
                 List.of(77),
                 true
@@ -443,11 +457,13 @@ class AttemptControllerTest {
 
         IllegalStateException ex = assertThrows(
                 IllegalStateException.class,
-                () -> attemptController.deleteMyAttempts(1, null, req)
+                () -> attemptController.deleteMyAttempts(null, req)
         );
 
         assertEquals("Confirmation required", ex.getMessage());
+
+        verify(authUtils).getAuthenticatedUserId();
         verify(attemptService).deleteSelectedAttempts(1, null, List.of(77), true);
-        verifyNoMoreInteractions(attemptService);
+        verifyNoMoreInteractions(attemptService, authUtils);
     }
 }

@@ -2,7 +2,8 @@ package com.diploma.proforientation.unit.controller;
 
 import com.diploma.proforientation.controller.ImportController;
 import com.diploma.proforientation.dto.importexport.ImportResultDto;
-import com.diploma.proforientation.service.impl.CsvImportServiceImpl;
+import com.diploma.proforientation.service.ImportService;
+import com.diploma.proforientation.service.impl.ExcelImportServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -17,10 +18,10 @@ import static org.mockito.Mockito.*;
 class ImportControllerTest {
 
     @Mock
-    private CsvImportServiceImpl csvImportService;
+    private ExcelImportServiceImpl excelImportService;
 
     @InjectMocks
-    private ImportController importController;
+    private ImportController controller;
 
     @BeforeEach
     void setUp() {
@@ -28,76 +29,112 @@ class ImportControllerTest {
     }
 
     @Test
-    void importQuestions_validFile_returnsResult() {
-        MockMultipartFile file = new MockMultipartFile("file", "questions.csv",
-                "text/csv", "csv-content".getBytes());
+    void importTranslationsExcel_validFile_returnsResult() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "translations.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "xlsx-content".getBytes()
+        );
 
-        ImportResultDto mockResult = new ImportResultDto(1, 5, null);
-        when(csvImportService.importQuestions(file)).thenReturn(mockResult);
+        ImportResultDto mockResult = new ImportResultDto(2, 2, java.util.List.of());
+        when(excelImportService.importTranslations(file)).thenReturn(mockResult);
 
-        ImportResultDto result = importController.importQuestions(file);
-
-        assertThat(result).isEqualTo(mockResult);
-        verify(csvImportService).importQuestions(file);
-    }
-
-    @Test
-    void importQuestions_serviceThrows_runtimeException_propagates() {
-        MockMultipartFile file = new MockMultipartFile("file", "questions.csv",
-                "text/csv", "csv-content".getBytes());
-
-        when(csvImportService.importQuestions(file))
-                .thenThrow(new RuntimeException("Invalid CSV"));
-
-        RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> importController.importQuestions(file));
-
-        assertThat(ex.getMessage()).contains("Invalid CSV");
-        verify(csvImportService).importQuestions(file);
-    }
-
-    @Test
-    void importTranslations_validFile_returnsResult() {
-        MockMultipartFile file = new MockMultipartFile("file", "translations.csv",
-                "text/csv", "csv-content".getBytes());
-
-        ImportResultDto mockResult = new ImportResultDto(2, 10, null);
-        when(csvImportService.importTranslations(file)).thenReturn(mockResult);
-
-        ImportResultDto result = importController.importTranslations(file);
+        ImportResultDto result = controller.importTranslationsExcel(file);
 
         assertThat(result).isEqualTo(mockResult);
-        verify(csvImportService).importTranslations(file);
+        verify(excelImportService).importTranslations(file);
+        verifyNoMoreInteractions(excelImportService);
     }
 
     @Test
-    void importTranslations_serviceThrows_runtimeException_propagates() {
-        MockMultipartFile file = new MockMultipartFile("file", "translations.csv",
-                "text/csv", "csv-content".getBytes());
+    void importTranslationsExcel_serviceThrows_propagates() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "translations.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "xlsx-content".getBytes()
+        );
 
-        when(csvImportService.importTranslations(file))
-                .thenThrow(new RuntimeException("Invalid CSV"));
+        when(excelImportService.importTranslations(file))
+                .thenThrow(new RuntimeException("Invalid Excel"));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
-                () -> importController.importTranslations(file));
+                () -> controller.importTranslationsExcel(file));
 
-        assertThat(ex.getMessage()).contains("Invalid CSV");
-        verify(csvImportService).importTranslations(file);
+        assertThat(ex.getMessage()).contains("Invalid Excel");
+        verify(excelImportService).importTranslations(file);
+        verifyNoMoreInteractions(excelImportService);
     }
 
     @Test
-    void importQuestions_nullFile_throwsException() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> importController.importQuestions(null));
-        assertThat(ex.getMessage()).contains("File must not be null");
-        verify(csvImportService, never()).importQuestions(any());
+    void importQuizzesExcel_validFile_returnsResult() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "quizzes.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "xlsx-content".getBytes()
+        );
+
+        ImportResultDto mockResult = new ImportResultDto(3, 2, java.util.List.of());
+        when(excelImportService.importQuizzes(file)).thenReturn(mockResult);
+
+        ImportResultDto result = controller.importQuizzesExcel(file);
+
+        assertThat(result).isEqualTo(mockResult);
+        verify(excelImportService).importQuizzes(file);
+        verifyNoMoreInteractions(excelImportService);
     }
 
     @Test
-    void importTranslations_nullFile_throwsException() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> importController.importTranslations(null));
-        assertThat(ex.getMessage()).contains("File must not be null");
-        verify(csvImportService, never()).importTranslations(any());
+    void importProfessionsExcel_validFile_returnsResult() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "professions.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "xlsx-content".getBytes()
+        );
+
+        ImportResultDto mockResult = new ImportResultDto(5, 5, java.util.List.of());
+        when(excelImportService.importProfessions(file)).thenReturn(mockResult);
+
+        ImportResultDto result = controller.importProfessionsExcel(file);
+
+        assertThat(result).isEqualTo(mockResult);
+        verify(excelImportService).importProfessions(file);
+        verifyNoMoreInteractions(excelImportService);
+    }
+
+    @Test
+    void importQuestionsExcel_validFile_returnsResult() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "questions.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "xlsx-content".getBytes()
+        );
+
+        ImportResultDto mockResult = new ImportResultDto(10, 9, java.util.List.of());
+        when(excelImportService.importQuestions(file)).thenReturn(mockResult);
+
+        ImportResultDto result = controller.importQuestions(file);
+
+        assertThat(result).isEqualTo(mockResult);
+        verify(excelImportService).importQuestions(file);
+        verifyNoMoreInteractions(excelImportService);
+    }
+
+    @Test
+    void importQuestionsExcel_serviceThrows_propagates() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "questions.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "xlsx-content".getBytes()
+        );
+
+        when(excelImportService.importQuestions(file))
+                .thenThrow(new RuntimeException("Boom"));
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> controller.importQuestions(file));
+
+        assertThat(ex.getMessage()).contains("Boom");
+        verify(excelImportService).importQuestions(file);
+        verifyNoMoreInteractions(excelImportService);
     }
 }
