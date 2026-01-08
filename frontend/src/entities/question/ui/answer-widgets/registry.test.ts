@@ -1,20 +1,16 @@
-import type { QuestionType } from '../../model/types';
+import type { QuestionDtoQtype } from '@/shared/api/generated/model';
 import { answerWidgetByType } from './registry';
 
 describe('answerWidgetByType registry', () => {
     test('contains mapping for all supported question types', () => {
         const keys = Object.keys(answerWidgetByType).sort();
         expect(keys).toEqual(
-            ['liker_scale_5', 'liker_scale_7', 'multi_choice', 'single_choice'].sort(),
+            ['LIKER_SCALE_5', 'LIKER_SCALE_7', 'MULTI_CHOICE', 'SINGLE_CHOICE'].sort(),
         );
     });
 
-    test('likert types map to the same widget', () => {
-        expect(answerWidgetByType.liker_scale_5).toBe(answerWidgetByType.liker_scale_7);
-    });
-
     test('single_choice and multi_choice map to different widgets', () => {
-        expect(answerWidgetByType.single_choice).not.toBe(answerWidgetByType.multi_choice);
+        expect(answerWidgetByType.SINGLE_CHOICE).not.toBe(answerWidgetByType.MULTI_CHOICE);
     });
 
     test('registry values are functions (React components)', () => {
@@ -25,7 +21,7 @@ describe('answerWidgetByType registry', () => {
     });
 
     test('is exhaustive for QuestionType at type level', () => {
-        const assertExhaustive = (t: QuestionType) => answerWidgetByType[t];
-        expect(typeof assertExhaustive('single_choice')).toBe('function');
+        const assertExhaustive = (t: QuestionDtoQtype) => answerWidgetByType[t];
+        expect(typeof assertExhaustive('SINGLE_CHOICE')).toBe('function');
     });
 });

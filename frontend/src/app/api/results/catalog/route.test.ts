@@ -128,7 +128,7 @@ describe('api/results/catalog GET', () => {
                 const u = new URL(`http://x${path}`);
                 const page = u.searchParams.get('page');
 
-                if (page === '0') {
+                if (page === '1') {
                     return upstreamOk({
                         content: [
                             { id: 1, title: 'P1', categoryId: 10 },
@@ -140,7 +140,7 @@ describe('api/results/catalog GET', () => {
                     });
                 }
 
-                if (page === '1') {
+                if (page === '2') {
                     return upstreamOk({
                         content: [{ id: 3, title: 'P3', categoryId: 10 }],
                         last: true,

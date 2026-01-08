@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 const pushMock = jest.fn();
@@ -7,6 +6,16 @@ jest.mock(
   '@/shared/i18n/lib/navigation',
   () => ({
     useRouter: () => ({ push: pushMock }),
+  }),
+  { virtual: true },
+);
+
+const paramsMock: any = { locale: 'lt' };
+
+jest.mock(
+  'next/navigation',
+  () => ({
+    useParams: () => paramsMock,
   }),
   { virtual: true },
 );
@@ -26,7 +35,9 @@ jest.mock('./components/QuizPlayerLayout', () => ({
 
 jest.mock('./components/QuizProgressHeader', () => ({
   QuizProgressHeader: ({ current, total }: any) => (
-    <div>{current}/{total ?? 'null'}</div>
+    <div>
+      {current}/{total ?? 'null'}
+    </div>
   ),
 }));
 
@@ -57,9 +68,15 @@ jest.mock(
 jest.mock('./components/QuizPlayerActions', () => ({
   QuizPlayerActions: (p: any) => (
     <div>
-      <button disabled={p.backDisabled} onClick={p.onBack}>back</button>
-      <button disabled={p.nextDisabled} onClick={p.onNext}>next</button>
-      <button disabled={p.submitDisabled} onClick={p.onSubmit}>submit</button>
+      <button disabled={p.backDisabled} onClick={p.onBack}>
+        back
+      </button>
+      <button disabled={p.nextDisabled} onClick={p.onNext}>
+        next
+      </button>
+      <button disabled={p.submitDisabled} onClick={p.onSubmit}>
+        submit
+      </button>
     </div>
   ),
 }));
@@ -115,8 +132,39 @@ jest.mock(
   '@/shared/api/generated/api',
   () => ({
     useStartAttempt: () => ({ mutateAsync: startAttemptMutateAsync }),
-    useAddAnswersBulk: () => ({ mutateAsync: addAnswersBulkMutateAsync, isPending: false }),
+    useAddAnswersBulk: () => ({
+      mutateAsync: addAnswersBulkMutateAsync,
+      isPending: false,
+    }),
     useSubmit: () => ({ mutateAsync: submitMutateAsync, isPending: false }),
+  }),
+  { virtual: true },
+);
+
+const guestStoreState = { guestToken: null as string | null };
+
+const setGuestTokenMock = jest.fn((t: string | null) => {
+  guestStoreState.guestToken = t;
+});
+
+const clearGuestTokenMock = jest.fn(() => {
+  guestStoreState.guestToken = null;
+});
+
+const useGuestStoreMock: any = jest.fn((sel?: any) =>
+  typeof sel === 'function' ? sel(guestStoreState) : guestStoreState,
+);
+
+useGuestStoreMock.getState = () => ({
+  guestToken: guestStoreState.guestToken,
+  setGuestToken: setGuestTokenMock,
+  clearGuestToken: clearGuestTokenMock,
+});
+
+jest.mock(
+  '@/entities/guest/model/store',
+  () => ({
+    useGuestStore: useGuestStoreMock,
   }),
   { virtual: true },
 );
@@ -130,22 +178,35 @@ const storeActions = {
     storeState.guestToken = token;
     storeState.status = 'in-progress';
   }),
-  setStatus: jest.fn((s: any) => { storeState.status = s; }),
-  setError: jest.fn((e: any) => { storeState.error = e; storeState.status = 'error'; }),
-  setTotalQuestions: jest.fn((t: number) => { storeState.totalQuestions = t; }),
-  goNext: jest.fn(() => { storeState.currentIndex++; }),
-  goPrev: jest.fn(() => { storeState.currentIndex--; }),
+  setStatus: jest.fn((s: any) => {
+    storeState.status = s;
+  }),
+  setError: jest.fn((e: any) => {
+    storeState.error = e;
+    storeState.status = 'error';
+  }),
+  setTotalQuestions: jest.fn((t: number) => {
+    storeState.totalQuestions = t;
+  }),
+  goNext: jest.fn(() => {
+    storeState.currentIndex++;
+  }),
+  goPrev: jest.fn(() => {
+    storeState.currentIndex--;
+  }),
   selectOption: jest.fn((qid: number, oid: number) => {
     storeState.answersByQuestionId[qid] = oid;
   }),
   setResult: jest.fn(),
-  setBulkSent: jest.fn((id: number) => { storeState.bulkSentAttemptId = id; }),
+  setBulkSent: jest.fn((id: number) => {
+    storeState.bulkSentAttemptId = id;
+  }),
 };
 
-const useQuizPlayerStoreMock: any = jest.fn(() => ({
-  ...storeState,
-  ...storeActions,
-}));
+const useQuizPlayerStoreMock: any = jest.fn((sel?: any) => {
+  const state = { ...storeState, ...storeActions };
+  return typeof sel === 'function' ? sel(state) : state;
+});
 
 useQuizPlayerStoreMock.getState = () => storeState;
 
@@ -164,6 +225,15 @@ function reset() {
   startAttemptMutateAsync.mockReset();
   addAnswersBulkMutateAsync.mockReset();
   submitMutateAsync.mockReset();
+
+  guestStoreState.guestToken = null;
+  setGuestTokenMock.mockClear();
+  clearGuestTokenMock.mockClear();
+
+  qcMock.getQueryData.mockClear();
+  qcMock.prefetchQuery.mockClear();
+
+  paramsMock.locale = 'lt';
 
   Object.assign(versionQueryMock, {
     data: null,
@@ -214,7 +284,8 @@ describe('QuizPlayer', () => {
   });
 
   test('submit flow works', async () => {
-    storeState.quizVersionId = 10;
+    versionQueryMock.data = 10;
+
     storeState.attemptId = 7;
     storeState.guestToken = 'gt';
     storeState.status = 'in-progress';
@@ -238,7 +309,30 @@ describe('QuizPlayer', () => {
     await waitFor(() => {
       expect(addAnswersBulkMutateAsync).toHaveBeenCalled();
       expect(submitMutateAsync).toHaveBeenCalled();
-      expect(pushMock).toHaveBeenCalledWith('/results/7');
+      expect(pushMock).toHaveBeenCalledWith('/results');
+    });
+  });
+
+  test('stores guestToken from startAttempt into guest-store when provided', async () => {
+    versionQueryMock.data = 10;
+
+    startAttemptMutateAsync.mockResolvedValueOnce({
+      attemptId: 37,
+      guestToken: 'b963978b-a863-4445-bdc0-e58fe71bd5b6',
+    });
+
+    batchQueryMock.data = {
+      questions: [{ id: 1 }],
+      total: 1,
+      last: true,
+    };
+
+    render(<QuizPlayer quizId={1} />);
+
+    await waitFor(() => {
+      expect(setGuestTokenMock).toHaveBeenCalledWith(
+        'b963978b-a863-4445-bdc0-e58fe71bd5b6',
+      );
     });
   });
 });
