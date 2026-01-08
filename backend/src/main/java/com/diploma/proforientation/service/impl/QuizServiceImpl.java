@@ -41,7 +41,6 @@ public class QuizServiceImpl implements QuizService {
     private static final String TITLE_FIELD = "titleDefault";
     private static final String CODE_FIELD = "code";
     private static final String DESCRIPTION_FIELD = "descriptionDefault";
-    private static final String PERCENT = "%";
 
     private final QuizRepository quizRepo;
     private final ProfessionCategoryRepository categoryRepo;

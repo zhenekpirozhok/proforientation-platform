@@ -308,7 +308,7 @@ public class ExcelImportServiceImpl implements ImportService {
         }
 
         Quiz q = quizRepo.findByCode(code).orElseGet(Quiz::new);
-        boolean isNew = (q.getId() == null);
+        boolean isNew = q.getId() == null;
 
         q.setCode(code);
         q.setTitleDefault(title);

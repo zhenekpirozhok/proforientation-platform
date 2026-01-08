@@ -22,11 +22,6 @@ public final class Constants {
     public static final String QUIZ_METRICS_NOT_FOUND = "Quiz metrics not found";
     public static final String QUIZ_CODE_NOT_FOUND = "Quiz not found with code: ";
 
-    public static final String CSV_IMPORT_FAILED = "CSV import failed";
-    public static final String TRANSLATION_CSV_IMPORT_FAILED = "Translation CSV import failed";
-    public static final String INVALID_CSV = "Invalid CSV format: ";
-    public static final String NO_HEADER_IN_CSV = "CSV file has no header row";
-    public static final String EMPTY_CSV = "CSV file is empty";
     public static final String INVALID_INT = "Invalid integer";
     public static final String INVALID_ENUM_VALUE = "Invalid enum value";
     public static final String UNSUPPORTED_ENTITY = "Unsupported entity type";
@@ -37,7 +32,6 @@ public final class Constants {
     public static final String UNSUPPORTED_EXPORT_ENTITY = "Unsupported export entity: ";
     public static final String CSV_EXPORT_FAILED = "CSV export failed for ";
     public static final String EXCEL_EXPORT_FAILED = "Excel export failed";
-    public static final String DB_CONSTRAINT_VIOLATION = "Database constraint violation";
     public static final String SECONDS_COUNT_SHOULD_BE_GRATER_THEN_ZERO = "secondsPerQuestionDefault must be > 0";
     public static final String CANNOT_CHANGE_OWN_ROLE = "Cannot change your own role";
     public static final String DELETE_ATTEMPT_CONFIRMATION_REQUIRED = "Confirmation required to delete attempts.";
@@ -49,6 +43,7 @@ public final class Constants {
 
     public static final String INVALID_JSON_FROM_LLM = "LLM returned invalid JSON: ";
     public static final String INVALID_PROMPT = "Failed to build prompt JSON";
+    public static final String UTILITY_CLASS = "Utility class";
 
     public static final String ENTITY_TYPE_QUESTION = "question";
     public static final String ENTITY_TYPE_QUIZ = "quiz";
@@ -75,9 +70,23 @@ public final class Constants {
     public static final String COL_TEXT = "text";
 
     public static final String EMPTY_STRING = "";
+    public static final String PERCENT = "%";
+
+    public static final String QUIZ_ID = "quizId";
+    public static final String QUIZ_STATUS = "quizStatus";
+    public static final String CATEGORY_ID = "categoryId";
+    public static final String QUIZ_CODE = "quizCode";
+
+    public static final String ATTEMPTS_TOTAL = "attemptsTotal";
+    public static final String ATTEMPTS_SUBMITTED = "attemptsSubmitted";
+    public static final String QUESTIONS_TOTAL = "questionsTotal";
+
+    public static final String ESTIMATED_DURATION_SECONDS = "estimatedDurationSeconds";
+    public static final String AVG_DURATION_SECONDS = "avgDurationSeconds";
+
+    public static final String SQL_TEXT_FUNCTION = "text";
 
     public static final String MESSAGE_REQUIRED = "Required";
-    public static final String MESSAGE_MISSING = "Missing value";
 
     public static final String ENTITY_QUIZZES = "quizzes";
     public static final String ENTITY_QUIZ_VERSIONS = "quiz_versions";
@@ -86,6 +95,13 @@ public final class Constants {
     public static final String ENTITY_PROFESSIONS = "professions";
     public static final String ENTITY_ATTEMPTS = "attempts";
     public static final String ENTITY_TRANSLATIONS = "translations";
+    public static final String ENTITY_QUIZ_PUBLIC_METRICS = "quiz_public_metrics";
+
+    public static final String[] HEADERS_QUIZ_PUBLIC_METRICS = {
+            "quiz_id","quiz_code","quiz_status","category_id",
+            "questions_total","attempts_total","attempts_submitted",
+            "avg_duration_seconds","estimated_duration_seconds"
+    };
 
     public static final String[] HEADERS_QUIZZES = {
             "id", "code", "title_default", "description_default",

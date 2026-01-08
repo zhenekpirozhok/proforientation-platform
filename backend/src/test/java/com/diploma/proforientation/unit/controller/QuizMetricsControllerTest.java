@@ -1,7 +1,9 @@
 package com.diploma.proforientation.unit.controller;
 
 import com.diploma.proforientation.controller.QuizMetricsController;
+import com.diploma.proforientation.dto.QuizMetricsFilter;
 import com.diploma.proforientation.dto.QuizPublicMetricsDto;
+import com.diploma.proforientation.model.enumeration.QuizStatus;
 import com.diploma.proforientation.service.QuizMetricsService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,6 +93,44 @@ class QuizMetricsControllerTest {
                 .hasMessageContaining("not found");
 
         verify(service).getMetricsForQuiz(999);
+        verifyNoMoreInteractions(service);
+    }
+
+    @Test
+    void filterMetrics_returnsListFromService() {
+        QuizMetricsFilter filter = new QuizMetricsFilter(
+                1,
+                "career",
+                QuizStatus.PUBLISHED,
+                3,
+                10, 1000,
+                5, 800,
+                10, 50,
+                BigDecimal.valueOf(120.5), BigDecimal.valueOf(900),
+                300, 1800
+        );
+
+        QuizPublicMetricsDto dto = new QuizPublicMetricsDto(
+                1,
+                "quiz_1",
+                "PUBLISHED",
+                3,
+                48,
+                120,
+                30,
+                BigDecimal.valueOf(650.5),
+                600
+        );
+
+        when(service.getPublicMetrics(filter)).thenReturn(List.of(dto));
+
+        List<QuizPublicMetricsDto> result = controller.filterMetrics(filter);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().quizId()).isEqualTo(1);
+        assertThat(result.getFirst().quizCode()).isEqualTo("quiz_1");
+
+        verify(service).getPublicMetrics(filter);
         verifyNoMoreInteractions(service);
     }
 }
