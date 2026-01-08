@@ -11,14 +11,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfiguration {
 
-    private static final String BEARER_AUTH = "Bearer Authentication";
-    private static final String LOCALE_AUTH = "Locale";
+    private static final String BEARER_AUTH = "bearerAuth";
+    private static final String LOCALE = "locale";
 
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH))
-                .addSecurityItem(new SecurityRequirement().addList(LOCALE_AUTH))
+                .addSecurityItem(new SecurityRequirement().addList(LOCALE))
 
                 .components(new Components()
                         .addSecuritySchemes(BEARER_AUTH,
@@ -27,7 +27,7 @@ public class SwaggerConfiguration {
                                         .scheme("bearer")
                                         .bearerFormat("JWT")
                         )
-                        .addSecuritySchemes(LOCALE_AUTH,
+                        .addSecuritySchemes(LOCALE,
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.APIKEY)
                                         .in(SecurityScheme.In.HEADER)
