@@ -203,7 +203,8 @@ public class UserController {
             )
     )
     public ResponseEntity<Void> updateUserRole(
-            @PathVariable Integer userId,
+            @Parameter(description = "User ID", example = "123", required = true)
+            @PathVariable Integer id,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "New role as plain string (USER or ADMIN)",
                     required = true,
@@ -218,7 +219,7 @@ public class UserController {
             )
             @RequestBody String role
     ) {
-        userService.changeUserRole(userId, UserRole.valueOf(role.trim().toUpperCase()));
+        userService.changeUserRole(id, UserRole.valueOf(role.trim().toUpperCase()));
         return ResponseEntity.noContent().build();
     }
 }
