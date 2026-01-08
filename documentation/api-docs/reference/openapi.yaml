@@ -1475,16 +1475,27 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ExceptionDto"
-  /api/import/translations:
+  /api/import/excel/translations:
     post:
       tags:
       - Import
-      summary: Import translations from CSV
+      summary: Import translations from Excel
       description: |
-        Imports translations for quizzes, questions, options, and professions.
-        Existing translations are updated, new ones are created.
-        Only administrators are allowed to perform this operation.
-      operationId: importTranslations
+        Imports translations from an Excel (.xlsx) file.
+
+        The file must contain a header row with the following columns:
+        - entity_type (quiz, question, option, profession)
+        - entity_id
+        - field (e.g. title, description)
+        - locale (e.g. en, uk)
+        - text
+
+        Import behavior:
+        - All rows are validated before saving
+        - Invalid rows are skipped
+        - Errors are returned with row numbers and messages
+        - Valid rows are saved in a single transaction
+      operationId: importTranslationsExcel
       requestBody:
         content:
           multipart/form-data:
@@ -1494,7 +1505,6 @@ paths:
                 file:
                   type: string
                   format: binary
-                  description: CSV file containing translations
               required:
               - file
       responses:
@@ -1505,26 +1515,147 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportResultDto"
         "400":
-          description: Invalid CSV format or validation errors
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "403":
-          description: Forbidden
+          description: Invalid Excel file or validation errors
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ImportResultDto"
-  /api/import/questions:
+        "403":
+          description: Access denied (admin only)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImportResultDto"
+  /api/import/excel/quizzes:
     post:
       tags:
       - Import
-      summary: Import questions from CSV
+      summary: Import quizzes from Excel
       description: |
-        Imports quiz questions from a CSV file.
-        The file must contain a header row and valid question data.
-        Only administrators are allowed to perform this operation.
+        Imports quizzes from an Excel (.xlsx) file.
+
+        Required columns:
+        - code
+        - title_default
+        - category_id
+        - author_id
+
+        Optional columns:
+        - status (DRAFT, PUBLISHED)
+        - processing_mode (LLM, ML_RIASEC, etc.)
+        - description_default
+        - seconds_per_question_default
+
+        Import behavior:
+        - Existing quizzes are updated by code
+        - New quizzes are created if code does not exist
+        - Duplicate codes inside the file are rejected
+        - If status is PUBLISHED and no quiz version exists,
+          a published quiz version is created automatically
+        - Invalid rows are skipped, valid rows are saved
+      operationId: importQuizzesExcel
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+              - file
+      responses:
+        "200":
+          description: Quizzes imported successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImportResultDto"
+        "400":
+          description: Invalid Excel file or validation errors
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImportResultDto"
+        "403":
+          description: Access denied (admin only)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImportResultDto"
+  /api/import/excel/professions:
+    post:
+      tags:
+      - Import
+      summary: Import professions from Excel
+      description: |
+        Imports professions from an Excel (.xlsx) file.
+
+        Required columns:
+        - code
+        - title_default
+        - category_id
+
+        Optional columns:
+        - description
+        - ml_class_code
+
+        Import behavior:
+        - Existing professions are updated by code
+        - New professions are created if code does not exist
+        - Duplicate codes inside the file are rejected
+        - Invalid rows are skipped, valid rows are saved
+      operationId: importProfessionsExcel
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+              - file
+      responses:
+        "200":
+          description: Professions imported successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImportResultDto"
+        "400":
+          description: Invalid Excel file or validation errors
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImportResultDto"
+        "403":
+          description: Access denied (admin only)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImportResultDto"
+  /api/import/admin/import/questions:
+    post:
+      tags:
+      - Import
+      summary: Import quiz questions from Excel
+      description: |
+        Imports quiz questions from an Excel (.xlsx) file.
+
+        Required columns:
+        - quiz_version_id
+        - ord
+        - qtype (SINGLE, MULTIPLE, SCALE, etc.)
+        - text_default
+
+        Import behavior:
+        - Questions are linked to an existing quiz version
+        - Invalid enum values or missing references are rejected
+        - Invalid rows are skipped
+        - Valid questions are saved
       operationId: importQuestions
       requestBody:
         content:
@@ -1535,7 +1666,6 @@ paths:
                 file:
                   type: string
                   format: binary
-                  description: CSV file containing questions
               required:
               - file
       responses:
@@ -1546,17 +1676,76 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportResultDto"
         "400":
-          description: Invalid CSV format or validation errors
-          content:
-            '*/*':
-              schema:
-                $ref: "#/components/schemas/ExceptionDto"
-        "403":
-          description: Forbidden
+          description: Invalid Excel file or validation errors
           content:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ImportResultDto"
+        "403":
+          description: Access denied (admin only)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ImportResultDto"
+  /users/{id}/role:
+    patch:
+      tags:
+      - User
+      summary: Update user role (admin only)
+      description: |2
+            Changes the role of a user.
+
+            Notes:
+            - Only admins can call this endpoint.
+            - Request body is a plain string containing the new role.
+            - Allowed values: USER, ADMIN
+            - Typically you should prevent changing your own role in the service layer.
+      operationId: updateUserRole
+      parameters: []
+      requestBody:
+        description: New role as plain string (USER or ADMIN)
+        content:
+          text/plain:
+            schema:
+              type: string
+              enum:
+              - USER
+              - ADMIN
+              example: ADMIN
+        required: true
+      responses:
+        "204":
+          description: User role updated successfully
+        "400":
+          description: Invalid role value
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+              example:
+                code: 400
+                time: 2025-05-20T14:52:00Z
+                message: "Invalid role: SUPER_ADMIN"
+        "403":
+          description: Access denied (admin role required)
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+              example:
+                code: 403
+                time: 2025-05-20T14:52:00Z
+                message: "Access denied: insufficient permissions"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+              example:
+                code: 404
+                time: 2025-05-20T14:52:00Z
+                message: User not found
   /users:
     get:
       tags:
@@ -1975,6 +2164,65 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/PageQuestionDto"
+  /professions/search:
+    get:
+      tags:
+      - Profession
+      summary: Search professions
+      description: |2
+            Searches professions using text and filters.
+
+            Search capabilities:
+            - Text search by title, description, code, or ML class code
+            - Optional filtering by profession category
+            - Supports pagination and sorting
+      operationId: search_2
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+          default: ""
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 1
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      - name: sort
+        in: query
+        required: false
+        schema:
+          type: string
+          default: id
+      responses:
+        "200":
+          description: Professions retrieved successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageProfessionDto"
+        "400":
+          description: Invalid search parameters
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageProfessionDto"
   /attempts:
     get:
       tags:
@@ -2039,7 +2287,7 @@ paths:
         - user
         - quiz
         - date range
-      operationId: search_2
+      operationId: search_3
       parameters:
       - name: userId
         in: query
@@ -2082,7 +2330,9 @@ paths:
     get:
       tags:
       - Quiz Metrics
-      summary: Get public quiz metrics
+      summary: Get all public quiz metrics
+      description: "Returns public analytics for all quizzes without filtering. Includes\
+        \ attempts count, average duration, and estimated duration."
       operationId: getAllMetrics
       responses:
         "200":
@@ -2097,7 +2347,9 @@ paths:
     get:
       tags:
       - Quiz Metrics
-      summary: Get public metrics for a quiz
+      summary: Get public metrics for a specific quiz
+      description: Returns aggregated public metrics for a single quiz identified
+        by its ID. Throws 404 if the quiz metrics are not found.
       operationId: getMetrics
       parameters:
       - name: quizId
@@ -2113,6 +2365,82 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/QuizPublicMetricsDto"
+  /api/v1/quizzes/metrics/filter:
+    get:
+      tags:
+      - Quiz Metrics
+      summary: Filter public quiz metrics
+      description: |
+        Returns public quiz metrics filtered by the provided criteria.
+
+        All parameters are optional. If multiple filters are provided,
+        they are combined using logical AND.
+
+        Typical use cases:
+        - Admin analytics dashboards
+        - Exporting filtered analytics
+        - Monitoring quiz performance
+      operationId: filterMetrics
+      parameters:
+      - name: filter
+        in: query
+        description: Filter criteria for quiz metrics
+        required: true
+        schema:
+          $ref: "#/components/schemas/QuizMetricsFilter"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuizPublicMetricsDto"
+  /api/export/quiz-metrics/export:
+    get:
+      tags:
+      - Export
+      summary: Export quiz metrics to CSV
+      description: Exports quiz public metrics filtered by query parameters. All filters
+        are optional.
+      operationId: exportQuizMetricsCsv
+      parameters:
+      - name: filter
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/QuizMetricsFilter"
+      responses:
+        "200":
+          description: OK
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: byte
+  /api/export/quiz-metrics/export.xlsx:
+    get:
+      tags:
+      - Export
+      summary: Export quiz metrics to Excel (XLSX)
+      description: Exports quiz public metrics filtered by query parameters. All filters
+        are optional.
+      operationId: exportQuizMetricsExcel
+      parameters:
+      - name: filter
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/QuizMetricsFilter"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: byte
   /api/export/excel:
     get:
       tags:
@@ -2182,6 +2510,55 @@ paths:
           description: Account deleted
         "401":
           description: Unauthorized
+  /attempts/delete:
+    delete:
+      tags:
+      - Attempt
+      summary: Delete selected attempts (user confirmation required)
+      description: |2
+            Deletes one or more attempts belonging to the current user.
+
+            Important notes:
+            - This operation requires explicit confirmation from the client.
+            - The frontend should show a confirmation dialog before calling this endpoint.
+            - Attempts are removed only if they belong to the current user (or guest session).
+            - Deletion is irreversible from the user's perspective.
+      operationId: deleteMyAttempts
+      parameters:
+      - name: guestToken
+        in: query
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteAttemptsRequest"
+        required: true
+      responses:
+        "204":
+          description: Attempts deleted successfully
+        "400":
+          description: Confirmation not provided or request is invalid
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+              example:
+                code: 400
+                time: 2025-05-20T14:52:00Z
+                message: Confirmation required to delete attempts
+        "404":
+          description: One or more attempts not found or do not belong to the user
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ExceptionDto"
+              example:
+                code: 404
+                time: 2025-05-20T14:52:00Z
+                message: Attempt not found
 components:
   schemas:
     UpdateTranslationRequest:
@@ -2327,6 +2704,26 @@ components:
           - LLM
           examples:
           - ML_RIASEC
+        status:
+          type: string
+          description: Updated quiz status
+          enum:
+          - DRAFT
+          - PUBLISHED
+          - ARCHIVED
+          examples:
+          - PUBLISHED
+        descriptionDefault:
+          type: string
+          description: Updated quiz description (default language)
+          examples:
+          - Updated description for the quiz.
+        secondsPerQuestionDefault:
+          type: integer
+          format: int32
+          description: Updated time limit per question in seconds
+          examples:
+          - "45"
         categoryId:
           type: integer
           format: int32
@@ -2705,6 +3102,27 @@ components:
           - LLM
           examples:
           - ML_RIASEC
+        status:
+          type: string
+          description: Quiz status
+          enum:
+          - DRAFT
+          - PUBLISHED
+          - ARCHIVED
+          examples:
+          - DRAFT
+        descriptionDefault:
+          type: string
+          description: Quiz description (default language)
+          examples:
+          - This quiz helps determine suitable career paths.
+        secondsPerQuestionDefault:
+          type: integer
+          format: int32
+          default: "30"
+          description: Time limit per question in seconds
+          examples:
+          - "30"
         categoryId:
           type: integer
           format: int32
@@ -2869,9 +3287,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/GrantedAuthority"
-        accountNonLocked:
-          type: boolean
         accountNonExpired:
+          type: boolean
+        accountNonLocked:
           type: boolean
         credentialsNonExpired:
           type: boolean
@@ -3250,6 +3668,38 @@ components:
           type: boolean
         empty:
           type: boolean
+    PageProfessionDto:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProfessionDto"
+        number:
+          type: integer
+          format: int32
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        first:
+          type: boolean
+        last:
+          type: boolean
+        empty:
+          type: boolean
     AttemptSummaryDto:
       type: object
       description: Summary information about a quiz attempt
@@ -3323,6 +3773,85 @@ components:
         estimatedDurationSeconds:
           type: integer
           format: int32
+    QuizMetricsFilter:
+      type: object
+      properties:
+        quizId:
+          type: integer
+          format: int32
+          description: Exact quiz ID
+        quizCodeContains:
+          type: string
+          description: Substring match for quiz code (case-insensitive)
+          example: career
+        quizStatus:
+          type: string
+          description: Quiz status
+          enum:
+          - DRAFT
+          - PUBLISHED
+          - ARCHIVED
+          example: PUBLISHED
+        categoryId:
+          type: integer
+          format: int32
+          description: Quiz category ID
+        attemptsTotalMin:
+          type: integer
+          format: int32
+          description: Minimum total attempts count
+        attemptsTotalMax:
+          type: integer
+          format: int32
+          description: Maximum total attempts count
+        attemptsSubmittedMin:
+          type: integer
+          format: int32
+          description: Minimum submitted attempts count
+        attemptsSubmittedMax:
+          type: integer
+          format: int32
+          description: Maximum submitted attempts count
+        questionsTotalMin:
+          type: integer
+          format: int32
+          description: Minimum total questions count
+        questionsTotalMax:
+          type: integer
+          format: int32
+          description: Maximum total questions count
+        avgDurationMin:
+          type: number
+          description: Minimum average quiz duration in seconds
+        avgDurationMax:
+          type: number
+          description: Maximum average quiz duration in seconds
+        estimatedDurationMin:
+          type: integer
+          format: int32
+          description: Minimum estimated quiz duration in seconds
+        estimatedDurationMax:
+          type: integer
+          format: int32
+          description: Maximum estimated quiz duration in seconds
+    DeleteAttemptsRequest:
+      type: object
+      description: Request payload for deleting selected attempts
+      properties:
+        attemptIds:
+          type: array
+          description: Attempt IDs to remove
+          example:
+          - 1
+          - 2
+          items:
+            type: integer
+            format: int32
+          minItems: 1
+        confirm:
+          type: boolean
+          description: Confirmation flag. Must be true to perform deletion.
+          example: true
   securitySchemes:
     Bearer Authentication:
       type: http
