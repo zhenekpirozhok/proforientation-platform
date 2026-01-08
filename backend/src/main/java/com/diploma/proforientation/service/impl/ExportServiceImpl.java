@@ -1,7 +1,9 @@
 package com.diploma.proforientation.service.impl;
 
+import com.diploma.proforientation.dto.QuizMetricsFilter;
 import com.diploma.proforientation.exception.CsvExportException;
 import com.diploma.proforientation.exception.ExcelExportException;
+import com.diploma.proforientation.repository.spec.QuizPublicMetricsSpecs;
 import com.diploma.proforientation.service.ExportService;
 import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.repository.*;
@@ -36,6 +38,7 @@ public class ExportServiceImpl implements ExportService {
     private final ProfessionRepository professionRepo;
     private final AttemptRepository attemptRepo;
     private final TranslationRepository translationRepo;
+    private final QuizPublicMetricsRepository quizPublicMetricsRepo;
 
     private final Map<String, Consumer<CSVWriter>> csvExporters = new LinkedHashMap<>();
 
@@ -55,7 +58,6 @@ public class ExportServiceImpl implements ExportService {
         Consumer<CSVWriter> exporter = csvExporters.get(entity);
 
         if (exporter == null) {
-            // Unsupported entity is a client error -> 400
             throw new CsvExportException(UNSUPPORTED_EXPORT_ENTITY + entity);
         }
 
@@ -96,6 +98,73 @@ public class ExportServiceImpl implements ExportService {
 
         } catch (IOException | RuntimeException e){
             throw new ExcelExportException(EXCEL_EXPORT_FAILED, e);
+        }
+    }
+
+    @Override
+    public byte[] exportQuizMetricsToCsv(QuizMetricsFilter filter) {
+        try (StringWriter sw = new StringWriter();
+             CSVWriter writer = new CSVWriter(
+                     sw,
+                     ICSVWriter.DEFAULT_SEPARATOR,
+                     ICSVWriter.NO_QUOTE_CHARACTER,
+                     ICSVWriter.DEFAULT_ESCAPE_CHARACTER,
+                     ICSVWriter.DEFAULT_LINE_END
+             )) {
+
+            writer.writeNext(HEADERS_QUIZ_PUBLIC_METRICS);
+
+            var rows = quizPublicMetricsRepo.findAll(QuizPublicMetricsSpecs.byFilter(filter));
+            for (var e : rows) {
+                writer.writeNext(new String[]{
+                        stringValue(e.getQuizId()),
+                        stringValue(e.getQuizCode()),
+                        stringValue(e.getQuizStatus()),
+                        stringValue(e.getCategoryId()),
+                        stringValue(e.getQuestionsTotal()),
+                        stringValue(e.getAttemptsTotal()),
+                        stringValue(e.getAttemptsSubmitted()),
+                        stringValue(e.getAvgDurationSeconds()),
+                        stringValue(e.getEstimatedDurationSeconds())
+                });
+            }
+
+            writer.flush();
+            return sw.toString().getBytes(StandardCharsets.UTF_8);
+
+        } catch (IOException | RuntimeException ex) {
+            throw new CsvExportException(CSV_EXPORT_FAILED + ENTITY_QUIZ_PUBLIC_METRICS, ex);
+        }
+    }
+
+    @Override
+    public byte[] exportQuizMetricsToExcel(QuizMetricsFilter filter) {
+        try (Workbook wb = new XSSFWorkbook()) {
+            Sheet s = wb.createSheet(ENTITY_QUIZ_PUBLIC_METRICS);
+            row(s, 0, (Object[]) HEADERS_QUIZ_PUBLIC_METRICS);
+
+            int r = 1;
+            var rows = quizPublicMetricsRepo.findAll(QuizPublicMetricsSpecs.byFilter(filter));
+            for (var e : rows) {
+                row(s, r++,
+                        e.getQuizId(),
+                        e.getQuizCode(),
+                        e.getQuizStatus(),
+                        e.getCategoryId(),
+                        e.getQuestionsTotal(),
+                        e.getAttemptsTotal(),
+                        e.getAttemptsSubmitted(),
+                        e.getAvgDurationSeconds(),
+                        e.getEstimatedDurationSeconds()
+                );
+            }
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            wb.write(out);
+            return out.toByteArray();
+
+        } catch (IOException | RuntimeException ex) {
+            throw new ExcelExportException(EXCEL_EXPORT_FAILED + ENTITY_QUIZ_PUBLIC_METRICS, ex);
         }
     }
 

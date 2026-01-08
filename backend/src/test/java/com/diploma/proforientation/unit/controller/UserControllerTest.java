@@ -20,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class UserControllerTest {
@@ -103,5 +104,50 @@ class UserControllerTest {
         assertThat(first.email()).isEqualTo("user@example.com");
 
         verify(userService, times(1)).getAllUsers(pageable);
+    }
+
+    @Test
+    void updateUserRole_shouldReturn204_andCallService_withNormalizedRole_adminLowercase() {
+        Integer userId = 10;
+        String role = "admin";
+
+        ResponseEntity<Void> res = userController.updateUserRole(userId, role);
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        verify(userService).changeUserRole(userId, UserRole.ADMIN);
+        verifyNoMoreInteractions(userService);
+    }
+
+    @Test
+    void updateUserRole_shouldReturn204_andCallService_withTrimmedRole() {
+        Integer userId = 11;
+        String role = "  USER  ";
+
+        ResponseEntity<Void> res = userController.updateUserRole(userId, role);
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        verify(userService).changeUserRole(userId, UserRole.USER);
+        verifyNoMoreInteractions(userService);
+    }
+
+    @Test
+    void updateUserRole_shouldThrowIllegalArgumentException_whenRoleInvalid() {
+        Integer userId = 12;
+        String role = "SUPER_PUPER_ADMIN";
+
+        assertThatThrownBy(() -> userController.updateUserRole(userId, role))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verifyNoInteractions(userService);
+    }
+
+    @Test
+    void updateUserRole_shouldThrowNullPointerException_whenRoleNull() {
+        Integer userId = 13;
+
+        assertThatThrownBy(() -> userController.updateUserRole(userId, null))
+                .isInstanceOf(NullPointerException.class);
+
+        verifyNoInteractions(userService);
     }
 }

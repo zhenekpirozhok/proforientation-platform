@@ -18,6 +18,30 @@ public record UpdateQuizRequest(
                 }
         )
         String processingMode,
+
+        @Schema(
+                description = "Updated quiz status",
+                examples = "PUBLISHED",
+                allowableValues = {
+                        "DRAFT",
+                        "PUBLISHED",
+                        "ARCHIVED"
+                }
+        )
+        String status,
+
+        @Schema(
+                description = "Updated quiz description (default language)",
+                examples = "Updated description for the quiz."
+        )
+        String descriptionDefault,
+
+        @Schema(
+                description = "Updated time limit per question in seconds",
+                examples = "45"
+        )
+        Integer secondsPerQuestionDefault,
+
         @Schema(
                 description = "Identifier of the new quiz category",
                 examples = "4"

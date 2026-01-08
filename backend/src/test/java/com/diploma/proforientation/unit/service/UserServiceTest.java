@@ -1,8 +1,10 @@
 package com.diploma.proforientation.unit.service;
 
 import com.diploma.proforientation.model.User;
+import com.diploma.proforientation.model.enumeration.UserRole;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.impl.UserServiceImpl;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -12,9 +14,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
+import java.util.Optional;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -31,6 +38,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
+        SecurityContextHolder.clearContext();
         MockitoAnnotations.openMocks(this);
 
         user1 = new User();
@@ -74,6 +82,77 @@ class UserServiceTest {
         assertEquals(0, result.getTotalElements());
 
         verify(userRepository, times(1)).findAll(pageable);
+        verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
+    void changeUserRole_shouldUpdateRole_whenDifferentUser() {
+        user1.setId(1);
+        user1.setRole(UserRole.USER);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "admin@example.com",
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                )
+        );
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(user1));
+
+        userService.changeUserRole(1, UserRole.ADMIN);
+
+        assertEquals(UserRole.ADMIN, user1.getRole());
+        verify(userRepository).findById(1);
+
+        verify(userRepository, atMostOnce()).save(any(User.class));
+        verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
+    void changeUserRole_shouldThrow_whenChangingOwnRole() {
+        user1.setId(1);
+        user1.setEmail("me@example.com");
+        user1.setRole(UserRole.USER);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "me@example.com",
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                )
+        );
+
+        when(userRepository.findById(1)).thenReturn(Optional.of(user1));
+
+        assertThatThrownBy(() -> userService.changeUserRole(1, UserRole.ADMIN))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Cannot change your own role");
+
+        assertEquals(UserRole.USER, user1.getRole());
+
+        verify(userRepository).findById(1);
+        verify(userRepository, never()).save(any());
+        verifyNoMoreInteractions(userRepository);
+    }
+
+    @Test
+    void changeUserRole_shouldThrow_whenUserNotFound() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        "admin@example.com",
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                )
+        );
+
+        when(userRepository.findById(999)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.changeUserRole(999, UserRole.ADMIN))
+                .isInstanceOf(EntityNotFoundException.class);
+
+        verify(userRepository).findById(999);
+        verify(userRepository, never()).save(any());
         verifyNoMoreInteractions(userRepository);
     }
 }

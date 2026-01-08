@@ -14,6 +14,7 @@ import com.diploma.proforientation.scoring.ScoringEngineFactory;
 import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.diploma.proforientation.util.LocaleProvider;
 import com.diploma.proforientation.util.TranslationResolver;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -24,6 +25,7 @@ import java.time.Instant;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.tuple;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.*;
@@ -172,7 +174,7 @@ class AttemptServiceTest {
         qv.setQuiz(q);
         a.setQuizVersion(qv);
 
-        when(attemptRepo.findByUserIdOrderByStartedAtDesc(99))
+        when(attemptRepo.findByUserIdAndDeletedAtIsNullOrderByStartedAtDesc(99))
                 .thenReturn(List.of(a));
 
         when(localeProvider.currentLanguage()).thenReturn("en");
@@ -206,7 +208,7 @@ class AttemptServiceTest {
         qv.setQuiz(q);
         a.setQuizVersion(qv);
 
-        when(attemptRepo.findByGuestTokenOrderByStartedAtDesc("abc"))
+        when(attemptRepo.findByGuestTokenAndDeletedAtIsNullOrderByStartedAtDesc("abc"))
                 .thenReturn(List.of(a));
 
         List<AttemptSummaryDto> list = service.getMyAttempts(null, "abc");
@@ -362,7 +364,7 @@ class AttemptServiceTest {
         Attempt attempt2 = new Attempt();
         attempt2.setGuestToken(guestToken);
 
-        when(attemptRepo.findAllByGuestToken(guestToken))
+        when(attemptRepo.findAllByGuestTokenAndDeletedAtIsNull(guestToken))
                 .thenReturn(List.of(attempt1, attempt2));
 
         service.attachGuestAttempts(guestToken, user);
@@ -373,7 +375,7 @@ class AttemptServiceTest {
         assertThat(attempt2.getUser()).isEqualTo(user);
         assertThat(attempt2.getGuestToken()).isNull();
 
-        verify(attemptRepo, times(1)).findAllByGuestToken(guestToken);
+        verify(attemptRepo, times(1)).findAllByGuestTokenAndDeletedAtIsNull(guestToken);
     }
 
     @Test
@@ -402,4 +404,138 @@ class AttemptServiceTest {
         verify(answerRepo).saveAll(anyList());
     }
 
+    @Test
+    void deleteSelectedAttempts_shouldSoftDelete_forUser_whenConfirmed() {
+        User u = new User();
+        u.setId(10);
+
+        Attempt a1 = new Attempt();
+        a1.setId(1);
+        a1.setUser(u);
+        a1.setDeletedAt(null);
+
+        Attempt a2 = new Attempt();
+        a2.setId(2);
+        a2.setUser(u);
+        a2.setDeletedAt(null);
+
+        when(attemptRepo.findAllById(List.of(1, 2))).thenReturn(List.of(a1, a2));
+
+        service.deleteSelectedAttempts(10, null, List.of(1, 2), true);
+
+        assertThat(a1.getDeletedAt()).isNotNull();
+        assertThat(a2.getDeletedAt()).isNotNull();
+        verify(attemptRepo).findAllById(List.of(1, 2));
+        verifyNoMoreInteractions(attemptRepo);
+    }
+
+    @Test
+    void deleteSelectedAttempts_shouldSoftDelete_forGuest_whenConfirmed() {
+        Attempt a1 = new Attempt();
+        a1.setId(5);
+        a1.setGuestToken("guest-xyz");
+        a1.setDeletedAt(null);
+
+        Attempt a2 = new Attempt();
+        a2.setId(6);
+        a2.setGuestToken("guest-xyz");
+        a2.setDeletedAt(null);
+
+        when(attemptRepo.findAllById(List.of(5, 6))).thenReturn(List.of(a1, a2));
+
+        service.deleteSelectedAttempts(null, "guest-xyz", List.of(5, 6), true);
+
+        assertThat(a1.getDeletedAt()).isNotNull();
+        assertThat(a2.getDeletedAt()).isNotNull();
+        verify(attemptRepo).findAllById(List.of(5, 6));
+        verifyNoMoreInteractions(attemptRepo);
+    }
+
+    @Test
+    void deleteSelectedAttempts_shouldThrow_whenNotConfirmed() {
+        assertThatThrownBy(() ->
+                service.deleteSelectedAttempts(10, null, List.of(1, 2), false)
+        ).isInstanceOf(IllegalStateException.class);
+
+        verifyNoInteractions(attemptRepo);
+    }
+
+    @Test
+    void deleteSelectedAttempts_shouldThrow_whenAttemptsNotFound_sizeMismatch() {
+        User u = new User();
+        u.setId(10);
+
+        Attempt a1 = new Attempt();
+        a1.setId(1);
+        a1.setUser(u);
+
+        when(attemptRepo.findAllById(List.of(1, 2))).thenReturn(List.of(a1));
+
+        assertThatThrownBy(() ->
+                service.deleteSelectedAttempts(10, null, List.of(1, 2), true)
+        ).isInstanceOf(EntityNotFoundException.class);
+
+        verify(attemptRepo).findAllById(List.of(1, 2));
+        verifyNoMoreInteractions(attemptRepo);
+    }
+
+    @Test
+    void deleteSelectedAttempts_shouldThrow_whenUserTriesToDeleteOthersAttempt() {
+        User owner = new User();
+        owner.setId(99);
+
+        Attempt a1 = new Attempt();
+        a1.setId(1);
+        a1.setUser(owner);
+
+        when(attemptRepo.findAllById(List.of(1))).thenReturn(List.of(a1));
+
+        assertThatThrownBy(() ->
+                service.deleteSelectedAttempts(10, null, List.of(1), true)
+        ).isInstanceOf(EntityNotFoundException.class);
+
+        assertThat(a1.getDeletedAt()).isNull();
+
+        verify(attemptRepo).findAllById(List.of(1));
+        verifyNoMoreInteractions(attemptRepo);
+    }
+
+    @Test
+    void deleteSelectedAttempts_shouldThrow_whenGuestTokenDoesNotMatch() {
+        Attempt a1 = new Attempt();
+        a1.setId(5);
+        a1.setGuestToken("guest-A");
+
+        when(attemptRepo.findAllById(List.of(5))).thenReturn(List.of(a1));
+
+        assertThatThrownBy(() ->
+                service.deleteSelectedAttempts(null, "guest-B", List.of(5), true)
+        ).isInstanceOf(EntityNotFoundException.class);
+
+        assertThat(a1.getDeletedAt()).isNull();
+
+        verify(attemptRepo).findAllById(List.of(5));
+        verifyNoMoreInteractions(attemptRepo);
+    }
+
+    @Test
+    void deleteSelectedAttempts_shouldNotChangeDeletedAt_ifAlreadyDeleted() {
+        User u = new User();
+        u.setId(10);
+
+        Attempt a1 = new Attempt();
+        a1.setId(1);
+        a1.setUser(u);
+        Instant alreadyDeleted = Instant.now().minusSeconds(3600);
+        a1.setDeletedAt(alreadyDeleted);
+
+        when(attemptRepo.findAllById(List.of(1))).thenReturn(List.of(a1));
+
+        service.deleteSelectedAttempts(10, null, List.of(1), true);
+
+        assertThat(a1.getDeletedAt()).isEqualTo(alreadyDeleted);
+
+        verify(attemptRepo).findAllById(List.of(1));
+        verifyNoMoreInteractions(attemptRepo);
+    }
 }

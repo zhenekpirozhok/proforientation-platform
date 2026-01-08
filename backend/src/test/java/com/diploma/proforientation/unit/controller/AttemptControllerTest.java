@@ -4,6 +4,7 @@ import com.diploma.proforientation.controller.AttemptController;
 import com.diploma.proforientation.dto.AttemptResultDto;
 import com.diploma.proforientation.dto.AttemptSummaryDto;
 import com.diploma.proforientation.dto.RecommendationDto;
+import com.diploma.proforientation.dto.request.DeleteAttemptsRequest;
 import com.diploma.proforientation.dto.request.add.AddAnswerRequest;
 import com.diploma.proforientation.dto.request.add.AddAnswersBulkRequest;
 import com.diploma.proforientation.dto.request.add.AddAnswersForQuestionRequest;
@@ -367,5 +368,102 @@ class AttemptControllerTest {
         );
 
         assertEquals("Some options do not belong to question", ex.getMessage());
+    }
+
+    @Test
+    void testDeleteMyAttempts_nullRequest_throwsNpe() {
+        assertThrows(NullPointerException.class,
+                () -> attemptController.deleteMyAttempts( "guest", null));
+
+        verifyNoInteractions(attemptService);
+    }
+
+    @Test
+    void testDeleteMyAttempts_success_callsServiceWithAuthUserIdAndGuestToken() {
+        when(authUtils.getAuthenticatedUserId()).thenReturn(33);
+
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(10, 11, 12),
+                true
+        );
+
+        attemptController.deleteMyAttempts("guest-abc", req);
+
+        verify(authUtils).getAuthenticatedUserId();
+        verify(attemptService).deleteSelectedAttempts(33, "guest-abc", List.of(10, 11, 12), true);
+        verifyNoMoreInteractions(attemptService, authUtils);
+    }
+
+    @Test
+    void testDeleteMyAttempts_nullGuestToken_callsServiceWithAuthUserId() {
+        when(authUtils.getAuthenticatedUserId()).thenReturn(10);
+
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(1, 2),
+                true
+        );
+
+        attemptController.deleteMyAttempts(null, req);
+
+        verify(authUtils).getAuthenticatedUserId();
+        verify(attemptService).deleteSelectedAttempts(10, null, List.of(1, 2), true);
+        verifyNoMoreInteractions(attemptService, authUtils);
+    }
+
+    @Test
+    void testDeleteMyAttempts_authReturnsNull_userIsGuest_onlyGuestTokenPassed() {
+        when(authUtils.getAuthenticatedUserId()).thenReturn(null);
+
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(5),
+                true
+        );
+
+        attemptController.deleteMyAttempts("guest-xyz", req);
+
+        verify(authUtils).getAuthenticatedUserId();
+        verify(attemptService).deleteSelectedAttempts(null, "guest-xyz", List.of(5), true);
+        verifyNoMoreInteractions(attemptService, authUtils);
+    }
+
+    @Test
+    void testDeleteMyAttempts_authReturnsNull_andGuestTokenNull_stillCallsService() {
+        when(authUtils.getAuthenticatedUserId()).thenReturn(null);
+
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(7, 8),
+                true
+        );
+
+        attemptController.deleteMyAttempts(null, req);
+
+        verify(authUtils).getAuthenticatedUserId();
+        verify(attemptService).deleteSelectedAttempts(null, null, List.of(7, 8), true);
+        verifyNoMoreInteractions(attemptService, authUtils);
+    }
+
+    @Test
+    void testDeleteMyAttempts_serviceThrows_propagates() {
+        when(authUtils.getAuthenticatedUserId()).thenReturn(1);
+
+        DeleteAttemptsRequest req = new DeleteAttemptsRequest(
+                List.of(77),
+                true
+        );
+
+        doThrow(new IllegalStateException("Confirmation required"))
+                .when(attemptService)
+                .deleteSelectedAttempts(1, null, List.of(77), true);
+
+        IllegalStateException ex = assertThrows(
+                IllegalStateException.class,
+                () -> attemptController.deleteMyAttempts(null, req)
+        );
+
+        assertEquals("Confirmation required", ex.getMessage());
+
+        verify(authUtils).getAuthenticatedUserId();
+        verify(attemptService).deleteSelectedAttempts(1, null, List.of(77), true);
+        verifyNoMoreInteractions(attemptService, authUtils);
     }
 }

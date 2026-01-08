@@ -35,6 +35,13 @@ import static com.diploma.proforientation.util.Constants.*;
 @RequiredArgsConstructor
 public class QuizServiceImpl implements QuizService {
 
+    private static final String STATUS_FIELD = "status";
+    private static final String ID_FIELD = "id";
+    private static final String CATEGORY_FIELD = "category";
+    private static final String TITLE_FIELD = "titleDefault";
+    private static final String CODE_FIELD = "code";
+    private static final String DESCRIPTION_FIELD = "descriptionDefault";
+
     private final QuizRepository quizRepo;
     private final ProfessionCategoryRepository categoryRepo;
     private final UserRepository userRepo;
@@ -74,7 +81,7 @@ public class QuizServiceImpl implements QuizService {
     public QuizDto getByCodeLocalized(String code) {
         String locale = localeProvider.currentLanguage();
         Quiz quiz = quizRepo.findByCode(code)
-                .orElseThrow(() -> new EntityNotFoundException("Quiz not found with code: " + code));
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_CODE_NOT_FOUND + code));
         return toDtoLocalized(quiz, locale);
     }
 
@@ -93,6 +100,16 @@ public class QuizServiceImpl implements QuizService {
         q.setProcessingMode(req.processingMode() != null
                 ? Enum.valueOf(QuizProcessingMode.class, req.processingMode())
                 : QuizProcessingMode.LLM);
+        q.setStatus(req.status() != null
+                ? QuizStatus.valueOf(req.status())
+                : QuizStatus.DRAFT);
+        q.setDescriptionDefault(req.descriptionDefault());
+        if (req.secondsPerQuestionDefault() != null) {
+            if (req.secondsPerQuestionDefault() <= 0) {
+                throw new IllegalArgumentException(SECONDS_COUNT_SHOULD_BE_GRATER_THEN_ZERO);
+            }
+            q.setSecondsPerQuestionDefault(req.secondsPerQuestionDefault());
+        }
         q.setCategory(category);
         q.setAuthor(author);
         q.setCreatedAt(Instant.now());
@@ -115,6 +132,20 @@ public class QuizServiceImpl implements QuizService {
             q.setProcessingMode(Enum.valueOf(QuizProcessingMode.class,
                     req.processingMode()
             ));
+        }
+        if (req.status() != null) {
+            q.setStatus(QuizStatus.valueOf(req.status()));
+        }
+
+        if (req.descriptionDefault() != null) {
+            q.setDescriptionDefault(req.descriptionDefault());
+        }
+
+        if (req.secondsPerQuestionDefault() != null) {
+            if (req.secondsPerQuestionDefault() <= 0) {
+                throw new IllegalArgumentException(SECONDS_COUNT_SHOULD_BE_GRATER_THEN_ZERO);
+            }
+            q.setSecondsPerQuestionDefault(req.secondsPerQuestionDefault());
         }
 
         if (req.categoryId() != null) {
@@ -161,23 +192,23 @@ public class QuizServiceImpl implements QuizService {
         Specification<Quiz> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            predicates.add(cb.equal(root.get("status"), QuizStatus.PUBLISHED));
+            predicates.add(cb.equal(root.get(STATUS_FIELD), QuizStatus.PUBLISHED));
 
             if (search != null && !search.isBlank()) {
-                String like = "%" + search.trim().toLowerCase() + "%";
+                String like = PERCENT + search.trim().toLowerCase() + PERCENT;
                 predicates.add(cb.or(
-                        cb.like(cb.lower(root.get("titleDefault")), like),
-                        cb.like(cb.lower(root.get("code")), like),
-                        cb.like(cb.lower(root.get("descriptionDefault")), like)
+                        cb.like(cb.lower(root.get(TITLE_FIELD)), like),
+                        cb.like(cb.lower(root.get(CODE_FIELD)), like),
+                        cb.like(cb.lower(root.get(DESCRIPTION_FIELD)), like)
                 ));
             }
 
             if (categoryId != null) {
-                predicates.add(cb.equal(root.get("category").get("id"), categoryId));
+                predicates.add(cb.equal(root.get(CATEGORY_FIELD).get(ID_FIELD), categoryId));
             }
 
             if (hasDurationFilter) {
-                predicates.add(root.get("id").in(durationQuizIds));
+                predicates.add(root.get(ID_FIELD).in(durationQuizIds));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

@@ -120,7 +120,7 @@ class QuizControllerTest {
         setAdmin();
 
         CreateQuizRequest req =
-                new CreateQuizRequest("QX", "New Quiz", "ml_riasec", 5, 1);
+                new CreateQuizRequest("QX", "New Quiz", "ml_riasec", null, null, 30,5, 1);
 
         QuizDto created =
                 new QuizDto(100, "QX", "New Quiz", "draft", "ml_riasec", 5, 1, null, 30);
@@ -138,7 +138,7 @@ class QuizControllerTest {
         setAdmin();
 
         UpdateQuizRequest req =
-                new UpdateQuizRequest("Updated", "ml_riasec", 99);
+                new UpdateQuizRequest("Updated", "ml_riasec", null, null, 30, 99);
 
         QuizDto updated =
                 new QuizDto(50, "Q50", "Updated", "draft", "ml_riasec", 99, 10, null, 30);

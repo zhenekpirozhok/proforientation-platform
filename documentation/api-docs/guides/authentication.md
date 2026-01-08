@@ -86,9 +86,9 @@ All authenticated requests must include the access token.
 
 - Save the token you received after login.
 - Go to the Authorize button above.
-![Screenshot 2025-12-19 at 11.06.58.png](../../../../../../../var/folders/6b/3q8v8r2x31ldf94c9g2phby40000gn/T/TemporaryItems/NSIRD_screencaptureui_Qu6gha/Screenshot%202025-12-19%20at%2011.06.58.png)
+![authorize.png](../assets/authorize.png)
 - Enter the token and click "Authorize".
-![Screenshot 2025-12-19 at 11.07.48.png](../../../../../../../var/folders/6b/3q8v8r2x31ldf94c9g2phby40000gn/T/TemporaryItems/NSIRD_screencaptureui_mYArCu/Screenshot%202025-12-19%20at%2011.07.48.png)
+![enter_token.png](../assets/enter_token.png)
 
 ---
 

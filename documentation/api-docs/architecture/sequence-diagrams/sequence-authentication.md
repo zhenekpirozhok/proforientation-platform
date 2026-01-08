@@ -7,11 +7,11 @@ standard login and token refresh.
 
 ## User Login (Email & Password)
 
-![Screenshot 2025-12-19 at 13.02.18.png](../../../../../../../var/folders/6b/3q8v8r2x31ldf94c9g2phby40000gn/T/TemporaryItems/NSIRD_screencaptureui_cNSYWg/Screenshot%202025-12-19%20at%2013.02.18.png)
+![sequence-authentication.png](../../assets/sequence-authentication.png)
 
 ## Refresh Token Flow
 
-![Screenshot 2025-12-19 at 13.01.33.png](../../../../../../../var/folders/6b/3q8v8r2x31ldf94c9g2phby40000gn/T/TemporaryItems/NSIRD_screencaptureui_aaUFRi/Screenshot%202025-12-19%20at%2013.01.33.png)
+![refresh-token-flow.png](../../assets/refresh-token-flow.png)
 
 ## Failure Scenarios
 

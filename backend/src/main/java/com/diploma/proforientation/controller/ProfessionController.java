@@ -119,4 +119,36 @@ public class ProfessionController {
     public void delete(@PathVariable Integer id) {
         service.delete(id);
     }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @Operation(
+            summary = "Search professions",
+            description = """
+            Searches professions using text and filters.
+
+            Search capabilities:
+            - Text search by title, description, code, or ML class code
+            - Optional filtering by profession category
+            - Supports pagination and sorting
+        """
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Professions retrieved successfully"
+    )
+    @ApiResponse(
+            responseCode = "400",
+            description = "Invalid search parameters"
+    )
+    public Page<ProfessionDto> search(
+            @RequestParam(defaultValue = "") String q,
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id") String sort
+    ) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
+        return service.searchLocalized(q, categoryId, pageable);
+    }
 }

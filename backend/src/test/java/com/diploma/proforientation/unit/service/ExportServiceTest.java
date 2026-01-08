@@ -1,10 +1,12 @@
 package com.diploma.proforientation.unit.service;
 
+import com.diploma.proforientation.dto.QuizMetricsFilter;
 import com.diploma.proforientation.exception.CsvExportException;
 import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.model.enumeration.QuestionType;
 import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
 import com.diploma.proforientation.model.enumeration.QuizStatus;
+import com.diploma.proforientation.model.view.QuizPublicMetricsEntity;
 import com.diploma.proforientation.repository.*;
 import com.diploma.proforientation.service.ExportService;
 import com.diploma.proforientation.service.impl.ExportServiceImpl;
@@ -17,8 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
@@ -37,6 +41,7 @@ class ExportServiceTest {
     @Mock ProfessionRepository professionRepo;
     @Mock AttemptRepository attemptRepo;
     @Mock TranslationRepository translationRepo;
+    @Mock QuizPublicMetricsRepository quizPublicMetricsRepo;
 
     ExportService service;
 
@@ -49,7 +54,8 @@ class ExportServiceTest {
                 optionRepo,
                 professionRepo,
                 attemptRepo,
-                translationRepo
+                translationRepo,
+                quizPublicMetricsRepo
         );
         impl.initExporters();
         service = impl;
@@ -489,6 +495,104 @@ class ExportServiceTest {
         verify(translationRepo, times(1)).findAll();
     }
 
+    @Test
+    void exportQuizMetricsCsv_singleRow_returnsCsv() {
+        QuizPublicMetricsEntity e = new QuizPublicMetricsEntity();
+        e.setQuizId(1);
+        e.setQuizCode("career_test");
+        e.setQuizStatus("PUBLISHED");
+        e.setCategoryId(3);
+        e.setQuestionsTotal(10);
+        e.setAttemptsTotal(100);
+        e.setAttemptsSubmitted(80);
+        e.setAvgDurationSeconds(BigDecimal.valueOf(650.5));
+        e.setEstimatedDurationSeconds(600);
+
+        when(quizPublicMetricsRepo.findAll(any(Specification.class)))
+                .thenReturn(List.of(e));
+
+        QuizMetricsFilter filter = new QuizMetricsFilter(
+                1, "career", QuizStatus.PUBLISHED, 3,
+                null, null, null, null, null, null,
+                null, null, null, null
+        );
+
+        String csv = csv(service.exportQuizMetricsToCsv(filter));
+
+        assertThat(csv).contains(
+                "quiz_id,quiz_code,quiz_status,category_id,questions_total,attempts_total,attempts_submitted,avg_duration_seconds,estimated_duration_seconds",
+                "1,career_test,PUBLISHED,3,10,100,80,650.5,600"
+        );
+
+        verify(quizPublicMetricsRepo).findAll(any(Specification.class));
+        verifyNoMoreInteractions(quizPublicMetricsRepo);
+    }
+
+    @Test
+    void exportQuizMetricsExcel_singleRow_containsSheetAndRow() throws Exception {
+        QuizPublicMetricsEntity e = new QuizPublicMetricsEntity();
+        e.setQuizId(1);
+        e.setQuizCode("career_test");
+        e.setQuizStatus("PUBLISHED");
+        e.setCategoryId(3);
+        e.setQuestionsTotal(10);
+        e.setAttemptsTotal(100);
+        e.setAttemptsSubmitted(80);
+        e.setAvgDurationSeconds(BigDecimal.valueOf(650.5));
+        e.setEstimatedDurationSeconds(600);
+
+        when(quizPublicMetricsRepo.findAll(any(Specification.class)))
+                .thenReturn(List.of(e));
+
+        QuizMetricsFilter filter = new QuizMetricsFilter(
+                null, null, null, null,
+                null, null, null, null, null, null,
+                null, null, null, null
+        );
+
+        Workbook wb = workbook(service.exportQuizMetricsToExcel(filter));
+        Sheet s = wb.getSheet("quiz_public_metrics");
+
+        assertThat(s).isNotNull();
+
+        assertThat(cell(s, 0, 0)).isEqualTo("quiz_id");
+        assertThat(cell(s, 0, 1)).isEqualTo("quiz_code");
+        assertThat(cell(s, 0, 2)).isEqualTo("quiz_status");
+
+        assertThat(cell(s, 1, 0)).isEqualTo("1");
+        assertThat(cell(s, 1, 1)).isEqualTo("career_test");
+        assertThat(cell(s, 1, 2)).isEqualTo("PUBLISHED");
+        assertThat(cell(s, 1, 3)).isEqualTo("3");
+        assertThat(cell(s, 1, 4)).isEqualTo("10");
+        assertThat(cell(s, 1, 5)).isEqualTo("100");
+        assertThat(cell(s, 1, 6)).isEqualTo("80");
+        assertThat(cell(s, 1, 7)).isEqualTo("650.5");
+        assertThat(cell(s, 1, 8)).isEqualTo("600");
+
+        verify(quizPublicMetricsRepo).findAll(any(Specification.class));
+        verifyNoMoreInteractions(quizPublicMetricsRepo);
+    }
+
+    @Test
+    void exportQuizMetricsCsv_empty_returnsHeaderOnly() {
+        when(quizPublicMetricsRepo.findAll(any(Specification.class)))
+                .thenReturn(List.of());
+
+        QuizMetricsFilter filter = new QuizMetricsFilter(
+                null, null, null, null,
+                null, null, null, null, null, null,
+                null, null, null, null
+        );
+
+        String csv = csv(service.exportQuizMetricsToCsv(filter)).trim();
+
+        assertThat(csv).isEqualTo(
+                "quiz_id,quiz_code,quiz_status,category_id,questions_total,attempts_total,attempts_submitted,avg_duration_seconds,estimated_duration_seconds"
+        );
+
+        verify(quizPublicMetricsRepo).findAll(any(Specification.class));
+        verifyNoMoreInteractions(quizPublicMetricsRepo);
+    }
 
     private String csv(byte[] bytes) {
         return new String(bytes, StandardCharsets.UTF_8);

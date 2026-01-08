@@ -13,4 +13,5 @@ public interface ProfessionService {
     ProfessionDto create(CreateProfessionRequest req);
     ProfessionDto update(Integer id, CreateProfessionRequest req);
     void delete(Integer id);
+    Page<ProfessionDto> searchLocalized(String q, Integer categoryId, Pageable pageable);
 }

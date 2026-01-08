@@ -1,9 +1,0 @@
-entity_type,entity_id,field,locale,text
-quiz,1,title,en,Personality Quiz
-quiz,1,title,fr,Quiz de personnalité
-question,1,text,en,What is your favorite color?
-question,1,text,fr,Quelle est votre couleur préférée ?
-question_option,2,text,en,Java
-question_option,2,text,fr,Java
-profession,3,title,en,Software Developer
-profession,3,title,fr,Développeur logiciel

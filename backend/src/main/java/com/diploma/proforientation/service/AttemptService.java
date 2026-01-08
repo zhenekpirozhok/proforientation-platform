@@ -19,4 +19,5 @@ public interface AttemptService {
     List<AttemptSummaryDto> adminSearchAttempts(Integer userId, Integer quizId, Instant from, Instant to);
     void attachGuestAttempts(String guestToken, User user);
     void addAnswersForQuestion(Integer attemptId, Integer questionId, List<Integer> optionIds);
+    void deleteSelectedAttempts(Integer userId, String guestToken, List<Integer> attemptIds, boolean confirm);
 }

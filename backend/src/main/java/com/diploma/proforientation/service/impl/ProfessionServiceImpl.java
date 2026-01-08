@@ -94,6 +94,14 @@ public class ProfessionServiceImpl implements ProfessionService {
         repo.deleteById(id);
     }
 
+    @Override
+    public Page<ProfessionDto> searchLocalized(String q, Integer categoryId, Pageable pageable) {
+        String locale = localeProvider.currentLanguage();
+
+        return repo.search(q, categoryId, pageable)
+                .map(p -> toDtoLocalized(p, locale));
+    }
+
     private ProfessionDto toDto(Profession p) {
         return new ProfessionDto(
                 p.getId(),
