@@ -145,7 +145,6 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
       setAttempt: (attemptId, guestToken) => {
         const s = get();
         const already =
-        const already =
           s.attemptId === attemptId &&
           s.guestToken === guestToken &&
           s.status === 'in-progress' &&
