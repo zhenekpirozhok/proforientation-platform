@@ -13,7 +13,7 @@ The system follows a layered architecture:
 
 ## System Component Diagram
 
-![Screenshot 2025-12-19 at 13.14.59.png](../../../../../../../var/folders/6b/3q8v8r2x31ldf94c9g2phby40000gn/T/TemporaryItems/NSIRD_screencaptureui_mspYPM/Screenshot%202025-12-19%20at%2013.14.59.png)
+![component-diagram.png](../assets/component-diagram.png)
 
 ## Component Responsibilities
 API Layer

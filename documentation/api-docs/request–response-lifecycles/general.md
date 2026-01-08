@@ -1,6 +1,6 @@
 # General Request-Response Lifecycle 
 
-![Screenshot 2025-12-19 at 13.22.26.png](../../../../../../../var/folders/6b/3q8v8r2x31ldf94c9g2phby40000gn/T/TemporaryItems/NSIRD_screencaptureui_AmmLzJ/Screenshot%202025-12-19%20at%2013.22.26.png)
+![general-lifecycle.png](../assets/general-lifecycle.png)
 
 Every API request follows a consistent lifecycle:
 

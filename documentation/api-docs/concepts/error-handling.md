@@ -116,13 +116,13 @@ Returned when an unexpected system error occurs.
 ⚠️ Internal implementation details are intentionally hidden for security reasons.
 
 ## 7. Error Taxonomy Summary
-| HTTP Status | Category                         |
-|------------|----------------------------------|
-| 400        | Validation / business rule violation |
-| 401        | Authentication error            |
-| 403        | Authorization error             |
-| 404        | Resource not found              |
-| 500        | Internal server error           |
+| HTTP Status | Category                             |
+|-------------|--------------------------------------|
+| 400         | Validation / business rule violation |
+| 401         | Authentication error                 |
+| 403         | Authorization error                  |
+| 404         | Resource not found                   |
+| 500         | Internal server error                |
 
 ## 8. Best Practices for API Consumers
 

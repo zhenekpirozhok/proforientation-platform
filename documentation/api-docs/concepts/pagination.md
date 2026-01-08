@@ -12,11 +12,11 @@ predictable performance and consistent API behavior.
 
 Paginated endpoints accept the following query parameters:
 
-| Parameter | Type | Description |
-|----|----|----|
-| `page` | integer | Zero-based page index (default: `0`) |
-| `size` | integer | Number of items per page (default: `20`) |
-| `sort` | string | Sorting criteria |
+| Parameter | Type    | Description                              |
+|-----------|---------|------------------------------------------|
+| `page`    | integer | Zero-based page index (default: `0`)     |
+| `size`    | integer | Number of items per page (default: `20`) |
+| `sort`    | string  | Sorting criteria                         |
 
 ### Example Request
 
