@@ -179,7 +179,14 @@ describe('useQuizzesCatalog', () => {
             }),
         );
 
-        useSearchQuizzesLocalizedMock.mockReturnValueOnce(makeQuery());
+        useSearchQuizzesLocalizedMock.mockReturnValueOnce(
+            makeQuery({
+                data: [
+                    { id: 1, title: 'A' },
+                    { id: 2, title: 'B' },
+                ],
+            }),
+        );
 
         useGetAllMetricsMock.mockReturnValueOnce(
             makeQuery({
@@ -206,8 +213,10 @@ describe('useQuizzesCatalog', () => {
             filters: { search: '', category: '10', duration: 'any' },
         });
 
+        expect(useSearchQuizzesLocalizedMock).toHaveBeenCalled();
         expect(out.items.map((x: any) => x.id)).toEqual([1]);
     });
+
 
     test('total uses totalElements or total or fallback length', () => {
         useQuizzesMock.mockReturnValueOnce(
