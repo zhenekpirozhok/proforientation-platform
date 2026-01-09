@@ -1,8 +1,0 @@
-locals {
-  vpc_id             = var.vpc_id
-  db_secret_arn      = var.db_secret_arn
-  cluster_name       = var.cluster_name
-  alb_listener_arn   = var.alb_listener_arn
-  backend_sg_id      = var.backend_sg_id
-  private_subnet_ids = var.private_subnet_ids
-}

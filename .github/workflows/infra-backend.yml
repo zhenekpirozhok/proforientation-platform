@@ -17,31 +17,6 @@ on:
         description: "ECR image URI for flyway-migrations (repo:tag)"
         required: true
         type: string
-      vpc_id:
-        description: "vpc_id"
-        required: true
-        type: string
-      db_secret_arn:
-        description: "db_secret_arn"
-        required: true
-        type: string
-      cluster_name:
-        description: "cluster_name"
-        required: true
-        type: string
-      alb_listener_arn:
-        description: "alb_listener_arn"
-        required: true
-        type: string
-      backend_sg_id:
-        description: "backend_sg_id"
-        required: true
-        type: string
-      private_subnet_ids:
-        required: true
-        type: string
-        description: 'JSON list, e.g. ["subnet-aaa","subnet-bbb"]'
-
 
 permissions:
   id-token: write
@@ -73,6 +48,16 @@ jobs:
         working-directory: infra/backend
         run: terraform init
 
+      - name: Show backend directory contents
+        working-directory: infra/backend
+        run: |
+          pwd
+          ls -la
+          echo "---- tf files ----"
+          find . -maxdepth 1 -type f -name "*.tf" -print
+          echo "---- locals.tf ----"
+          sed -n '1,120p' locals.tf || true
+
       - name: Validate
         working-directory: infra/backend
         run: terraform validate
@@ -83,15 +68,7 @@ jobs:
         run: |
           terraform plan \
             -var="backend_image=${{ inputs.backend_image }}" \
-            -var="flyway_image=${{ inputs.flyway_image }}" \
-            -var="backend_image=${{ inputs.backend_image }}" \
-            -var="flyway_image=${{ inputs.flyway_image }}" \
-            -var="vpc_id=${{ inputs.vpc_id }}" \
-            -var="db_secret_arn=${{ inputs.db_secret_arn }}" \
-            -var="cluster_name=${{ inputs.cluster_name }}" \
-            -var="alb_listener_arn=${{ inputs.alb_listener_arn }}" \
-            -var="backend_sg_id=${{ inputs.backend_sg_id }}" \
-            -var='private_subnet_ids=${{ inputs.private_subnet_ids }}'
+            -var="flyway_image=${{ inputs.flyway_image }}"
 
       - name: Apply
         if: inputs.action == 'apply'
@@ -99,15 +76,7 @@ jobs:
         run: |
           terraform apply -auto-approve \
             -var="backend_image=${{ inputs.backend_image }}" \
-            -var="flyway_image=${{ inputs.flyway_image }}" \
-            -var="backend_image=${{ inputs.backend_image }}" \
-            -var="flyway_image=${{ inputs.flyway_image }}" \
-            -var="vpc_id=${{ inputs.vpc_id }}" \
-            -var="db_secret_arn=${{ inputs.db_secret_arn }}" \
-            -var="cluster_name=${{ inputs.cluster_name }}" \
-            -var="alb_listener_arn=${{ inputs.alb_listener_arn }}" \
-            -var="backend_sg_id=${{ inputs.backend_sg_id }}" \
-            -var='private_subnet_ids=${{ inputs.private_subnet_ids }}'
+            -var="flyway_image=${{ inputs.flyway_image }}"
 
       - name: Destroy
         if: ${{ inputs.action == 'destroy' }}
@@ -115,12 +84,4 @@ jobs:
         run: |
             terraform destroy -auto-approve \
               -var="backend_image=${{ inputs.backend_image }}" \
-              -var="flyway_image=${{ inputs.flyway_image }}" \
-              -var="backend_image=${{ inputs.backend_image }}" \
-              -var="flyway_image=${{ inputs.flyway_image }}" \
-              -var="vpc_id=${{ inputs.vpc_id }}" \
-              -var="db_secret_arn=${{ inputs.db_secret_arn }}" \
-              -var="cluster_name=${{ inputs.cluster_name }}" \
-              -var="alb_listener_arn=${{ inputs.alb_listener_arn }}" \
-              -var="backend_sg_id=${{ inputs.backend_sg_id }}" \
-              -var='private_subnet_ids=${{ inputs.private_subnet_ids }}'
+              -var="flyway_image=${{ inputs.flyway_image }}"
