@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "plan or apply"
+        description: "plan, apply, or destroy"
         required: true
         default: "plan"
         type: choice
-        options: [plan, apply]
+        options: [plan, apply, destroy]
       backend_image:
         description: "ECR image URI for backend (repo:tag)"
         required: true
@@ -67,3 +67,16 @@ jobs:
           terraform apply -auto-approve \
             -var="backend_image=${{ inputs.backend_image }}" \
             -var="flyway_image=${{ inputs.flyway_image }}"
+
+      - name: Destroy
+        if: ${{ inputs.action == 'destroy' }}
+        working-directory: infra/backend
+        run: |
+            terraform destroy -auto-approve \
+              -var="backend_image=${{ inputs.backend_image }}" \
+              -var="flyway_image=${{ inputs.flyway_image }}"
+
+      - name: Destroy
+        if: ${{ inputs.action == 'destroy' }}
+        working-directory: infra
+        run: terraform destroy -auto-approve -var="image=${{ inputs.image }}"
