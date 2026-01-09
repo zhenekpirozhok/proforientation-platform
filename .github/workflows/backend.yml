@@ -62,6 +62,16 @@ jobs:
           chmod +x mvnw || true
           ./mvnw -B -U --no-transfer-progress verify
 
+      - name: Migrate CI DB (Flyway)
+        run: |
+          docker run --rm --network host \
+            -v "$GITHUB_WORKSPACE/db/migration:/flyway/sql" \
+            flyway/flyway:10-alpine \
+            -url="jdbc:postgresql://localhost:5432/proforientation" \
+            -user="postgres" \
+            -password="postgres" \
+            migrate
+
       - name: Smoke test + Export OpenAPI spec (JSON)
         env:
           POSTGRES_HOST: localhost
@@ -69,7 +79,7 @@ jobs:
           POSTGRES_DB: proforientation
           APP_DB_USER: postgres
           APP_DB_PASSWORD: postgres
-          SPRING_JPA_HIBERNATE_DDL_AUTO: update
+          SPRING_JPA_HIBERNATE_DDL_AUTO: validate
           ML_API_URL: http://127.0.0.1:8000
           JWT_SECRET_KEY: ci_demo_secret
           GOOGLE_CLIENT_ID: dummy
