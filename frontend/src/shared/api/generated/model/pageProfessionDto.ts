@@ -15,9 +15,9 @@ export interface PageProfessionDto {
   content?: ProfessionDto[];
   number?: number;
   sort?: SortObject;
-  first?: boolean;
-  last?: boolean;
   numberOfElements?: number;
   pageable?: PageableObject;
+  first?: boolean;
+  last?: boolean;
   empty?: boolean;
 }
