@@ -40,9 +40,11 @@ public class SecurityConfiguration {
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/actuator/health/readiness").permitAll()
                 .requestMatchers("/error").permitAll()
-                .requestMatchers("/api/v1.0/**").permitAll()
+                    .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers("/docs/**").permitAll()
+                    .requestMatchers("/swagger-ui/**").permitAll()
 
-                .requestMatchers("/api/v1/quizzes/metrics").permitAll()
+                    .requestMatchers("/api/v1/quizzes/metrics").permitAll()
                 .requestMatchers("/api/v1/quizzes/metrics/**").permitAll()
 
                 .requestMatchers("/api/export/**").permitAll()
