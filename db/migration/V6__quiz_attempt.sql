@@ -1,4 +1,4 @@
--- 1. Убеждаемся, что пользователь существует
+-- 1. Ensure that the user exists
 INSERT INTO users (email, password_hash, display_name, role, is_active)
 VALUES (
   'user1@example.com',
@@ -10,7 +10,7 @@ VALUES (
 ON CONFLICT (email) DO NOTHING;
 
 
--- 2. Создаём попытку (ПОКА БЕЗ submitted_at, чтобы триггер не сработал до ответов)
+-- 2. Create an attempt (WITHOUT submitted_at for now, so the trigger does not fire before answers)
 WITH u AS (
   SELECT id AS user_id
   FROM users
@@ -28,11 +28,11 @@ SELECT
   u.user_id,
   'ru',
   now() - INTERVAL '5 minutes',
-  NULL        -- submitted_at поставим позже отдельным UPDATE
+  NULL        -- submitted_at will be set later via a separate UPDATE
 FROM u, qv;
 
 
--- 3. Добавляем ответы для последней попытки этого пользователя по этому квизу
+-- 3. Add answers for the latest attempt of this user for this quiz
 WITH att AS (
   SELECT a.id, a.quiz_version_id
   FROM attempts a
@@ -57,24 +57,24 @@ INSERT INTO answers (attempt_id, option_id)
 SELECT
   (SELECT id FROM att),
   CASE
-    WHEN q.ord BETWEEN  1 AND 16 THEN  -- первые 16 вопросов
+    WHEN q.ord BETWEEN  1 AND 16 THEN  -- first 16 questions
       (SELECT option_id
        FROM qo
-       WHERE qo.question_id = q.id AND qo.option_ord = 4)  -- «Скорее да»
-    WHEN q.ord BETWEEN 17 AND 32 THEN  -- следующие 16
+       WHERE qo.question_id = q.id AND qo.option_ord = 4)  -- «Enjoy»
+    WHEN q.ord BETWEEN 17 AND 32 THEN  -- next 16
       (SELECT option_id
        FROM qo
-       WHERE qo.question_id = q.id AND qo.option_ord = 5)  -- «Да»
-    WHEN q.ord BETWEEN 33 AND 48 THEN  -- последние 16
+       WHERE qo.question_id = q.id AND qo.option_ord = 5)  -- «Enjoy»
+    WHEN q.ord BETWEEN 33 AND 48 THEN  -- last 16
       (SELECT option_id
        FROM qo
-       WHERE qo.question_id = q.id AND qo.option_ord = 3)  -- «Нейтрально»
+       WHERE qo.question_id = q.id AND qo.option_ord = 3)  -- «Neutral»
   END AS option_id
 FROM q
 ORDER BY q.ord;
 
 
--- 4. Завершаем попытку: теперь выставляем submitted_at → сработает триггер пересчёта трейтов
+-- 4. Complete the attempt: now set submitted_at → triggers trait recalculation
 WITH att AS (
   SELECT a.id
   FROM attempts a
@@ -88,7 +88,7 @@ SET submitted_at = now()
 WHERE id = (SELECT id FROM att);
 
 
--- 5. Добавляем выдуманную рекомендацию профессии для этой попытки
+-- 5. Add a mock profession recommendation for this attempt
 
 WITH att AS (
   SELECT a.id AS attempt_id
@@ -113,7 +113,7 @@ INSERT INTO attempt_recommendations (
 SELECT
   att.attempt_id,
   prof.profession_id,
-  0.87,   -- выдуманный итоговый балл
+  0.87,   -- mock final score
   'Пользователь проявляет выраженные художественные и креативные склонности. ' ||
   'Высокие значения по Artistic (A) указывают на предпочтение творческих задач, ' ||
   'нестандартного мышления и самовыражения.'

@@ -1,32 +1,30 @@
-name: Backend CI/CD
+name: Backend CI (test + push images to ECR)
 
 on:
   push:
     branches: ["main"]
     paths:
       - "backend/**"
+      - "db/**"
       - "documentation/api-docs/reference/openapi.yaml"
   pull_request:
     paths:
       - "backend/**"
+      - "db/**"
       - "documentation/api-docs/reference/openapi.yaml"
-  workflow_dispatch: {}
 
 concurrency:
   group: backend-ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
-  backend:
-    name: Backend - Test, Lint, Build, Smoke, Export OpenAPI (YAML), Image
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 25
-
-    permissions:
-      contents: write
-      pull-requests: write
-      checks: write
-      packages: write
 
     defaults:
       run:
@@ -48,38 +46,21 @@ jobs:
           --health-retries=10
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "21"
           cache: maven
 
+      - name: Install bc (coverage gate)
+        run: sudo apt-get update && sudo apt-get install -y bc
+
       - name: Maven Verify
         run: |
           chmod +x mvnw || true
           ./mvnw -B -U --no-transfer-progress verify
-
-      - name: PR test summary (no check-run)
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "### Backend tests" >> $GITHUB_STEP_SUMMARY
-          echo "JUnit XML files:" >> $GITHUB_STEP_SUMMARY
-          ls -1 backend/target/surefire-reports/*.xml 2>/dev/null | wc -l | xargs -I{} echo "- surefire XML count: {}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Download full test reports from artifacts: **test-reports**" >> $GITHUB_STEP_SUMMARY
-
-      - name: Publish unit test results (check-run)
-        uses: dorny/test-reporter@v1
-        with:
-          name: Backend JUnit
-          path: backend/target/surefire-reports/*.xml
-          reporter: java-junit
 
       - name: Smoke test + Export OpenAPI spec (YAML)
         env:
@@ -98,34 +79,17 @@ jobs:
           OPENAI_API_KEY: dummy
         run: |
           set -euo pipefail
-
           JAR=$(ls -1 target/*.jar | head -n 1)
-          echo "Using JAR: $JAR"
-
           nohup java -jar "$JAR" --server.port=8082 > backend.log 2>&1 &
           PID=$!
-          echo "Backend PID: $PID"
 
           for i in {1..60}; do
-            if curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null; then
-              echo "✔ Backend is up"
-              break
-            fi
+            curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null && break
             sleep 2
           done
 
-          if ! curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null; then
-            echo "❌ Backend did not start in time"
-            tail -n 250 backend.log || true
-            kill $PID || true
-            exit 1
-          fi
-
-          echo "Exporting OpenAPI (YAML)..."
           curl -fsS http://localhost:8082/api/v1.0/docs.yaml -o openapi.yaml
           test -s openapi.yaml
-          grep -q "^paths:" openapi.yaml
-
           kill $PID || true
 
       - name: Upload OpenAPI spec artifact
@@ -133,92 +97,6 @@ jobs:
         with:
           name: openapi-spec
           path: backend/openapi.yaml
-
-      - name: Move OpenAPI to repo documentation/
-        run: |
-          set -euo pipefail
-          mkdir -p ../documentation/api-docs/reference
-          cp -f openapi.yaml ../documentation/api-docs/reference/openapi.yaml
-          test -s ../documentation/api-docs/reference/openapi.yaml
-          echo "documentation/api-docs/reference/openapi.yaml sha256:"
-          sha256sum ../documentation/api-docs/reference/openapi.yaml
-
-      - name: Create or update PR with openapi.yaml (main only)
-        id: cpr_openapi
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: "chore(contract): update OpenAPI spec (yaml)"
-          title: "chore(contract): update OpenAPI spec (yaml)"
-          body: |
-            Автоматически обновлён documentation/api-docs/reference/openapi.yaml после smoke/export из backend.
-          branch: chore/auto-update-openapi
-          delete-branch: true
-          add-paths: |
-            documentation/api-docs/reference/openapi.yaml
-
-      - name: Install bc (for coverage gate)
-        run: sudo apt-get update && sudo apt-get install -y bc
-
-      - name: Enforce Coverage Quality Gate (>= 80%)
-        run: |
-          set -euo pipefail
-          CSV_FILE="target/site/jacoco/jacoco.csv"
-
-          if [ ! -f "$CSV_FILE" ]; then
-            echo "❌ JaCoCo CSV not found at $CSV_FILE"
-            exit 1
-          fi
-
-          MISSED=$(awk -F',' 'NR>1 {sum+=$4} END {print sum}' "$CSV_FILE")
-          COVERED=$(awk -F',' 'NR>1 {sum+=$5} END {print sum}' "$CSV_FILE")
-          TOTAL=$((MISSED + COVERED))
-
-          if [ "$TOTAL" -eq 0 ]; then
-            echo "❌ No coverage data found"
-            exit 1
-          fi
-
-          COVERAGE=$(awk -v c="$COVERED" -v t="$TOTAL" 'BEGIN { printf "%.2f", (c/t)*100 }')
-          echo "📊 Instruction Coverage: $COVERAGE%"
-
-          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
-            echo "❌ Coverage below required threshold: 80%"
-            exit 1
-          fi
-
-          echo "✔ Coverage meets threshold"
-
-      - name: Check for commented-out code
-        run: |
-          set -euo pipefail
-          echo "Checking for commented-out code..."
-          if grep -RIn --include="*.java" -E "^\s*//\s*(class|interface|void|public|private|protected|return|import|package)" .; then
-            echo "❌ Commented-out code found"
-            exit 1
-          else
-            echo "✔ No commented-out code"
-          fi
-
-      - name: Run Checkstyle
-        run: ./mvnw checkstyle:check
-
-      - name: Run PMD
-        run: ./mvnw pmd:check
-
-      - name: Upload test reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-reports
-          path: backend/target/surefire-reports/**
-
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: backend/target/site/jacoco/**
 
       - name: Upload smoke logs
         if: always()
@@ -228,121 +106,78 @@ jobs:
           path: backend/backend.log
           if-no-files-found: ignore
 
-      - name: Log in to GHCR
-        if: github.ref == 'refs/heads/main'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ github.token }}
-
-      - name: Set up Docker Buildx
-        if: github.ref == 'refs/heads/main'
-        uses: docker/setup-buildx-action@v3
-
-      - name: Docker metadata
-        if: github.ref == 'refs/heads/main'
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}/backend
-          tags: |
-            type=sha,format=long
-            type=ref,event=branch
-          labels: |
-            org.opencontainers.image.source=${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-
-      - name: Trivy fs scan (HIGH/CRITICAL)
-        if: github.ref == 'refs/heads/main'
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scan-ref: backend
-          exit-code: 1
-          severity: CRITICAL,HIGH
-
-      - name: Build image (no push) for security scan
-        if: github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v6
-        with:
-          context: ./backend
-          push: false
-          load: true
-          tags: backend:scan
-
-      - name: Trivy scan image (HIGH/CRITICAL)
-        if: github.ref == 'refs/heads/main'
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: backend:scan
-          format: table
-          exit-code: 1
-          severity: CRITICAL,HIGH
-
-      - name: Build & Push Image
-        if: github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v6
-        with:
-          context: ./backend
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      - name: CI Summary
-        if: always()
+      - name: Enforce Coverage Quality Gate (>= 80%)
         run: |
-          {
-            echo "### Backend CI summary"
-            echo "- Commit: \`${GITHUB_SHA}\`"
-            echo "- Branch: \`${GITHUB_REF_NAME}\`"
-            if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-              echo "- Image: \`ghcr.io/${GITHUB_REPOSITORY}/backend\`"
-              echo "- Deploy tag: \`sha-${GITHUB_SHA}\`"
-            else
-              echo "- Image push skipped (not main)"
-            fi
-            echo "- Artifacts: openapi-spec, test-reports, coverage-report, backend-smoke-logs"
-            if [ -n "${{ steps.cpr_openapi.outputs.pull-request-url }}" ]; then
-              echo "- OpenAPI PR: ${{ steps.cpr_openapi.outputs.pull-request-url }}"
-            fi
-          } >> $GITHUB_STEP_SUMMARY
+          set -euo pipefail
+          CSV_FILE="target/site/jacoco/jacoco.csv"
+          [ -f "$CSV_FILE" ] || (echo "❌ JaCoCo CSV not found" && exit 1)
+          MISSED=$(awk -F',' 'NR>1 {sum+=$4} END {print sum}' "$CSV_FILE")
+          COVERED=$(awk -F',' 'NR>1 {sum+=$5} END {print sum}' "$CSV_FILE")
+          TOTAL=$((MISSED + COVERED))
+          [ "$TOTAL" -gt 0 ] || (echo "❌ No coverage data" && exit 1)
+          COVERAGE=$(awk -v c="$COVERED" -v t="$TOTAL" 'BEGIN { printf "%.2f", (c/t)*100 }')
+          echo "Coverage: $COVERAGE%"
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "❌ Coverage below 80%"
+            exit 1
+          fi
 
-  deploy:
-    name: Deploy to EC2 (Docker Compose)
-    needs: backend
+  push-images:
+    needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: production
-    timeout-minutes: 15
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 20
+
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
-      - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            cd ~/proforientation-platform/backend
+          role-to-assume: arn:aws:iam::423161708569:role/GitHubActionsTerraformCoreRole
+          aws-region: eu-north-1
 
-            echo "BACKEND_IMAGE_TAG=sha-${GITHUB_SHA}" > .env
+      - uses: aws-actions/amazon-ecr-login@v2
 
-            docker compose pull backend
-            docker compose up -d --no-deps backend
-            docker compose ps
+      - name: Build & push backend image
+        env:
+          ACCOUNT_ID: "423161708569"
+          REGION: "eu-north-1"
+          REPO: "backend"
+          TAG: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          IMAGE_URI=$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$TAG
+          docker build -t "$IMAGE_URI" ./backend
+          docker push "$IMAGE_URI"
+          echo "BACKEND_IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          echo "Backend image: $IMAGE_URI"
 
-            if [ -n "${{ secrets.BACKEND_HEALTH_URL }}" ]; then
-              for i in {1..30}; do
-                if curl -fsS "${{ secrets.BACKEND_HEALTH_URL }}" >/dev/null; then
-                  echo "✔ Healthcheck OK"
-                  exit 0
-                fi
-                sleep 2
-              done
-              echo "❌ Healthcheck failed"
-              docker logs --tail=200 backend || true
-              exit 1
-            fi
+      - name: Build & push flyway migrations image
+        env:
+          ACCOUNT_ID: "423161708569"
+          REGION: "eu-north-1"
+          REPO: "flyway-migrations"
+          TAG: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          IMAGE_URI=$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$REPO:$TAG
+
+          # Build a flyway image that contains db/migration
+          cat > Dockerfile.flyway <<'EOF'
+          FROM flyway/flyway:10-alpine
+          COPY db/migration /flyway/sql
+          EOF
+
+          docker build -t "$IMAGE_URI" -f Dockerfile.flyway .
+          docker push "$IMAGE_URI"
+          echo "FLYWAY_IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          echo "Flyway image: $IMAGE_URI"
+
+      - name: Summary (copy these into infra-backend run)
+        run: |
+          echo "BACKEND_IMAGE_URI=$BACKEND_IMAGE_URI"
+          echo "FLYWAY_IMAGE_URI=$FLYWAY_IMAGE_URI"

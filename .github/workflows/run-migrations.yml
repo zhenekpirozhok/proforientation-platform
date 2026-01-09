@@ -1,0 +1,106 @@
+name: Run DB migrations (Flyway on ECS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      wait_for_completion:
+        description: "Wait until migration task stops (recommended)"
+        required: true
+        default: "true"
+        type: choice
+        options: ["true", "false"]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::423161708569:role/GitHubActionsTerraformCoreRole
+          aws-region: eu-north-1
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Terraform init (backend stack)
+        working-directory: infra/backend
+        run: terraform init
+
+      - name: Read outputs
+        id: out
+        working-directory: infra/backend
+        run: |
+          set -euo pipefail
+
+          echo "cluster=$(terraform output -raw ecs_cluster_name)" >> $GITHUB_OUTPUT
+          echo "task_def=$(terraform output -raw flyway_task_definition_arn)" >> $GITHUB_OUTPUT
+          echo "sg=$(terraform output -raw backend_sg_id)" >> $GITHUB_OUTPUT
+
+          # private_subnet_ids is json array -> join with commas
+          subnets_json=$(terraform output -json private_subnet_ids)
+          subnets=$(echo "$subnets_json" | jq -r 'join(",")')
+          echo "subnets=$subnets" >> $GITHUB_OUTPUT
+
+      - name: Run Flyway task
+        id: run
+        run: |
+          set -euo pipefail
+
+          CLUSTER="${{ steps.out.outputs.cluster }}"
+          TASK_DEF="${{ steps.out.outputs.task_def }}"
+          SG="${{ steps.out.outputs.sg }}"
+          SUBNETS="${{ steps.out.outputs.subnets }}"
+
+          echo "Cluster: $CLUSTER"
+          echo "TaskDef: $TASK_DEF"
+          echo "SG: $SG"
+          echo "Subnets: $SUBNETS"
+
+          TASK_ARN=$(aws ecs run-task \
+            --cluster "$CLUSTER" \
+            --launch-type FARGATE \
+            --task-definition "$TASK_DEF" \
+            --count 1 \
+            --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SG],assignPublicIp=DISABLED}" \
+            --query "tasks[0].taskArn" \
+            --output text)
+
+          echo "task_arn=$TASK_ARN" >> $GITHUB_OUTPUT
+          echo "Started migration task: $TASK_ARN"
+
+      - name: Wait for completion
+        if: inputs.wait_for_completion == 'true'
+        run: |
+          set -euo pipefail
+          TASK_ARN="${{ steps.run.outputs.task_arn }}"
+          CLUSTER="${{ steps.out.outputs.cluster }}"
+
+          echo "Waiting for task to stop..."
+          aws ecs wait tasks-stopped --cluster "$CLUSTER" --tasks "$TASK_ARN"
+
+          echo "Task stopped. Fetching exit code..."
+          EXIT_CODE=$(aws ecs describe-tasks \
+            --cluster "$CLUSTER" \
+            --tasks "$TASK_ARN" \
+            --query "tasks[0].containers[0].exitCode" \
+            --output text)
+
+          echo "Exit code: $EXIT_CODE"
+          if [ "$EXIT_CODE" != "0" ]; then
+            echo "❌ Flyway migrations failed. Check CloudWatch Logs: /ecs/flyway"
+            exit 1
+          fi
+
+          echo "✅ Flyway migrations succeeded"

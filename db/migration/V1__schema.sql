@@ -1,9 +1,9 @@
--- Базовая структура БД: расширения, enum-типы, таблицы
+-- Basic database structure: extensions, enum types, tables
 
--- 1. Расширения
+-- 1. Extensions
 CREATE EXTENSION IF NOT EXISTS pgcrypto; -- для gen_random_uuid()
 
--- 2. Enum-типы (роль пользователя, статус и режим обработки квиза)
+-- 2. Enum types (user role, quiz status, and quiz processing mode)
 
 CREATE TYPE user_role AS ENUM ('SUPERADMIN', 'ADMIN', 'USER');
 CREATE TYPE quiz_status AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
@@ -11,7 +11,7 @@ CREATE TYPE quiz_processing_mode AS ENUM ('ML_RIASEC', 'LLM');
 CREATE TYPE question_type AS ENUM ('SINGLE_CHOICE', 'MULTI_CHOICE', 'LIKER_SCALE_5', 'LIKER_SCALE_7');
 
 ----------------------------------------------------------------------
--- 3. Справочник категорий профессий
+-- 3. Profession categories reference table
 ----------------------------------------------------------------------
 
 CREATE TABLE profession_categories (
@@ -22,7 +22,7 @@ CREATE TABLE profession_categories (
 );
 
 ----------------------------------------------------------------------
--- 4. Профессии
+-- 4. Professions
 ----------------------------------------------------------------------
 
 CREATE TABLE professions (
@@ -35,7 +35,7 @@ CREATE TABLE professions (
 );
 
 ----------------------------------------------------------------------
--- 5. Пользователи приложения
+-- 5. Application users
 ----------------------------------------------------------------------
 
 CREATE TABLE users (
@@ -50,7 +50,7 @@ CREATE TABLE users (
 );
 
 ----------------------------------------------------------------------
--- 6. Квизы и версии квизов
+-- 6. Quizzes and quiz versions
 ----------------------------------------------------------------------
 
 CREATE TABLE quizzes (
@@ -75,7 +75,7 @@ CREATE TABLE quiz_versions (
 );
 
 ----------------------------------------------------------------------
--- 7. Вопросы и варианты ответов
+-- 7. Questions and answer options
 ----------------------------------------------------------------------
 
 CREATE TABLE questions (
@@ -94,7 +94,7 @@ CREATE TABLE question_options (
 );
 
 ----------------------------------------------------------------------
--- 8. Трейты / шкалы
+-- 8. Traits / scales
 ----------------------------------------------------------------------
 
 CREATE TABLE trait_profiles (
@@ -106,7 +106,7 @@ CREATE TABLE trait_profiles (
 );
 
 ----------------------------------------------------------------------
--- 9. Связь опций с трейтами (вес влияния)
+-- 9. Mapping options to traits (influence weight)
 ----------------------------------------------------------------------
 
 CREATE TABLE question_option_traits (
@@ -119,7 +119,7 @@ CREATE TABLE question_option_traits (
 );
 
 ----------------------------------------------------------------------
--- 10. Попытки прохождения тестов
+-- 10. Quiz attempts
 ----------------------------------------------------------------------
 
 CREATE TABLE attempts (
@@ -139,7 +139,7 @@ CREATE TABLE attempts (
 );
 
 ----------------------------------------------------------------------
--- 11. Ответы
+-- 11. Answers
 ----------------------------------------------------------------------
 
 CREATE TABLE answers (
@@ -150,7 +150,7 @@ CREATE TABLE answers (
 );
 
 ----------------------------------------------------------------------
--- 12. Результаты по трейтам для попытки
+-- 12. Trait scores per attempt
 ----------------------------------------------------------------------
 
 CREATE TABLE attempt_trait_scores (
@@ -161,7 +161,7 @@ CREATE TABLE attempt_trait_scores (
 );
 
 ----------------------------------------------------------------------
--- 13. Рекомендованные профессии по результатам попытки
+-- 13. Recommended professions based on attempt results
 ----------------------------------------------------------------------
 
 CREATE TABLE attempt_recommendations (
@@ -173,7 +173,7 @@ CREATE TABLE attempt_recommendations (
 );
 
 ----------------------------------------------------------------------
--- 14. Связка квиз ↔ доступные профессии (ручной override)
+-- 14. Quiz ↔ available professions (manual override)
 ----------------------------------------------------------------------
 
 CREATE TABLE quiz_professions (
@@ -183,7 +183,7 @@ CREATE TABLE quiz_professions (
 );
 
 ----------------------------------------------------------------------
--- 15. Переводы
+-- 15. Translations
 ----------------------------------------------------------------------
 
 CREATE TABLE translations (

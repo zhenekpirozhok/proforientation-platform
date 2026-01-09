@@ -1,74 +1,74 @@
--- Доп.ограничения, индексы, триггеры, представления
+-- Additional constraints, indexes, triggers, views
 
 ----------------------------------------------------------------------
--- Индексы
+-- Indexes
 ----------------------------------------------------------------------
 
--- Ускорение поиска профессий по категориям
+-- Speed up searching professions by category
 CREATE INDEX idx_professions_category ON professions(category_id);
 
--- Ускорение поиска активных пользователей по ролям
+-- Speed up searching active users by roles
 CREATE INDEX idx_users_role_active
   ON users(role, is_active);
 
--- Ускорение сортировки пользователей по дате создания (при росте числа пользователей)
+-- Speed up sorting users by creation date (for large user base)
 CREATE INDEX idx_users_created_at
   ON users(created_at DESC);
 
--- Ускорение поиска пользователей по e-mail (без учета регистра)
+-- Speed up searching users by email (case-insensitive)
 CREATE INDEX idx_users_email_lower
   ON users (lower(email));
 
--- Ускорение поиска квизов по статусу (для админки)
+-- Speed up searching quizzes by status (for admin panel)
 CREATE INDEX idx_quizzes_status
   ON quizzes(status);
 
--- Ускорение поиска по категории квизов
+-- Speed up searching quizzes by category
 CREATE INDEX idx_quizzes_category
   ON quizzes(category_id);
 
--- Обеспечение уникальности текущей версии квиза
+-- Ensure uniqueness of current quiz version
 CREATE UNIQUE INDEX uq_quiz_versions_one_current
   ON quiz_versions(quiz_id)
   WHERE is_current;
 
--- Список версий одного квиза
+-- List of all versions of a single quiz
 CREATE INDEX idx_quiz_versions_quiz ON quiz_versions(quiz_id);
 
--- Список вопросов в версии квиза в нужном порядке  
+-- List of questions in a quiz version in correct order
 CREATE INDEX idx_questions_quiz_version_ord
   ON questions(quiz_version_id, ord);
 
--- Список опций вопроса в нужном порядке
+-- List of options of a question in correct order
 CREATE INDEX idx_question_options_question_ord
   ON question_options(question_id, ord);
 
--- Список вопросов, отвечающих за шкалы
+-- List of questions contributing to trait scores
 CREATE INDEX idx_qot_trait ON question_option_traits(trait_id);
 
--- Аналитика по шкалам
+-- Analytics on trait scores
 CREATE INDEX idx_attempt_trait_scores_trait
   ON attempt_trait_scores(trait_id);
 
--- Быстрый поиск попытки по UUID
+-- Fast lookup of attempts by UUID
 CREATE UNIQUE INDEX uq_attempts_uuid ON attempts(uuid);
 
--- Быстрый поиск попыток по версии квиза и дате отправки (для отчетов)
+-- Fast lookup of attempts by quiz version and submission date (for reporting)
 CREATE INDEX idx_attempts_quiz_version_submitted
   ON attempts(quiz_version_id, submitted_at);
 
--- Быстрый поиск попыток по пользователю и дате отправки (для отчетов)
+-- Fast lookup of attempts by user and submission date (for reporting)
 CREATE INDEX idx_attempts_user_submitted
   ON attempts(user_id, submitted_at DESC);
 
--- Ответы: поиск всех ответов попытки
+-- Answers: lookup all answers for an attempt
 CREATE INDEX idx_answers_attempt ON answers(attempt_id);
 
--- Рекомендации по попыткам
+-- Recommendations per attempt
 CREATE INDEX idx_ar_attempt ON attempt_recommendations(attempt_id);
 CREATE INDEX idx_ar_profession ON attempt_recommendations(profession_id);
 
--- Переводы по сущности
+-- Translations per entity
 CREATE INDEX idx_translations_entity_locale
   ON translations (entity_type, entity_id, locale);
 
@@ -81,27 +81,27 @@ CREATE INDEX IF NOT EXISTS idx_password_reset_expiry
     ON password_reset(expiry_date);
 
 ----------------------------------------------------------------------
--- Дополнительные CHECK-ограничения
+-- Additional CHECK constraints
 ----------------------------------------------------------------------
 
--- Уникальность ответов на конкретный вариант в пределах попытки
+-- Uniqueness of answers for a specific option within an attempt
 ALTER TABLE answers
   ADD CONSTRAINT uq_answers_attempt_option
   UNIQUE (attempt_id, option_id);
 
--- Проверка, что текущая версия опубликована
+-- Ensure that the current version is published
 ALTER TABLE quiz_versions
   ADD CONSTRAINT chk_quiz_versions_current_published
   CHECK (
     NOT is_current OR published_at IS NOT NULL
   );
 
--- Версия квиза должна быть натуральным числом
+-- Quiz version must be a natural number
 ALTER TABLE quiz_versions
   ADD CONSTRAINT chk_quiz_versions_version_positive
   CHECK (version > 0);
 
--- Порядковый номер вопросов в пределах версии квиза должен быть уникален и положителен
+-- Question order within a quiz version must be unique and positive
 ALTER TABLE questions
   ADD CONSTRAINT uq_questions_quiz_version_ord
   UNIQUE (quiz_version_id, ord);
@@ -110,7 +110,7 @@ ALTER TABLE questions
   ADD CONSTRAINT chk_questions_ord_positive
   CHECK (ord > 0);
 
--- Порядковый номер опций в пределах вопроса должен быть уникален и положителен
+-- Option order within a question must be unique and positive
 ALTER TABLE question_options
   ADD CONSTRAINT uq_question_options_question_ord
   UNIQUE (question_id, ord);
@@ -119,19 +119,18 @@ ALTER TABLE question_options
   ADD CONSTRAINT chk_question_options_ord_positive
   CHECK (ord > 0);
 
--- Трейт не может быть парой сам с собой
+-- A trait cannot be paired with itself
 ALTER TABLE trait_profiles
   ADD CONSTRAINT chk_trait_not_pair_to_self
   CHECK (bipolar_pair_code IS NULL OR bipolar_pair_code <> code);
 
--- Временные метки попыток: submitted_at >= started_at
+-- Attempt timestamps: submitted_at >= started_at
 ALTER TABLE attempts
   ADD CONSTRAINT chk_attempts_time_order
   CHECK (submitted_at IS NULL OR submitted_at >= started_at);
 
-
 ----------------------------------------------------------------------
--- Функция пересчёта трейтов для одной попытки
+-- Function to recalculate trait scores for a single attempt
 ----------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION recalc_attempt_trait_scores(p_attempt_id bigint)
@@ -139,7 +138,7 @@ RETURNS void AS $$
 DECLARE
   v_quiz_version_id bigint;
 BEGIN
-  -- 1. Какая версия квиза у попытки?
+    -- 1. Determine which quiz version the attempt belongs to
   SELECT quiz_version_id INTO v_quiz_version_id
   FROM attempts
   WHERE id = p_attempt_id;
@@ -148,13 +147,12 @@ BEGIN
     RAISE EXCEPTION 'Attempt % not found', p_attempt_id;
   END IF;
 
-  -- 2. Удаляем старые данные для этой попытки
-  DELETE FROM attempt_trait_scores
+    -- 2. Remove old trait data for this attempt
+    DELETE FROM attempt_trait_scores
   WHERE attempt_id = p_attempt_id;
 
-  -- 3. Считаем фактические + максимальные баллы и вставляем долю 0..1
-  WITH actual AS (
-    -- Сумма весов трейтов по ответам пользователя
+   WITH actual AS (
+    -- Sum of trait weights based on user answers
     SELECT
       a.attempt_id,
       qot.trait_id,
@@ -166,7 +164,7 @@ BEGIN
     GROUP BY a.attempt_id, qot.trait_id
   ),
   max_per_question AS (
-    -- Максимальный вес трейта по каждому вопросу версии
+    -- Maximum trait weight per question in the version
     SELECT
       q.id AS question_id,
       qot.trait_id,
@@ -180,7 +178,7 @@ BEGIN
     GROUP BY q.id, qot.trait_id
   ),
   max_scores AS (
-    -- Максимальный общий балл по каждому трейту
+    -- Maximum total score per trait
     SELECT
       trait_id,
       SUM(max_weight) AS max_score
@@ -203,20 +201,19 @@ $$ LANGUAGE plpgsql;
 
 
 ----------------------------------------------------------------------
--- Триггер: выполняем расчёт только при завершении попытки
+-- Trigger: calculate only when attempt is completed
 ----------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION trg_set_attempt_trait_scores_on_submit()
 RETURNS trigger AS $$
 BEGIN
-  -- Вставка сразу завершённой попытки
+    -- Insertion of an already completed attempt
   IF TG_OP = 'INSERT' AND NEW.submitted_at IS NOT NULL THEN
     PERFORM recalc_attempt_trait_scores(NEW.id);
     RETURN NEW;
   END IF;
 
-  -- Обновление: было NULL → стало NOT NULL
-  IF TG_OP = 'UPDATE'
+   IF TG_OP = 'UPDATE'
      AND OLD.submitted_at IS NULL
      AND NEW.submitted_at IS NOT NULL
   THEN
@@ -235,14 +232,14 @@ EXECUTE FUNCTION trg_set_attempt_trait_scores_on_submit();
 
 
 ----------------------------------------------------------------------
--- Триггер: опция должна относиться к тому же квизу, что и попытка
+-- Trigger: option must belong to the same quiz as the attempt
 ----------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION chk_answer_option_belongs_to_question()
 RETURNS trigger AS $$
 BEGIN
-  -- Проверяем, что option_id принадлежит вопросу из той же версии квиза, что и попытка
-  PERFORM 1
+    -- Ensure that option_id belongs to a question from the same quiz version as the attempt
+    PERFORM 1
   FROM attempts a
   JOIN quiz_versions qv ON qv.id = a.quiz_version_id
   JOIN questions q      ON q.quiz_version_id = qv.id
@@ -265,7 +262,7 @@ FOR EACH ROW
 EXECUTE FUNCTION chk_answer_option_belongs_to_question();
 
 ----------------------------------------------------------------------
--- Общая функция updated_at + триггеры
+-- General updated_at function + triggers
 ----------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION set_updated_at()
@@ -285,7 +282,7 @@ BEFORE UPDATE ON quizzes
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 ----------------------------------------------------------------------
--- VIEW: подробные результаты по трейтам
+-- VIEW: detailed trait results
 ----------------------------------------------------------------------
 
 CREATE OR REPLACE VIEW v_attempt_trait_scores AS
@@ -304,7 +301,7 @@ JOIN quiz_versions qv ON qv.id = a.quiz_version_id
 JOIN quizzes q        ON q.id = qv.quiz_id;
 
 ----------------------------------------------------------------------
--- VIEW: попытки и рекомендованные профессии
+-- VIEW: attempts and recommended professions
 ----------------------------------------------------------------------
 
 CREATE OR REPLACE VIEW v_attempt_recommendations AS
@@ -327,7 +324,7 @@ JOIN attempt_recommendations ar ON ar.attempt_id = a.id
 JOIN professions p              ON p.id = ar.profession_id;
 
 ----------------------------------------------------------------------
--- VIEW: общий обзор попыток
+-- VIEW: overall attempt overview
 ----------------------------------------------------------------------
 
 CREATE OR REPLACE VIEW v_attempts_overview AS
@@ -353,7 +350,7 @@ JOIN quizzes q        ON q.id = qv.quiz_id
 LEFT JOIN users u      ON u.id = a.user_id;
 
 ----------------------------------------------------------------------
--- VIEW: простая агрегированная статистика по квизам
+-- VIEW: simple aggregated quiz statistics
 ----------------------------------------------------------------------
 
 CREATE OR REPLACE VIEW v_quiz_attempts_stats AS
@@ -372,12 +369,12 @@ GROUP BY q.id, q.code, q.title_default;
 
 
 ----------------------------------------------------------------------
--- VIEW: пользователи с замаскированными e-mail
+-- VIEW: users with masked emails
 ----------------------------------------------------------------------
 CREATE OR REPLACE VIEW v_users_masked AS
 SELECT
   id,
-  -- первая буква + *** + домен
+  -- first letter + *** + domain
   CASE
     WHEN email IS NULL THEN NULL
     ELSE regexp_replace(email, '(^.).*(@.*$)', '\1***\2')
@@ -391,7 +388,7 @@ FROM users;
 
 
 ----------------------------------------------------------------------
--- VIEW: попытки с замаскированными e-mail и guest_token
+-- VIEW: attempts with masked emails and guest_token
 ----------------------------------------------------------------------
 CREATE OR REPLACE VIEW v_attempts_overview_masked AS
 SELECT
@@ -422,7 +419,7 @@ JOIN quizzes q        ON q.id = qv.quiz_id
 LEFT JOIN users u      ON u.id = a.user_id;
 
 ----------------------------------------------------------------------
--- VIEW: переводы для сущностей
+-- VIEW: translations for entities
 ----------------------------------------------------------------------
 
 CREATE VIEW questions_ru AS

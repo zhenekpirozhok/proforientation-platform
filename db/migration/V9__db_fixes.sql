@@ -3,23 +3,23 @@
 -- =========================
 
 -- -------------------------------------------------------------------
--- 0) Индексы для translations: ускоряет все твои *_ru/_en view
+-- 0) Indexes for translations: speeds up all your *_ru/_en views
 -- -------------------------------------------------------------------
 CREATE INDEX IF NOT EXISTS idx_translations_entity_locale_field
   ON translations(entity_type, entity_id, locale, field);
 
 -- -------------------------------------------------------------------
--- 1) Нормализация данных translations перед ужесточением CHECK
---    (иначе Postgres проверит constraint на ВСЕХ существующих строках и упадёт)
+-- 1) Normalize translations data before tightening the CHECK
+--    (otherwise Postgres will check the constraint on ALL existing rows and fail)
 -- -------------------------------------------------------------------
 
--- Снимаем старый CHECK (если был)
+-- Remove the old CHECK (if any)
 ALTER TABLE translations
   DROP CONSTRAINT IF EXISTS translations_entity_type_check;
 
--- 1.1) Приводим возможные старые/ошибочные entity_type к новым каноническим значениям
+-- 1.1) Map possible old/incorrect entity_type values to new canonical values
 
--- Profession categories: разные варианты -> profession_category
+-- Profession categories: different variants -> profession_category
 UPDATE translations
 SET entity_type = 'profession_category'
 WHERE entity_type IN (
@@ -27,10 +27,10 @@ WHERE entity_type IN (
   'professionCategory',
   'categories',
   'category',
-  'profession_category' -- на всякий
+  'profession_category' -- Just in case
 );
 
--- Traits: разные варианты -> trait
+-- Traits: different variants -> trait
 UPDATE translations
 SET entity_type = 'trait'
 WHERE entity_type IN (
@@ -38,10 +38,10 @@ WHERE entity_type IN (
   'trait_profile',
   'trait_profiles',
   'traitProfile',
-  'trait' -- на всякий
+  'trait' -- Just in case
 );
 
--- Question options: разные варианты -> question_option
+-- Question options: different variants -> question_option
 UPDATE translations
 SET entity_type = 'question_option'
 WHERE entity_type IN (
@@ -50,10 +50,10 @@ WHERE entity_type IN (
   'questionOption',
   'question_options',
   'questionOptionLabel',
-  'question_option' -- на всякий
+  'question_option' -- Just in case
 );
 
--- Questions/quizzes/professions — на всякий (если встречались camelCase/множественное)
+-- Questions/quizzes/professions — just in case (if camelCase/plural was used)
 UPDATE translations SET entity_type = 'question'
 WHERE entity_type IN ('questions', 'Question');
 
@@ -63,22 +63,22 @@ WHERE entity_type IN ('quizzes', 'Quiz');
 UPDATE translations SET entity_type = 'profession'
 WHERE entity_type IN ('professions', 'Profession');
 
--- 1.2) Нормализация field для question_option:
---      у тебя поле называется label_default, но translations.field допускает только title/text/description
---      значит для опций используем field='text'
+-- 1.2) Normalize 'field' for question_option:
+--      your column is called label_default, but translations.field allows only title/text/description
+--      so for options we use field='text'
 UPDATE translations
 SET field = 'text'
 WHERE entity_type = 'question_option'
   AND field IN ('label', 'option_label', 'optionLabel');
 
--- 1.3) (Опционально) Подчистка locale
--- Если вдруг есть пустые локали, лучше привести к 'en' (иначе они просто не матчятся)
+-- 1.3) (Optional) Clean up 'locale'
+--      If there are empty locales, better set to 'en' (otherwise they won't match)
 UPDATE translations
 SET locale = 'en'
 WHERE (locale IS NULL OR btrim(locale) = '');
 
 -- -------------------------------------------------------------------
--- 1.4) Теперь можно безопасно поставить новый CHECK
+-- 1.4) Now it's safe to set the new CHECK
 -- -------------------------------------------------------------------
 ALTER TABLE translations
   ADD CONSTRAINT translations_entity_type_check
@@ -92,8 +92,8 @@ ALTER TABLE translations
   ));
 
 -- -------------------------------------------------------------------
--- 2) Фикс: question_options_ru/en использовали field='label' (такого нет)
---     Должно быть field='text'
+-- 2) Fix: question_options_ru/en used field='label' (which does not exist)
+--     It should be field='text'
 -- -------------------------------------------------------------------
 CREATE OR REPLACE VIEW question_options_ru AS
 SELECT
@@ -123,7 +123,7 @@ LEFT JOIN translations t
 
 -- -------------------------------------------------------------------
 -- 3) Traits: views ru/en
---     Маппинг: trait.name -> translations(field='title')
+--     Map: trait.name -> translations(field='title')
 --              trait.description -> translations(field='description')
 -- -------------------------------------------------------------------
 CREATE OR REPLACE VIEW trait_profiles_ru AS
@@ -166,7 +166,7 @@ LEFT JOIN translations t_desc
 
 -- -------------------------------------------------------------------
 -- 4) Profession categories: views ru/en
---     Маппинг: category.name -> translations(field='title')
+--     Map: category.name -> translations(field='title')
 -- -------------------------------------------------------------------
 CREATE OR REPLACE VIEW profession_categories_ru AS
 SELECT
@@ -195,15 +195,15 @@ LEFT JOIN translations t_title
  AND t_title.locale      = 'en';
 
 -- -------------------------------------------------------------------
--- 5) Quiz: добавляем необязательное description + дефолтные секунды на вопрос
--- -------------------------------------------------------------------
+-- 5) Quiz: add optional description + default seconds per question
+--     Update quizzes_ru/en to also return description (field='description')-- -------------------------------------------------------------------
 ALTER TABLE quizzes
   ADD COLUMN IF NOT EXISTS description_default TEXT;
 
 ALTER TABLE quizzes
   ADD COLUMN IF NOT EXISTS seconds_per_question_default INT NOT NULL DEFAULT 30;
 
--- Обновляем quizzes_ru/en чтобы тоже отдавали description (field='description')
+-- Update quizzes_ru/en to also return description (field='description')
 CREATE OR REPLACE VIEW quizzes_ru AS
 SELECT
     q.id,
@@ -241,7 +241,7 @@ LEFT JOIN translations t_desc
    AND t_desc.locale      = 'en';
 
 -- -------------------------------------------------------------------
--- 6) Метрики для фронта
+-- 6) Metrics for frontend
 -- -------------------------------------------------------------------
 CREATE OR REPLACE VIEW v_quiz_public_metrics AS
 WITH current_version AS (
