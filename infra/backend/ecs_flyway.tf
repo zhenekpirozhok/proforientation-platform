@@ -33,15 +33,18 @@ resource "aws_ecs_task_definition" "flyway" {
       ]
 
       command = [
-        "sh", "-lc",
-        "flyway migrate \
-         -url=jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB} \
-         -user=${DB_ADMIN_USER} \
-         -password=${DB_ADMIN_PASSWORD} \
-         -placeholders.app_user_name=${APP_DB_USER} \
-         -placeholders.app_user_password=${APP_DB_PASSWORD} \
-         -placeholders.db_admin_name=${DB_ADMIN_USER} \
-         -placeholders.db_admin_password=${DB_ADMIN_PASSWORD}"
+        "sh",
+        "-c",
+        <<-EOF
+          flyway migrate \
+            -url=jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB} \
+            -user=${DB_ADMIN_USER} \
+            -password=${DB_ADMIN_PASSWORD} \
+            -placeholders.app_user_name=${APP_DB_USER} \
+            -placeholders.app_user_password=${APP_DB_PASSWORD} \
+            -placeholders.db_admin_name=${DB_ADMIN_USER} \
+            -placeholders.db_admin_password=${DB_ADMIN_PASSWORD}
+        EOF
       ]
 
       logConfiguration = {
