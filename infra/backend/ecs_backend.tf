@@ -31,8 +31,8 @@ resource "aws_ecs_task_definition" "backend" {
         { name = "POSTGRES_PASSWORD", valueFrom = "${local.db_secret_arn}:POSTGRES_PASSWORD::" },
         { name = "ML_API_URL", valueFrom = "${local.db_secret_arn}:ML_API_URL::" },
 
-        { name = "APP_DB_USER", valueFrom = "${local.db_secret_arn}:APP_DB_USER::" },
-        { name = "APP_DB_PASSWORD", valueFrom = "${local.db_secret_arn}:APP_DB_PASSWORD::" },
+        { name = "SPRING_DATASOURCE_USERNAME", valueFrom = "${local.db_secret_arn}:APP_DB_USER::" },
+        { name = "SPRING_DATASOURCE_PASSWORD", valueFrom = "${local.db_secret_arn}:APP_DB_PASSWORD::" },
 
         { name = "JWT_SECRET_KEY", valueFrom = "${aws_secretsmanager_secret.backend.arn}:JWT_SECRET_KEY::" },
         { name = "GOOGLE_CLIENT_ID", valueFrom = "${aws_secretsmanager_secret.backend.arn}:GOOGLE_CLIENT_ID::" },
