@@ -77,22 +77,39 @@ jobs:
           OPENAI_API_KEY: dummy
         run: |
           set -euo pipefail
+
           JAR=$(ls -1 target/*.jar | head -n 1)
           nohup java -jar "$JAR" --server.port=8082 > backend.log 2>&1 &
           PID=$!
 
-          # wait for OpenAPI docs endpoint
+          # wait a bit for startup output
+          sleep 3
+          echo "=== First startup logs ==="
+          tail -n 80 backend.log || true
+
+          echo "=== Listening ports (ss) ==="
+          ss -ltnp || true
+
+          # wait for docs endpoint
           for i in {1..60}; do
-            if curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null; then
+            if curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null 2>&1; then
+              echo "Docs reachable"
               break
             fi
             sleep 2
           done
 
-          # if still not up, show logs and fail
-          if ! curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null; then
-            echo "❌ Backend did not start or docs endpoint not reachable"
+          # final check
+          if ! curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null 2>&1; then
+            echo "❌ Docs still not reachable on 8082"
+            echo "=== Full logs (last 300 lines) ==="
             tail -n 300 backend.log || true
+            echo "=== Listening ports (ss) ==="
+            ss -ltnp || true
+            echo "=== Try common alternative URLs for diagnostics ==="
+            curl -i http://localhost:8080/actuator/health 2>/dev/null || true
+            curl -i http://localhost:8082/actuator/health 2>/dev/null || true
+            curl -i http://localhost:8082/api/v1.0/docs 2>/dev/null || true
             kill $PID || true
             exit 1
           fi
@@ -100,7 +117,6 @@ jobs:
           curl -fsS http://localhost:8082/api/v1.0/docs -o openapi.json
           test -s openapi.json
           kill $PID || true
-      
 
       - name: Upload OpenAPI spec artifact
         uses: actions/upload-artifact@v4
