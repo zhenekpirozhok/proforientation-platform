@@ -723,7 +723,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/import/translations": {
+    "/api/import/excel/translations": {
         parameters: {
             query?: never;
             header?: never;
@@ -733,19 +733,30 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Import translations from CSV
-         * @description Imports translations for quizzes, questions, options, and professions.
-         *     Existing translations are updated, new ones are created.
-         *     Only administrators are allowed to perform this operation.
+         * Import translations from Excel
+         * @description Imports translations from an Excel (.xlsx) file.
+         *
+         *     The file must contain a header row with the following columns:
+         *     - entity_type (quiz, question, option, profession)
+         *     - entity_id
+         *     - field (e.g. title, description)
+         *     - locale (e.g. en, uk)
+         *     - text
+         *
+         *     Import behavior:
+         *     - All rows are validated before saving
+         *     - Invalid rows are skipped
+         *     - Errors are returned with row numbers and messages
+         *     - Valid rows are saved in a single transaction
          */
-        post: operations["importTranslations"];
+        post: operations["importTranslationsExcel"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/import/questions": {
+    "/api/import/excel/quizzes": {
         parameters: {
             query?: never;
             header?: never;
@@ -755,16 +766,127 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Import questions from CSV
-         * @description Imports quiz questions from a CSV file.
-         *     The file must contain a header row and valid question data.
-         *     Only administrators are allowed to perform this operation.
+         * Import quizzes from Excel
+         * @description Imports quizzes from an Excel (.xlsx) file.
+         *
+         *     Required columns:
+         *     - code
+         *     - title_default
+         *     - category_id
+         *     - author_id
+         *
+         *     Optional columns:
+         *     - status (DRAFT, PUBLISHED)
+         *     - processing_mode (LLM, ML_RIASEC, etc.)
+         *     - description_default
+         *     - seconds_per_question_default
+         *
+         *     Import behavior:
+         *     - Existing quizzes are updated by code
+         *     - New quizzes are created if code does not exist
+         *     - Duplicate codes inside the file are rejected
+         *     - If status is PUBLISHED and no quiz version exists,
+         *       a published quiz version is created automatically
+         *     - Invalid rows are skipped, valid rows are saved
+         */
+        post: operations["importQuizzesExcel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/import/excel/professions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import professions from Excel
+         * @description Imports professions from an Excel (.xlsx) file.
+         *
+         *     Required columns:
+         *     - code
+         *     - title_default
+         *     - category_id
+         *
+         *     Optional columns:
+         *     - description
+         *     - ml_class_code
+         *
+         *     Import behavior:
+         *     - Existing professions are updated by code
+         *     - New professions are created if code does not exist
+         *     - Duplicate codes inside the file are rejected
+         *     - Invalid rows are skipped, valid rows are saved
+         */
+        post: operations["importProfessionsExcel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/import/admin/import/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import quiz questions from Excel
+         * @description Imports quiz questions from an Excel (.xlsx) file.
+         *
+         *     Required columns:
+         *     - quiz_version_id
+         *     - ord
+         *     - qtype (SINGLE, MULTIPLE, SCALE, etc.)
+         *     - text_default
+         *
+         *     Import behavior:
+         *     - Questions are linked to an existing quiz version
+         *     - Invalid enum values or missing references are rejected
+         *     - Invalid rows are skipped
+         *     - Valid questions are saved
          */
         post: operations["importQuestions"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/users/{id}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update user role (admin only)
+         * @description Changes the role of a user.
+         *
+         *         Notes:
+         *         - Only admins can call this endpoint.
+         *         - Request body is a plain string containing the new role.
+         *         - Allowed values: USER, ADMIN
+         *         - Typically you should prevent changing your own role in the service layer.
+         */
+        patch: operations["updateUserRole"];
         trace?: never;
     };
     "/users": {
@@ -1009,6 +1131,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/professions/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search professions
+         * @description Searches professions using text and filters.
+         *
+         *         Search capabilities:
+         *         - Text search by title, description, code, or ML class code
+         *         - Optional filtering by profession category
+         *         - Supports pagination and sorting
+         */
+        get: operations["search_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/attempts": {
         parameters: {
             query?: never;
@@ -1068,7 +1215,7 @@ export interface paths {
          *     - quiz
          *     - date range
          */
-        get: operations["search_2"];
+        get: operations["search_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1084,7 +1231,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get public quiz metrics */
+        /**
+         * Get all public quiz metrics
+         * @description Returns public analytics for all quizzes without filtering. Includes attempts count, average duration, and estimated duration.
+         */
         get: operations["getAllMetrics"];
         put?: never;
         post?: never;
@@ -1101,8 +1251,79 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get public metrics for a quiz */
+        /**
+         * Get public metrics for a specific quiz
+         * @description Returns aggregated public metrics for a single quiz identified by its ID. Throws 404 if the quiz metrics are not found.
+         */
         get: operations["getMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/quizzes/metrics/filter": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Filter public quiz metrics
+         * @description Returns public quiz metrics filtered by the provided criteria.
+         *
+         *     All parameters are optional. If multiple filters are provided,
+         *     they are combined using logical AND.
+         *
+         *     Typical use cases:
+         *     - Admin analytics dashboards
+         *     - Exporting filtered analytics
+         *     - Monitoring quiz performance
+         */
+        get: operations["filterMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/export/quiz-metrics/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export quiz metrics to CSV
+         * @description Exports quiz public metrics filtered by query parameters. All filters are optional.
+         */
+        get: operations["exportQuizMetricsCsv"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/export/quiz-metrics/export.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export quiz metrics to Excel (XLSX)
+         * @description Exports quiz public metrics filtered by query parameters. All filters are optional.
+         */
+        get: operations["exportQuizMetricsExcel"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1169,6 +1390,32 @@ export interface paths {
          * @description Deletes the authenticated user's account after password confirmation.
          */
         delete: operations["deleteAccount"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attempts/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete selected attempts (user confirmation required)
+         * @description Deletes one or more attempts belonging to the current user.
+         *
+         *         Important notes:
+         *         - This operation requires explicit confirmation from the client.
+         *         - The frontend should show a confirmation dialog before calling this endpoint.
+         *         - Attempts are removed only if they belong to the current user (or guest session).
+         *         - Deletion is irreversible from the user's perspective.
+         */
+        delete: operations["deleteMyAttempts"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1308,6 +1555,23 @@ export interface components {
              * @enum {string}
              */
             processingMode?: "ML_RIASEC" | "LLM";
+            /**
+             * @description Updated quiz status
+             * @example PUBLISHED
+             * @enum {string}
+             */
+            status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+            /**
+             * @description Updated quiz description (default language)
+             * @example Updated description for the quiz.
+             */
+            descriptionDefault?: string;
+            /**
+             * Format: int32
+             * @description Updated time limit per question in seconds
+             * @example 45
+             */
+            secondsPerQuestionDefault?: number;
             /**
              * Format: int32
              * @description Identifier of the new quiz category
@@ -1637,6 +1901,24 @@ export interface components {
              */
             processingMode?: "ML_RIASEC" | "LLM";
             /**
+             * @description Quiz status
+             * @example DRAFT
+             * @enum {string}
+             */
+            status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+            /**
+             * @description Quiz description (default language)
+             * @example This quiz helps determine suitable career paths.
+             */
+            descriptionDefault?: string;
+            /**
+             * Format: int32
+             * @description Time limit per question in seconds
+             * @default 30
+             * @example 30
+             */
+            secondsPerQuestionDefault: number;
+            /**
              * Format: int32
              * @description Identifier of the quiz category
              * @example 2
@@ -1765,8 +2047,8 @@ export interface components {
             active?: boolean;
             authorities?: components["schemas"]["GrantedAuthority"][];
             accountNonLocked?: boolean;
-            accountNonExpired?: boolean;
             credentialsNonExpired?: boolean;
+            accountNonExpired?: boolean;
         };
         /** @description Request payload for completing a password reset using a reset token */
         ResetPasswordDto: {
@@ -2048,6 +2330,24 @@ export interface components {
             last?: boolean;
             empty?: boolean;
         };
+        PageProfessionDto: {
+            /** Format: int64 */
+            totalElements?: number;
+            /** Format: int32 */
+            totalPages?: number;
+            /** Format: int32 */
+            size?: number;
+            content?: components["schemas"]["ProfessionDto"][];
+            /** Format: int32 */
+            number?: number;
+            sort?: components["schemas"]["SortObject"];
+            /** Format: int32 */
+            numberOfElements?: number;
+            pageable?: components["schemas"]["PageableObject"];
+            first?: boolean;
+            last?: boolean;
+            empty?: boolean;
+        };
         /** @description Summary information about a quiz attempt */
         AttemptSummaryDto: {
             /**
@@ -2107,6 +2407,89 @@ export interface components {
             avgDurationSeconds?: number;
             /** Format: int32 */
             estimatedDurationSeconds?: number;
+        };
+        QuizMetricsFilter: {
+            /**
+             * Format: int32
+             * @description Exact quiz ID
+             */
+            quizId?: number;
+            /**
+             * @description Substring match for quiz code (case-insensitive)
+             * @example career
+             */
+            quizCodeContains?: string;
+            /**
+             * @description Quiz status
+             * @example PUBLISHED
+             * @enum {string}
+             */
+            quizStatus?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+            /**
+             * Format: int32
+             * @description Quiz category ID
+             */
+            categoryId?: number;
+            /**
+             * Format: int32
+             * @description Minimum total attempts count
+             */
+            attemptsTotalMin?: number;
+            /**
+             * Format: int32
+             * @description Maximum total attempts count
+             */
+            attemptsTotalMax?: number;
+            /**
+             * Format: int32
+             * @description Minimum submitted attempts count
+             */
+            attemptsSubmittedMin?: number;
+            /**
+             * Format: int32
+             * @description Maximum submitted attempts count
+             */
+            attemptsSubmittedMax?: number;
+            /**
+             * Format: int32
+             * @description Minimum total questions count
+             */
+            questionsTotalMin?: number;
+            /**
+             * Format: int32
+             * @description Maximum total questions count
+             */
+            questionsTotalMax?: number;
+            /** @description Minimum average quiz duration in seconds */
+            avgDurationMin?: number;
+            /** @description Maximum average quiz duration in seconds */
+            avgDurationMax?: number;
+            /**
+             * Format: int32
+             * @description Minimum estimated quiz duration in seconds
+             */
+            estimatedDurationMin?: number;
+            /**
+             * Format: int32
+             * @description Maximum estimated quiz duration in seconds
+             */
+            estimatedDurationMax?: number;
+        };
+        /** @description Request payload for deleting selected attempts */
+        DeleteAttemptsRequest: {
+            /**
+             * @description Attempt IDs to remove
+             * @example [
+             *       1,
+             *       2
+             *     ]
+             */
+            attemptIds?: number[];
+            /**
+             * @description Confirmation flag. Must be true to perform deletion.
+             * @example true
+             */
+            confirm?: boolean;
         };
     };
     responses: never;
@@ -3822,7 +4205,7 @@ export interface operations {
             };
         };
     };
-    importTranslations: {
+    importTranslationsExcel: {
         parameters: {
             query?: never;
             header?: never;
@@ -3832,10 +4215,7 @@ export interface operations {
         requestBody?: {
             content: {
                 "multipart/form-data": {
-                    /**
-                     * Format: binary
-                     * @description CSV file containing translations
-                     */
+                    /** Format: binary */
                     file: string;
                 };
             };
@@ -3850,16 +4230,106 @@ export interface operations {
                     "*/*": components["schemas"]["ImportResultDto"];
                 };
             };
-            /** @description Invalid CSV format or validation errors */
+            /** @description Invalid Excel file or validation errors */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["ImportResultDto"];
                 };
             };
-            /** @description Forbidden */
+            /** @description Access denied (admin only) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ImportResultDto"];
+                };
+            };
+        };
+    };
+    importQuizzesExcel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Quizzes imported successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ImportResultDto"];
+                };
+            };
+            /** @description Invalid Excel file or validation errors */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ImportResultDto"];
+                };
+            };
+            /** @description Access denied (admin only) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ImportResultDto"];
+                };
+            };
+        };
+    };
+    importProfessionsExcel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Professions imported successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ImportResultDto"];
+                };
+            };
+            /** @description Invalid Excel file or validation errors */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ImportResultDto"];
+                };
+            };
+            /** @description Access denied (admin only) */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -3880,10 +4350,7 @@ export interface operations {
         requestBody?: {
             content: {
                 "multipart/form-data": {
-                    /**
-                     * Format: binary
-                     * @description CSV file containing questions
-                     */
+                    /** Format: binary */
                     file: string;
                 };
             };
@@ -3898,22 +4365,99 @@ export interface operations {
                     "*/*": components["schemas"]["ImportResultDto"];
                 };
             };
-            /** @description Invalid CSV format or validation errors */
+            /** @description Invalid Excel file or validation errors */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": components["schemas"]["ExceptionDto"];
+                    "*/*": components["schemas"]["ImportResultDto"];
                 };
             };
-            /** @description Forbidden */
+            /** @description Access denied (admin only) */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "*/*": components["schemas"]["ImportResultDto"];
+                };
+            };
+        };
+    };
+    updateUserRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description User ID
+                 * @example 123
+                 */
+                id: number;
+            };
+            cookie?: never;
+        };
+        /** @description New role as plain string (USER or ADMIN) */
+        requestBody: {
+            content: {
+                "text/plain": "USER" | "ADMIN";
+            };
+        };
+        responses: {
+            /** @description User role updated successfully */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid role value */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "code": 400,
+                     *       "time": "2025-05-20T14:52:00Z",
+                     *       "message": "Invalid role: SUPER_ADMIN"
+                     *     }
+                     */
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
+            };
+            /** @description Access denied (admin role required) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "code": 403,
+                     *       "time": "2025-05-20T14:52:00Z",
+                     *       "message": "Access denied: insufficient permissions"
+                     *     }
+                     */
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "code": 404,
+                     *       "time": "2025-05-20T14:52:00Z",
+                     *       "message": "User not found"
+                     *     }
+                     */
+                    "*/*": components["schemas"]["ExceptionDto"];
                 };
             };
         };
@@ -4297,6 +4841,41 @@ export interface operations {
             };
         };
     };
+    search_2: {
+        parameters: {
+            query?: {
+                q?: string;
+                categoryId?: number;
+                page?: number;
+                size?: number;
+                sort?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Professions retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageProfessionDto"];
+                };
+            };
+            /** @description Invalid search parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["PageProfessionDto"];
+                };
+            };
+        };
+    };
     myAttempts: {
         parameters: {
             query?: {
@@ -4350,7 +4929,7 @@ export interface operations {
             };
         };
     };
-    search_2: {
+    search_3: {
         parameters: {
             query?: {
                 userId?: number;
@@ -4422,6 +5001,73 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["QuizPublicMetricsDto"];
+                };
+            };
+        };
+    };
+    filterMetrics: {
+        parameters: {
+            query: {
+                /** @description Filter criteria for quiz metrics */
+                filter: components["schemas"]["QuizMetricsFilter"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["QuizPublicMetricsDto"][];
+                };
+            };
+        };
+    };
+    exportQuizMetricsCsv: {
+        parameters: {
+            query: {
+                filter: components["schemas"]["QuizMetricsFilter"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+        };
+    };
+    exportQuizMetricsExcel: {
+        parameters: {
+            query: {
+                filter: components["schemas"]["QuizMetricsFilter"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
             };
         };
@@ -4505,6 +5151,62 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    deleteMyAttempts: {
+        parameters: {
+            query?: {
+                guestToken?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteAttemptsRequest"];
+            };
+        };
+        responses: {
+            /** @description Attempts deleted successfully */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Confirmation not provided or request is invalid */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "code": 400,
+                     *       "time": "2025-05-20T14:52:00Z",
+                     *       "message": "Confirmation required to delete attempts"
+                     *     }
+                     */
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
+            };
+            /** @description One or more attempts not found or do not belong to the user */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "code": 404,
+                     *       "time": "2025-05-20T14:52:00Z",
+                     *       "message": "Attempt not found"
+                     *     }
+                     */
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
             };
         };
     };

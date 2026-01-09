@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { CreateQuizRequestProcessingMode } from './createQuizRequestProcessingMode';
+import type { CreateQuizRequestStatus } from './createQuizRequestStatus';
 
 /**
  * Request payload for creating a new quiz
@@ -16,6 +17,12 @@ export interface CreateQuizRequest {
   title?: string;
   /** Processing mode defining how results are calculated */
   processingMode?: CreateQuizRequestProcessingMode;
+  /** Quiz status */
+  status?: CreateQuizRequestStatus;
+  /** Quiz description (default language) */
+  descriptionDefault?: string;
+  /** Time limit per question in seconds */
+  secondsPerQuestionDefault?: number;
   /** Identifier of the quiz category */
   categoryId?: number;
   /** Identifier of the quiz author (admin user) */

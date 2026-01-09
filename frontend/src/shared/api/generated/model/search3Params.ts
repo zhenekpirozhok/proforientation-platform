@@ -5,10 +5,9 @@
  * OpenAPI spec version: 1.0
  */
 
-export type Search2Params = {
-q?: string;
-categoryId?: number;
-page?: number;
-size?: number;
-sort?: string;
+export type Search3Params = {
+userId?: number;
+quizId?: number;
+from?: string;
+to?: string;
 };

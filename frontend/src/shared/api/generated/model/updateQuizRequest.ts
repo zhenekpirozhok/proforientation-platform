@@ -5,6 +5,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { UpdateQuizRequestProcessingMode } from './updateQuizRequestProcessingMode';
+import type { UpdateQuizRequestStatus } from './updateQuizRequestStatus';
 
 /**
  * Request payload for updating quiz metadata
@@ -14,6 +15,12 @@ export interface UpdateQuizRequest {
   title?: string;
   /** Updated quiz processing mode */
   processingMode?: UpdateQuizRequestProcessingMode;
+  /** Updated quiz status */
+  status?: UpdateQuizRequestStatus;
+  /** Updated quiz description (default language) */
+  descriptionDefault?: string;
+  /** Updated time limit per question in seconds */
+  secondsPerQuestionDefault?: number;
   /** Identifier of the new quiz category */
   categoryId?: number;
 }

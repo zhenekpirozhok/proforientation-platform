@@ -5,7 +5,6 @@
  * OpenAPI spec version: 1.0
  */
 
-export type ImportTranslationsBody = {
-  /** CSV file containing translations */
+export type ImportProfessionsExcelBody = {
   file: Blob;
 };
