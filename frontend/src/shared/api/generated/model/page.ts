@@ -15,9 +15,9 @@ export interface Page {
   content?: PageContentItem[];
   number?: number;
   sort?: SortObject;
-  numberOfElements?: number;
-  pageable?: PageableObject;
   first?: boolean;
   last?: boolean;
+  numberOfElements?: number;
+  pageable?: PageableObject;
   empty?: boolean;
 }
