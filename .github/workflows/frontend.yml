@@ -31,6 +31,10 @@ jobs:
     env:
       NEXT_TELEMETRY_DISABLED: "1"
 
+    defaults:
+      run:
+        working-directory: frontend
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,27 +47,21 @@ jobs:
           cache-dependency-path: "frontend/package-lock.json"
 
       - name: Install deps
-        working-directory: frontend
         run: npm ci
 
       - name: Format check (Prettier)
-        working-directory: frontend
         run: npm run format:check
 
       - name: Security scan (npm audit)
-        working-directory: frontend
         run: npm audit --audit-level=high
 
       - name: Lint
-        working-directory: frontend
         run: npm run lint --if-present
 
       - name: Test
-        working-directory: frontend
         run: npm test --if-present -- --ci
 
       - name: Next build (local)
-        working-directory: frontend
         run: npm run build --if-present
 
       - name: Trivy fs scan (HIGH/CRITICAL)
@@ -123,6 +121,10 @@ jobs:
     environment:
       name: vercel-production
 
+    defaults:
+      run:
+        working-directory: frontend
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -135,11 +137,9 @@ jobs:
           cache-dependency-path: "frontend/package-lock.json"
 
       - name: Install deps
-        working-directory: frontend
         run: npm ci
 
       - name: Build
-        working-directory: frontend
         run: npm run build
 
       - name: Deploy
@@ -155,4 +155,3 @@ jobs:
           else
             vercel deploy --yes --token=$VERCEL_TOKEN
           fi
-

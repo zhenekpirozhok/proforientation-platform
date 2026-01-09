@@ -17,6 +17,7 @@ export function SingleChoiceWidget({
         return (
           <motion.button
             key={opt.id}
+            data-testid="answer-option"
             type="button"
             disabled={disabled}
             onClick={() => onSelect(question.id, opt.id)}

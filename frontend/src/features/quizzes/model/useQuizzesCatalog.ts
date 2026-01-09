@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import type {
   QuizDto,
   ProfessionCategoryDto,
+  Search1Params,
 } from '@/shared/api/generated/model';
 
 import { useQuizzes } from '@/entities/quiz/api/useQuizzes';
@@ -11,12 +12,8 @@ import { useGetAllMetrics } from '@/shared/api/generated/api';
 import { useCategories } from '@/entities/category/api/useCategories';
 import { useSearchQuizzesLocalized } from '@/entities/quiz/api/useSearchQuizzes';
 import { useDebounce } from '@/shared/lib/useDebounce';
-import type {
-  QuizCatalogItem,
-  PageLike,
-  SearchQuizzesParams,
-  QuizMetric,
-} from './types';
+
+import type { QuizCatalogItem, PageLike, QuizMetric } from './types';
 
 function extractItems<T>(data: unknown): T[] {
   if (Array.isArray(data)) return data as T[];
@@ -34,16 +31,10 @@ function hasNumberId(q: QuizDto): q is QuizDto & { id: number } {
   return typeof q.id === 'number' && Number.isFinite(q.id);
 }
 
-function pickDurationSeconds(metric?: QuizMetric): number | null {
-  const v =
-    typeof metric?.avgDurationSeconds === 'number'
-      ? metric.avgDurationSeconds
-      : typeof metric?.estimatedDurationSeconds === 'number'
-        ? metric.estimatedDurationSeconds
-        : null;
-
-  if (v == null || !Number.isFinite(v) || v <= 0) return null;
-  return v;
+function pickDurationSeconds(metric?: QuizMetric) {
+  return typeof metric?.estimatedDurationSeconds === 'number'
+    ? metric.estimatedDurationSeconds
+    : null;
 }
 
 function matchesDuration(seconds: number | null, duration: string): boolean {
@@ -60,6 +51,20 @@ function matchesDuration(seconds: number | null, duration: string): boolean {
   return true;
 }
 
+function durationToRange(duration: string): {
+  minDurationSec?: number;
+  maxDurationSec?: number;
+} {
+  const shortMax = 15 * 60;
+  const midMax = 35 * 60;
+
+  if (duration === 'short') return { maxDurationSec: shortMax };
+  if (duration === 'mid')
+    return { minDurationSec: shortMax + 1, maxDurationSec: midMax };
+  if (duration === 'long') return { minDurationSec: midMax + 1 };
+  return {};
+}
+
 export function useQuizzesCatalog(params: {
   locale: string;
   page: number;
@@ -68,16 +73,49 @@ export function useQuizzesCatalog(params: {
 }) {
   const rawSearch = params.filters.search.trim();
   const debouncedSearch = useDebounce(rawSearch, 350);
-  const shouldSearch = debouncedSearch.length >= 2;
 
-  const searchParams = useMemo<SearchQuizzesParams | undefined>(() => {
+  const hasServerCategory = params.filters.category !== 'all';
+  const hasServerDuration = params.filters.duration !== 'any';
+  const hasServerSearch = debouncedSearch.length >= 2;
+
+  const shouldSearch =
+    hasServerSearch || hasServerCategory || hasServerDuration;
+
+  const searchParams = useMemo<Search1Params | undefined>(() => {
     if (!shouldSearch) return undefined;
-    return {
-      search: debouncedSearch,
-      page: params.page,
-      size: params.size,
+
+    const p: Search1Params = {
+      page: String(params.page),
+      size: String(params.size),
     };
-  }, [shouldSearch, debouncedSearch, params.page, params.size]);
+
+    if (hasServerSearch) p.search = debouncedSearch;
+
+    if (hasServerCategory) {
+      const id = Number(params.filters.category);
+      if (Number.isFinite(id)) p.categoryId = id;
+    }
+
+    if (hasServerDuration) {
+      const r = durationToRange(params.filters.duration);
+      if (typeof r.minDurationSec === 'number')
+        p.minDurationSec = r.minDurationSec;
+      if (typeof r.maxDurationSec === 'number')
+        p.maxDurationSec = r.maxDurationSec;
+    }
+
+    return p;
+  }, [
+    shouldSearch,
+    hasServerSearch,
+    hasServerCategory,
+    hasServerDuration,
+    debouncedSearch,
+    params.page,
+    params.size,
+    params.filters.category,
+    params.filters.duration,
+  ]);
 
   const listQ = useQuizzes({ page: params.page, size: params.size });
   const searchQ = useSearchQuizzesLocalized(params.locale, searchParams);
@@ -184,13 +222,11 @@ export function useQuizzesCatalog(params: {
     items: filtered,
     total,
     categories: categoriesQ.data ?? [],
-
     isLoading:
       quizzesSource.isLoading || metricsQ.isLoading || categoriesQ.isLoading,
     quizzesError: quizzesSource.error,
     metricsError: metricsQ.error,
     categoriesError: categoriesQ.error,
-
     refetch: () => {
       quizzesSource.refetch();
       metricsQ.refetch();

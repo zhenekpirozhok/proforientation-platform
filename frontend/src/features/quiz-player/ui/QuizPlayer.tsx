@@ -12,6 +12,7 @@ import {
 
 import { useCurrentQuizVersionIdQuery } from '../model/useCurrentQuizVersionIdQuery';
 import { useQuizPlayerStore } from '../model/store';
+import { useGuestStore } from '@/entities/guest/model/store';
 
 import type { Question, PageLike } from '@/entities/question/model/types';
 import type { AttemptResult } from '@/features/quiz-player/model/types';
@@ -40,8 +41,11 @@ function isStartAttemptPayload(v: unknown): v is StartAttemptPayload {
   return typeof o.attemptId === 'number' && Number.isFinite(o.attemptId);
 }
 
-function getGuestToken(v: StartAttemptPayload): string {
-  return typeof v.guestToken === 'string' ? v.guestToken : '';
+function pickGuestToken(v: StartAttemptPayload): string | null {
+  const gt = v.guestToken;
+  if (typeof gt !== 'string') return null;
+  const s = gt.trim();
+  return s.length ? s : null;
 }
 
 function safeErrorMessage(e: unknown): string {
@@ -118,7 +122,6 @@ export function QuizPlayer({ quizId }: Props) {
   const { locale } = useParams<{ locale: string }>();
 
   const attemptId = useQuizPlayerStore((s) => s.attemptId);
-  useQuizPlayerStore((s) => s.guestToken);
   const status = useQuizPlayerStore((s) => s.status);
   const error = useQuizPlayerStore((s) => s.error);
   const currentIndex = useQuizPlayerStore((s) => s.currentIndex);
@@ -154,8 +157,8 @@ export function QuizPlayer({ quizId }: Props) {
 
     resumeOrStart(quizId, vId);
 
-    const s = useQuizPlayerStore.getState();
-    if (s.attemptId) return;
+    const s0 = useQuizPlayerStore.getState();
+    if (s0.attemptId) return;
 
     if (startedForVersionRef.current === vId) return;
     startedForVersionRef.current = vId;
@@ -169,11 +172,18 @@ export function QuizPlayer({ quizId }: Props) {
         });
         if (cancelled) return;
 
-        if (!isStartAttemptPayload(startedUnknown))
+        if (!isStartAttemptPayload(startedUnknown)) {
           throw new Error('Invalid start attempt response');
+        }
 
         const started = startedUnknown as StartAttemptPayload;
-        setAttempt(started.attemptId, getGuestToken(started));
+        const nextGuest = pickGuestToken(started);
+
+        setAttempt(started.attemptId, nextGuest ?? '');
+
+        if (nextGuest) {
+          useGuestStore.getState().setGuestToken(nextGuest);
+        }
       } catch (e) {
         if (cancelled) return;
         startedForVersionRef.current = null;

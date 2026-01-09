@@ -65,13 +65,9 @@ function getDescriptionDefault(quiz: QuizDto): string {
 }
 
 function pickDurationSeconds(metric?: QuizMetric) {
-  const s =
-    typeof metric?.avgDurationSeconds === 'number'
-      ? metric.avgDurationSeconds
-      : typeof metric?.estimatedDurationSeconds === 'number'
-        ? metric.estimatedDurationSeconds
-        : null;
-  return s;
+  return typeof metric?.estimatedDurationSeconds === 'number'
+    ? metric.estimatedDurationSeconds
+    : null;
 }
 
 export function QuizCard({
@@ -103,7 +99,12 @@ export function QuizCard({
   const cat = categoryStyles(catColor);
 
   return (
-    <Link href={href} className="block h-full">
+    <Link
+      href={href}
+      className="block h-full"
+      data-testid="quiz-card"
+      data-quiz-id={quiz.id}
+    >
       <Card
         className={[
           'h-full',

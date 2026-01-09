@@ -60,7 +60,7 @@ test('guest can complete quiz via API (bulk + submit)', async ({
   expect((guestToken as string).length).toBeGreaterThan(0);
 
   const optionIds: number[] = [];
-  let page = 0;
+  let page = 1;
   const size = 50;
 
   while (true) {

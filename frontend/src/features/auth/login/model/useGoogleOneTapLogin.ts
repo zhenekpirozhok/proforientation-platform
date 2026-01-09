@@ -24,6 +24,21 @@ function tryGetMessage(v: unknown): string | null {
   return typeof msg === 'string' ? msg : null;
 }
 
+function getCookieValue(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const m = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]+)`));
+  if (!m?.[1]) return null;
+  try {
+    return decodeURIComponent(m[1]);
+  } catch {
+    return m[1];
+  }
+}
+
+function getGuestTokenFallback(): string | null {
+  return getCookieValue('cp_access');
+}
+
 export function useGoogleOneTapLogin() {
   const qc = useQueryClient();
   const guestToken = useGuestStore((s) => s.guestToken);
@@ -31,12 +46,14 @@ export function useGoogleOneTapLogin() {
   const m = useMutation({
     mutationKey: ['google-onetap-login'],
     mutationFn: async (values: GoogleOneTapLoginValues) => {
+      const effectiveGuestToken = guestToken ?? getGuestTokenFallback();
+
       const res = await fetch('/api/auth/google-onetap', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           token: values.token,
-          ...(guestToken ? { guestToken } : {}),
+          ...(effectiveGuestToken ? { guestToken: effectiveGuestToken } : {}),
         }),
         credentials: 'include',
       });

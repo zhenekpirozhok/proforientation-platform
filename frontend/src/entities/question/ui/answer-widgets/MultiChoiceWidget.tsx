@@ -18,6 +18,7 @@ export function MultiChoiceWidget({
 
         return (
           <motion.button
+            data-testid="answer-option"
             key={opt.id}
             type="button"
             disabled={disabled}

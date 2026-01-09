@@ -6,22 +6,22 @@ import { useTranslations } from 'next-intl';
 import { Alert } from 'antd';
 
 import { useQuizzesCatalog } from '@/features/quizzes/model/useQuizzesCatalog';
-import type { QuizCatalogItem } from '@/features/quizzes/model/types';
+import type {
+  QuizCatalogItem,
+  FiltersValue,
+} from '@/features/quizzes/model/types';
 import { QuizzesHeader } from '@/features/quizzes/ui/QuizzesHeader';
 import { QuizzesFilters } from '@/features/quizzes/ui/QuizzesFilters';
 import { QuizGridSkeleton } from '@/features/quizzes/ui/QuizGridSkeleton';
 import { QuizEmptyState } from '@/features/quizzes/ui/QuizEmptyState';
 import { QuizCard } from '@/entities/quiz/ui/QuizCard';
 import { QuizzesPagination } from '@/features/quizzes/ui/QuizzesPagination';
-import type { FiltersValue } from '@/features/quizzes/model/types';
 
 function durationSeconds(item: QuizCatalogItem): number | null {
   const v =
-    typeof item.metric?.avgDurationSeconds === 'number'
-      ? item.metric.avgDurationSeconds
-      : typeof item.metric?.estimatedDurationSeconds === 'number'
-        ? item.metric.estimatedDurationSeconds
-        : null;
+    typeof item.metric?.estimatedDurationSeconds === 'number'
+      ? item.metric.estimatedDurationSeconds
+      : null;
 
   if (v == null || !Number.isFinite(v) || v <= 0) return null;
   return v;
@@ -75,7 +75,8 @@ export default function QuizzesPage() {
     filters,
   });
 
-  const visibleItems = useMemo<QuizCatalogItem[]>(() => {
+  const visibleItems = useMemo(() => {
+    if (filters.duration === 'any') return items;
     return items.filter((item) =>
       matchesDurationFilter(item, filters.duration),
     );
