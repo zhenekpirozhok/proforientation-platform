@@ -15,7 +15,7 @@ public class CacheConfig {
     public Caffeine<Object, Object> caffeineConfig() {
         return Caffeine.newBuilder()
                 .expireAfterWrite(Duration.ofHours(6)) // translations rarely change
-                .maximumSize(10_000); // enough for quizzes, questions & professions
+                .maximumSize(10_000);  // enough for quizzes, questions & professions
     }
 
     @Bean
