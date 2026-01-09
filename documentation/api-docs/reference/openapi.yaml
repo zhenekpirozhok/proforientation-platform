@@ -6,8 +6,8 @@ servers:
 - url: http://localhost:8082
   description: Generated server url
 security:
-- Bearer Authentication: []
-- Locale: []
+- bearerAuth: []
+- locale: []
 tags:
 - name: Question
   description: CRUD operations for questions
@@ -1701,7 +1701,15 @@ paths:
             - Allowed values: USER, ADMIN
             - Typically you should prevent changing your own role in the service layer.
       operationId: updateUserRole
-      parameters: []
+      parameters:
+      - name: id
+        in: path
+        description: User ID
+        required: true
+        schema:
+          type: integer
+          format: int32
+        example: 123
       requestBody:
         description: New role as plain string (USER or ADMIN)
         content:
@@ -3287,11 +3295,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/GrantedAuthority"
-        accountNonExpired:
-          type: boolean
         accountNonLocked:
           type: boolean
         credentialsNonExpired:
+          type: boolean
+        accountNonExpired:
           type: boolean
     ResetPasswordDto:
       type: object
@@ -3853,11 +3861,11 @@ components:
           description: Confirmation flag. Must be true to perform deletion.
           example: true
   securitySchemes:
-    Bearer Authentication:
+    bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-    Locale:
+    locale:
       type: apiKey
       description: "Locale, e.g. en, ru, en-US"
       name: Accept-Language
