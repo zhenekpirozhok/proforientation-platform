@@ -31,6 +31,14 @@ locals {
     },
     var.tags
   )
+
+    private_subnet_ids = [for s in aws_subnet.private : s.id]
+    public_subnet_ids  = [for s in aws_subnet.public : s.id]
+    backend_sg_id      = aws_security_group.backend.id
+    alb_listener_arn   = aws_lb_listener.http.arn
+    ecs_cluster_name   = aws_ecs_cluster.main.name
+    db_secret_arn      = aws_secretsmanager_secret.prod_db.arn
+    vpc_id             = aws_vpc.main.id
 }
 
 # VPC + Internet

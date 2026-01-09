@@ -26,7 +26,7 @@ resource "aws_ecs_task_definition" "backend" {
       secrets = [
         { name = "POSTGRES_HOST", valueFrom = "${local.db_secret_arn}:POSTGRES_HOST::" },
         { name = "POSTGRES_PORT", valueFrom = "${local.db_secret_arn}:POSTGRES_PORT::" },
-        { name = "POSTGRES_DB",   valueFrom = "${local.db_secret_arn}:POSTGRES_DB::" },
+        { name = "POSTGRES_DB", valueFrom = "${local.db_secret_arn}:POSTGRES_DB::" },
         { name = "POSTGRES_USER", valueFrom = "${local.db_secret_arn}:POSTGRES_USER::" },
         { name = "POSTGRES_PASSWORD", valueFrom = "${local.db_secret_arn}:POSTGRES_PASSWORD::" },
         { name = "ML_API_URL", valueFrom = "${local.db_secret_arn}:ML_API_URL::" },
