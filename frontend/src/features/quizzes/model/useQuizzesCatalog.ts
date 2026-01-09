@@ -27,16 +27,10 @@ function hasNumberId(q: QuizDto): q is QuizDto & { id: number } {
   return typeof q.id === 'number' && Number.isFinite(q.id);
 }
 
-function pickDurationSeconds(metric?: QuizMetric): number | null {
-  const v =
-    typeof metric?.avgDurationSeconds === 'number'
-      ? metric.avgDurationSeconds
-      : typeof metric?.estimatedDurationSeconds === 'number'
-        ? metric.estimatedDurationSeconds
-        : null;
-
-  if (v == null || !Number.isFinite(v) || v <= 0) return null;
-  return v;
+function pickDurationSeconds(metric?: QuizMetric) {
+  return typeof metric?.estimatedDurationSeconds === 'number'
+    ? metric.estimatedDurationSeconds
+    : null;
 }
 
 function matchesDuration(seconds: number | null, duration: string): boolean {

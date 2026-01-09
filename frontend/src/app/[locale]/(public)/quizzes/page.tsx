@@ -16,15 +16,14 @@ import { QuizzesPagination } from '@/features/quizzes/ui/QuizzesPagination';
 
 function durationSeconds(item: QuizCatalogItem): number | null {
   const v =
-    typeof item.metric?.avgDurationSeconds === 'number'
-      ? item.metric.avgDurationSeconds
-      : typeof item.metric?.estimatedDurationSeconds === 'number'
-        ? item.metric.estimatedDurationSeconds
-        : null;
+    typeof item.metric?.estimatedDurationSeconds === 'number'
+      ? item.metric.estimatedDurationSeconds
+      : null;
 
   if (v == null || !Number.isFinite(v) || v <= 0) return null;
   return v;
 }
+
 
 function matchesDurationFilter(item: QuizCatalogItem, duration: FiltersValue['duration']): boolean {
   if (duration === 'any') return true;

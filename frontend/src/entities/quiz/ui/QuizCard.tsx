@@ -65,13 +65,9 @@ function getDescriptionDefault(quiz: QuizDto): string {
 }
 
 function pickDurationSeconds(metric?: QuizMetric) {
-  const s =
-    typeof metric?.avgDurationSeconds === 'number'
-      ? metric.avgDurationSeconds
-      : typeof metric?.estimatedDurationSeconds === 'number'
-        ? metric.estimatedDurationSeconds
-        : null;
-  return s;
+  return typeof metric?.estimatedDurationSeconds === 'number'
+    ? metric.estimatedDurationSeconds
+    : null;
 }
 
 export function QuizCard({
