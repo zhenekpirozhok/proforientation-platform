@@ -99,7 +99,12 @@ export function QuizCard({
   const cat = categoryStyles(catColor);
 
   return (
-    <Link href={href} className="block h-full" data-testid="quiz-card" data-quiz-id={quiz.id}>
+    <Link
+      href={href}
+      className="block h-full"
+      data-testid="quiz-card"
+      data-quiz-id={quiz.id}
+    >
       <Card
         className={[
           'h-full',

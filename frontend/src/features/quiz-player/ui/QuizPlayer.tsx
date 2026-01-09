@@ -4,7 +4,11 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { useRouter } from '@/shared/i18n/lib/navigation';
 import { useTranslations } from 'next-intl';
-import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import {
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from '@tanstack/react-query';
 
 import { useCurrentQuizVersionIdQuery } from '../model/useCurrentQuizVersionIdQuery';
 import { useQuizPlayerStore } from '../model/store';
@@ -14,7 +18,11 @@ import type { Question, PageLike } from '@/entities/question/model/types';
 import type { AttemptResult } from '@/features/quiz-player/model/types';
 import { parseResponse } from '@/shared/api/parseResponse';
 
-import { useStartAttempt, useAddAnswersBulk, useSubmit } from '@/shared/api/generated/api';
+import {
+  useStartAttempt,
+  useAddAnswersBulk,
+  useSubmit,
+} from '@/shared/api/generated/api';
 
 import { QuizPlayerLayout } from './components/QuizPlayerLayout';
 import { QuizProgressHeader } from './components/QuizProgressHeader';
@@ -57,7 +65,17 @@ function indexInBatch(questionIndex0: number) {
 }
 
 const quizQuestionBatchKey = (quizId: number, batch: number, locale: string) =>
-  ['questions', 'quiz', quizId, 'batch', batch, 'size', BATCH_SIZE, 'locale', locale] as const;
+  [
+    'questions',
+    'quiz',
+    quizId,
+    'batch',
+    batch,
+    'size',
+    BATCH_SIZE,
+    'locale',
+    locale,
+  ] as const;
 
 async function fetchQuestionBatch(params: {
   quizId: number;
@@ -82,12 +100,17 @@ async function fetchQuestionBatch(params: {
   const data = await parseResponse<PageLike<Question> | Question[]>(res);
 
   if (Array.isArray(data)) {
-    return { questions: data, total: undefined as number | undefined, last: true };
+    return {
+      questions: data,
+      total: undefined as number | undefined,
+      last: true,
+    };
   }
 
   return {
     questions: Array.isArray(data.content) ? data.content : [],
-    total: typeof data.totalElements === 'number' ? data.totalElements : undefined,
+    total:
+      typeof data.totalElements === 'number' ? data.totalElements : undefined,
     last: data.last === true,
   };
 }
@@ -179,7 +202,8 @@ export function QuizPlayer({ quizId }: Props) {
   const batchQuery = useQuery({
     queryKey: quizQuestionBatchKey(quizId, batch, String(locale)),
     enabled: ready && Number.isFinite(quizId) && quizId > 0,
-    queryFn: ({ signal }) => fetchQuestionBatch({ quizId, batch, locale: String(locale), signal }),
+    queryFn: ({ signal }) =>
+      fetchQuestionBatch({ quizId, batch, locale: String(locale), signal }),
     staleTime: 30_000,
     placeholderData: keepPreviousData,
     refetchOnWindowFocus: false,
@@ -210,7 +234,8 @@ export function QuizPlayer({ quizId }: Props) {
     if (!ready || !question) return;
 
     const nextIndex = safeIndex + 1;
-    if (hasTotal && totalQuestions != null && nextIndex >= totalQuestions) return;
+    if (hasTotal && totalQuestions != null && nextIndex >= totalQuestions)
+      return;
 
     const nextBatch = Math.max(0, batchIndexFromQuestionIndex(nextIndex));
     if (nextBatch === batch) return;
@@ -229,7 +254,17 @@ export function QuizPlayer({ quizId }: Props) {
         }),
       staleTime: 30_000,
     }).catch(() => {});
-  }, [ready, question, safeIndex, batch, hasTotal, totalQuestions, quizId, locale, qc]);
+  }, [
+    ready,
+    question,
+    safeIndex,
+    batch,
+    hasTotal,
+    totalQuestions,
+    quizId,
+    locale,
+    qc,
+  ]);
 
   async function onNext() {
     if (isBusy) return;
@@ -248,7 +283,9 @@ export function QuizPlayer({ quizId }: Props) {
       const optionIds = Array.from(new Set(optionIdsRaw));
 
       if (optionIds.length !== s.totalQuestions) {
-        throw new Error(`Need exactly ${s.totalQuestions} distinct answers, got ${optionIds.length}`);
+        throw new Error(
+          `Need exactly ${s.totalQuestions} distinct answers, got ${optionIds.length}`,
+        );
       }
 
       setStatus('submitting');
@@ -258,7 +295,9 @@ export function QuizPlayer({ quizId }: Props) {
         setBulkSent(attemptId);
       }
 
-      const resultUnknown: unknown = await submitAttempt.mutateAsync({ attemptId });
+      const resultUnknown: unknown = await submitAttempt.mutateAsync({
+        attemptId,
+      });
       setResult(resultUnknown as AttemptResult);
 
       setStatus('finished');
@@ -308,7 +347,9 @@ export function QuizPlayer({ quizId }: Props) {
     );
   }
 
-  const isAbort = batchQuery.error instanceof DOMException && batchQuery.error.name === 'AbortError';
+  const isAbort =
+    batchQuery.error instanceof DOMException &&
+    batchQuery.error.name === 'AbortError';
 
   if (batchQuery.isError && !isAbort) {
     return (

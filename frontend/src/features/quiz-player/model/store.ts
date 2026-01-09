@@ -3,7 +3,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { QuizPlayerState, QuizPlayerStatus, AttemptResult } from './types';
-import { useGuestStore } from '@/entities/guest/model/store';
 
 type QuizPlayerActions = {
   startFresh(quizId: number, quizVersionId: number): void;
@@ -56,7 +55,11 @@ function clampIndex(index: number, total: number | null) {
   return Math.min(safe, Math.max(0, total - 1));
 }
 
-function isFreshStarting(s: QuizPlayerState, quizId: number, quizVersionId: number) {
+function isFreshStarting(
+  s: QuizPlayerState,
+  quizId: number,
+  quizVersionId: number,
+) {
   return (
     s.quizId === quizId &&
     s.quizVersionId === quizVersionId &&
@@ -111,7 +114,9 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           const nextIndex = clampIndex(s.currentIndex, s.totalQuestions);
 
           const already =
-            s.status === 'in-progress' && s.error == null && s.currentIndex === nextIndex;
+            s.status === 'in-progress' &&
+            s.error == null &&
+            s.currentIndex === nextIndex;
 
           if (already) return;
 
@@ -169,7 +174,6 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
           status: error ? 'error' : s.status,
         })),
 
-
       setIndex: (index) =>
         set((s) => ({ currentIndex: clampIndex(index, s.totalQuestions) })),
 
@@ -223,7 +227,6 @@ export const useQuizPlayerStore = create<QuizPlayerStore>()(
         state.setStatus('idle');
         state.setError(null);
       },
-
     },
   ),
 );

@@ -6,7 +6,10 @@ import { useTranslations } from 'next-intl';
 import { Alert } from 'antd';
 
 import { useQuizzesCatalog } from '@/features/quizzes/model/useQuizzesCatalog';
-import type { QuizCatalogItem, FiltersValue } from '@/features/quizzes/model/types';
+import type {
+  QuizCatalogItem,
+  FiltersValue,
+} from '@/features/quizzes/model/types';
 import { QuizzesHeader } from '@/features/quizzes/ui/QuizzesHeader';
 import { QuizzesFilters } from '@/features/quizzes/ui/QuizzesFilters';
 import { QuizGridSkeleton } from '@/features/quizzes/ui/QuizGridSkeleton';
@@ -24,8 +27,10 @@ function durationSeconds(item: QuizCatalogItem): number | null {
   return v;
 }
 
-
-function matchesDurationFilter(item: QuizCatalogItem, duration: FiltersValue['duration']): boolean {
+function matchesDurationFilter(
+  item: QuizCatalogItem,
+  duration: FiltersValue['duration'],
+): boolean {
   if (duration === 'any') return true;
 
   const s = durationSeconds(item);
@@ -54,17 +59,27 @@ export default function QuizzesPage() {
     duration: 'any',
   });
 
-  const { items, total, categories, isLoading, quizzesError, metricsError, categoriesError, refetch } =
-    useQuizzesCatalog({
-      locale,
-      page,
-      size: pageSize,
-      filters,
-    });
+  const {
+    items,
+    total,
+    categories,
+    isLoading,
+    quizzesError,
+    metricsError,
+    categoriesError,
+    refetch,
+  } = useQuizzesCatalog({
+    locale,
+    page,
+    size: pageSize,
+    filters,
+  });
 
   const visibleItems = useMemo(() => {
     if (filters.duration === 'any') return items;
-    return items.filter((item) => matchesDurationFilter(item, filters.duration));
+    return items.filter((item) =>
+      matchesDurationFilter(item, filters.duration),
+    );
   }, [items, filters.duration]);
 
   const onFiltersChange = (next: FiltersValue) => {
@@ -77,7 +92,8 @@ export default function QuizzesPage() {
     setFilters({ search: '', category: 'all', duration: 'any' });
   };
 
-  const headerTotal = filters.duration === 'any' ? total || items.length : visibleItems.length;
+  const headerTotal =
+    filters.duration === 'any' ? total || items.length : visibleItems.length;
 
   return (
     <div className="pb-4">

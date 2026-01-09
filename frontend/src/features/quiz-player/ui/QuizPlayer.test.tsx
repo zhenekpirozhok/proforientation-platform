@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 
 const pushMock = jest.fn();
@@ -10,7 +11,8 @@ jest.mock(
   { virtual: true },
 );
 
-const paramsMock: any = { locale: 'lt' };
+type ParamsMock = { locale: string };
+const paramsMock: ParamsMock = { locale: 'lt' };
 
 jest.mock(
   'next/navigation',
@@ -20,21 +22,26 @@ jest.mock(
   { virtual: true },
 );
 
+type TranslationVars = { message?: string };
 jest.mock(
   'next-intl',
   () => ({
-    useTranslations: () => (key: string, vars?: any) =>
+    useTranslations: () => (key: string, vars?: TranslationVars) =>
       vars?.message ? `${key}:${vars.message}` : key,
   }),
   { virtual: true },
 );
 
+type ChildrenProps = { children?: React.ReactNode };
+
 jest.mock('./components/QuizPlayerLayout', () => ({
-  QuizPlayerLayout: ({ children }: any) => <div>{children}</div>,
+  QuizPlayerLayout: ({ children }: ChildrenProps) => <div>{children}</div>,
 }));
 
+type ProgressHeaderProps = { current: number; total?: number | null };
+
 jest.mock('./components/QuizProgressHeader', () => ({
-  QuizProgressHeader: ({ current, total }: any) => (
+  QuizProgressHeader: ({ current, total }: ProgressHeaderProps) => (
     <div>
       {current}/{total ?? 'null'}
     </div>
@@ -46,13 +53,26 @@ jest.mock('./components/QuizPlayerSkeleton', () => ({
 }));
 
 jest.mock('./components/AnimatedQuestion', () => ({
-  AnimatedQuestion: ({ children }: any) => <div>{children}</div>,
+  AnimatedQuestion: ({ children }: ChildrenProps) => <div>{children}</div>,
 }));
+
+type Question = { id: number };
+type QuestionCardProps = {
+  question: Question;
+  selectedOptionId?: number | null;
+  onSelect: (questionId: number, optionId: number) => void;
+  disabled?: boolean;
+};
 
 jest.mock(
   '@/entities/question/ui/QuestionCard',
   () => ({
-    QuestionCard: ({ question, selectedOptionId, onSelect, disabled }: any) => (
+    QuestionCard: ({
+      question,
+      selectedOptionId,
+      onSelect,
+      disabled,
+    }: QuestionCardProps) => (
       <div>
         <div>{question.id}</div>
         <div>{selectedOptionId ?? 'none'}</div>
@@ -65,8 +85,17 @@ jest.mock(
   { virtual: true },
 );
 
+type QuizPlayerActionsProps = {
+  backDisabled?: boolean;
+  nextDisabled?: boolean;
+  submitDisabled?: boolean;
+  onBack: () => void;
+  onNext: () => void;
+  onSubmit: () => void;
+};
+
 jest.mock('./components/QuizPlayerActions', () => ({
-  QuizPlayerActions: (p: any) => (
+  QuizPlayerActions: (p: QuizPlayerActionsProps) => (
     <div>
       <button disabled={p.backDisabled} onClick={p.onBack}>
         back
@@ -81,7 +110,14 @@ jest.mock('./components/QuizPlayerActions', () => ({
   ),
 }));
 
-const versionQueryMock: any = {
+type VersionQueryMock = {
+  data: number | null;
+  isLoading: boolean;
+  isError: boolean;
+  error: unknown;
+};
+
+const versionQueryMock: VersionQueryMock = {
   data: null,
   isLoading: false,
   isError: false,
@@ -96,14 +132,32 @@ jest.mock(
   { virtual: true },
 );
 
-const batchQueryMock: any = {
+type BatchData = {
+  questions: Array<{ id: number }>;
+  total: number;
+  last: boolean;
+};
+
+type BatchQueryMock = {
+  data: BatchData | null;
+  isError: boolean;
+  error: unknown;
+  isLoading: boolean;
+};
+
+const batchQueryMock: BatchQueryMock = {
   data: null,
   isError: false,
   error: null,
   isLoading: false,
 };
 
-const qcMock = {
+type QueryClientMock = {
+  getQueryData: jest.Mock;
+  prefetchQuery: jest.Mock<Promise<void>, [unknown]>;
+};
+
+const qcMock: QueryClientMock = {
   getQueryData: jest.fn(),
   prefetchQuery: jest.fn().mockResolvedValue(undefined),
 };
@@ -118,15 +172,23 @@ jest.mock(
   { virtual: true },
 );
 
-jest.mock(
-  '@/shared/api/parseResponse',
-  () => ({ parseResponse: jest.fn() }),
-  { virtual: true },
-);
+jest.mock('@/shared/api/parseResponse', () => ({ parseResponse: jest.fn() }), {
+  virtual: true,
+});
 
-const startAttemptMutateAsync = jest.fn();
-const addAnswersBulkMutateAsync = jest.fn();
-const submitMutateAsync = jest.fn();
+type StartAttemptResult = { attemptId: number; guestToken?: string | null };
+type AddAnswersBulkResult = unknown;
+type SubmitResult = unknown;
+
+const startAttemptMutateAsync = jest.fn<
+  Promise<StartAttemptResult>,
+  [unknown]
+>();
+const addAnswersBulkMutateAsync = jest.fn<
+  Promise<AddAnswersBulkResult>,
+  [unknown]
+>();
+const submitMutateAsync = jest.fn<Promise<SubmitResult>, [unknown]>();
 
 jest.mock(
   '@/shared/api/generated/api',
@@ -141,19 +203,42 @@ jest.mock(
   { virtual: true },
 );
 
-const guestStoreState = { guestToken: null as string | null };
+type GuestStoreState = { guestToken: string | null };
+const guestStoreState: GuestStoreState = { guestToken: null };
 
-const setGuestTokenMock = jest.fn((t: string | null) => {
+const setGuestTokenMock = jest.fn<void, [string | null]>((t) => {
   guestStoreState.guestToken = t;
 });
 
-const clearGuestTokenMock = jest.fn(() => {
+const clearGuestTokenMock = jest.fn<void, []>(() => {
   guestStoreState.guestToken = null;
 });
 
-const useGuestStoreMock: any = jest.fn((sel?: any) =>
-  typeof sel === 'function' ? sel(guestStoreState) : guestStoreState,
-);
+type GuestStoreSelectors =
+  | GuestStoreState
+  | {
+      guestToken: string | null;
+      setGuestToken: (t: string | null) => void;
+      clearGuestToken: () => void;
+    };
+
+type GuestSelector<T> = (s: GuestStoreSelectors) => T;
+
+type GuestStoreMockFn = (<T>(
+  sel?: GuestSelector<T>,
+) => T | GuestStoreSelectors) & {
+  getState: () => GuestStoreSelectors;
+};
+
+const useGuestStoreMock = jest.fn((sel?: GuestSelector<unknown>) => {
+  const full: GuestStoreSelectors = {
+    guestToken: guestStoreState.guestToken,
+    setGuestToken: setGuestTokenMock,
+    clearGuestToken: clearGuestTokenMock,
+  };
+  if (typeof sel === 'function') return sel(full);
+  return full;
+}) as unknown as GuestStoreMockFn;
 
 useGuestStoreMock.getState = () => ({
   guestToken: guestStoreState.guestToken,
@@ -169,44 +254,69 @@ jest.mock(
   { virtual: true },
 );
 
-let storeState: any;
+type QuizPlayerStatus = 'idle' | 'in-progress' | 'error';
+
+type QuizPlayerStoreState = {
+  quizId: number;
+  quizVersionId: number | null;
+  attemptId: number | null;
+  guestToken: string | null;
+  status: QuizPlayerStatus;
+  error: string | null;
+  currentIndex: number;
+  totalQuestions: number | null;
+  answersByQuestionId: Record<number, number>;
+  bulkSentAttemptId: number | null;
+};
+
+let storeState: QuizPlayerStoreState;
 
 const storeActions = {
-  resumeOrStart: jest.fn(),
-  setAttempt: jest.fn((id: number, token: string) => {
+  resumeOrStart: jest.fn<void, []>(),
+  setAttempt: jest.fn<void, [number, string]>((id, token) => {
     storeState.attemptId = id;
     storeState.guestToken = token;
     storeState.status = 'in-progress';
   }),
-  setStatus: jest.fn((s: any) => {
+  setStatus: jest.fn<void, [QuizPlayerStatus]>((s) => {
     storeState.status = s;
   }),
-  setError: jest.fn((e: any) => {
+  setError: jest.fn<void, [string]>((e) => {
     storeState.error = e;
     storeState.status = 'error';
   }),
-  setTotalQuestions: jest.fn((t: number) => {
+  setTotalQuestions: jest.fn<void, [number]>((t) => {
     storeState.totalQuestions = t;
   }),
-  goNext: jest.fn(() => {
+  goNext: jest.fn<void, []>(() => {
     storeState.currentIndex++;
   }),
-  goPrev: jest.fn(() => {
+  goPrev: jest.fn<void, []>(() => {
     storeState.currentIndex--;
   }),
-  selectOption: jest.fn((qid: number, oid: number) => {
+  selectOption: jest.fn<void, [number, number]>((qid, oid) => {
     storeState.answersByQuestionId[qid] = oid;
   }),
-  setResult: jest.fn(),
-  setBulkSent: jest.fn((id: number) => {
+  setResult: jest.fn<void, [unknown]>(),
+  setBulkSent: jest.fn<void, [number]>((id) => {
     storeState.bulkSentAttemptId = id;
   }),
 };
 
-const useQuizPlayerStoreMock: any = jest.fn((sel?: any) => {
-  const state = { ...storeState, ...storeActions };
-  return typeof sel === 'function' ? sel(state) : state;
-});
+type QuizPlayerStoreFull = QuizPlayerStoreState & typeof storeActions;
+type QuizPlayerSelector<T> = (s: QuizPlayerStoreFull) => T;
+
+type QuizPlayerStoreMockFn = (<T>(
+  sel?: QuizPlayerSelector<T>,
+) => T | QuizPlayerStoreFull) & {
+  getState: () => QuizPlayerStoreState;
+};
+
+const useQuizPlayerStoreMock = jest.fn((sel?: QuizPlayerSelector<unknown>) => {
+  const state: QuizPlayerStoreFull = { ...storeState, ...storeActions };
+  if (typeof sel === 'function') return sel(state);
+  return state;
+}) as unknown as QuizPlayerStoreMockFn;
 
 useQuizPlayerStoreMock.getState = () => storeState;
 
@@ -262,8 +372,8 @@ function reset() {
     bulkSentAttemptId: null,
   };
 
-  Object.values(storeActions).forEach(
-    (fn) => typeof fn === 'function' && (fn as any).mockClear(),
+  (Object.values(storeActions) as Array<jest.Mock>).forEach((fn) =>
+    fn.mockClear(),
   );
 }
 
