@@ -59,7 +59,7 @@ resource "aws_ecs_service" "backend" {
   network_configuration {
     subnets          = local.private_subnet_ids
     security_groups  = [local.backend_sg_id]
-    assign_public_ip = "DISABLED"
+    assign_public_ip = false
   }
 
   load_balancer {

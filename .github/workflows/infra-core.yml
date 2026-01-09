@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "plan or apply"
+        description: "plan, apply, or destroy"
         required: true
         default: "plan"
         type: choice
-        options: [plan, apply]
+        options: [plan, apply, destroy]
 
 permissions:
   id-token: write
@@ -51,3 +51,8 @@ jobs:
         if: inputs.action == 'apply'
         working-directory: infra/core
         run: terraform apply -auto-approve
+
+      - name: Destroy
+        if: ${{ inputs.action == 'destroy' }}
+        working-directory: infra/core
+        run: terraform destroy -auto-approve
