@@ -70,6 +70,10 @@ jobs:
             -url="jdbc:postgresql://localhost:5432/proforientation" \
             -user="postgres" \
             -password="postgres" \
+            -placeholders.app_user_name="postgres" \
+            -placeholders.app_user_password="postgres" \
+            -placeholders.db_admin_name="postgres" \
+            -placeholders.db_admin_password="postgres" \
             migrate
 
       - name: Smoke test + Export OpenAPI spec (JSON)
