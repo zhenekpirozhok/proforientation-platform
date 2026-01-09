@@ -53,6 +53,14 @@ jobs:
           subnets=$(echo "$subnets_json" | jq -r 'join(",")')
           echo "subnets=$subnets" >> $GITHUB_OUTPUT
 
+      - name: Debug Flyway task definition (entryPoint/command)
+        run: |
+            set -euo pipefail
+            TASK_DEF="${{ steps.out.outputs.task_def }}"
+            aws ecs describe-task-definition --task-definition "$TASK_DEF" \
+              --query "taskDefinition.containerDefinitions[0].{image:image,entryPoint:entryPoint,command:command}" \
+              --output json
+
       - name: Run Flyway task
         id: run
         run: |

@@ -34,22 +34,22 @@ resource "aws_ecs_task_definition" "flyway" {
 
       entryPoint = ["sh", "-lc"]
       command = [<<-EOF
-        set -eux
+      set -eux
 
-        echo "POSTGRES_HOST=$POSTGRES_HOST"
-        echo "POSTGRES_PORT=$POSTGRES_PORT"
-        echo "POSTGRES_DB=$POSTGRES_DB"
-        echo "DB_ADMIN_USER=$DB_ADMIN_USER"
-        echo "APP_DB_USER=$APP_DB_USER"
+      echo "POSTGRES_HOST=$$POSTGRES_HOST"
+      echo "POSTGRES_PORT=$$POSTGRES_PORT"
+      echo "POSTGRES_DB=$$POSTGRES_DB"
+      echo "DB_ADMIN_USER=$$DB_ADMIN_USER"
+      echo "APP_DB_USER=$$APP_DB_USER"
 
-        flyway -v migrate \
-          -url="jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}" \
-          -user="${DB_ADMIN_USER}" \
-          -password="${DB_ADMIN_PASSWORD}" \
-          -placeholders.app_user_name="${APP_DB_USER}" \
-          -placeholders.app_user_password="${APP_DB_PASSWORD}" \
-          -placeholders.db_admin_name="${DB_ADMIN_USER}" \
-          -placeholders.db_admin_password="${DB_ADMIN_PASSWORD}"
+      flyway -v migrate \
+        -url="jdbc:postgresql://$${POSTGRES_HOST}:$${POSTGRES_PORT}/$${POSTGRES_DB}" \
+        -user="$${DB_ADMIN_USER}" \
+        -password="$${DB_ADMIN_PASSWORD}" \
+        -placeholders.app_user_name="$${APP_DB_USER}" \
+        -placeholders.app_user_password="$${APP_DB_PASSWORD}" \
+        -placeholders.db_admin_name="$${DB_ADMIN_USER}" \
+        -placeholders.db_admin_password="$${DB_ADMIN_PASSWORD}"
       EOF
       ]
 
