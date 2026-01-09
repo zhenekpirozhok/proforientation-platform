@@ -1,2 +1,0 @@
-FROM flyway/flyway:10-alpine
-COPY db/migration /flyway/sql
