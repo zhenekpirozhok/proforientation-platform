@@ -48,9 +48,23 @@ jobs:
         working-directory: infra/backend
         run: terraform init
 
-#      - name: Validate
-#        working-directory: infra/backend
-#        run: terraform validate
+      - name: Show backend directory contents
+        working-directory: infra/backend
+        run: |
+          pwd
+          ls -la
+          echo "---- tf files ----"
+          find . -maxdepth 1 -type f -name "*.tf" -print
+          echo "---- locals.tf ----"
+          sed -n '1,120p' locals.tf || true
+
+      - name: Debug core outputs
+        working-directory: infra/core
+        run: terraform output
+
+      - name: Validate
+        working-directory: infra/backend
+        run: terraform validate
 
       - name: Plan
         if: inputs.action == 'plan'
