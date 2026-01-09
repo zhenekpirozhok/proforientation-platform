@@ -27,7 +27,7 @@ jobs:
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::423161708569:role/GitHubActionsDeployRole-Backend
+          role-to-assume: arn:aws:iam::423161708569:role/GitHubActionsTerraformCoreRole
           aws-region: eu-north-1
 
       - uses: hashicorp/setup-terraform@v3
