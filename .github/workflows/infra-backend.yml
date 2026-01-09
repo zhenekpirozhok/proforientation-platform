@@ -48,9 +48,13 @@ jobs:
         working-directory: infra/backend
         run: terraform init
 
-#      - name: Validate
-#        working-directory: infra/backend
-#        run: terraform validate
+      - name: Debug core outputs
+        working-directory: infra/core
+        run: terraform output
+
+      - name: Validate
+        working-directory: infra/backend
+        run: terraform validate
 
       - name: Plan
         if: inputs.action == 'plan'
