@@ -39,16 +39,23 @@ import type {
   CreateTraitRequest,
   CreateTranslationRequest,
   DeleteAccountParams,
+  DeleteAttemptsRequest,
+  DeleteMyAttemptsParams,
   ExceptionDto,
+  ExportQuizMetricsCsvParams,
+  ExportQuizMetricsExcelParams,
+  FilterMetricsParams,
   GetAll1Params,
   GetAll2Params,
   GetQuestionsForQuizParams,
   GetQuestionsForQuizVersionParams,
   GoogleOneTapLoginRequest,
   HandleGoogleOneTap401,
+  ImportProfessionsExcelBody,
   ImportQuestionsBody,
+  ImportQuizzesExcelBody,
   ImportResultDto,
-  ImportTranslationsBody,
+  ImportTranslationsExcelBody,
   LoginResponse,
   LoginUserDto,
   Logout200,
@@ -58,6 +65,7 @@ import type {
   OptionDto,
   OptionTraitListRequest,
   Page,
+  PageProfessionDto,
   PageQuestionDto,
   ProfessionCategoryDto,
   ProfessionDto,
@@ -73,6 +81,7 @@ import type {
   ResetPasswordDto,
   Search1Params,
   Search2Params,
+  Search3Params,
   SearchParams,
   StartAttemptParams,
   TraitDto,
@@ -81,6 +90,7 @@ import type {
   UpdateQuestionRequest,
   UpdateQuizRequest,
   UpdateTranslationRequest,
+  UpdateUserRoleBody,
   User
 } from './model';
 
@@ -3821,25 +3831,36 @@ export const useStartAttempt = <TError = ExceptionDto,
     }
     
 /**
- * Imports translations for quizzes, questions, options, and professions.
-Existing translations are updated, new ones are created.
-Only administrators are allowed to perform this operation.
+ * Imports translations from an Excel (.xlsx) file.
 
- * @summary Import translations from CSV
+The file must contain a header row with the following columns:
+- entity_type (quiz, question, option, profession)
+- entity_id
+- field (e.g. title, description)
+- locale (e.g. en, uk)
+- text
+
+Import behavior:
+- All rows are validated before saving
+- Invalid rows are skipped
+- Errors are returned with row numbers and messages
+- Valid rows are saved in a single transaction
+
+ * @summary Import translations from Excel
  */
-export const getImportTranslationsUrl = () => {
+export const getImportTranslationsExcelUrl = () => {
 
 
   
 
-  return `/api/import/translations`
+  return `/api/import/excel/translations`
 }
 
-export const importTranslations = async (importTranslationsBody: ImportTranslationsBody, options?: RequestInit): Promise<ImportResultDto> => {
+export const importTranslationsExcel = async (importTranslationsExcelBody: ImportTranslationsExcelBody, options?: RequestInit): Promise<ImportResultDto> => {
     const formData = new FormData();
-formData.append(`file`, importTranslationsBody.file)
+formData.append(`file`, importTranslationsExcelBody.file)
 
-  return orvalFetch<ImportResultDto>(getImportTranslationsUrl(),
+  return orvalFetch<ImportResultDto>(getImportTranslationsExcelUrl(),
   {      
     ...options,
     method: 'POST'
@@ -3852,11 +3873,11 @@ formData.append(`file`, importTranslationsBody.file)
 
 
 
-export const getImportTranslationsMutationOptions = <TError = ExceptionDto | ImportResultDto,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importTranslations>>, TError,{data: ImportTranslationsBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof importTranslations>>, TError,{data: ImportTranslationsBody}, TContext> => {
+export const getImportTranslationsExcelMutationOptions = <TError = ImportResultDto | ImportResultDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importTranslationsExcel>>, TError,{data: ImportTranslationsExcelBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof importTranslationsExcel>>, TError,{data: ImportTranslationsExcelBody}, TContext> => {
 
-const mutationKey = ['importTranslations'];
+const mutationKey = ['importTranslationsExcel'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -3866,10 +3887,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof importTranslations>>, {data: ImportTranslationsBody}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof importTranslationsExcel>>, {data: ImportTranslationsExcelBody}> = (props) => {
           const {data} = props ?? {};
 
-          return  importTranslations(data,requestOptions)
+          return  importTranslationsExcel(data,requestOptions)
         }
 
         
@@ -3877,40 +3898,237 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type ImportTranslationsMutationResult = NonNullable<Awaited<ReturnType<typeof importTranslations>>>
-    export type ImportTranslationsMutationBody = ImportTranslationsBody
-    export type ImportTranslationsMutationError = ExceptionDto | ImportResultDto
+    export type ImportTranslationsExcelMutationResult = NonNullable<Awaited<ReturnType<typeof importTranslationsExcel>>>
+    export type ImportTranslationsExcelMutationBody = ImportTranslationsExcelBody
+    export type ImportTranslationsExcelMutationError = ImportResultDto | ImportResultDto
 
     /**
- * @summary Import translations from CSV
+ * @summary Import translations from Excel
  */
-export const useImportTranslations = <TError = ExceptionDto | ImportResultDto,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importTranslations>>, TError,{data: ImportTranslationsBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+export const useImportTranslationsExcel = <TError = ImportResultDto | ImportResultDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importTranslationsExcel>>, TError,{data: ImportTranslationsExcelBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof importTranslations>>,
+        Awaited<ReturnType<typeof importTranslationsExcel>>,
         TError,
-        {data: ImportTranslationsBody},
+        {data: ImportTranslationsExcelBody},
         TContext
       > => {
 
-      const mutationOptions = getImportTranslationsMutationOptions(options);
+      const mutationOptions = getImportTranslationsExcelMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }
     
 /**
- * Imports quiz questions from a CSV file.
-The file must contain a header row and valid question data.
-Only administrators are allowed to perform this operation.
+ * Imports quizzes from an Excel (.xlsx) file.
 
- * @summary Import questions from CSV
+Required columns:
+- code
+- title_default
+- category_id
+- author_id
+
+Optional columns:
+- status (DRAFT, PUBLISHED)
+- processing_mode (LLM, ML_RIASEC, etc.)
+- description_default
+- seconds_per_question_default
+
+Import behavior:
+- Existing quizzes are updated by code
+- New quizzes are created if code does not exist
+- Duplicate codes inside the file are rejected
+- If status is PUBLISHED and no quiz version exists,
+  a published quiz version is created automatically
+- Invalid rows are skipped, valid rows are saved
+
+ * @summary Import quizzes from Excel
+ */
+export const getImportQuizzesExcelUrl = () => {
+
+
+  
+
+  return `/api/import/excel/quizzes`
+}
+
+export const importQuizzesExcel = async (importQuizzesExcelBody: ImportQuizzesExcelBody, options?: RequestInit): Promise<ImportResultDto> => {
+    const formData = new FormData();
+formData.append(`file`, importQuizzesExcelBody.file)
+
+  return orvalFetch<ImportResultDto>(getImportQuizzesExcelUrl(),
+  {      
+    ...options,
+    method: 'POST'
+    ,
+    body: 
+      formData,
+  }
+);}
+
+
+
+
+export const getImportQuizzesExcelMutationOptions = <TError = ImportResultDto | ImportResultDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importQuizzesExcel>>, TError,{data: ImportQuizzesExcelBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof importQuizzesExcel>>, TError,{data: ImportQuizzesExcelBody}, TContext> => {
+
+const mutationKey = ['importQuizzesExcel'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof importQuizzesExcel>>, {data: ImportQuizzesExcelBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  importQuizzesExcel(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ImportQuizzesExcelMutationResult = NonNullable<Awaited<ReturnType<typeof importQuizzesExcel>>>
+    export type ImportQuizzesExcelMutationBody = ImportQuizzesExcelBody
+    export type ImportQuizzesExcelMutationError = ImportResultDto | ImportResultDto
+
+    /**
+ * @summary Import quizzes from Excel
+ */
+export const useImportQuizzesExcel = <TError = ImportResultDto | ImportResultDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importQuizzesExcel>>, TError,{data: ImportQuizzesExcelBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof importQuizzesExcel>>,
+        TError,
+        {data: ImportQuizzesExcelBody},
+        TContext
+      > => {
+
+      const mutationOptions = getImportQuizzesExcelMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * Imports professions from an Excel (.xlsx) file.
+
+Required columns:
+- code
+- title_default
+- category_id
+
+Optional columns:
+- description
+- ml_class_code
+
+Import behavior:
+- Existing professions are updated by code
+- New professions are created if code does not exist
+- Duplicate codes inside the file are rejected
+- Invalid rows are skipped, valid rows are saved
+
+ * @summary Import professions from Excel
+ */
+export const getImportProfessionsExcelUrl = () => {
+
+
+  
+
+  return `/api/import/excel/professions`
+}
+
+export const importProfessionsExcel = async (importProfessionsExcelBody: ImportProfessionsExcelBody, options?: RequestInit): Promise<ImportResultDto> => {
+    const formData = new FormData();
+formData.append(`file`, importProfessionsExcelBody.file)
+
+  return orvalFetch<ImportResultDto>(getImportProfessionsExcelUrl(),
+  {      
+    ...options,
+    method: 'POST'
+    ,
+    body: 
+      formData,
+  }
+);}
+
+
+
+
+export const getImportProfessionsExcelMutationOptions = <TError = ImportResultDto | ImportResultDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importProfessionsExcel>>, TError,{data: ImportProfessionsExcelBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof importProfessionsExcel>>, TError,{data: ImportProfessionsExcelBody}, TContext> => {
+
+const mutationKey = ['importProfessionsExcel'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof importProfessionsExcel>>, {data: ImportProfessionsExcelBody}> = (props) => {
+          const {data} = props ?? {};
+
+          return  importProfessionsExcel(data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ImportProfessionsExcelMutationResult = NonNullable<Awaited<ReturnType<typeof importProfessionsExcel>>>
+    export type ImportProfessionsExcelMutationBody = ImportProfessionsExcelBody
+    export type ImportProfessionsExcelMutationError = ImportResultDto | ImportResultDto
+
+    /**
+ * @summary Import professions from Excel
+ */
+export const useImportProfessionsExcel = <TError = ImportResultDto | ImportResultDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importProfessionsExcel>>, TError,{data: ImportProfessionsExcelBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof importProfessionsExcel>>,
+        TError,
+        {data: ImportProfessionsExcelBody},
+        TContext
+      > => {
+
+      const mutationOptions = getImportProfessionsExcelMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ * Imports quiz questions from an Excel (.xlsx) file.
+
+Required columns:
+- quiz_version_id
+- ord
+- qtype (SINGLE, MULTIPLE, SCALE, etc.)
+- text_default
+
+Import behavior:
+- Questions are linked to an existing quiz version
+- Invalid enum values or missing references are rejected
+- Invalid rows are skipped
+- Valid questions are saved
+
+ * @summary Import quiz questions from Excel
  */
 export const getImportQuestionsUrl = () => {
 
 
   
 
-  return `/api/import/questions`
+  return `/api/import/admin/import/questions`
 }
 
 export const importQuestions = async (importQuestionsBody: ImportQuestionsBody, options?: RequestInit): Promise<ImportResultDto> => {
@@ -3930,7 +4148,7 @@ formData.append(`file`, importQuestionsBody.file)
 
 
 
-export const getImportQuestionsMutationOptions = <TError = ExceptionDto | ImportResultDto,
+export const getImportQuestionsMutationOptions = <TError = ImportResultDto | ImportResultDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importQuestions>>, TError,{data: ImportQuestionsBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof importQuestions>>, TError,{data: ImportQuestionsBody}, TContext> => {
 
@@ -3957,12 +4175,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type ImportQuestionsMutationResult = NonNullable<Awaited<ReturnType<typeof importQuestions>>>
     export type ImportQuestionsMutationBody = ImportQuestionsBody
-    export type ImportQuestionsMutationError = ExceptionDto | ImportResultDto
+    export type ImportQuestionsMutationError = ImportResultDto | ImportResultDto
 
     /**
- * @summary Import questions from CSV
+ * @summary Import quiz questions from Excel
  */
-export const useImportQuestions = <TError = ExceptionDto | ImportResultDto,
+export const useImportQuestions = <TError = ImportResultDto | ImportResultDto,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importQuestions>>, TError,{data: ImportQuestionsBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof importQuestions>>,
@@ -3972,6 +4190,87 @@ export const useImportQuestions = <TError = ExceptionDto | ImportResultDto,
       > => {
 
       const mutationOptions = getImportQuestionsMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ *     Changes the role of a user.
+
+    Notes:
+    - Only admins can call this endpoint.
+    - Request body is a plain string containing the new role.
+    - Allowed values: USER, ADMIN
+    - Typically you should prevent changing your own role in the service layer.
+
+ * @summary Update user role (admin only)
+ */
+export const getUpdateUserRoleUrl = (id: number,) => {
+
+
+  
+
+  return `/users/${id}/role`
+}
+
+export const updateUserRole = async (id: number,
+    updateUserRoleBody: UpdateUserRoleBody, options?: RequestInit): Promise<void> => {
+  
+  return orvalFetch<void>(getUpdateUserRoleUrl(id),
+  {      
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'text/plain', ...options?.headers },
+    body: 
+      updateUserRoleBody,
+  }
+);}
+
+
+
+
+export const getUpdateUserRoleMutationOptions = <TError = ExceptionDto | ExceptionDto | ExceptionDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUserRole>>, TError,{id: number;data: UpdateUserRoleBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateUserRole>>, TError,{id: number;data: UpdateUserRoleBody}, TContext> => {
+
+const mutationKey = ['updateUserRole'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateUserRole>>, {id: number;data: UpdateUserRoleBody}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateUserRole(id,data,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateUserRoleMutationResult = NonNullable<Awaited<ReturnType<typeof updateUserRole>>>
+    export type UpdateUserRoleMutationBody = UpdateUserRoleBody
+    export type UpdateUserRoleMutationError = ExceptionDto | ExceptionDto | ExceptionDto
+
+    /**
+ * @summary Update user role (admin only)
+ */
+export const useUpdateUserRole = <TError = ExceptionDto | ExceptionDto | ExceptionDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateUserRole>>, TError,{id: number;data: UpdateUserRoleBody}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof updateUserRole>>,
+        TError,
+        {id: number;data: UpdateUserRoleBody},
+        TContext
+      > => {
+
+      const mutationOptions = getUpdateUserRoleMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }
@@ -5174,6 +5473,120 @@ export function useGetQuestionsForQuizVersion<TData = Awaited<ReturnType<typeof 
 
 
 /**
+ *     Searches professions using text and filters.
+
+    Search capabilities:
+    - Text search by title, description, code, or ML class code
+    - Optional filtering by profession category
+    - Supports pagination and sorting
+
+ * @summary Search professions
+ */
+export const getSearch2Url = (params?: Search2Params,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/professions/search?${stringifiedParams}` : `/professions/search`
+}
+
+export const search2 = async (params?: Search2Params, options?: RequestInit): Promise<PageProfessionDto> => {
+  
+  return orvalFetch<PageProfessionDto>(getSearch2Url(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getSearch2QueryKey = (params?: Search2Params,) => {
+    return [
+    `/professions/search`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getSearch2QueryOptions = <TData = Awaited<ReturnType<typeof search2>>, TError = PageProfessionDto>(params?: Search2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSearch2QueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof search2>>> = ({ signal }) => search2(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type Search2QueryResult = NonNullable<Awaited<ReturnType<typeof search2>>>
+export type Search2QueryError = PageProfessionDto
+
+
+export function useSearch2<TData = Awaited<ReturnType<typeof search2>>, TError = PageProfessionDto>(
+ params: undefined |  Search2Params, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof search2>>,
+          TError,
+          Awaited<ReturnType<typeof search2>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearch2<TData = Awaited<ReturnType<typeof search2>>, TError = PageProfessionDto>(
+ params?: Search2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof search2>>,
+          TError,
+          Awaited<ReturnType<typeof search2>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSearch2<TData = Awaited<ReturnType<typeof search2>>, TError = PageProfessionDto>(
+ params?: Search2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Search professions
+ */
+
+export function useSearch2<TData = Awaited<ReturnType<typeof search2>>, TError = PageProfessionDto>(
+ params?: Search2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getSearch2QueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
  * Returns all attempts for the current user.
 
 - Authenticated users: attempts linked to user account
@@ -5396,7 +5809,7 @@ Supports filtering by:
 
  * @summary Admin search attempts
  */
-export const getSearch2Url = (params?: Search2Params,) => {
+export const getSearch3Url = (params?: Search3Params,) => {
   const normalizedParams = new URLSearchParams();
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -5411,9 +5824,9 @@ export const getSearch2Url = (params?: Search2Params,) => {
   return stringifiedParams.length > 0 ? `/attempts/search?${stringifiedParams}` : `/attempts/search`
 }
 
-export const search2 = async (params?: Search2Params, options?: RequestInit): Promise<AttemptSummaryDto> => {
+export const search3 = async (params?: Search3Params, options?: RequestInit): Promise<AttemptSummaryDto> => {
   
-  return orvalFetch<AttemptSummaryDto>(getSearch2Url(params),
+  return orvalFetch<AttemptSummaryDto>(getSearch3Url(params),
   {      
     ...options,
     method: 'GET'
@@ -5426,69 +5839,69 @@ export const search2 = async (params?: Search2Params, options?: RequestInit): Pr
 
 
 
-export const getSearch2QueryKey = (params?: Search2Params,) => {
+export const getSearch3QueryKey = (params?: Search3Params,) => {
     return [
     `/attempts/search`, ...(params ? [params]: [])
     ] as const;
     }
 
     
-export const getSearch2QueryOptions = <TData = Awaited<ReturnType<typeof search2>>, TError = ExceptionDto>(params?: Search2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export const getSearch3QueryOptions = <TData = Awaited<ReturnType<typeof search3>>, TError = ExceptionDto>(params?: Search3Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search3>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getSearch2QueryKey(params);
+  const queryKey =  queryOptions?.queryKey ?? getSearch3QueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof search2>>> = ({ signal }) => search2(params, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof search3>>> = ({ signal }) => search3(params, { signal, ...requestOptions });
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof search3>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
-export type Search2QueryResult = NonNullable<Awaited<ReturnType<typeof search2>>>
-export type Search2QueryError = ExceptionDto
+export type Search3QueryResult = NonNullable<Awaited<ReturnType<typeof search3>>>
+export type Search3QueryError = ExceptionDto
 
 
-export function useSearch2<TData = Awaited<ReturnType<typeof search2>>, TError = ExceptionDto>(
- params: undefined |  Search2Params, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>> & Pick<
+export function useSearch3<TData = Awaited<ReturnType<typeof search3>>, TError = ExceptionDto>(
+ params: undefined |  Search3Params, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof search3>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof search2>>,
+          Awaited<ReturnType<typeof search3>>,
           TError,
-          Awaited<ReturnType<typeof search2>>
+          Awaited<ReturnType<typeof search3>>
         > , 'initialData'
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearch2<TData = Awaited<ReturnType<typeof search2>>, TError = ExceptionDto>(
- params?: Search2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>> & Pick<
+export function useSearch3<TData = Awaited<ReturnType<typeof search3>>, TError = ExceptionDto>(
+ params?: Search3Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search3>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof search2>>,
+          Awaited<ReturnType<typeof search3>>,
           TError,
-          Awaited<ReturnType<typeof search2>>
+          Awaited<ReturnType<typeof search3>>
         > , 'initialData'
       >, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useSearch2<TData = Awaited<ReturnType<typeof search2>>, TError = ExceptionDto>(
- params?: Search2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export function useSearch3<TData = Awaited<ReturnType<typeof search3>>, TError = ExceptionDto>(
+ params?: Search3Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search3>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Admin search attempts
  */
 
-export function useSearch2<TData = Awaited<ReturnType<typeof search2>>, TError = ExceptionDto>(
- params?: Search2Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search2>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+export function useSearch3<TData = Awaited<ReturnType<typeof search3>>, TError = ExceptionDto>(
+ params?: Search3Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof search3>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
  , queryClient?: QueryClient 
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getSearch2QueryOptions(params,options)
+  const queryOptions = getSearch3QueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -5501,7 +5914,8 @@ export function useSearch2<TData = Awaited<ReturnType<typeof search2>>, TError =
 
 
 /**
- * @summary Get public quiz metrics
+ * Returns public analytics for all quizzes without filtering. Includes attempts count, average duration, and estimated duration.
+ * @summary Get all public quiz metrics
  */
 export const getGetAllMetricsUrl = () => {
 
@@ -5580,7 +5994,7 @@ export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get public quiz metrics
+ * @summary Get all public quiz metrics
  */
 
 export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics>>, TError = unknown>(
@@ -5601,7 +6015,8 @@ export function useGetAllMetrics<TData = Awaited<ReturnType<typeof getAllMetrics
 
 
 /**
- * @summary Get public metrics for a quiz
+ * Returns aggregated public metrics for a single quiz identified by its ID. Throws 404 if the quiz metrics are not found.
+ * @summary Get public metrics for a specific quiz
  */
 export const getGetMetricsUrl = (quizId: number,) => {
 
@@ -5680,7 +6095,7 @@ export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TE
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary Get public metrics for a quiz
+ * @summary Get public metrics for a specific quiz
  */
 
 export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TError = unknown>(
@@ -5689,6 +6104,339 @@ export function useGetMetrics<TData = Awaited<ReturnType<typeof getMetrics>>, TE
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetMetricsQueryOptions(quizId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * Returns public quiz metrics filtered by the provided criteria.
+
+All parameters are optional. If multiple filters are provided,
+they are combined using logical AND.
+
+Typical use cases:
+- Admin analytics dashboards
+- Exporting filtered analytics
+- Monitoring quiz performance
+
+ * @summary Filter public quiz metrics
+ */
+export const getFilterMetricsUrl = (params: FilterMetricsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/quizzes/metrics/filter?${stringifiedParams}` : `/api/v1/quizzes/metrics/filter`
+}
+
+export const filterMetrics = async (params: FilterMetricsParams, options?: RequestInit): Promise<QuizPublicMetricsDto[]> => {
+  
+  return orvalFetch<QuizPublicMetricsDto[]>(getFilterMetricsUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getFilterMetricsQueryKey = (params?: FilterMetricsParams,) => {
+    return [
+    `/api/v1/quizzes/metrics/filter`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getFilterMetricsQueryOptions = <TData = Awaited<ReturnType<typeof filterMetrics>>, TError = unknown>(params: FilterMetricsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof filterMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getFilterMetricsQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof filterMetrics>>> = ({ signal }) => filterMetrics(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof filterMetrics>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type FilterMetricsQueryResult = NonNullable<Awaited<ReturnType<typeof filterMetrics>>>
+export type FilterMetricsQueryError = unknown
+
+
+export function useFilterMetrics<TData = Awaited<ReturnType<typeof filterMetrics>>, TError = unknown>(
+ params: FilterMetricsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof filterMetrics>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof filterMetrics>>,
+          TError,
+          Awaited<ReturnType<typeof filterMetrics>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useFilterMetrics<TData = Awaited<ReturnType<typeof filterMetrics>>, TError = unknown>(
+ params: FilterMetricsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof filterMetrics>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof filterMetrics>>,
+          TError,
+          Awaited<ReturnType<typeof filterMetrics>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useFilterMetrics<TData = Awaited<ReturnType<typeof filterMetrics>>, TError = unknown>(
+ params: FilterMetricsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof filterMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Filter public quiz metrics
+ */
+
+export function useFilterMetrics<TData = Awaited<ReturnType<typeof filterMetrics>>, TError = unknown>(
+ params: FilterMetricsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof filterMetrics>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getFilterMetricsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * Exports quiz public metrics filtered by query parameters. All filters are optional.
+ * @summary Export quiz metrics to CSV
+ */
+export const getExportQuizMetricsCsvUrl = (params: ExportQuizMetricsCsvParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/export/quiz-metrics/export?${stringifiedParams}` : `/api/export/quiz-metrics/export`
+}
+
+export const exportQuizMetricsCsv = async (params: ExportQuizMetricsCsvParams, options?: RequestInit): Promise<string> => {
+  
+  return orvalFetch<string>(getExportQuizMetricsCsvUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getExportQuizMetricsCsvQueryKey = (params?: ExportQuizMetricsCsvParams,) => {
+    return [
+    `/api/export/quiz-metrics/export`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getExportQuizMetricsCsvQueryOptions = <TData = Awaited<ReturnType<typeof exportQuizMetricsCsv>>, TError = unknown>(params: ExportQuizMetricsCsvParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportQuizMetricsCsv>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportQuizMetricsCsvQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportQuizMetricsCsv>>> = ({ signal }) => exportQuizMetricsCsv(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportQuizMetricsCsv>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportQuizMetricsCsvQueryResult = NonNullable<Awaited<ReturnType<typeof exportQuizMetricsCsv>>>
+export type ExportQuizMetricsCsvQueryError = unknown
+
+
+export function useExportQuizMetricsCsv<TData = Awaited<ReturnType<typeof exportQuizMetricsCsv>>, TError = unknown>(
+ params: ExportQuizMetricsCsvParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportQuizMetricsCsv>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportQuizMetricsCsv>>,
+          TError,
+          Awaited<ReturnType<typeof exportQuizMetricsCsv>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportQuizMetricsCsv<TData = Awaited<ReturnType<typeof exportQuizMetricsCsv>>, TError = unknown>(
+ params: ExportQuizMetricsCsvParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportQuizMetricsCsv>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportQuizMetricsCsv>>,
+          TError,
+          Awaited<ReturnType<typeof exportQuizMetricsCsv>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportQuizMetricsCsv<TData = Awaited<ReturnType<typeof exportQuizMetricsCsv>>, TError = unknown>(
+ params: ExportQuizMetricsCsvParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportQuizMetricsCsv>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Export quiz metrics to CSV
+ */
+
+export function useExportQuizMetricsCsv<TData = Awaited<ReturnType<typeof exportQuizMetricsCsv>>, TError = unknown>(
+ params: ExportQuizMetricsCsvParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportQuizMetricsCsv>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportQuizMetricsCsvQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
+ * Exports quiz public metrics filtered by query parameters. All filters are optional.
+ * @summary Export quiz metrics to Excel (XLSX)
+ */
+export const getExportQuizMetricsExcelUrl = (params: ExportQuizMetricsExcelParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/export/quiz-metrics/export.xlsx?${stringifiedParams}` : `/api/export/quiz-metrics/export.xlsx`
+}
+
+export const exportQuizMetricsExcel = async (params: ExportQuizMetricsExcelParams, options?: RequestInit): Promise<string> => {
+  
+  return orvalFetch<string>(getExportQuizMetricsExcelUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getExportQuizMetricsExcelQueryKey = (params?: ExportQuizMetricsExcelParams,) => {
+    return [
+    `/api/export/quiz-metrics/export.xlsx`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getExportQuizMetricsExcelQueryOptions = <TData = Awaited<ReturnType<typeof exportQuizMetricsExcel>>, TError = unknown>(params: ExportQuizMetricsExcelParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportQuizMetricsExcel>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportQuizMetricsExcelQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportQuizMetricsExcel>>> = ({ signal }) => exportQuizMetricsExcel(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportQuizMetricsExcel>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ExportQuizMetricsExcelQueryResult = NonNullable<Awaited<ReturnType<typeof exportQuizMetricsExcel>>>
+export type ExportQuizMetricsExcelQueryError = unknown
+
+
+export function useExportQuizMetricsExcel<TData = Awaited<ReturnType<typeof exportQuizMetricsExcel>>, TError = unknown>(
+ params: ExportQuizMetricsExcelParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportQuizMetricsExcel>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportQuizMetricsExcel>>,
+          TError,
+          Awaited<ReturnType<typeof exportQuizMetricsExcel>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportQuizMetricsExcel<TData = Awaited<ReturnType<typeof exportQuizMetricsExcel>>, TError = unknown>(
+ params: ExportQuizMetricsExcelParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportQuizMetricsExcel>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof exportQuizMetricsExcel>>,
+          TError,
+          Awaited<ReturnType<typeof exportQuizMetricsExcel>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useExportQuizMetricsExcel<TData = Awaited<ReturnType<typeof exportQuizMetricsExcel>>, TError = unknown>(
+ params: ExportQuizMetricsExcelParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportQuizMetricsExcel>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Export quiz metrics to Excel (XLSX)
+ */
+
+export function useExportQuizMetricsExcel<TData = Awaited<ReturnType<typeof exportQuizMetricsExcel>>, TError = unknown>(
+ params: ExportQuizMetricsExcelParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof exportQuizMetricsExcel>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getExportQuizMetricsExcelQueryOptions(params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
@@ -5982,6 +6730,94 @@ export const useDeleteAccount = <TError = void,
       > => {
 
       const mutationOptions = getDeleteAccountMutationOptions(options);
+
+      return useMutation(mutationOptions, queryClient);
+    }
+    
+/**
+ *     Deletes one or more attempts belonging to the current user.
+
+    Important notes:
+    - This operation requires explicit confirmation from the client.
+    - The frontend should show a confirmation dialog before calling this endpoint.
+    - Attempts are removed only if they belong to the current user (or guest session).
+    - Deletion is irreversible from the user's perspective.
+
+ * @summary Delete selected attempts (user confirmation required)
+ */
+export const getDeleteMyAttemptsUrl = (params?: DeleteMyAttemptsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/attempts/delete?${stringifiedParams}` : `/attempts/delete`
+}
+
+export const deleteMyAttempts = async (deleteAttemptsRequest: DeleteAttemptsRequest,
+    params?: DeleteMyAttemptsParams, options?: RequestInit): Promise<void> => {
+  
+  return orvalFetch<void>(getDeleteMyAttemptsUrl(params),
+  {      
+    ...options,
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      deleteAttemptsRequest,)
+  }
+);}
+
+
+
+
+export const getDeleteMyAttemptsMutationOptions = <TError = ExceptionDto | ExceptionDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyAttempts>>, TError,{data: DeleteAttemptsRequest;params?: DeleteMyAttemptsParams}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteMyAttempts>>, TError,{data: DeleteAttemptsRequest;params?: DeleteMyAttemptsParams}, TContext> => {
+
+const mutationKey = ['deleteMyAttempts'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMyAttempts>>, {data: DeleteAttemptsRequest;params?: DeleteMyAttemptsParams}> = (props) => {
+          const {data,params} = props ?? {};
+
+          return  deleteMyAttempts(data,params,requestOptions)
+        }
+
+        
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteMyAttemptsMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyAttempts>>>
+    export type DeleteMyAttemptsMutationBody = DeleteAttemptsRequest
+    export type DeleteMyAttemptsMutationError = ExceptionDto | ExceptionDto
+
+    /**
+ * @summary Delete selected attempts (user confirmation required)
+ */
+export const useDeleteMyAttempts = <TError = ExceptionDto | ExceptionDto,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteMyAttempts>>, TError,{data: DeleteAttemptsRequest;params?: DeleteMyAttemptsParams}, TContext>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deleteMyAttempts>>,
+        TError,
+        {data: DeleteAttemptsRequest;params?: DeleteMyAttemptsParams},
+        TContext
+      > => {
+
+      const mutationOptions = getDeleteMyAttemptsMutationOptions(options);
 
       return useMutation(mutationOptions, queryClient);
     }

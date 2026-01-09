@@ -6,6 +6,5 @@
  */
 
 export type ImportQuestionsBody = {
-  /** CSV file containing questions */
   file: Blob;
 };
