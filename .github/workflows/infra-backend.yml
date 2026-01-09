@@ -75,8 +75,3 @@ jobs:
             terraform destroy -auto-approve \
               -var="backend_image=${{ inputs.backend_image }}" \
               -var="flyway_image=${{ inputs.flyway_image }}"
-
-      - name: Destroy
-        if: ${{ inputs.action == 'destroy' }}
-        working-directory: infra
-        run: terraform destroy -auto-approve -var="image=${{ inputs.image }}"
