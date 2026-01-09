@@ -15,14 +15,14 @@ resource "aws_iam_role" "task_execution" {
 }
 
 resource "aws_iam_role_policy_attachment" "task_exec_managed" {
-  role      = aws_iam_role.task_execution.name
+  role       = aws_iam_role.task_execution.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 # Allow pulling secrets (core db secret + backend secret)
 data "aws_iam_policy_document" "exec_secrets" {
   statement {
-    effect = "Allow"
+    effect  = "Allow"
     actions = ["secretsmanager:GetSecretValue"]
     resources = [
       local.db_secret_arn,
@@ -37,7 +37,7 @@ resource "aws_iam_policy" "exec_secrets" {
 }
 
 resource "aws_iam_role_policy_attachment" "task_exec_secrets_attach" {
-  role      = aws_iam_role.task_execution.name
+  role       = aws_iam_role.task_execution.name
   policy_arn = aws_iam_policy.exec_secrets.arn
 }
 

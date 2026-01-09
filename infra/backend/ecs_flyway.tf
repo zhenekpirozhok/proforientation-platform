@@ -16,14 +16,14 @@ resource "aws_ecs_task_definition" "flyway" {
 
       environment = [
         { name = "FLYWAY_BASELINE_ON_MIGRATE", value = "true" },
-        { name = "FLYWAY_CLEAN_DISABLED",      value = "true" },
-        { name = "FLYWAY_GROUP",               value = "true" }
+        { name = "FLYWAY_CLEAN_DISABLED", value = "true" },
+        { name = "FLYWAY_GROUP", value = "true" }
       ]
 
       secrets = [
         { name = "POSTGRES_HOST", valueFrom = "${local.db_secret_arn}:POSTGRES_HOST::" },
         { name = "POSTGRES_PORT", valueFrom = "${local.db_secret_arn}:POSTGRES_PORT::" },
-        { name = "POSTGRES_DB",   valueFrom = "${local.db_secret_arn}:POSTGRES_DB::" },
+        { name = "POSTGRES_DB", valueFrom = "${local.db_secret_arn}:POSTGRES_DB::" },
 
         { name = "DB_ADMIN_USER", valueFrom = "${local.db_secret_arn}:DB_ADMIN_USER::" },
         { name = "DB_ADMIN_PASSWORD", valueFrom = "${local.db_secret_arn}:DB_ADMIN_PASSWORD::" },
