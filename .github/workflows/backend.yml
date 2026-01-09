@@ -62,16 +62,14 @@ jobs:
           chmod +x mvnw || true
           ./mvnw -B -U --no-transfer-progress verify
 
-      - name: Smoke test + Export OpenAPI spec (YAML)
+      - name: Smoke test + Export OpenAPI spec (JSON)
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: "5432"
           POSTGRES_DB: proforientation
           APP_DB_USER: postgres
           APP_DB_PASSWORD: postgres
-
           SPRING_JPA_HIBERNATE_DDL_AUTO: update
-
           ML_API_URL: http://127.0.0.1:8000
           JWT_SECRET_KEY: ci_demo_secret
           GOOGLE_CLIENT_ID: dummy
@@ -83,14 +81,26 @@ jobs:
           nohup java -jar "$JAR" --server.port=8082 > backend.log 2>&1 &
           PID=$!
 
+          # wait for OpenAPI docs endpoint
           for i in {1..60}; do
-            curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null && break
+            if curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null; then
+              break
+            fi
             sleep 2
           done
 
-          curl -fsS http://localhost:8082/api/v1.0/docs.yaml -o openapi.yaml
-          test -s openapi.yaml
+          # if still not up, show logs and fail
+          if ! curl -fsS http://localhost:8082/api/v1.0/docs >/dev/null; then
+            echo "❌ Backend did not start or docs endpoint not reachable"
+            tail -n 300 backend.log || true
+            kill $PID || true
+            exit 1
+          fi
+
+          curl -fsS http://localhost:8082/api/v1.0/docs -o openapi.json
+          test -s openapi.json
           kill $PID || true
+      
 
       - name: Upload OpenAPI spec artifact
         uses: actions/upload-artifact@v4
