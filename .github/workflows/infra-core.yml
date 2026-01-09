@@ -1,0 +1,53 @@
+name: infra-core
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "plan or apply"
+        required: true
+        default: "plan"
+        type: choice
+        options: [plan, apply]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    env:
+      TF_VAR_db_admin_password: ${{ secrets.DB_ADMIN_PASSWORD }}
+      TF_VAR_app_db_password: ${{ secrets.APP_DB_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::423161708569:role/GitHubActionsTerraformCoreRole
+          aws-region: eu-north-1
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+
+      - name: Init
+        working-directory: infra/core
+        run: terraform init
+
+      - name: Validate
+        working-directory: infra/core
+        run: terraform validate
+
+      - name: Plan
+        if: inputs.action == 'plan'
+        working-directory: infra/core
+        run: terraform plan
+
+      - name: Apply
+        if: inputs.action == 'apply'
+        working-directory: infra/core
+        run: terraform apply -auto-approve

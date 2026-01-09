@@ -1,4 +1,4 @@
--- Трейты RIASEC
+-- RIASEC traits
 INSERT INTO trait_profiles (code, name, description, bipolar_pair_code)
 VALUES
   ('R', '''Практико-ориентированный',
@@ -21,7 +21,7 @@ VALUES
    NULL);
 
 
--- 1. Убедимся, что квиз RIASEC существует
+-- 1. Ensure that the RIASEC quiz exists
 INSERT INTO quizzes (code, title_default, status, processing_mode, category_id, author_id)
 VALUES (
   'riasec_main',
@@ -34,7 +34,7 @@ VALUES (
 ON CONFLICT (code) DO NOTHING;
 
 
--- 2. Создаём (или оставляем) версию 1 как текущую
+-- 2. Create (or keep) version 1 as current
 INSERT INTO quiz_versions (quiz_id, version, is_current, published_at)
 VALUES (
   (SELECT id FROM quizzes WHERE code = 'riasec_main'),
@@ -45,7 +45,7 @@ VALUES (
 ON CONFLICT (quiz_id, version) DO NOTHING;
 
 
--- 3. Вопросы (48 штук, по 8 на каждый трейт R/I/A/S/E/C), тип liker_scale_5
+-- 3. Questions (48 in total, 8 per trait R/I/A/S/E/C), type liker_scale_5
 WITH qv AS (
     SELECT id AS quiz_version_id
     FROM quiz_versions
@@ -115,7 +115,7 @@ VALUES
 ((SELECT quiz_version_id FROM qv), 47, 'LIKER_SCALE_5', 'Handle customers\ bank transactions'),
 ((SELECT quiz_version_id FROM qv), 48, 'LIKER_SCALE_5', 'Keep shipping and receiving records');
 
--- 4. Опции для КАЖДОГО вопроса: Нет / Скорее нет / Нейтрально / Скорее да / Да
+-- 4. Options for EACH question: Dislike / Slightly dislike / Neutral / Enjoy / Strongly enjoy
 WITH current_qv AS (
   SELECT id
   FROM quiz_versions
@@ -138,12 +138,12 @@ CROSS JOIN (VALUES
   (2, 'Slightly dislike'),
   (3, 'Neutral'),
   (4, 'Enjoy'),
-  (5, 'Strongly Enjoy')
+  (5, 'Strongly enjoy')
 ) AS o(ord, label_default)
 ORDER BY q.ord, o.ord;
 
 
--- 5. Связь опций с трейтами + веса по шкале 0, 0.25, 0.5, 0.75, 1.0
+-- 5. Mapping options to traits + weights on the scale 0, 0.25, 0.5, 0.75, 1.0
 WITH current_qv AS (
   SELECT id
   FROM quiz_versions
@@ -184,11 +184,11 @@ SELECT
     WHEN qo.question_ord BETWEEN 41 AND 48 THEN traits.c_id
   END AS trait_id,
   CASE qo.option_ord
-    WHEN 1 THEN 0.00   -- Нет
-    WHEN 2 THEN 0.25   -- Скорее нет
-    WHEN 3 THEN 0.50   -- Нейтрально
-    WHEN 4 THEN 0.75   -- Скорее да
-    WHEN 5 THEN 1.00   -- Да
+    WHEN 1 THEN 0.00   -- Dislike
+    WHEN 2 THEN 0.25   -- Slightly dislike
+    WHEN 3 THEN 0.50   -- Neutral
+    WHEN 4 THEN 0.75   -- Enjoy
+    WHEN 5 THEN 1.00   -- Strongly enjoy
   END AS weight
 FROM qo
 CROSS JOIN traits;
