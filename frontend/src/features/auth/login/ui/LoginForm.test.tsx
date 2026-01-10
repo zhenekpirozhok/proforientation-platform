@@ -157,24 +157,6 @@ jest.mock(
   { virtual: true },
 );
 
-type MessageApiMock = {
-  error: jest.Mock<void, [string]>;
-  success: jest.Mock<void, [string]>;
-  info: jest.Mock<void, [string]>;
-  warning: jest.Mock<void, [string]>;
-  loading: jest.Mock<void, [string]>;
-};
-
-const messageBox: { api: MessageApiMock } = {
-  api: {
-    error: jest.fn<void, [string]>(),
-    success: jest.fn<void, [string]>(),
-    info: jest.fn<void, [string]>(),
-    warning: jest.fn<void, [string]>(),
-    loading: jest.fn<void, [string]>(),
-  },
-};
-
 type AntdFormProps = {
   onFinish?: (values: Record<string, unknown>) => void;
   children?: React.ReactNode;
@@ -183,6 +165,14 @@ type AntdInputProps = Record<string, unknown>;
 type AntdButtonProps = Record<string, unknown>;
 
 jest.mock('antd', () => {
+  const message = {
+    error: jest.fn<void, [string]>(),
+    success: jest.fn<void, [string]>(),
+    info: jest.fn<void, [string]>(),
+    warning: jest.fn<void, [string]>(),
+    loading: jest.fn<void, [string]>(),
+  };
+
   const Form = ({ onFinish, children }: AntdFormProps): React.ReactElement => (
     <form
       data-testid="antd-form"
@@ -210,9 +200,14 @@ jest.mock('antd', () => {
     Form,
     Input,
     Button,
-    __message: messageBox.api,
+    __message: message,
   };
 });
+
+function getMessageMock() {
+  return (jest.requireMock('antd') as { __message: Record<string, jest.Mock> })
+    .__message;
+}
 
 describe('LoginForm', () => {
   beforeEach(() => {
@@ -225,11 +220,9 @@ describe('LoginForm', () => {
     setUserMock.mockReset();
     passwordPending = false;
     googlePending = false;
-    messageBox.api.error.mockReset();
-    messageBox.api.success.mockReset();
-    messageBox.api.info.mockReset();
-    messageBox.api.warning.mockReset();
-    messageBox.api.loading.mockReset();
+
+    const m = getMessageMock();
+    Object.values(m).forEach((fn) => fn.mockReset());
   });
 
   test('invalid schema applies zod errors', async () => {
