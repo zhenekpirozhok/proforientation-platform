@@ -1,9 +1,12 @@
 package com.diploma.proforientation.scoring.llm;
 
 import com.diploma.proforientation.dto.RecommendationDto;
+import com.diploma.proforientation.exception.LlmParsingException;
+import com.diploma.proforientation.exception.LlmPromptException;
 import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.repository.*;
 import com.diploma.proforientation.dto.ml.ScoringResult;
+import com.diploma.proforientation.scoring.TraitScoreCalculator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -25,189 +28,125 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
 
     private static final String NOT_VALID_JSON_REGEX1 = "```";
     private static final String NOT_VALID_JSON_REGEX2 = "```json";
-    private static final String TRAITS_KEY = "traits";
-    private static final String TRAITS_SCHEMA = "object traitCode->number";
-    private static final String RECOMMENDATIONS_KEY = "recommendations";
-    private static final String RECOMMENDATIONS_SCHEMA = "array of {professionId:int, score:number, explanation:string}";
-    private static final String PROFESSION_ID_KEY = "professionId";
-    private static final String SCORE_KEY = "score";
-    private static final String EXPLANATION_KEY = "explanation";
-    private static final String ID_KEY = "id";
-    private static final String CODE_KEY = "code";
-    private static final String OUTPUT_FORMAT_KEY = "output_format";
 
+    private static final String KEY_RECOMMENDATIONS = "recommendations";
+    private static final String KEY_PROFESSION_ID = "professionId";
+    private static final String KEY_SCORE = "score";
+    private static final String KEY_EXPLANATION = "explanation";
+    private static final String KEY_ID = "id";
+    private static final String KEY_CODE = "code";
+    private static final String KEY_NAME = "name";
+    private static final String KEY_DESCRIPTION = "description";
+    private static final String KEY_TRAITS = "traits";
+    private static final String KEY_PROFESSIONS = "professions";
+    private static final String KEY_OUTPUT_FORMAT = "output_format";
 
     private final OpenAiChatModel openAiChat;
-
     private final AttemptRepository attemptRepo;
-    private final AnswerRepository answerRepo;
-    private final TraitProfileRepository traitRepo;
     private final ProfessionRepository professionRepo;
+    private final TraitScoreCalculator traitScoreCalculator;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public ScoringResult evaluate(Integer attemptId) {
 
-        attemptRepo.findById(attemptId)
-                .orElseThrow(() -> new RuntimeException(ATTEMPT_NOT_FOUND));
+        Attempt attempt = attemptRepo.findById(attemptId)
+                .orElseThrow(() -> new RuntimeException("Attempt not found"));
 
-        List<Answer> answers = answerRepo.findByAttemptId(attemptId);
-        List<Profession> professions = professionRepo.findAll();
+        Map<TraitProfile, BigDecimal> traitScores = traitScoreCalculator.calculateScores(attemptId);
 
-        String promptText = buildPrompt(answers, professions);
+        Integer categoryId = attempt.getQuizVersion().getQuiz().getCategory().getId();
+        List<Profession> professions = professionRepo.findByCategoryId(categoryId);
+
+        String promptText = buildPromptForRecommendations(traitScores, professions);
         Prompt prompt = new Prompt(promptText);
 
         ChatResponse response = openAiChat.call(prompt);
         String content = response.getResult().getOutput().getContent();
 
         JsonNode json = parseJson(content);
-
         log.info("LLM request worked");
 
-        return new ScoringResult(
-                parseTraits(json),
-                parseRecommendations(json)
-        );
-    }
-
-    public ScoringResult evaluateRaw(List<Integer> answers) {
-
-        String promptText = buildPromptForRawAnswers(answers);
-        Prompt prompt = new Prompt(promptText);
-        ChatResponse response = openAiChat.call(prompt);
-        String content = response.getResult().getOutput().getContent();
-        JsonNode json = parseJson(content);
-
-        Map<TraitProfile, BigDecimal> traits = parseTraits(json);
         List<RecommendationDto> recs = parseRecommendations(json);
 
-        return new ScoringResult(traits, recs);
+        return new ScoringResult(traitScores, recs);
     }
 
-    public JsonNode parseJson(String text) {
+    private JsonNode parseJson(String text) {
         try {
             if (text.startsWith(NOT_VALID_JSON_REGEX1)) {
-                text = text.replaceAll(NOT_VALID_JSON_REGEX2, EMPTY_STRING)
-                        .replaceAll(NOT_VALID_JSON_REGEX1, EMPTY_STRING)
+                text = text.replace(NOT_VALID_JSON_REGEX2, EMPTY_STRING)
+                        .replace(NOT_VALID_JSON_REGEX1, EMPTY_STRING)
                         .trim();
             }
-            return new ObjectMapper().readTree(text);
+            return mapper.readTree(text);
         } catch (Exception e) {
-            throw new RuntimeException(INVALID_JSON_FROM_LLM + text);
+            throw new LlmParsingException(INVALID_JSON_FROM_LLM + text, e);
         }
     }
 
-    public Map<TraitProfile, BigDecimal> parseTraits(JsonNode json) {
-        Map<TraitProfile, BigDecimal> map = new HashMap<>();
-        JsonNode traitsNode = json.get(TRAITS_KEY);
-        if (traitsNode == null) return map;
-
-        traitsNode.fieldNames().forEachRemaining(code -> {
-            TraitProfile trait;
-            trait = traitRepo.findByCode(code.toUpperCase())
-                    .orElse(null);
-            if (trait != null) {
-                map.put(trait, BigDecimal.valueOf(traitsNode.get(code).asDouble()));
-            }
-        });
-        return map;
-    }
-
-    public List<RecommendationDto> parseRecommendations(JsonNode json) {
+    private List<RecommendationDto> parseRecommendations(JsonNode json) {
         List<RecommendationDto> list = new ArrayList<>();
-        JsonNode arr = json.get(RECOMMENDATIONS_KEY);
+        JsonNode arr = json.get(KEY_RECOMMENDATIONS);
         if (arr == null || !arr.isArray()) return list;
 
         for (JsonNode node : arr) {
             list.add(new RecommendationDto(
-                    node.get(PROFESSION_ID_KEY).asInt(),
-                    BigDecimal.valueOf(node.get(SCORE_KEY).asDouble()),
-                    node.get(EXPLANATION_KEY).asText()
+                    node.get(KEY_PROFESSION_ID).asInt(),
+                    BigDecimal.valueOf(node.get(KEY_SCORE).asDouble()),
+                    node.get(KEY_EXPLANATION).asText()
             ));
         }
         return list;
     }
 
-    private String buildPrompt(List<Answer> answers, List<Profession> professions) {
-        Map<Question, List<Answer>> byQuestion = new LinkedHashMap<>();
+    /**
+     * Build LLM prompt using trait scores and professions.
+     * LLM should only generate recommendations + explanations.
+     */
+    private String buildPromptForRecommendations(Map<TraitProfile, BigDecimal> traitScores,
+                                                 List<Profession> professions) {
 
-        for (Answer a : answers) {
-            Question q = a.getOption().getQuestion();
-            byQuestion.computeIfAbsent(q, k -> new ArrayList<>()).add(a);
+        List<Map<String, Object>> traitsPayload = new ArrayList<>();
+        for (Map.Entry<TraitProfile, BigDecimal> entry : traitScores.entrySet()) {
+            TraitProfile t = entry.getKey();
+            traitsPayload.add(Map.of(
+                    KEY_CODE, t.getCode() != null ? t.getCode() : EMPTY_STRING,
+                    KEY_NAME, t.getName() != null ? t.getName() : EMPTY_STRING,
+                    KEY_DESCRIPTION, t.getDescription() != null ? t.getDescription() : EMPTY_STRING,
+                    KEY_SCORE, entry.getValue() != null ? entry.getValue() : BigDecimal.ZERO
+            ));
         }
 
-        List<PromptQuestion> questions = byQuestion.entrySet().stream()
-                .map(e -> {
-                    Question q = e.getKey();
-                    List<PromptOption> opts = e.getValue().stream()
-                            .map(a -> new PromptOption(
-                                    a.getOption().getId(),
-                                    a.getOption().getLabelDefault()
-                            ))
-                            .toList();
+        List<Map<String, Object>> profsPayload = new ArrayList<>();
+        for (Profession p : professions) {
+            profsPayload.add(Map.of(
+                    KEY_ID, p.getId() != null ? p.getId() : 0,
+                    KEY_CODE, p.getCode() != null ? p.getCode() : EMPTY_STRING,
+                    KEY_DESCRIPTION, p.getDescription() != null ? p.getDescription() : EMPTY_STRING
+            ));
+        }
 
-                    String type = q.getQtype().name();
-                    return new PromptQuestion(q.getId(), type, q.getTextDefault(), opts);
-                })
-                .toList();
+        Map<String, Object> outputFormat = new HashMap<>();
+        outputFormat.put(KEY_RECOMMENDATIONS, "array of {professionId:int, score:number, explanation:string}");
 
-        List<Map<String, Object>> profs = professions.stream()
-                .map(p -> Map.<String, Object>of(
-                        ID_KEY, p.getId(),
-                        CODE_KEY, p.getCode()
-                ))
-                .toList();
-
-        Map<String, Object> payload = Map.of(
-                ENTITY_QUESTIONS, questions,
-                ENTITY_PROFESSIONS, profs,
-                OUTPUT_FORMAT_KEY, Map.of(
-                        TRAITS_KEY, TRAITS_SCHEMA,
-                        RECOMMENDATIONS_KEY, RECOMMENDATIONS_SCHEMA
-                )
-        );
+        Map<String, Object> payload = new HashMap<>();
+        payload.put(KEY_TRAITS, traitsPayload);
+        payload.put(KEY_PROFESSIONS, profsPayload);
+        payload.put(KEY_OUTPUT_FORMAT, outputFormat);
 
         try {
             return """
-               You are a career guidance scorer. Analyze the structured quiz answers below.
-               IMPORTANT:
-               - MULTI_CHOICE means multiple selectedOptions are intentional.
-               - Return ONLY strict JSON, no markdown, no extra text.
-               Payload:
-               """ + mapper.writeValueAsString(payload);
+                    You are a career guidance assistant. Analyze the following trait scores and recommend professions.
+                    IMPORTANT:
+                    - Base reasoning only on provided traits.
+                    - Return ONLY strict JSON with recommendations.
+                    - Do NOT generate traits or invent new ones.
+                    Payload:
+                    """ + mapper.writeValueAsString(payload);
         } catch (Exception e) {
-            throw new RuntimeException(INVALID_PROMPT, e);
+            throw new LlmPromptException(INVALID_PROMPT, e);
         }
-    }
-
-    private String buildPromptForRawAnswers(List<Integer> answers) {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("Analyze these 48 RIASEC answers. Return STRICT JSON only.\n\n");
-        sb.append("""
-            {
-              "traits": { "R": number, "I": number, "A": number, "S": number, "E": number, "C": number },
-              "recommendations": [
-                { "professionId": int, "score": number, "explanation": "text" }
-              ]
-            }
-            """);
-
-        sb.append("\nAnswers:\n");
-        for (int i = 0; i < answers.size(); i++) {
-            sb.append(i + 1).append(": ").append(answers.get(i)).append("\n");
-        }
-
-        sb.append("\nProfessions:\n");
-        professionRepo.findAll().forEach(p ->
-                sb.append("{\"id\": ").append(p.getId()).append(", \"code\": \"")
-                        .append(p.getCode()).append("\"},\n")
-        );
-
-        return sb.toString();
     }
 }
-
-record PromptOption(Integer optionId, String label) {}
-record PromptQuestion(Integer questionId, String type, String text, List<PromptOption> selectedOptions) {}

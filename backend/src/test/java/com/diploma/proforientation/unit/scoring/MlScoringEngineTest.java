@@ -7,7 +7,7 @@ import com.diploma.proforientation.model.TraitProfile;
 import com.diploma.proforientation.repository.AnswerRepository;
 import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.diploma.proforientation.scoring.ml.MlClient;
-import com.diploma.proforientation.scoring.ml.TraitScoreCalculator;
+import com.diploma.proforientation.scoring.TraitScoreCalculator;
 import com.diploma.proforientation.scoring.ml.impl.MlResultMapper;
 import com.diploma.proforientation.scoring.ml.impl.MlScoringEngineImpl;
 import org.junit.jupiter.api.BeforeEach;

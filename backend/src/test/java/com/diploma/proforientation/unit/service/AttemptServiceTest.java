@@ -10,7 +10,7 @@ import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
 import com.diploma.proforientation.repository.*;
 import com.diploma.proforientation.service.impl.AttemptServiceImpl;
 import com.diploma.proforientation.scoring.ScoringEngine;
-import com.diploma.proforientation.scoring.ScoringEngineFactory;
+import com.diploma.proforientation.scoring.impl.ScoringEngineFactory;
 import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.diploma.proforientation.util.LocaleProvider;
 import com.diploma.proforientation.util.TranslationResolver;
