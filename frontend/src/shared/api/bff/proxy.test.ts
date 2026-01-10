@@ -92,7 +92,7 @@ describe('bffFetch', () => {
       RequestInit,
     ];
 
-    expect(url).toBe('https://backend.example/api/v1/ping');
+    expect(url).toBe('https://backend.example/api/v1.0/ping');
     expect(init.cache).toBe('no-store');
     expect(init.method).toBe('POST');
 
@@ -193,16 +193,36 @@ describe('bffFetch', () => {
       string,
       RequestInit,
     ];
-    expect(url).toBe('https://backend.example/api/v1/health');
+    expect(url).toBe('https://backend.example/api/v1.0/health');
   });
 
-  test('toUpstreamPath prefixes /quizzes/metrics* with /api/v1', async () => {
+  test('toUpstreamPath keeps /api/v1.0/* as-is', async () => {
+    await bffFetch('/api/v1.0/health');
+    const [url] = (globalThis.fetch as jest.Mock).mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe('https://backend.example/api/v1.0/health');
+  });
+
+  test('toUpstreamPath prefixes /quizzes/metrics* with /api/v1.0/api/v1', async () => {
     await bffFetch('/quizzes/metrics/summary');
     const [url] = (globalThis.fetch as jest.Mock).mock.calls[0] as [
       string,
       RequestInit,
     ];
-    expect(url).toBe('https://backend.example/api/v1/quizzes/metrics/summary');
+    expect(url).toBe(
+      'https://backend.example/api/v1.0/api/v1/quizzes/metrics/summary',
+    );
+  });
+
+  test('toUpstreamPath prefixes /metrics* with /api/v1.0/api/v1', async () => {
+    await bffFetch('/metrics/summary');
+    const [url] = (globalThis.fetch as jest.Mock).mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe('https://backend.example/api/v1.0/api/v1/metrics/summary');
   });
 
   test('toUpstreamPath adds leading slash when missing', async () => {
@@ -211,7 +231,7 @@ describe('bffFetch', () => {
       string,
       RequestInit,
     ];
-    expect(url).toBe('https://backend.example/api/v1/ping');
+    expect(url).toBe('https://backend.example/api/v1.0/ping');
   });
 
   test('init.headers can override computed accept-language', async () => {
