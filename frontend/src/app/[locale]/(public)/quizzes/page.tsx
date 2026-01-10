@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
 import { Alert } from 'antd';
 
@@ -48,7 +48,7 @@ function matchesDurationFilter(
 
 export default function QuizzesPage() {
   const t = useTranslations('Quizzes');
-  const { locale } = useParams<{ locale: string }>();
+  const locale = useLocale();
 
   const [page, setPage] = useState(1);
   const pageSize = 6;
