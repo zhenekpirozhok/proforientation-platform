@@ -1,5 +1,6 @@
 import { TextDecoder, TextEncoder } from 'util';
 import { ReadableStream, WritableStream, TransformStream } from 'stream/web';
+import { MessageChannel, MessagePort } from 'worker_threads';
 
 Object.assign(globalThis, {
   TextDecoder,
@@ -7,13 +8,6 @@ Object.assign(globalThis, {
   ReadableStream,
   WritableStream,
   TransformStream,
-});
-
-import { fetch, Headers, Request, Response } from 'undici';
-
-Object.assign(globalThis, {
-  fetch,
-  Headers,
-  Request,
-  Response,
+  MessageChannel,
+  MessagePort,
 });
