@@ -165,7 +165,15 @@ type MessageApiMock = {
   loading: jest.Mock<void, [string]>;
 };
 
-let messageMock: MessageApiMock;
+const messageBox: { api: MessageApiMock } = {
+  api: {
+    error: jest.fn<void, [string]>(),
+    success: jest.fn<void, [string]>(),
+    info: jest.fn<void, [string]>(),
+    warning: jest.fn<void, [string]>(),
+    loading: jest.fn<void, [string]>(),
+  },
+};
 
 type AntdFormProps = {
   onFinish?: (values: Record<string, unknown>) => void;
@@ -198,21 +206,11 @@ jest.mock('antd', () => {
   );
   (Button as { displayName?: string }).displayName = 'AntdButton';
 
-  const api: MessageApiMock = {
-    error: jest.fn<void, [string]>(),
-    success: jest.fn<void, [string]>(),
-    info: jest.fn<void, [string]>(),
-    warning: jest.fn<void, [string]>(),
-    loading: jest.fn<void, [string]>(),
-  };
-
-  messageMock = api;
-
   return {
     Form,
     Input,
     Button,
-    __message: api,
+    __message: messageBox.api,
   };
 });
 
@@ -227,11 +225,11 @@ describe('LoginForm', () => {
     setUserMock.mockReset();
     passwordPending = false;
     googlePending = false;
-    messageMock.error.mockReset();
-    messageMock.success.mockReset();
-    messageMock.info.mockReset();
-    messageMock.warning.mockReset();
-    messageMock.loading.mockReset();
+    messageBox.api.error.mockReset();
+    messageBox.api.success.mockReset();
+    messageBox.api.info.mockReset();
+    messageBox.api.warning.mockReset();
+    messageBox.api.loading.mockReset();
   });
 
   test('invalid schema applies zod errors', async () => {
