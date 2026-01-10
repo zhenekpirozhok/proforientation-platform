@@ -1,6 +1,7 @@
 import { TextDecoder, TextEncoder } from 'util';
 import { ReadableStream, WritableStream, TransformStream } from 'stream/web';
 import { MessageChannel, MessagePort } from 'worker_threads';
+import 'whatwg-fetch';
 
 Object.assign(globalThis, {
   TextDecoder,
@@ -12,13 +13,20 @@ Object.assign(globalThis, {
   MessagePort,
 });
 
-require('whatwg-fetch');
+type FetchGlobals = {
+  fetch: typeof fetch;
+  Headers: typeof Headers;
+  Request: typeof Request;
+  Response: typeof Response;
+};
+
+const g = globalThis as unknown as Partial<FetchGlobals>;
 
 Object.assign(globalThis, {
-  fetch: (globalThis as any).fetch,
-  Headers: (globalThis as any).Headers,
-  Request: (globalThis as any).Request,
-  Response: (globalThis as any).Response,
+  fetch: g.fetch,
+  Headers: g.Headers,
+  Request: g.Request,
+  Response: g.Response,
 });
 
 jest.mock('next-intl', () => ({
