@@ -2,7 +2,7 @@ package com.diploma.proforientation.unit.scoring;
 
 import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
 import com.diploma.proforientation.scoring.ScoringEngine;
-import com.diploma.proforientation.scoring.ScoringEngineFactory;
+import com.diploma.proforientation.scoring.impl.ScoringEngineFactory;
 import com.diploma.proforientation.scoring.llm.LlmScoringEngine;
 import com.diploma.proforientation.scoring.ml.MlScoringEngine;
 import org.junit.jupiter.api.BeforeEach;

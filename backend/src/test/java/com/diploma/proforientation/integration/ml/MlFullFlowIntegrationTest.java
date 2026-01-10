@@ -6,7 +6,7 @@ import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.diploma.proforientation.model.Profession;
 import com.diploma.proforientation.repository.AnswerRepository;
 import com.diploma.proforientation.repository.ProfessionRepository;
-import com.diploma.proforientation.scoring.ml.TraitScoreCalculator;
+import com.diploma.proforientation.scoring.TraitScoreCalculator;
 import com.diploma.proforientation.scoring.ml.impl.MlClientImpl;
 import com.diploma.proforientation.scoring.ml.impl.MlProfessionExplanationServiceImpl;
 import com.diploma.proforientation.scoring.ml.impl.MlResultMapper;
@@ -22,7 +22,6 @@ import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 

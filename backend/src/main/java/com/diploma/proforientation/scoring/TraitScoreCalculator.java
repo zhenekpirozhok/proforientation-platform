@@ -1,4 +1,4 @@
-package com.diploma.proforientation.scoring.ml;
+package com.diploma.proforientation.scoring;
 
 import com.diploma.proforientation.model.TraitProfile;
 

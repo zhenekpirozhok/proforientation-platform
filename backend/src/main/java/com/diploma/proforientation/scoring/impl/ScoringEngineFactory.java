@@ -1,6 +1,7 @@
-package com.diploma.proforientation.scoring;
+package com.diploma.proforientation.scoring.impl;
 
 import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
+import com.diploma.proforientation.scoring.ScoringEngine;
 import com.diploma.proforientation.scoring.llm.LlmScoringEngine;
 import com.diploma.proforientation.scoring.ml.MlScoringEngine;
 import lombok.RequiredArgsConstructor;

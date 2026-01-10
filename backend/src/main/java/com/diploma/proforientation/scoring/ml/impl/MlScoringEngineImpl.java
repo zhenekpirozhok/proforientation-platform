@@ -7,7 +7,7 @@ import com.diploma.proforientation.repository.AnswerRepository;
 import com.diploma.proforientation.dto.ml.ScoringResult;
 import com.diploma.proforientation.scoring.ml.MlClient;
 import com.diploma.proforientation.scoring.ml.MlScoringEngine;
-import com.diploma.proforientation.scoring.ml.TraitScoreCalculator;
+import com.diploma.proforientation.scoring.TraitScoreCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
