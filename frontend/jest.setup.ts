@@ -12,22 +12,13 @@ Object.assign(globalThis, {
   MessagePort,
 });
 
-if (
-  !globalThis.fetch ||
-  !globalThis.Request ||
-  !globalThis.Response ||
-  !globalThis.Headers
-) {
-  throw new Error(
-    'Fetch API globals are missing. Ensure tests run on Node >= 18 (preferably Node 20).',
-  );
-}
+require('whatwg-fetch');
 
 Object.assign(globalThis, {
-  fetch: globalThis.fetch,
-  Request: globalThis.Request,
-  Response: globalThis.Response,
-  Headers: globalThis.Headers,
+  fetch: (globalThis as any).fetch,
+  Headers: (globalThis as any).Headers,
+  Request: (globalThis as any).Request,
+  Response: (globalThis as any).Response,
 });
 
 jest.mock('next-intl', () => ({

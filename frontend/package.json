@@ -53,6 +53,7 @@
     "typescript": "^5",
     "undici": "^7.18.2",
     "web-streams-polyfill": "^4.2.0",
+    "whatwg-fetch": "^3.6.20",
     "zustand": "^5.0.9"
   }
 }
