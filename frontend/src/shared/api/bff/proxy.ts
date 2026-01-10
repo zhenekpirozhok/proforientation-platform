@@ -16,16 +16,34 @@ function getBackendUrl(): string {
   return url;
 }
 
+function normalizePath(path: string) {
+  return path.startsWith('/') ? path : `/${path}`;
+}
+
+function stripLeadingApi(p: string) {
+  if (p.startsWith('/api/v1.0/')) return p.slice('/api/v1.0'.length);
+  if (p.startsWith('/api/v1/')) return p.slice('/api/v1'.length);
+  if (p.startsWith('/api/')) return p.slice('/api'.length);
+  return p;
+}
+
+function isMetricsPath(p: string) {
+  return p.startsWith('/quizzes/metrics') || p.startsWith('/metrics');
+}
+
 function toUpstreamPath(path: string) {
-  const p = path.startsWith('/') ? path : `/${path}`;
+  const raw = normalizePath(path);
 
-  if (p.startsWith('/api/')) return p;
-
-  if (p.startsWith('/quizzes/metrics')) {
-    return `/api/v1${p}`;
+  if (raw.startsWith('/api/v1.0/api/v1/')) return raw;
+  if (raw.startsWith('/api/v1.0/')) {
+    const rest = raw.slice('/api/v1.0'.length);
+    if (isMetricsPath(rest)) return `/api/v1.0/api/v1${rest}`;
+    return raw;
   }
 
-  return p;
+  const rest = stripLeadingApi(raw);
+  if (isMetricsPath(rest)) return `/api/v1.0/api/v1${rest}`;
+  return `/api/v1.0${rest}`;
 }
 
 export async function bffFetch(
@@ -40,7 +58,6 @@ export async function bffFetch(
   const xLocale = h.get('x-locale')?.trim();
   const cookieLocale = c.get('NEXT_LOCALE')?.value?.trim();
   const acceptLanguage = h.get('accept-language')?.trim();
-
   const locale = xLocale || cookieLocale || acceptLanguage?.split(',')[0];
 
   const safeHeaders: Record<string, string> = {};
