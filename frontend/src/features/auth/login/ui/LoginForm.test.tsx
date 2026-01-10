@@ -4,7 +4,9 @@ import { LoginForm } from './LoginForm';
 
 type LinkProps = { href: string; children?: React.ReactNode };
 
-const MockLink = ({ href, children }: LinkProps) => <a href={href}>{children}</a>;
+const MockLink = ({ href, children }: LinkProps) => (
+  <a href={href}>{children}</a>
+);
 MockLink.displayName = 'NextLink';
 
 jest.mock('next/link', () => ({
@@ -95,7 +97,10 @@ type GoogleOneTapInitProps = {
   onCredential: (token: string) => void;
 };
 
-const MockGoogleOneTapInit = ({ disabled, onCredential }: GoogleOneTapInitProps) => (
+const MockGoogleOneTapInit = ({
+  disabled,
+  onCredential,
+}: GoogleOneTapInitProps) => (
   <button
     type="button"
     data-testid="google-credential"
@@ -116,7 +121,10 @@ jest.mock(
 );
 
 type AuthFetchResponse = { ok: boolean; json?: () => Promise<unknown> };
-const authFetchMock = jest.fn<Promise<AuthFetchResponse>, [string, RequestInit?]>();
+const authFetchMock = jest.fn<
+  Promise<AuthFetchResponse>,
+  [string, RequestInit?]
+>();
 
 jest.mock(
   '@/shared/api/authFetch',
@@ -178,10 +186,14 @@ jest.mock('antd', () => {
   );
   Form.displayName = 'AntdForm';
 
-  const Input = (props: AntdInputProps): React.ReactElement => <input {...props} />;
+  const Input = (props: AntdInputProps): React.ReactElement => (
+    <input {...props} />
+  );
   (Input as { displayName?: string }).displayName = 'AntdInput';
 
-  const Button = (props: AntdButtonProps): React.ReactElement => <button {...props} />;
+  const Button = (props: AntdButtonProps): React.ReactElement => (
+    <button {...props} />
+  );
   (Button as { displayName?: string }).displayName = 'AntdButton';
 
   return {

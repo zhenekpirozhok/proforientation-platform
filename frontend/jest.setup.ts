@@ -12,10 +12,14 @@ Object.assign(globalThis, {
   MessagePort,
 });
 
-
-if (!globalThis.fetch || !globalThis.Request || !globalThis.Response || !globalThis.Headers) {
+if (
+  !globalThis.fetch ||
+  !globalThis.Request ||
+  !globalThis.Response ||
+  !globalThis.Headers
+) {
   throw new Error(
-    'Fetch API globals are missing. Ensure tests run on Node >= 18 (preferably Node 20).'
+    'Fetch API globals are missing. Ensure tests run on Node >= 18 (preferably Node 20).',
   );
 }
 
@@ -25,7 +29,6 @@ Object.assign(globalThis, {
   Response: globalThis.Response,
   Headers: globalThis.Headers,
 });
-
 
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
