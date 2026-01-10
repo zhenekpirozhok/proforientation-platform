@@ -143,6 +143,7 @@ jobs:
         run: npm run build
 
       - name: Deploy
+        working-directory: .
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -155,3 +156,4 @@ jobs:
           else
             vercel deploy --yes --token=$VERCEL_TOKEN
           fi
+
