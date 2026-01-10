@@ -23,11 +23,13 @@ jest.mock(
 );
 
 type TranslationVars = { message?: string };
+
 jest.mock(
   'next-intl',
   () => ({
     useTranslations: () => (key: string, vars?: TranslationVars) =>
       vars?.message ? `${key}:${vars.message}` : key,
+    useLocale: () => paramsMock.locale,
   }),
   { virtual: true },
 );
@@ -177,18 +179,13 @@ jest.mock('@/shared/api/parseResponse', () => ({ parseResponse: jest.fn() }), {
 });
 
 type StartAttemptResult = { attemptId: number; guestToken?: string | null };
-type AddAnswersBulkResult = unknown;
-type SubmitResult = unknown;
 
 const startAttemptMutateAsync = jest.fn<
   Promise<StartAttemptResult>,
   [unknown]
 >();
-const addAnswersBulkMutateAsync = jest.fn<
-  Promise<AddAnswersBulkResult>,
-  [unknown]
->();
-const submitMutateAsync = jest.fn<Promise<SubmitResult>, [unknown]>();
+const addAnswersBulkMutateAsync = jest.fn<Promise<unknown>, [unknown]>();
+const submitMutateAsync = jest.fn<Promise<unknown>, [unknown]>();
 
 jest.mock(
   '@/shared/api/generated/api',

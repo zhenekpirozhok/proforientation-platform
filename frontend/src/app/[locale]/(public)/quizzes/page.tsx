@@ -77,7 +77,9 @@ export default function QuizzesPage() {
 
   const visibleItems = useMemo(() => {
     if (filters.duration === 'any') return items;
-    return items.filter((item) => matchesDurationFilter(item, filters.duration));
+    return items.filter((item) =>
+      matchesDurationFilter(item, filters.duration),
+    );
   }, [items, filters.duration]);
 
   const onFiltersChange = (next: FiltersValue) => {
