@@ -1,3 +1,8 @@
+/**
+ * @jest-environment node
+ */
+
+
 import { GET } from './route';
 
 type BffFetch = (path: string, init?: RequestInit) => Promise<UpstreamResponse>;

@@ -4,9 +4,7 @@ import { LoginForm } from './LoginForm';
 
 type LinkProps = { href: string; children?: React.ReactNode };
 
-const MockLink = ({ href, children }: LinkProps) => (
-  <a href={href}>{children}</a>
-);
+const MockLink = ({ href, children }: LinkProps) => <a href={href}>{children}</a>;
 MockLink.displayName = 'NextLink';
 
 jest.mock('next/link', () => ({
@@ -97,10 +95,7 @@ type GoogleOneTapInitProps = {
   onCredential: (token: string) => void;
 };
 
-const MockGoogleOneTapInit = ({
-  disabled,
-  onCredential,
-}: GoogleOneTapInitProps) => (
+const MockGoogleOneTapInit = ({ disabled, onCredential }: GoogleOneTapInitProps) => (
   <button
     type="button"
     data-testid="google-credential"
@@ -121,10 +116,7 @@ jest.mock(
 );
 
 type AuthFetchResponse = { ok: boolean; json?: () => Promise<unknown> };
-const authFetchMock = jest.fn<
-  Promise<AuthFetchResponse>,
-  [string, RequestInit?]
->();
+const authFetchMock = jest.fn<Promise<AuthFetchResponse>, [string, RequestInit?]>();
 
 jest.mock(
   '@/shared/api/authFetch',
@@ -160,6 +152,9 @@ jest.mock(
 const messageMock = {
   error: jest.fn<void, [string]>(),
   success: jest.fn<void, [string]>(),
+  info: jest.fn<void, [string]>(),
+  warning: jest.fn<void, [string]>(),
+  loading: jest.fn<void, [string]>(),
 };
 
 type AntdFormProps = {
@@ -183,14 +178,10 @@ jest.mock('antd', () => {
   );
   Form.displayName = 'AntdForm';
 
-  const Input = (props: AntdInputProps): React.ReactElement => (
-    <input {...props} />
-  );
+  const Input = (props: AntdInputProps): React.ReactElement => <input {...props} />;
   (Input as { displayName?: string }).displayName = 'AntdInput';
 
-  const Button = (props: AntdButtonProps): React.ReactElement => (
-    <button {...props} />
-  );
+  const Button = (props: AntdButtonProps): React.ReactElement => <button {...props} />;
   (Button as { displayName?: string }).displayName = 'AntdButton';
 
   return {
@@ -214,6 +205,9 @@ describe('LoginForm', () => {
     googlePending = false;
     messageMock.error.mockReset();
     messageMock.success.mockReset();
+    messageMock.info.mockReset();
+    messageMock.warning.mockReset();
+    messageMock.loading.mockReset();
   });
 
   test('invalid schema applies zod errors', async () => {
@@ -221,8 +215,10 @@ describe('LoginForm', () => {
       success: false,
       error: { issues: [] },
     });
+
     render(<LoginForm />);
     fireEvent.submit(screen.getByTestId('antd-form'));
+
     await waitFor(() =>
       expect(applyZodErrorsToAntdFormMock).toHaveBeenCalledTimes(1),
     );
@@ -231,8 +227,10 @@ describe('LoginForm', () => {
 
   test('google credential triggers submit', async () => {
     googleSubmitMock.mockResolvedValueOnce({ ok: true });
+
     render(<LoginForm />);
     fireEvent.click(screen.getByTestId('google-credential'));
+
     await waitFor(() => expect(googleSubmitMock).toHaveBeenCalledTimes(1));
   });
 });

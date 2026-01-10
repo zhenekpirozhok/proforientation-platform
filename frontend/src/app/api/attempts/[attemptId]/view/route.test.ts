@@ -1,3 +1,7 @@
+/**
+ * @jest-environment node
+ */
+
 import { GET } from './route';
 
 class TestHeaders extends Headers {
