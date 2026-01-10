@@ -157,13 +157,15 @@ jest.mock(
   { virtual: true },
 );
 
-const messageMock = {
-  error: jest.fn<void, [string]>(),
-  success: jest.fn<void, [string]>(),
-  info: jest.fn<void, [string]>(),
-  warning: jest.fn<void, [string]>(),
-  loading: jest.fn<void, [string]>(),
+type MessageApiMock = {
+  error: jest.Mock<void, [string]>;
+  success: jest.Mock<void, [string]>;
+  info: jest.Mock<void, [string]>;
+  warning: jest.Mock<void, [string]>;
+  loading: jest.Mock<void, [string]>;
 };
+
+let messageMock: MessageApiMock;
 
 type AntdFormProps = {
   onFinish?: (values: Record<string, unknown>) => void;
@@ -196,11 +198,21 @@ jest.mock('antd', () => {
   );
   (Button as { displayName?: string }).displayName = 'AntdButton';
 
+  const api: MessageApiMock = {
+    error: jest.fn<void, [string]>(),
+    success: jest.fn<void, [string]>(),
+    info: jest.fn<void, [string]>(),
+    warning: jest.fn<void, [string]>(),
+    loading: jest.fn<void, [string]>(),
+  };
+
+  messageMock = api;
+
   return {
     Form,
     Input,
     Button,
-    __message: messageMock,
+    __message: api,
   };
 });
 
