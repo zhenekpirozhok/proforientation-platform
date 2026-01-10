@@ -51,7 +51,7 @@ export default function QuizzesPage() {
   const { locale } = useParams<{ locale: string }>();
 
   const [page, setPage] = useState(1);
-  const pageSize = 12;
+  const pageSize = 6;
 
   const [filters, setFilters] = useState<FiltersValue>({
     search: '',
@@ -77,9 +77,7 @@ export default function QuizzesPage() {
 
   const visibleItems = useMemo(() => {
     if (filters.duration === 'any') return items;
-    return items.filter((item) =>
-      matchesDurationFilter(item, filters.duration),
-    );
+    return items.filter((item) => matchesDurationFilter(item, filters.duration));
   }, [items, filters.duration]);
 
   const onFiltersChange = (next: FiltersValue) => {
@@ -134,7 +132,7 @@ export default function QuizzesPage() {
       ) : visibleItems.length === 0 ? (
         <QuizEmptyState />
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visibleItems.map((item) => (
             <QuizCard
               key={item.id}
