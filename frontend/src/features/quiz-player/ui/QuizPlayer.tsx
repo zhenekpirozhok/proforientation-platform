@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
-import { useParams } from 'next/navigation';
+import { useLocale } from 'next-intl';
 import { useRouter } from '@/shared/i18n/lib/navigation';
 import { useTranslations } from 'next-intl';
 import {
@@ -119,7 +119,7 @@ export function QuizPlayer({ quizId }: Props) {
   const router = useRouter();
   const qc = useQueryClient();
   const t = useTranslations('QuizPlayer');
-  const { locale } = useParams<{ locale: string }>();
+  const locale = useLocale();
 
   const attemptId = useQuizPlayerStore((s) => s.attemptId);
   const status = useQuizPlayerStore((s) => s.status);
