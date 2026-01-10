@@ -89,6 +89,7 @@ export function QuizCard({
 
   const taken =
     typeof metric?.attemptsTotal === 'number' ? metric.attemptsTotal : 0;
+
   const questionsTotal =
     typeof metric?.questionsTotal === 'number' ? metric.questionsTotal : null;
 
@@ -106,45 +107,33 @@ export function QuizCard({
       data-quiz-id={quiz.id}
     >
       <Card
-        className={[
-          'h-full',
-          'rounded-2xl',
-          'border border-slate-200/70 dark:border-slate-800/70',
-          'bg-white dark:bg-slate-950',
-          'transition',
-          'active:scale-[0.99]',
-          'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5 dark:hover:shadow-black/30',
-        ].join(' ')}
-        styles={{ body: { padding: 18 } }}
+        className="h-full rounded-2xl border border-slate-200/70 bg-white transition active:scale-[0.99] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5 dark:border-slate-800/70 dark:bg-slate-950 dark:hover:shadow-black/30"
+        styles={{ body: { padding: 18, height: '100%' } }}
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between gap-3">
             <span
-              className={[
-                'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium',
-                'ring-1 ring-inset ring-slate-900/5 dark:ring-white/10',
-                cat.className,
-              ].join(' ')}
+              className={`inline-flex shrink-0 items-center rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ring-slate-900/5 dark:ring-white/10 ${cat.className}`}
               style={cat.style}
             >
               {catLabel}
             </span>
 
-            <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+            <div className="min-h-[18px] flex flex-nowrap items-center gap-3 overflow-hidden text-xs text-slate-500 dark:text-slate-400">
+              <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
                 <ClockCircleOutlined />
                 <span>{durationMin}</span>
                 <span className="hidden sm:inline">{t('min')}</span>
               </span>
 
-              <span className="inline-flex items-center gap-1 whitespace-nowrap">
+              <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
                 <UserOutlined />
                 <span>{formatTaken(taken)}</span>
                 <span className="hidden sm:inline">{t('takenShort')}</span>
               </span>
 
               {questionsTotal != null ? (
-                <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
                   <QuestionCircleOutlined />
                   <span>{questionsTotal}</span>
                   <span className="hidden sm:inline">{t('questions')}</span>
@@ -153,20 +142,18 @@ export function QuizCard({
             </div>
           </div>
 
-          <div className="mt-3 text-lg font-semibold leading-snug text-slate-900 dark:text-slate-100">
+          <div className="mt-3 line-clamp-2 text-lg font-semibold leading-snug text-slate-900 dark:text-slate-100">
             {title}
           </div>
 
-          <div className="mt-2 text-sm text-slate-600 dark:text-slate-300 line-clamp-3">
+          <div className="mt-1 line-clamp-3 text-sm leading-5 text-slate-600 dark:text-slate-300">
             {description || '\u00A0'}
           </div>
 
-          <div className="mt-auto pt-5">
-            <Button
-              type="primary"
-              size="large"
-              className="w-full rounded-2xl pointer-events-none"
-            >
+          <div className="flex-1" />
+
+          <div className="pt-5">
+            <Button type="primary" size="large" className="w-full rounded-2xl">
               {t('start')}
             </Button>
           </div>
