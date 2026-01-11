@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Alert, Typography, message } from 'antd';
 import { useTranslations } from 'next-intl';
 
@@ -13,7 +12,14 @@ import {
   validateResults,
 } from '../model/validators';
 
-import { useQuizBuilderActions } from '@/features/admin-quiz-builder/api/useQuizBuilderActions';
+import { useAdminCreateQuiz } from '@/entities/quiz/api/useAdminCreateQuiz';
+import { useAdminUpdateQuiz } from '@/entities/quiz/api/useAdminUpdateQuiz';
+
+import type {
+  CreateQuizRequest,
+  UpdateQuizRequest,
+} from '@/shared/api/generated/model';
+import { generateEntityCode } from '@/shared/lib/code/generateEntityCode';
 
 import { StepperHeader } from './StepperHeader';
 import { StepActions } from './StepActions';
@@ -27,48 +33,90 @@ import { StepPreview } from './steps/StepPreview';
 
 export function AdminQuizBuilderPage() {
   const t = useTranslations('AdminQuizBuilder');
-  const router = useRouter();
 
   const step = useAdminQuizBuilderStore((s) => s.step);
   const setStep = useAdminQuizBuilderStore((s) => s.setStep);
 
   const quizId = useAdminQuizBuilderStore((s) => s.quizId);
   const version = useAdminQuizBuilderStore((s) => s.version);
-  const quizVersionId = useAdminQuizBuilderStore((s) => s.quizVersionId);
 
   const init = useAdminQuizBuilderStore((s) => s.init);
   const scales = useAdminQuizBuilderStore((s) => s.scales);
   const questions = useAdminQuizBuilderStore((s) => s.questions);
   const results = useAdminQuizBuilderStore((s) => s.results);
 
+  const setQuizContext = useAdminQuizBuilderStore((s) => s.setQuizContext);
+  const patchInit = useAdminQuizBuilderStore((s) => s.patchInit);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const createQuiz = useAdminCreateQuiz();
+  const updateQuiz = useAdminUpdateQuiz();
+
   const traitIds = useMemo(
-    () => scales.map((s) => s.traitId).filter((x): x is number => typeof x === 'number'),
+    () =>
+      scales
+        .map((s) => s.traitId)
+        .filter((x): x is number => typeof x === 'number'),
     [scales],
   );
 
-  const actions =
-    typeof quizId === 'number' && typeof version === 'number'
-      ? useQuizBuilderActions(quizId, version)
-      : null;
-
   const canGoNext = useMemo(() => {
-    if (step === 0) return Object.keys(validateInit({ title: init.title, code: init.code })).length === 0;
+    if (step === 0) return Object.keys(validateInit(init)).length === 0;
     if (step === 1) return Object.keys(validateScales(scales)).length === 0;
-    if (step === 2) return Object.keys(validateQuestions(questions, traitIds)).length === 0;
+    if (step === 2)
+      return Object.keys(validateQuestions(questions, traitIds)).length === 0;
     if (step === 3) return Object.keys(validateResults(results)).length === 0;
     return true;
-  }, [step, init.title, init.code, scales, questions, traitIds, results]);
+  }, [step, init, scales, questions, traitIds, results]);
+
+  const isSavingInit =
+    step === 0 && (createQuiz.isPending || updateQuiz.isPending);
 
   function goPrev() {
     setErrors({});
     setStep((Math.max(0, step - 1) as unknown) as any);
   }
 
-  function goNext() {
+  async function ensureQuizSaved() {
+    if (typeof quizId !== 'number') {
+      const payload: CreateQuizRequest = {
+        code: init.code,
+        title: init.title,
+        descriptionDefault: init.description,
+        processingMode: 'LLM' as any,
+      };
+
+      const res = await createQuiz.mutateAsync({ data: payload });
+
+      const newQuizId = (res as any).id as number;
+      const newVersion = ((res as any).version ?? 1) as number;
+      const newQuizVersionId = (res as any).quizVersionId as number | undefined;
+
+      if (typeof newQuizId === 'number') {
+        setQuizContext({
+          quizId: newQuizId,
+          version: newVersion,
+          quizVersionId: newQuizVersionId,
+        });
+        return;
+      }
+
+      throw new Error(t('createFailed'));
+    }
+
+    const payload: UpdateQuizRequest = {
+      title: init.title,
+      descriptionDefault: init.description,
+      processingMode: 'LLM' as any,
+    };
+
+    await updateQuiz.mutateAsync({ id: quizId, data: payload } as any);
+  }
+
+  async function goNext() {
     let e: Record<string, string> = {};
-    if (step === 0) e = validateInit({ title: init.title, code: init.code });
+    if (step === 0) e = validateInit(init);
     if (step === 1) e = validateScales(scales);
     if (step === 2) e = validateQuestions(questions, traitIds);
     if (step === 3) e = validateResults(results);
@@ -77,6 +125,29 @@ export function AdminQuizBuilderPage() {
 
     if (Object.keys(e).length > 0) {
       message.error(t('validation.fixErrors'));
+      return;
+    }
+
+    if (step === 0) {
+      try {
+        await ensureQuizSaved();
+        setStep(1);
+      } catch (err) {
+        const msg = (err as Error).message || t('createFailed');
+
+        if (
+          msg.toLowerCase().includes('code') &&
+          (msg.toLowerCase().includes('exist') ||
+            msg.toLowerCase().includes('unique'))
+        ) {
+          patchInit({
+            code: generateEntityCode(init.title || init.code || 'quiz'),
+            codeTouched: true,
+          });
+        }
+
+        message.error(msg);
+      }
       return;
     }
 
@@ -116,7 +187,7 @@ export function AdminQuizBuilderPage() {
             step={step}
             onPrev={goPrev}
             onNext={goNext}
-            canGoNext={canGoNext}
+            canGoNext={canGoNext && !isSavingInit}
           />
         </div>
 
@@ -125,7 +196,7 @@ export function AdminQuizBuilderPage() {
             step={step}
             onPrev={goPrev}
             onNext={goNext}
-            canGoNext={canGoNext}
+            canGoNext={canGoNext && !isSavingInit}
           />
         </div>
       </div>
