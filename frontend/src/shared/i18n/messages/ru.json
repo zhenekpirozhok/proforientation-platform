@@ -495,5 +495,110 @@
         "email": "Emails: alena.tsibets@gmail.com, ya.kavalchuk@gmail.com"
       }
     }
+  },
+  "AdminQuizBuilder": {
+  "title": "Конструктор квиза",
+  "subtitle": "Создайте квиз в 3 шага и опубликуйте",
+  "needQuizContext": "Сначала создайте квиз (Шаг 0).",
+  "validation": {
+    "required": "Обязательное поле",
+    "min3": "Минимум 3 символа",
+    "min1": "Добавьте хотя бы один элемент",
+    "min2": "Добавьте минимум 2 варианта",
+    "map1": "Свяжите хотя бы с одним трейтом",
+    "invalid": "Некорректная связь с трейтом",
+    "fixErrors": "Исправьте ошибки валидации"
+  },
+  "steps": {
+    "init": "Старт",
+    "scales": "Шкалы",
+    "questions": "Вопросы",
+    "results": "Результаты",
+    "preview": "Превью"
+  },
+  "actions": {
+    "back": "Назад",
+    "next": "Далее",
+    "done": "Готово"
+  },
+  "init": {
+    "title": "Инициализация",
+    "quizTitle": "Название квиза",
+    "quizTitlePh": "Например: Профориентационный квиз",
+    "quizCode": "Системный код",
+    "quizCodePh": "авто из названия",
+    "continue": "Создать и продолжить",
+    "created": "Квиз создан",
+    "createFailed": "Не удалось создать квиз"
+  },
+  "scales": {
+    "title": "Шаг 1 — Шкалы",
+    "name": "Название шкалы",
+    "namePh": "Например: Реалистичный",
+    "code": "Код",
+    "codePh": "Например: realistic",
+    "polarity": "Полярность",
+    "single": "Одиночная",
+    "bipolar": "Биполярная",
+    "add": "Добавить",
+    "created": "Шкала создана",
+    "needNameCode": "Введите название и код",
+    "current": "Текущие шкалы",
+    "empty": "Пока нет шкал",
+    "remove": "Удалить",
+    "linkTrait": "Привязать к трейту"
+  },
+  "questions": {
+    "title": "Шаг 2 — Вопросы",
+    "text": "Текст вопроса",
+    "textPh": "Введите текст вопроса",
+    "type": "Тип",
+    "typeSingle": "Один вариант",
+    "typeMulti": "Несколько вариантов",
+    "typeLikert5": "Лайкерт (5)",
+    "addQuestion": "Добавить вопрос",
+    "list": "Список вопросов",
+    "empty": "Пока нет вопросов",
+    "ord": "Порядок",
+    "saveQuestion": "Сохранить вопрос",
+    "saveOption": "Сохранить вариант",
+    "saveMapping": "Сохранить связи",
+    "saveAgain": "Сохранить ещё раз",
+    "removeQuestion": "Удалить",
+    "options": "Варианты",
+    "addOption": "Добавить вариант",
+    "label": "Подпись",
+    "traits": "Трейты",
+    "weights": "Вес",
+    "questionSaved": "Вопрос сохранён",
+    "optionSaved": "Вариант сохранён",
+    "mappingSaved": "Связи сохранены"
+  },
+  "results": {
+    "title": "Шаг 3 — Результаты",
+    "categories": "Категории",
+    "categoriesPh": "Выберите категории",
+    "newCategoryPh": "Название новой категории",
+    "professions": "Профессии",
+    "professionsPh": "Выберите профессии",
+    "newProfessionPh": "Название новой профессии",
+    "add": "Добавить",
+    "categoryCreated": "Категория создана",
+    "professionCreated": "Профессия создана",
+    "note": "Выбор сохраняется локально до подключения эндпоинта привязки результатов к квизу."
+  },
+  "preview": {
+    "title": "Превью",
+    "scales": "Шкалы",
+    "questions": "Вопросы",
+    "results": "Результаты",
+    "none": "Нет",
+    "questionsCount": "Вопросов: {count}",
+    "categoriesCount": "Категорий: {count}",
+    "professionsCount": "Профессий: {count}",
+    "publish": "Опубликовать",
+    "published": "Квиз опубликован"
   }
+}
+  
 }
