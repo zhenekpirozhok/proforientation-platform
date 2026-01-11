@@ -17,3 +17,17 @@ export async function POST(req: Request) {
         headers: upstream.headers,
     });
 }
+
+export async function GET(req: Request) {
+    const upstream = await bffAuthFetch('/traits', {
+        method: 'GET',
+        headers: {
+            accept: req.headers.get('accept') ?? 'application/json',
+        },
+    });
+
+    return new Response(upstream.body, {
+        status: upstream.status,
+        headers: upstream.headers,
+    });
+}

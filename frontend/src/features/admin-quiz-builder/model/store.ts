@@ -48,8 +48,7 @@ type BuilderState = {
         title: string;
         code: string;
         description?: string;
-        secondsPerQuestionDefault?: number;
-        categoryId?: number;
+        codeTouched: boolean;
     };
 
     scales: ScaleDraft[];
@@ -101,8 +100,7 @@ const initialState = {
         title: '',
         code: '',
         description: '',
-        secondsPerQuestionDefault: 60,
-        categoryId: undefined as number | undefined,
+        codeTouched: false,
     },
     scales: [] as ScaleDraft[],
     questions: [] as QuestionDraft[],
@@ -198,7 +196,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
         }),
         {
             name: 'admin-quiz-builder',
-            version: 1,
+            version: 2,
             partialize: (s) => ({
                 step: s.step,
                 quizId: s.quizId,
