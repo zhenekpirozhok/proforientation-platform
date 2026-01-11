@@ -273,5 +273,110 @@
     "SuccessSubtitle": "You can now sign in with your new password.",
     "SuccessBody": "Your password was successfully updated.",
     "SignIn": "Sign in"
+  },
+  "AdminQuizBuilder": {
+  "title": "Quiz builder",
+  "subtitle": "Create a quiz in 3 steps and publish it",
+  "needQuizContext": "Create the quiz first (Step 0).",
+  "validation": {
+    "required": "Required",
+    "min3": "Must be at least 3 characters",
+    "min1": "Add at least one item to continue",
+    "min2": "Add at least 2 options",
+    "map1": "Map at least one trait",
+    "invalid": "Invalid trait mapping",
+    "fixErrors": "Fix validation errors to continue"
+  },
+  "steps": {
+    "init": "Init",
+    "scales": "Scales",
+    "questions": "Questions",
+    "results": "Results",
+    "preview": "Preview"
+  },
+  "actions": {
+    "back": "Back",
+    "next": "Next",
+    "done": "Done"
+  },
+  "init": {
+    "title": "Initialization",
+    "quizTitle": "Quiz title",
+    "quizTitlePh": "e.g. Career orientation quiz",
+    "quizCode": "System code",
+    "quizCodePh": "auto-generated from title",
+    "continue": "Create and continue",
+    "created": "Quiz created",
+    "createFailed": "Failed to create quiz"
+  },
+  "scales": {
+    "title": "Step 1 — Scales",
+    "name": "Scale name",
+    "namePh": "e.g. Realistic",
+    "code": "Code",
+    "codePh": "e.g. realistic",
+    "polarity": "Polarity",
+    "single": "Single",
+    "bipolar": "Bipolar",
+    "add": "Add",
+    "created": "Scale created",
+    "needNameCode": "Enter name and code",
+    "current": "Current scales",
+    "empty": "No scales yet",
+    "remove": "Remove",
+    "linkTrait": "Link to trait"
+  },
+  "questions": {
+    "title": "Step 2 — Questions",
+    "text": "Question text",
+    "textPh": "Enter question text",
+    "type": "Type",
+    "typeSingle": "Single choice",
+    "typeMulti": "Multiple choice",
+    "typeLikert5": "Likert (5)",
+    "addQuestion": "Add question",
+    "list": "Questions list",
+    "empty": "No questions yet",
+    "ord": "Order",
+    "saveQuestion": "Save question",
+    "saveOption": "Save option",
+    "saveMapping": "Save mapping",
+    "saveAgain": "Save again",
+    "removeQuestion": "Remove",
+    "options": "Options",
+    "addOption": "Add option",
+    "label": "Label",
+    "traits": "Traits",
+    "weights": "Weights",
+    "questionSaved": "Question saved",
+    "optionSaved": "Option saved",
+    "mappingSaved": "Mapping saved"
+  },
+  "results": {
+    "title": "Step 3 — Results",
+    "categories": "Categories",
+    "categoriesPh": "Select categories",
+    "newCategoryPh": "New category name",
+    "professions": "Professions",
+    "professionsPh": "Select professions",
+    "newProfessionPh": "New profession name",
+    "add": "Add",
+    "categoryCreated": "Category created",
+    "professionCreated": "Profession created",
+    "note": "Selections are stored locally until quiz-results mapping endpoint is connected."
+  },
+  "preview": {
+    "title": "Preview",
+    "scales": "Scales",
+    "questions": "Questions",
+    "results": "Results",
+    "none": "None",
+    "questionsCount": "{count} questions",
+    "categoriesCount": "{count} categories",
+    "professionsCount": "{count} professions",
+    "publish": "Publish",
+    "published": "Quiz published"
   }
+}
+
 }
