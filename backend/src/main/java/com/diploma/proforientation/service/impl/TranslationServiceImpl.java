@@ -15,19 +15,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.diploma.proforientation.util.Constants.ENTITY_TRANSLATIONS;
 import static com.diploma.proforientation.util.Constants.TRANSLATION_NOT_FOUND;
 
 @Service
 @RequiredArgsConstructor
 public class TranslationServiceImpl implements TranslationService {
 
-    private static final String CACHE_VALUE = "translations";
-
     private final TranslationRepository repo;
 
     @Override
     @CacheEvict(
-            value = CACHE_VALUE,
+            value = ENTITY_TRANSLATIONS,
             key = "T(String).format('%s:%d:%s:%s', #req.entityType(), #req.entityId(), #req.field(), #req.locale())"
     )
     @Transactional
@@ -43,7 +42,7 @@ public class TranslationServiceImpl implements TranslationService {
     }
 
     @Override
-    @CacheEvict(value = CACHE_VALUE, allEntries = true)
+    @CacheEvict(value = ENTITY_TRANSLATIONS, allEntries = true)
     @Transactional
     public TranslationDto update(Integer id, UpdateTranslationRequest req) {
         Translation t = repo.findById(id)
@@ -54,7 +53,7 @@ public class TranslationServiceImpl implements TranslationService {
     }
 
     @Override
-    @CacheEvict(value = CACHE_VALUE, allEntries = true)
+    @CacheEvict(value = ENTITY_TRANSLATIONS, allEntries = true)
     @Transactional
     public void delete(Integer id) {
         if (!repo.existsById(id)) {
@@ -93,7 +92,7 @@ public class TranslationServiceImpl implements TranslationService {
      */
     @Override
     @Cacheable(
-            value = CACHE_VALUE, unless = "#result == null",
+            value = ENTITY_TRANSLATIONS, unless = "#result == null",
             key = "T(String).format('%s:%d:%s:%s', #entityType, #entityId, #field, #locale)"
     )
     public String translate(String entityType, Integer entityId, String field, String locale) {

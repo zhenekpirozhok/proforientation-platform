@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Locale;
 
-import static com.diploma.proforientation.util.Constants.DEFAULT_LOCALE;
+import static com.diploma.proforientation.util.Constants.*;
 
 @Service
 @AllArgsConstructor
@@ -28,22 +28,10 @@ public class EmailServiceImpl implements EmailService {
 
         String link = resetPasswordLinkBuilder.build(loc.getLanguage(), token);
 
-        String subject = messageSource.getMessage(
-                "email.reset.subject",
-                null,
-                loc
-        );
-
-        String body = messageSource.getMessage(
-                "email.reset.body",
-                new Object[]{link},
-                loc
-        );
-
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
-        message.setSubject(subject);
-        message.setText(body + link);
+        message.setSubject(EMAIL_RESET_SUBJECT);
+        message.setText(EMAIL_RESET_BODY + link);
 
         mailSender.send(message);
     }

@@ -4,47 +4,6 @@ public final class Constants {
 
     public static final String DEFAULT_LOCALE = "en";
 
-    public static final String PROFESSION_NOT_FOUND = "Profession not found";
-    public static final String CATEGORY_NOT_FOUND = "Category not found";
-    public static final String QUIZ_NOT_FOUND = "Quiz not found";
-    public static final String AUTHOR_NOT_FOUND = "Author not found";
-    public static final String USER_NOT_FOUND = "User not found";
-    public static final String QUIZ_VERSION_NOT_FOUND = "Quiz version not found";
-    public static final String CURRENT_QUIZ_VERSION_NOT_FOUND = "Current version not found";
-    public static final String NO_QUIZ_VERSIONS = "No versions to copy";
-    public static final String QUESTION_NOT_FOUND = "Question not found";
-    public static final String OPTION_NOT_FOUND = "Option not found";
-    public static final String OPTIONS_NOT_FOUND = "Some options not found";
-    public static final String TRAIT_NOT_FOUND = "Trait not found";
-    public static final String ATTEMPT_NOT_FOUND = "Attempt not found";
-    public static final String ATTEMPT_SUBMITTED = "Attempt already submitted";
-    public static final String TRANSLATION_NOT_FOUND = "Translation not found";
-    public static final String QUIZ_METRICS_NOT_FOUND = "Quiz metrics not found";
-    public static final String QUIZ_CODE_NOT_FOUND = "Quiz not found with code: ";
-
-    public static final String INVALID_INT = "Invalid integer";
-    public static final String INVALID_ENUM_VALUE = "Invalid enum value";
-    public static final String UNSUPPORTED_ENTITY = "Unsupported entity type";
-    public static final String EMPTY_REQUIRED_FIELDS = "Required fields are empty";
-    public static final String MISSING_COLUMN = "Missing column";
-    public static final String MISSING_REQUIRED_COLUMN = "Missing required column: ";
-    public static final String NOT_INTEGER = "Must be integer";
-    public static final String UNSUPPORTED_EXPORT_ENTITY = "Unsupported export entity: ";
-    public static final String CSV_EXPORT_FAILED = "CSV export failed for ";
-    public static final String EXCEL_EXPORT_FAILED = "Excel export failed";
-    public static final String SECONDS_COUNT_SHOULD_BE_GRATER_THEN_ZERO = "secondsPerQuestionDefault must be > 0";
-    public static final String CANNOT_CHANGE_OWN_ROLE = "Cannot change your own role";
-    public static final String DELETE_ATTEMPT_CONFIRMATION_REQUIRED = "Confirmation required to delete attempts.";
-
-    public static final String INVALID_CRED = "Invalid email or password";
-    public static final String INVALID_PASS = "Password verification failed";
-    public static final String UNKNOWN_USER = "Unknown user";
-    public static final String UNKNOWN_OPTIONS = "Some options do not belong to questionId=";
-
-    public static final String INVALID_JSON_FROM_LLM = "LLM returned invalid JSON: ";
-    public static final String INVALID_PROMPT = "Failed to build prompt JSON";
-    public static final String UTILITY_CLASS = "Utility class";
-
     public static final String ENTITY_TYPE_QUESTION = "question";
     public static final String ENTITY_TYPE_QUIZ = "quiz";
     public static final String ENTITY_TYPE_OPTION = "question_option";
@@ -76,6 +35,7 @@ public final class Constants {
     public static final String QUIZ_STATUS = "quizStatus";
     public static final String CATEGORY_ID = "categoryId";
     public static final String QUIZ_CODE = "quizCode";
+    public static final String ATTEMPT_ID = "attemptId";
 
     public static final String ATTEMPTS_TOTAL = "attemptsTotal";
     public static final String ATTEMPTS_SUBMITTED = "attemptsSubmitted";
@@ -85,8 +45,6 @@ public final class Constants {
     public static final String AVG_DURATION_SECONDS = "avgDurationSeconds";
 
     public static final String SQL_TEXT_FUNCTION = "text";
-
-    public static final String MESSAGE_REQUIRED = "Required";
 
     public static final String ENTITY_QUIZZES = "quizzes";
     public static final String ENTITY_QUIZ_VERSIONS = "quiz_versions";
@@ -133,6 +91,60 @@ public final class Constants {
     public static final String[] HEADERS_TRANSLATIONS = {
             "id", "entity_type", "entity_id", "locale", "field", "text"
     };
+
+    // EMAIL
+    public static final String EMAIL_RESET_SUBJECT = "email.reset.subject";
+    public static final String EMAIL_RESET_BODY = "email.reset.body";
+
+    // NOT FOUND
+    public static final String PROFESSION_NOT_FOUND = "error.profession.not_found";
+    public static final String CATEGORY_NOT_FOUND = "error.category.not_found";
+    public static final String QUIZ_NOT_FOUND = "error.quiz.not_found";
+    public static final String AUTHOR_NOT_FOUND = "error.author.not_found";
+    public static final String USER_NOT_FOUND = "error.user.not_found";
+    public static final String QUIZ_VERSION_NOT_FOUND = "error.quiz_version.not_found";
+    public static final String CURRENT_QUIZ_VERSION_NOT_FOUND = "error.current_quiz_version.not_found";
+    public static final String NO_QUIZ_VERSIONS = "error.no_quiz_versions";
+    public static final String QUESTION_NOT_FOUND = "error.question.not_found";
+    public static final String OPTION_NOT_FOUND = "error.option.not_found";
+    public static final String OPTIONS_NOT_FOUND = "error.options.not_found";
+    public static final String TRAIT_NOT_FOUND = "error.trait.not_found";
+    public static final String ATTEMPT_NOT_FOUND = "error.attempt.not_found";
+    public static final String ATTEMPT_SUBMITTED = "error.attempt.submitted";
+    public static final String TRANSLATION_NOT_FOUND = "error.translation.not_found";
+    public static final String QUIZ_METRICS_NOT_FOUND = "error.quiz_metrics.not_found";
+    public static final String QUIZ_CODE_NOT_FOUND = "error.quiz_code.not_found";
+
+    // VALIDATION / BUSINESS
+    public static final String INVALID_INT = "error.invalid_int";
+    public static final String INVALID_ENUM_VALUE = "error.invalid_enum_value";
+    public static final String UNSUPPORTED_ENTITY = "error.unsupported_entity";
+    public static final String EMPTY_REQUIRED_FIELDS = "error.empty_required_fields";
+    public static final String MISSING_COLUMN = "error.missing_column";
+    public static final String MISSING_REQUIRED_COLUMN = "error.missing_required_column";
+    public static final String NOT_INTEGER = "error.not_integer";
+    public static final String UNSUPPORTED_EXPORT_ENTITY = "error.unsupported_export_entity";
+    public static final String CSV_EXPORT_FAILED = "error.csv_export_failed";
+    public static final String EXCEL_EXPORT_FAILED = "error.excel_export_failed";
+    public static final String SECONDS_GT_ZERO = "error.seconds_gt_zero";
+    public static final String CANNOT_CHANGE_OWN_ROLE = "error.cannot_change_own_role";
+    public static final String DELETE_ATTEMPT_CONFIRMATION = "error.delete_attempt_confirmation";
+
+    // AUTH
+    public static final String INVALID_CREDENTIALS = "error.invalid_credentials";
+    public static final String INVALID_PASSWORD = "error.invalid_password";
+    public static final String UNKNOWN_USER = "error.unknown_user";
+    public static final String UNKNOWN_OPTIONS = "error.unknown_options";
+
+    // LLM / ML / TECH
+    public static final String INVALID_JSON_FROM_LLM = "error.invalid_json_from_llm";
+    public static final String INVALID_PROMPT = "error.invalid_prompt";
+    public static final String RIASEC_INVALID_ANSWER_COUNT =
+            "error.riasec.invalid_answer_count";
+
+    // COMMON
+    public static final String MESSAGE_REQUIRED = "error.message_required";
+    public static final String UTILITY_CLASS = "error.utility_class";
 
     private Constants() {}
 }

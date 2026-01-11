@@ -106,7 +106,7 @@ public class QuizServiceImpl implements QuizService {
         q.setDescriptionDefault(req.descriptionDefault());
         if (req.secondsPerQuestionDefault() != null) {
             if (req.secondsPerQuestionDefault() <= 0) {
-                throw new IllegalArgumentException(SECONDS_COUNT_SHOULD_BE_GRATER_THEN_ZERO);
+                throw new IllegalArgumentException(SECONDS_GT_ZERO);
             }
             q.setSecondsPerQuestionDefault(req.secondsPerQuestionDefault());
         }
@@ -143,7 +143,7 @@ public class QuizServiceImpl implements QuizService {
 
         if (req.secondsPerQuestionDefault() != null) {
             if (req.secondsPerQuestionDefault() <= 0) {
-                throw new IllegalArgumentException(SECONDS_COUNT_SHOULD_BE_GRATER_THEN_ZERO);
+                throw new IllegalArgumentException(SECONDS_GT_ZERO);
             }
             q.setSecondsPerQuestionDefault(req.secondsPerQuestionDefault());
         }

@@ -215,7 +215,7 @@ public class AttemptServiceImpl implements AttemptService {
     @Transactional
     public void deleteSelectedAttempts(Integer userId, String guestToken, List<Integer> attemptIds, boolean confirm) {
         if (!confirm) {
-            throw new IllegalStateException(DELETE_ATTEMPT_CONFIRMATION_REQUIRED);
+            throw new IllegalStateException(DELETE_ATTEMPT_CONFIRMATION);
         }
         if (attemptIds == null || attemptIds.isEmpty()) {
             return;

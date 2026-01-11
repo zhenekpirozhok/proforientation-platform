@@ -16,7 +16,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MlResultMapper {
 
-    private static String DEFAULT_EXPLANATION = "Recommended based on machine learning prediction.";
+    private static final String DEFAULT_EXPLANATION = "Recommended based on machine learning prediction.";
 
     private final ProfessionRepository professionRepository;
     private final MlProfessionExplanationServiceImpl explanationService;

@@ -8,13 +8,17 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ResetPasswordLinkBuilder {
 
+    private static final String SLASH = "/";
+    private static final String RESET_PASSWORD_PATH = "reset-password";
+    private static final String TOKEN_QUERY = "?token=";
+
     @Value("${frontend.base-url}")
     private String frontendBaseUrl;
 
     public String build(String locale, String token) {
         return frontendBaseUrl
-                + "/" + locale
-                + "/reset-password?token="
-                + token;
+                + SLASH + locale
+                + SLASH + RESET_PASSWORD_PATH
+                + TOKEN_QUERY + token;
     }
 }

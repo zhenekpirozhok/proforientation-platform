@@ -65,7 +65,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return user;
         }
 
-        throw new BadCredentialsException(INVALID_CRED);
+        throw new BadCredentialsException(INVALID_CREDENTIALS);
     }
 
     public void sendResetToken(String email) {
@@ -152,7 +152,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         );
 
         if (!authentication.isAuthenticated()) {
-            throw new BadCredentialsException(INVALID_PASS);
+            throw new BadCredentialsException(INVALID_PASSWORD);
         }
 
         log.info("Deleting account for user: {}", email);
