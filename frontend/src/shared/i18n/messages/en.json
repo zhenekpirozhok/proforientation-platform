@@ -529,7 +529,9 @@
     "quizCodePh": "auto-generated from title",
     "continue": "Create and continue",
     "created": "Quiz created",
-    "createFailed": "Failed to create quiz"
+    "createFailed": "Failed to create quiz",
+    "quizDescription": "Description",
+    "quizDescriptionPh": "Optional description for admins"
   },
   "scales": {
     "title": "Step 1 — Scales",

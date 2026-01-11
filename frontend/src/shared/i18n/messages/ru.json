@@ -529,7 +529,9 @@
     "quizCodePh": "авто из названия",
     "continue": "Создать и продолжить",
     "created": "Квиз создан",
-    "createFailed": "Не удалось создать квиз"
+    "createFailed": "Не удалось создать квиз",
+    "quizDescription": "Описание",
+    "quizDescriptionPh": "Необязательное описание для админов"
   },
   "scales": {
     "title": "Шаг 1 — Шкалы",
