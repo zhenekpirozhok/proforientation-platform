@@ -285,7 +285,12 @@
     "min2": "Add at least 2 options",
     "map1": "Map at least one trait",
     "invalid": "Invalid trait mapping",
-    "fixErrors": "Fix validation errors to continue"
+    "fixErrors": "Fix validation errors to continue",
+      "mixedPolarity": "You can’t mix single and bipolar scales.",
+      "pairRequired": "Bipolar scales must be created as pairs.",
+      "pairIncomplete": "Bipolar pair must contain both sides.",
+      "pairCodeRequired": "Bipolar pair code is required.",
+      "pairCodeMismatch": "Bipolar pair code must be the same for both sides."
   },
   "steps": {
     "init": "Init",
@@ -311,23 +316,34 @@
     "quizDescription": "Description",
     "quizDescriptionPh": "Optional description for admins"
   },
-  "scales": {
-    "title": "Step 1 — Scales",
-    "name": "Scale name",
-    "namePh": "e.g. Realistic",
-    "code": "Code",
-    "codePh": "e.g. realistic",
-    "polarity": "Polarity",
-    "single": "Single",
-    "bipolar": "Bipolar",
-    "add": "Add",
-    "created": "Scale created",
-    "needNameCode": "Enter name and code",
-    "current": "Current scales",
-    "empty": "No scales yet",
-    "remove": "Remove",
-    "linkTrait": "Link to trait"
-  },
+    "scales": {
+      "title": "Scales",
+      "modeTitle": "Scale type",
+      "modeHint": "Choose one type for the whole quiz. You can’t mix single and bipolar scales.",
+      "modeLocked": "Scale type is locked because you already added scales.",
+      "mode": {
+        "single": "Single",
+        "bipolar": "Bipolar"
+      },
+      "listTitle": "Added scales",
+      "addTitle": "Add scale",
+      "editTitle": "Edit scale",
+      "name": "Scale name",
+      "code": "Code",
+      "description": "Description",
+      "left": "Left",
+      "right": "Right",
+      "pairTitle": "Bipolar pair",
+      "pairCode": "Bipolar pair code",
+      "pairCodePh": "Same code for both sides",
+      "add": "Add",
+      "save": "Save",
+      "edit": "Edit",
+      "remove": "Remove",
+      "cancel": "Cancel",
+      "untitled": "Untitled",
+      "chooseModeFirst": "Choose the scale type to start adding scales."
+    },
   "questions": {
     "title": "Step 2 — Questions",
     "text": "Question text",
