@@ -1,6 +1,7 @@
 package com.diploma.proforientation.integration.security;
 
 import com.diploma.proforientation.config.JwtAuthenticationFilter;
+import com.diploma.proforientation.controller.AdvisorController;
 import com.diploma.proforientation.controller.TranslationController;
 import com.diploma.proforientation.service.TranslationService;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         excludeFilters = {
                 @ComponentScan.Filter(
                         type = FilterType.ASSIGNABLE_TYPE,
-                        classes = JwtAuthenticationFilter.class
+                        classes = {AdvisorController.class, JwtAuthenticationFilter.class}
                 )
         }
 )

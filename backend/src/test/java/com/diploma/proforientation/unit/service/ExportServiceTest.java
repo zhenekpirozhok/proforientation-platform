@@ -173,7 +173,7 @@ class ExportServiceTest {
     void exportUnsupportedEntity_throwsException() {
         assertThatThrownBy(() -> service.exportEntityToCsv("unknown"))
                 .isInstanceOf(CsvExportException.class)
-                .hasMessageContaining("Unsupported export entity");
+                .hasMessageContaining("error.unsupported_export_entityunknown");
     }
 
     @Test

@@ -12,7 +12,7 @@ import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.scoring.ScoringEngine;
 import com.diploma.proforientation.scoring.impl.ScoringEngineFactory;
 import com.diploma.proforientation.dto.ml.ScoringResult;
-import com.diploma.proforientation.util.LocaleProvider;
+import com.diploma.proforientation.util.I18n;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +43,7 @@ public class AttemptServiceImpl implements AttemptService {
 
     private final ScoringEngineFactory scoringEngineFactory;
     private final TranslationResolver translationResolver;
-    private final LocaleProvider localeProvider;
+    private final I18n i18n;
 
     @Override
     public AttemptStartResponse startAttempt(Integer quizVersionId, Integer userId) {
@@ -215,7 +215,7 @@ public class AttemptServiceImpl implements AttemptService {
     @Transactional
     public void deleteSelectedAttempts(Integer userId, String guestToken, List<Integer> attemptIds, boolean confirm) {
         if (!confirm) {
-            throw new IllegalStateException(DELETE_ATTEMPT_CONFIRMATION_REQUIRED);
+            throw new IllegalStateException(DELETE_ATTEMPT_CONFIRMATION);
         }
         if (attemptIds == null || attemptIds.isEmpty()) {
             return;
@@ -318,7 +318,7 @@ public class AttemptServiceImpl implements AttemptService {
     }
 
     private AttemptSummaryDto toSummary(Attempt a) {
-        String locale = localeProvider.currentLanguage();
+        String locale = i18n.currentLanguage();
         Quiz quiz = a.getQuizVersion().getQuiz();
 
         String title = translationResolver.resolve(

@@ -7,7 +7,7 @@ import com.diploma.proforientation.model.ProfessionCategory;
 import com.diploma.proforientation.repository.ProfessionCategoryRepository;
 import com.diploma.proforientation.repository.ProfessionRepository;
 import com.diploma.proforientation.service.impl.ProfessionServiceImpl;
-import com.diploma.proforientation.util.LocaleProvider;
+import com.diploma.proforientation.util.I18n;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +38,7 @@ class ProfessionServiceTest {
     private TranslationResolver translationResolver;
 
     @Mock
-    private LocaleProvider localeProvider;
+    private I18n localeProvider;
 
     @InjectMocks
     private ProfessionServiceImpl service;

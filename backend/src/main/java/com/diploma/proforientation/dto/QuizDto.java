@@ -11,7 +11,7 @@ public record QuizDto(
         Integer id,
         @Schema(
                 description = "Short unique code used to reference the quiz",
-                examples = "riasec_main"
+                examples = "riasec"
         )
         String code,
         @Schema(

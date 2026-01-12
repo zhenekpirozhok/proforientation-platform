@@ -13,11 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.diploma.proforientation.util.Constants.ATTEMPT_ID;
+
 @Component
 @RequiredArgsConstructor
 public class TraitScoreCalculatorImpl implements TraitScoreCalculator {
-
-    private static final String ATTEMPT_ID_KEY = "attemptId";
 
     @PersistenceContext
     private final EntityManager em;
@@ -40,7 +40,7 @@ public class TraitScoreCalculatorImpl implements TraitScoreCalculator {
         """;
 
         List<Object[]> weightedRows = em.createNativeQuery(weightedSumSql)
-                .setParameter(ATTEMPT_ID_KEY, attemptId)
+                .setParameter(ATTEMPT_ID, attemptId)
                 .getResultList();
 
         // 2️⃣ Max possible weighted sum per trait (for normalization)
@@ -61,7 +61,7 @@ public class TraitScoreCalculatorImpl implements TraitScoreCalculator {
         """;
 
         List<Object[]> maxRows = em.createNativeQuery(maxSumSql)
-                .setParameter(ATTEMPT_ID_KEY, attemptId)
+                .setParameter(ATTEMPT_ID, attemptId)
                 .getResultList();
 
         Map<Integer, BigDecimal> maxPerTrait = new HashMap<>();

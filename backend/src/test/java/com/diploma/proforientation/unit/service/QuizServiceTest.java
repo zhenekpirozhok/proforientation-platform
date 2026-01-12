@@ -12,7 +12,7 @@ import com.diploma.proforientation.repository.QuizPublicMetricsRepository;
 import com.diploma.proforientation.repository.QuizRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.impl.QuizServiceImpl;
-import com.diploma.proforientation.util.LocaleProvider;
+import com.diploma.proforientation.util.I18n;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +44,7 @@ class QuizServiceTest {
     @Mock
     private TranslationResolver translationResolver;
     @Mock
-    private LocaleProvider localeProvider;
+    private I18n localeProvider;
 
     @InjectMocks
     private QuizServiceImpl service;
@@ -151,15 +151,13 @@ class QuizServiceTest {
         CreateQuizRequest req = new CreateQuizRequest(
                 "QX",
                 "New Quiz",
-                "ML_RIASEC",
-                "DRAFT",
                 "Default quiz description",
                 30,
-                5,
-                1
+                5
         );
-        when(categoryRepo.findById(5)).thenReturn(Optional.of(category));
+
         when(userRepo.findById(1)).thenReturn(Optional.of(author));
+        when(categoryRepo.findById(5)).thenReturn(Optional.of(category));
 
         Quiz saved = new Quiz();
         saved.setId(99);
@@ -167,56 +165,56 @@ class QuizServiceTest {
         saved.setTitleDefault("New Quiz");
         saved.setCategory(category);
         saved.setAuthor(author);
-        saved.setProcessingMode(QuizProcessingMode.ML_RIASEC);
 
-        when(quizRepo.save(any())).thenReturn(saved);
+        when(quizRepo.save(any(Quiz.class))).thenReturn(saved);
 
-        QuizDto result = service.create(req);
+        QuizDto result = service.create(req, 1);
 
         assertThat(result.id()).isEqualTo(99);
         assertThat(result.title()).isEqualTo("New Quiz");
-        verify(quizRepo).save(any());
+
+        verify(userRepo).findById(1);
+        verify(categoryRepo).findById(5);
+        verify(quizRepo).save(any(Quiz.class));
     }
 
     @Test
     void create_shouldThrowWhenCategoryNotFound() {
-        CreateQuizRequest req =
-                new CreateQuizRequest(
-                        "QX",
-                        "Title",
-                        "ML_RIASEC",
-                        "DRAFT",
-                        null,
-                        null,
-                        100,
-                        1
-                );
+        CreateQuizRequest req = new CreateQuizRequest(
+                "QX",
+                "Title",
+                "desc",
+                30,
+                100
+        );
 
+        when(userRepo.findById(1)).thenReturn(Optional.of(author));
         when(categoryRepo.findById(100)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.create(req))
+        assertThatThrownBy(() -> service.create(req, 1))
                 .isInstanceOf(EntityNotFoundException.class);
+
+        verify(categoryRepo).findById(100);
+        verify(quizRepo, never()).save(any());
     }
 
     @Test
-    void create_shouldThrowWhenAuthorNotFound() {
-        CreateQuizRequest req =
-                new CreateQuizRequest(
-                        "QX",
-                        "Title",
-                        "ML_RIASEC",
-                        "DRAFT",
-                        null,
-                        null,
-                        5,
-                        999
-                );
+    void create_shouldThrowWhenSecondsPerQuestionInvalid() {
+        CreateQuizRequest req = new CreateQuizRequest(
+                "QX",
+                "Title",
+                "desc",
+                0,
+                null
+        );
 
-        when(categoryRepo.findById(5)).thenReturn(Optional.of(category));
-        when(userRepo.findById(999)).thenReturn(Optional.empty());
+        when(userRepo.findById(1)).thenReturn(Optional.of(author));
 
-        assertThatThrownBy(() -> service.create(req))
-                .isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> service.create(req, 1))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("seconds");
+
+        verify(quizRepo, never()).save(any());
     }
 
     @Test

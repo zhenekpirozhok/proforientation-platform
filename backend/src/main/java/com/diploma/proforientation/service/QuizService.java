@@ -13,7 +13,7 @@ public interface QuizService {
     QuizDto getById(Integer id);
     QuizDto getByIdLocalized(Integer id);
     QuizDto getByCodeLocalized(String code);
-    QuizDto create(CreateQuizRequest req);
+    QuizDto create(CreateQuizRequest req, Integer authorId);
     QuizDto update(Integer id, UpdateQuizRequest req);
     void delete(Integer id);
     Page<QuizDto> search(

@@ -9,7 +9,7 @@ import com.diploma.proforientation.model.enumeration.UserRole;
 import com.diploma.proforientation.repository.PasswordResetTokenRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.AuthenticationService;
-import com.diploma.proforientation.util.LocaleProvider;
+import com.diploma.proforientation.util.I18n;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import lombok.AllArgsConstructor;
@@ -40,7 +40,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final PasswordResetTokenRepository tokenRepo;
     private final EmailServiceImpl emailServiceImpl;
     private final GoogleIdTokenVerifier googleIdTokenVerifier;
-    private final LocaleProvider localeProvider;
+    private final I18n i18n;
 
     @Transactional
     public User signup(RegisterUserDto input) {
@@ -65,11 +65,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return user;
         }
 
-        throw new BadCredentialsException(INVALID_CRED);
+        throw new BadCredentialsException(INVALID_CREDENTIALS);
     }
 
     public void sendResetToken(String email) {
-        String locale = localeProvider.currentLanguage();
+        String locale = i18n.currentLanguage();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EmailNotFoundException(email));
@@ -152,7 +152,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         );
 
         if (!authentication.isAuthenticated()) {
-            throw new BadCredentialsException(INVALID_PASS);
+            throw new BadCredentialsException(INVALID_PASSWORD);
         }
 
         log.info("Deleting account for user: {}", email);

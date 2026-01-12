@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.diploma.proforientation.util.Constants.EMPTY_STRING;
+import static com.diploma.proforientation.util.Constants.INVALID_JSON_FROM_LLM;
 
 @Service
 @RequiredArgsConstructor
@@ -39,8 +40,6 @@ public class MlProfessionExplanationServiceImpl implements MlProfessionExplanati
     private static final String JSON_CODE_FENCE_JSON = "```json";
     private static final String DOUBLE_QUOTE = "\"";
     private static final String SINGLE_QUOTE = "'";
-    private static final String ERROR_INVALID_JSON =
-            "LLM returned invalid JSON: ";
 
 
     private final OpenAiChatModel openAiChat;
@@ -105,7 +104,7 @@ public class MlProfessionExplanationServiceImpl implements MlProfessionExplanati
             }
             return mapper.readTree(t);
         } catch (Exception e) {
-            throw new RuntimeException(ERROR_INVALID_JSON + text, e);
+            throw new RuntimeException(INVALID_JSON_FROM_LLM + text, e);
         }
     }
 

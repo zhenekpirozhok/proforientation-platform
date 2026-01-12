@@ -297,7 +297,7 @@ public class ExcelImportServiceImpl implements ImportService {
 
         if (spq != null && spq <= 0) {
             rowErrors.add(new ImportErrorDto(rowNum, COL_SECONDS_PER_QUESTION_DEFAULT,
-                    SECONDS_COUNT_SHOULD_BE_GRATER_THEN_ZERO));
+                    SECONDS_GT_ZERO));
         }
 
         ProfessionCategory category = resolveCategory(rowErrors, rowNum, categoryId);

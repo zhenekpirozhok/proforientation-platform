@@ -112,7 +112,7 @@ class MlScoringEngineIntegrationTest {
 
         assertThatThrownBy(() -> scoringEngine.evaluateRaw(answers))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("exactly 48");
+                .hasMessageContaining("error.riasec.invalid_answer_count");
     }
 
     @Test

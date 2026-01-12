@@ -109,7 +109,7 @@ class TranslationServiceTest {
 
         assertThatThrownBy(() -> service.delete(99))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessage("Translation not found");
+                .hasMessage("error.translation.not_found");
     }
 
 

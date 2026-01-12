@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record CreateQuizRequest(
         @Schema(
                 description = "Unique quiz code used internally",
-                examples = "riasec_main"
+                examples = "riasec"
         )
         String code,
         @Schema(
@@ -14,26 +14,6 @@ public record CreateQuizRequest(
                 examples = "Career Orientation Test (RIASEC)"
         )
         String title,
-        @Schema(
-                description = "Processing mode defining how results are calculated",
-                examples = "ML_RIASEC",
-                allowableValues = {
-                        "ML_RIASEC",
-                        "LLM"
-                }
-        )
-        String processingMode,
-
-        @Schema(
-                description = "Quiz status",
-                examples = "DRAFT",
-                allowableValues = {
-                        "DRAFT",
-                        "PUBLISHED",
-                        "ARCHIVED"
-                }
-        )
-        String status,
 
         @Schema(
                 description = "Quiz description (default language)",
@@ -52,10 +32,5 @@ public record CreateQuizRequest(
                 description = "Identifier of the quiz category",
                 examples = "2"
         )
-        Integer categoryId,
-        @Schema(
-                description = "Identifier of the quiz author (admin user)",
-                examples = "1"
-        )
-        Integer authorId
+        Integer categoryId
 ) {}

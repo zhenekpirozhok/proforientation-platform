@@ -16,6 +16,8 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 
+import static com.diploma.proforientation.util.Constants.RIASEC_INVALID_ANSWER_COUNT;
+
 @Service
 @RequiredArgsConstructor
 public class MlScoringEngineImpl implements MlScoringEngine {
@@ -59,7 +61,7 @@ public class MlScoringEngineImpl implements MlScoringEngine {
 
     private void validateAnswers(List<Integer> answers) {
         if (answers.size() != 48) {
-            throw new IllegalStateException("RIASEC ML requires exactly 48 answers");
+            throw new IllegalStateException(RIASEC_INVALID_ANSWER_COUNT);
         }
     }
 

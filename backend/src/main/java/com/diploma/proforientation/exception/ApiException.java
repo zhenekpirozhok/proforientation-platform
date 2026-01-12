@@ -8,22 +8,21 @@ import org.springframework.http.HttpStatus;
  */
 @Getter
 public class ApiException extends RuntimeException {
-
     private final HttpStatus status;
+    private final String messageKey;
+    private final transient Object[] args;
 
-    /**
-     * Creates a new API exception.
-     *
-     * @param message the error message
-     * @param status  the HTTP status to return
-     */
-    public ApiException(String message, HttpStatus status) {
-        super(message);
+    public ApiException(String messageKey, HttpStatus status, Object... args) {
+        super(messageKey);
         this.status = status;
+        this.messageKey = messageKey;
+        this.args = args;
     }
 
-    public ApiException(String message, HttpStatus status, Throwable cause) {
-        super(message, cause);
+    public ApiException(String messageKey, HttpStatus status, Throwable cause, Object... args) {
+        super(messageKey, cause);
         this.status = status;
+        this.messageKey = messageKey;
+        this.args = args;
     }
 }

@@ -12,7 +12,7 @@ import com.diploma.proforientation.repository.QuestionOptionRepository;
 import com.diploma.proforientation.repository.QuestionRepository;
 import com.diploma.proforientation.repository.QuizVersionRepository;
 import com.diploma.proforientation.service.QuestionService;
-import com.diploma.proforientation.util.LocaleProvider;
+import com.diploma.proforientation.util.I18n;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuizVersionRepository quizVersionRepo;
     private final QuestionOptionRepository optionRepo;
     private final TranslationResolver translationResolver;
-    private final LocaleProvider localeProvider;
+    private final I18n i18n;
 
     @Override
     @Transactional
@@ -84,7 +84,7 @@ public class QuestionServiceImpl implements QuestionService {
             Integer quizId,
             Pageable pageable
     ) {
-        String locale = localeProvider.currentLanguage();
+        String locale = i18n.currentLanguage();
 
         QuizVersion version = quizVersionRepo
                 .findByQuizIdAndCurrentTrue(quizId)
@@ -100,7 +100,7 @@ public class QuestionServiceImpl implements QuestionService {
             Integer versionNum,
             Pageable pageable
     ) {
-        String locale = localeProvider.currentLanguage();
+        String locale = i18n.currentLanguage();
 
         QuizVersion version = quizVersionRepo
                 .findByQuizIdAndVersion(quizId, versionNum)
@@ -113,7 +113,7 @@ public class QuestionServiceImpl implements QuestionService {
     public List<OptionDto> getOptionsForQuestionLocalized(
             Integer questionId
     ) {
-        String locale = localeProvider.currentLanguage();
+        String locale = i18n.currentLanguage();
 
         questionRepo.findById(questionId)
                 .orElseThrow(() ->

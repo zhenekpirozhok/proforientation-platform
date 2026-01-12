@@ -1,8 +1,10 @@
 package com.diploma.proforientation.config;
 
 import com.diploma.proforientation.repository.UserRepository;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -95,5 +97,24 @@ public class ApplicationConfiguration {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
             throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    /**
+     * MessageSource configuration for application i18n.
+     *
+     * <p>
+     * Uses {@code messages.properties} as the base bundle with UTF-8 encoding and
+     * disables fallback to the system locale to ensure predictable localization
+     * and prevent message keys from being returned when a locale-specific bundle
+     * is missing.
+     * </p>
+     */
+    @Bean
+    public MessageSource messageSource() {
+        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasename("classpath:messages");
+        messageSource.setDefaultEncoding("UTF-8");
+        messageSource.setFallbackToSystemLocale(false);
+        return messageSource;
     }
 }

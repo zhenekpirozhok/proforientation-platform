@@ -7,7 +7,7 @@ import com.diploma.proforientation.model.ProfessionCategory;
 import com.diploma.proforientation.repository.ProfessionCategoryRepository;
 import com.diploma.proforientation.repository.ProfessionRepository;
 import com.diploma.proforientation.service.ProfessionService;
-import com.diploma.proforientation.util.LocaleProvider;
+import com.diploma.proforientation.util.I18n;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ public class ProfessionServiceImpl implements ProfessionService {
     private final ProfessionRepository repo;
     private final ProfessionCategoryRepository categoryRepo;
     private final TranslationResolver translationResolver;
-    private final LocaleProvider localeProvider;
+    private final I18n i18n;
 
     @Override
     public Page<ProfessionDto> getAll(Pageable pageable) {
@@ -35,7 +35,7 @@ public class ProfessionServiceImpl implements ProfessionService {
 
     @Override
     public Page<ProfessionDto> getAllLocalized(Pageable pageable) {
-        String locale = localeProvider.currentLanguage();
+        String locale = i18n.currentLanguage();
 
         return repo.findAll(pageable)
                 .map(p -> toDtoLocalized(p, locale));
@@ -49,7 +49,7 @@ public class ProfessionServiceImpl implements ProfessionService {
 
     @Override
     public ProfessionDto getByIdLocalized(Integer id) {
-        String locale = localeProvider.currentLanguage();
+        String locale = i18n.currentLanguage();
 
         Profession p = repo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(PROFESSION_NOT_FOUND));
@@ -96,7 +96,7 @@ public class ProfessionServiceImpl implements ProfessionService {
 
     @Override
     public Page<ProfessionDto> searchLocalized(String q, Integer categoryId, Pageable pageable) {
-        String locale = localeProvider.currentLanguage();
+        String locale = i18n.currentLanguage();
 
         return repo.search(q, categoryId, pageable)
                 .map(p -> toDtoLocalized(p, locale));
