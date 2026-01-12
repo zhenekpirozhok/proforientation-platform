@@ -13,11 +13,63 @@ const scalesSchema = z
     .array(
         z.object({
             tempId: z.string(),
+            pairId: z.string().optional(),
+            side: z.enum(['LEFT', 'RIGHT']).optional(),
+            polarity: z.enum(['single', 'bipolar']),
             name: z.string().trim().min(1, { message: 'required' }),
             code: z.string().trim().min(1, { message: 'required' }),
+            description: z.string().trim().min(1, { message: 'required' }),
         }),
     )
-    .min(1, { message: 'min1' });
+    .min(1, { message: 'min1' })
+    .superRefine((scales, ctx) => {
+        const polarities = new Set(scales.map((s) => s.polarity));
+        if (polarities.size > 1) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'mixedPolarity',
+                path: [],
+            });
+            return;
+        }
+
+        const isBipolar = scales[0]?.polarity === 'bipolar';
+        if (!isBipolar) return;
+
+        const groups = new Map<string, ScaleDraft[]>();
+        for (const s of scales) {
+            if (!s.pairId) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'pairRequired',
+                    path: [s.tempId, 'pairId'],
+                });
+                continue;
+            }
+            const arr = groups.get(s.pairId) ?? [];
+            arr.push({ ...s, codeTouched: false });
+            groups.set(s.pairId, arr);
+        }
+
+        for (const [pairId, arr] of groups.entries()) {
+            if (arr.length !== 2) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'pairIncomplete',
+                    path: ['pair', pairId],
+                });
+                continue;
+            }
+            const sides = new Set(arr.map((x) => x.side));
+            if (!sides.has('LEFT') || !sides.has('RIGHT')) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'pairIncomplete',
+                    path: ['pair', pairId],
+                });
+            }
+        }
+    });
 
 const questionsSchema = (traitIds: number[]) =>
     z
@@ -79,16 +131,24 @@ export function validateScales(scales: ScaleDraft[]): ValidationErrors {
     const r = scalesSchema.safeParse(scales);
     if (r.success) return {};
     const out: ValidationErrors = {};
+
     for (const issue of r.error.issues) {
         if (issue.path.length === 0) {
             add(out, 'scales', issue.message || 'min1');
             continue;
         }
-        const idx = Number(issue.path[0]);
+
+        if (issue.path[0] === 'pair' && typeof issue.path[1] === 'string') {
+            add(out, `pair.${String(issue.path[1])}`, issue.message || 'pairIncomplete');
+            continue;
+        }
+
+        const tempId = String(issue.path[0] ?? '');
         const field = String(issue.path[1] ?? '');
-        const tempId = scales[idx]?.tempId;
+
         if (tempId && field) add(out, `scale.${tempId}.${field}`, issue.message || 'required');
     }
+
     return out;
 }
 
@@ -96,6 +156,7 @@ export function validateQuestions(questions: QuestionDraft[], traitIds: number[]
     const r = questionsSchema(traitIds).safeParse(questions);
     if (r.success) return {};
     const out: ValidationErrors = {};
+
     for (const issue of r.error.issues) {
         if (issue.path.length === 0) {
             add(out, 'questions', issue.message || 'min1');
@@ -125,6 +186,7 @@ export function validateQuestions(questions: QuestionDraft[], traitIds: number[]
             continue;
         }
     }
+
     return out;
 }
 
