@@ -13,7 +13,7 @@ import com.diploma.proforientation.repository.QuizPublicMetricsRepository;
 import com.diploma.proforientation.repository.QuizRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.QuizService;
-import com.diploma.proforientation.util.LocaleProvider;
+import com.diploma.proforientation.util.I18n;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +46,7 @@ public class QuizServiceImpl implements QuizService {
     private final ProfessionCategoryRepository categoryRepo;
     private final UserRepository userRepo;
     private final TranslationResolver translationResolver;
-    private final LocaleProvider localeProvider;
+    private final I18n i18n;
     private final QuizPublicMetricsRepository quizPublicMetricsRepo;
 
     @Transactional(readOnly = true)
@@ -59,7 +59,7 @@ public class QuizServiceImpl implements QuizService {
     @Transactional(readOnly = true)
     @Override
     public Page<QuizDto> getAllLocalized(Pageable pageable) {
-        String locale = localeProvider.currentLanguage();
+        String locale = i18n.currentLanguage();
         return quizRepo.findAll(pageable)
                 .map(q -> toDtoLocalized(q, locale));
     }
@@ -72,14 +72,14 @@ public class QuizServiceImpl implements QuizService {
     }
 
     public QuizDto getByIdLocalized(Integer id) {
-        String locale = localeProvider.currentLanguage();
+        String locale = i18n.currentLanguage();
         Quiz quiz = quizRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
         return toDtoLocalized(quiz, locale);
     }
 
     public QuizDto getByCodeLocalized(String code) {
-        String locale = localeProvider.currentLanguage();
+        String locale = i18n.currentLanguage();
         Quiz quiz = quizRepo.findByCode(code)
                 .orElseThrow(() -> new EntityNotFoundException(QUIZ_CODE_NOT_FOUND + code));
         return toDtoLocalized(quiz, locale);
@@ -87,30 +87,22 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     @Transactional
-    public QuizDto create(CreateQuizRequest req) {
-        ProfessionCategory category = categoryRepo.findById(req.categoryId())
-                .orElseThrow(() -> new EntityNotFoundException(CATEGORY_NOT_FOUND));
+    public QuizDto create(CreateQuizRequest req, Integer authorId) {
 
-        User author = userRepo.findById(req.authorId())
+        User author = userRepo.findById(authorId)
                 .orElseThrow(() -> new EntityNotFoundException(AUTHOR_NOT_FOUND));
 
         Quiz q = new Quiz();
         q.setCode(req.code());
         q.setTitleDefault(req.title());
-        q.setProcessingMode(req.processingMode() != null
-                ? Enum.valueOf(QuizProcessingMode.class, req.processingMode())
-                : QuizProcessingMode.LLM);
-        q.setStatus(req.status() != null
-                ? QuizStatus.valueOf(req.status())
-                : QuizStatus.DRAFT);
-        q.setDescriptionDefault(req.descriptionDefault());
-        if (req.secondsPerQuestionDefault() != null) {
-            if (req.secondsPerQuestionDefault() <= 0) {
-                throw new IllegalArgumentException(SECONDS_GT_ZERO);
-            }
-            q.setSecondsPerQuestionDefault(req.secondsPerQuestionDefault());
-        }
-        q.setCategory(category);
+
+        applyCommonFields(
+                q,
+                req.categoryId(),
+                req.descriptionDefault(),
+                req.secondsPerQuestionDefault()
+        );
+
         q.setAuthor(author);
         q.setCreatedAt(Instant.now());
         q.setUpdatedAt(Instant.now());
@@ -137,22 +129,12 @@ public class QuizServiceImpl implements QuizService {
             q.setStatus(QuizStatus.valueOf(req.status()));
         }
 
-        if (req.descriptionDefault() != null) {
-            q.setDescriptionDefault(req.descriptionDefault());
-        }
-
-        if (req.secondsPerQuestionDefault() != null) {
-            if (req.secondsPerQuestionDefault() <= 0) {
-                throw new IllegalArgumentException(SECONDS_GT_ZERO);
-            }
-            q.setSecondsPerQuestionDefault(req.secondsPerQuestionDefault());
-        }
-
-        if (req.categoryId() != null) {
-            ProfessionCategory category = categoryRepo.findById(req.categoryId())
-                    .orElseThrow(() -> new EntityNotFoundException(CATEGORY_NOT_FOUND));
-            q.setCategory(category);
-        }
+        applyCommonFields(
+                q,
+                req.categoryId(),
+                req.descriptionDefault(),
+                req.secondsPerQuestionDefault()
+        );
 
         q.setUpdatedAt(Instant.now());
 
@@ -176,7 +158,7 @@ public class QuizServiceImpl implements QuizService {
             Integer maxDurationSec,
             Pageable pageable
     ) {
-        String locale = localeProvider.currentLanguage();
+        String locale = i18n.currentLanguage();
 
         boolean hasDurationFilter = minDurationSec != null || maxDurationSec != null;
 
@@ -216,6 +198,30 @@ public class QuizServiceImpl implements QuizService {
 
         return quizRepo.findAll(spec, pageable)
                 .map(q -> toDtoLocalized(q, locale));
+    }
+
+    private void applyCommonFields(
+            Quiz q,
+            Integer categoryId,
+            String descriptionDefault,
+            Integer secondsPerQuestionDefault
+    ) {
+        if (descriptionDefault != null) {
+            q.setDescriptionDefault(descriptionDefault);
+        }
+
+        if (secondsPerQuestionDefault != null) {
+            if (secondsPerQuestionDefault <= 0) {
+                throw new IllegalArgumentException(SECONDS_GT_ZERO);
+            }
+            q.setSecondsPerQuestionDefault(secondsPerQuestionDefault);
+        }
+
+        if (categoryId != null) {
+            ProfessionCategory category = categoryRepo.findById(categoryId)
+                    .orElseThrow(() -> new EntityNotFoundException(CATEGORY_NOT_FOUND));
+            q.setCategory(category);
+        }
     }
 
     private QuizDto toDto(Quiz q) {

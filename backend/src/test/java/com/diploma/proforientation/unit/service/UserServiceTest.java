@@ -127,7 +127,7 @@ class UserServiceTest {
 
         assertThatThrownBy(() -> userService.changeUserRole(1, UserRole.ADMIN))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Cannot change your own role");
+                .hasMessageContaining("error.cannot_change_own_role");
 
         assertEquals(UserRole.USER, user1.getRole());
 

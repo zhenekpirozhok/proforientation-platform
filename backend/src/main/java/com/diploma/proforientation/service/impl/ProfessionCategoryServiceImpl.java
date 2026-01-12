@@ -5,7 +5,7 @@ import com.diploma.proforientation.dto.request.create.CreateCategoryRequest;
 import com.diploma.proforientation.model.ProfessionCategory;
 import com.diploma.proforientation.repository.ProfessionCategoryRepository;
 import com.diploma.proforientation.service.ProfessionCategoryService;
-import com.diploma.proforientation.util.LocaleProvider;
+import com.diploma.proforientation.util.I18n;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class ProfessionCategoryServiceImpl implements ProfessionCategoryService 
 
     private final ProfessionCategoryRepository repo;
     private final TranslationResolver translationResolver;
-    private final LocaleProvider localeProvider;
+    private final I18n i18n;
 
     public List<ProfessionCategoryDto> getAll() {
         return repo.findAll().stream()
@@ -32,7 +32,7 @@ public class ProfessionCategoryServiceImpl implements ProfessionCategoryService 
 
     @Override
     public List<ProfessionCategoryDto> getAllLocalized() {
-        String locale = localeProvider.currentLanguage();
+        String locale = i18n.currentLanguage();
 
         return repo.findAll().stream()
                 .map(cat -> toDtoLocalized(cat, locale))

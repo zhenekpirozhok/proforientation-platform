@@ -4,6 +4,7 @@ import com.diploma.proforientation.dto.QuizDto;
 import com.diploma.proforientation.dto.QuizVersionDto;
 import com.diploma.proforientation.dto.request.create.CreateQuizRequest;
 import com.diploma.proforientation.dto.request.update.UpdateQuizRequest;
+import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.service.QuizService;
 import com.diploma.proforientation.service.QuizVersionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -143,8 +145,10 @@ public class QuizController {
                     schema = @Schema(implementation = com.diploma.proforientation.dto.ExceptionDto.class)
             )
     )
-    public QuizDto create(@RequestBody CreateQuizRequest req) {
-        return quizService.create(req);
+    public QuizDto create(@RequestBody CreateQuizRequest req,
+                          @AuthenticationPrincipal User user) {
+
+        return quizService.create(req, user.getId());
     }
 
     @PutMapping("/{id}")

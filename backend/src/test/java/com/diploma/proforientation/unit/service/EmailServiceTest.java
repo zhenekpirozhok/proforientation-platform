@@ -1,25 +1,24 @@
 package com.diploma.proforientation.unit.service;
 
 import com.diploma.proforientation.service.impl.EmailServiceImpl;
+import com.diploma.proforientation.util.I18n;
 import com.diploma.proforientation.util.ResetPasswordLinkBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.context.MessageSource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class EmailServiceTest {
 
     private JavaMailSender mailSender;
     private ResetPasswordLinkBuilder linkBuilder;
-    private MessageSource messageSource;
+    private I18n i18n;
 
     private EmailServiceImpl emailService;
 
@@ -27,85 +26,68 @@ class EmailServiceTest {
     void setUp() {
         mailSender = mock(JavaMailSender.class);
         linkBuilder = mock(ResetPasswordLinkBuilder.class);
-        messageSource = mock(MessageSource.class);
+        i18n = mock(I18n.class);
 
-        emailService = new EmailServiceImpl(mailSender, linkBuilder, messageSource);
+        emailService = new EmailServiceImpl(mailSender, linkBuilder, i18n);
     }
 
     @Test
     void sendResetPasswordEmail_enLocale_sendsLocalizedEmailWithLink() {
         String recipient = "user@example.com";
         String token = "abc123";
-        String locale = "en";
+        String localeStr = "en";
 
         String link = "http://localhost:3000/en/reset-password?token=" + token;
 
         when(linkBuilder.build("en", token)).thenReturn(link);
+        when(i18n.msg("email.reset.subject", Locale.ENGLISH)).thenReturn("Password Reset Request");
+        when(i18n.msg("email.reset.body", Locale.ENGLISH, link))
+                .thenReturn("Click the link below to reset your password:\n" + link);
 
-        when(messageSource.getMessage(eq("email.reset.subject"), isNull(), eq(Locale.ENGLISH)))
-                .thenReturn("Password Reset Request");
+        emailService.sendResetPasswordEmail(recipient, token, localeStr);
 
-        when(messageSource.getMessage(eq("email.reset.body"), any(Object[].class), eq(Locale.ENGLISH)))
-                .thenAnswer(inv -> {
-                    Object[] args = inv.getArgument(1, Object[].class);
-                    return "Click the link below to reset your password:\n" + args[0];
-                });
-
-        emailService.sendResetPasswordEmail(recipient, token, locale);
-
-        ArgumentCaptor<SimpleMailMessage> captor =
-                ArgumentCaptor.forClass(SimpleMailMessage.class);
+        ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mailSender).send(captor.capture());
 
         SimpleMailMessage msg = captor.getValue();
-
         assertThat(msg.getTo()).containsExactly(recipient);
         assertThat(msg.getSubject()).isEqualTo("Password Reset Request");
-        assertThat(msg.getText()).contains("Click the link below to reset your password:");
+        assertThat(msg.getText()).contains("Click the link below");
         assertThat(msg.getText()).contains(link);
 
         verify(linkBuilder).build("en", token);
-        verify(messageSource).getMessage("email.reset.subject", null, Locale.ENGLISH);
-        verify(messageSource).getMessage(eq("email.reset.body"), any(Object[].class), eq(Locale.ENGLISH));
+        verify(i18n).msg("email.reset.subject", Locale.ENGLISH);
+        verify(i18n).msg("email.reset.body", Locale.ENGLISH, link);
     }
 
     @Test
     void sendResetPasswordEmail_ruLocale_sendsLocalizedEmailWithLink() {
         String recipient = "user@example.com";
         String token = "abc123";
-        String locale = "ru";
+        String localeStr = "ru";
 
         String link = "http://localhost:3000/ru/reset-password?token=" + token;
-
-        when(linkBuilder.build("ru", token)).thenReturn(link);
-
         Locale ru = Locale.forLanguageTag("ru");
 
-        when(messageSource.getMessage(eq("email.reset.subject"), isNull(), eq(ru)))
-                .thenReturn("Сброс пароля");
+        when(linkBuilder.build("ru", token)).thenReturn(link);
+        when(i18n.msg("email.reset.subject", ru)).thenReturn("Сброс пароля");
+        when(i18n.msg("email.reset.body", ru, link))
+                .thenReturn("Нажмите на ссылку ниже, чтобы сбросить пароль:\n" + link);
 
-        when(messageSource.getMessage(eq("email.reset.body"), any(Object[].class), eq(ru)))
-                .thenAnswer(inv -> {
-                    Object[] args = inv.getArgument(1, Object[].class);
-                    return "Нажмите на ссылку ниже, чтобы сбросить пароль:\n" + args[0];
-                });
+        emailService.sendResetPasswordEmail(recipient, token, localeStr);
 
-        emailService.sendResetPasswordEmail(recipient, token, locale);
-
-        ArgumentCaptor<SimpleMailMessage> captor =
-                ArgumentCaptor.forClass(SimpleMailMessage.class);
+        ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mailSender).send(captor.capture());
 
         SimpleMailMessage msg = captor.getValue();
-
         assertThat(msg.getTo()).containsExactly(recipient);
         assertThat(msg.getSubject()).isEqualTo("Сброс пароля");
-        assertThat(msg.getText()).contains("Нажмите на ссылку ниже, чтобы сбросить пароль:");
+        assertThat(msg.getText()).contains("Нажмите на ссылку ниже");
         assertThat(msg.getText()).contains(link);
 
         verify(linkBuilder).build("ru", token);
-        verify(messageSource).getMessage("email.reset.subject", null, ru);
-        verify(messageSource).getMessage(eq("email.reset.body"), any(Object[].class), eq(ru));
+        verify(i18n).msg("email.reset.subject", ru);
+        verify(i18n).msg("email.reset.body", ru, link);
     }
 
     @Test
@@ -114,26 +96,23 @@ class EmailServiceTest {
         String token = "abc123";
 
         String link = "http://localhost:3000/en/reset-password?token=" + token;
+        Locale en = Locale.ENGLISH;
 
         when(linkBuilder.build("en", token)).thenReturn(link);
-
-        when(messageSource.getMessage(eq("email.reset.subject"), isNull(), eq(Locale.ENGLISH)))
-                .thenReturn("Password Reset Request");
-
-        when(messageSource.getMessage(eq("email.reset.body"), any(Object[].class), eq(Locale.ENGLISH)))
-                .thenReturn("Body\n" + link);
+        when(i18n.msg("email.reset.subject", en)).thenReturn("Password Reset Request");
+        when(i18n.msg("email.reset.body", en, link)).thenReturn("Body\n" + link);
 
         emailService.sendResetPasswordEmail(recipient, token, null);
 
-        ArgumentCaptor<SimpleMailMessage> captor =
-                ArgumentCaptor.forClass(SimpleMailMessage.class);
+        ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mailSender).send(captor.capture());
 
         SimpleMailMessage msg = captor.getValue();
-
         assertThat(msg.getSubject()).isEqualTo("Password Reset Request");
         assertThat(msg.getText()).contains(link);
 
         verify(linkBuilder).build("en", token);
+        verify(i18n).msg("email.reset.subject", en);
+        verify(i18n).msg("email.reset.body", en, link);
     }
 }

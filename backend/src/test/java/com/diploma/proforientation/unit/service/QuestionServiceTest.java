@@ -8,7 +8,7 @@ import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.model.enumeration.QuestionType;
 import com.diploma.proforientation.repository.*;
 import com.diploma.proforientation.service.impl.QuestionServiceImpl;
-import com.diploma.proforientation.util.LocaleProvider;
+import com.diploma.proforientation.util.I18n;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +31,7 @@ class QuestionServiceTest {
     @Mock private QuizVersionRepository versionRepo;
     @Mock private QuestionOptionRepository optionRepo;
     @Mock private TranslationResolver translationResolver;
-    @Mock private LocaleProvider localeProvider;
+    @Mock private I18n localeProvider;
 
     @InjectMocks private QuestionServiceImpl service;
 

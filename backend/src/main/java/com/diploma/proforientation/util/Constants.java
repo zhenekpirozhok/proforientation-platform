@@ -146,5 +146,30 @@ public final class Constants {
     public static final String MESSAGE_REQUIRED = "error.message_required";
     public static final String UTILITY_CLASS = "error.utility_class";
 
+    public static final String CSV_IMPORT_FAILED = "error.csv_import_failed";
+    public static final String EMAIL_ALREADY_EXISTS = "error.email_already_exists";
+    public static final String EMAIL_NOT_FOUND = "error.email_not_found";
+    public static final String PASSWORD_RESET_TOKEN_EXPIRED = "error.password_reset_token_expired";
+    public static final String GOOGLE_TOKEN_VERIFICATION_FAILED = "error.google_token_verification_failed";
+    public static final String INVALID_GOOGLE_ID_TOKEN = "error.invalid_google_id_token";
+    public static final String INVALID_PASSWORD_RESET_TOKEN = "error.invalid_password_reset_token";
+    public static final String LLM_PARSING_FAILED = "error.llm_parsing_failed";
+    public static final String LLM_PROMPT_FAILED = "error.llm_prompt_failed";
+    public static final String USER_NOT_FOUND_FOR_PASSWORD_RESET = "error.user_not_found_for_password_reset";
+
+    public static final String ERROR_MALFORMED_JSON = "error.malformed_json";
+    public static final String ERROR_MISSING_PARAMETER = "error.missing_parameter";
+    public static final String ERROR_MISSING_HEADER = "error.missing_header";
+    public static final String ERROR_MISSING_MULTIPART_PART = "error.missing_multipart_part";
+    public static final String ERROR_INVALID_PARAMETER_VALUE = "error.invalid_parameter_value";
+    public static final String ERROR_UNAUTHORIZED = "error.unauthorized";
+    public static final String ERROR_ACCESS_DENIED = "error.access_denied";
+    public static final String ERROR_ENTITY_NOT_FOUND = "error.entity_not_found";
+    public static final String ERROR_ENDPOINT_NOT_FOUND = "error.endpoint_not_found";
+    public static final String ERROR_METHOD_NOT_ALLOWED = "error.method_not_allowed";
+    public static final String ERROR_DATA_INTEGRITY = "error.data_integrity";
+    public static final String ERROR_IO = "error.io";
+    public static final String ERROR_UNEXPECTED = "error.unexpected";
+
     private Constants() {}
 }

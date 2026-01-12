@@ -111,7 +111,7 @@ class MlProfessionExplanationServiceTest {
 
         assertThatThrownBy(() -> service.explainProfessions(profs))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("LLM returned invalid JSON");
+                .hasMessageContaining("error.invalid_json_from_llmNOT_JSON");
 
         verify(openAiChat, times(1)).call(any(Prompt.class));
     }

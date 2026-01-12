@@ -7,11 +7,12 @@ import org.springframework.http.HttpStatus;
  */
 public class LlmPromptException extends ApiException {
 
-    public LlmPromptException(String message, Throwable cause) {
-        super(message, HttpStatus.INTERNAL_SERVER_ERROR, cause);
-    }
-
-    public LlmPromptException(String message) {
-        super(message, HttpStatus.INTERNAL_SERVER_ERROR);
+    public LlmPromptException(String messageKey, Throwable cause, Object... args) {
+        super(
+                messageKey,
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                cause,
+                args
+        );
     }
 }

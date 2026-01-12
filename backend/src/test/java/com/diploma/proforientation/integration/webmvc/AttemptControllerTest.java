@@ -1,6 +1,7 @@
 package com.diploma.proforientation.integration.webmvc;
 
 import com.diploma.proforientation.config.JwtAuthenticationFilter;
+import com.diploma.proforientation.controller.AdvisorController;
 import com.diploma.proforientation.controller.AttemptController;
 import com.diploma.proforientation.dto.AttemptResultDto;
 import com.diploma.proforientation.dto.AttemptSummaryDto;
@@ -42,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         excludeFilters = {
                 @ComponentScan.Filter(
                         type = FilterType.ASSIGNABLE_TYPE,
-                        classes = JwtAuthenticationFilter.class
+                        classes = {AdvisorController.class, JwtAuthenticationFilter.class}
                 )
         }
 )

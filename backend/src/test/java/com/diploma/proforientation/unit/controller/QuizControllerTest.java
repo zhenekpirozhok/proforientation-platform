@@ -5,6 +5,7 @@ import com.diploma.proforientation.dto.QuizDto;
 import com.diploma.proforientation.dto.QuizVersionDto;
 import com.diploma.proforientation.dto.request.create.CreateQuizRequest;
 import com.diploma.proforientation.dto.request.update.UpdateQuizRequest;
+import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.service.QuizService;
 import com.diploma.proforientation.service.QuizVersionService;
 import jakarta.persistence.EntityNotFoundException;
@@ -116,21 +117,22 @@ class QuizControllerTest {
     }
 
     @Test
-    void create_asAdmin_shouldCreateQuiz() {
-        setAdmin();
+    void create_shouldCallServiceWithPrincipal() {
+        User user = new User();
+        user.setId(1);
+        user.setEmail("admin@example.com");
 
-        CreateQuizRequest req =
-                new CreateQuizRequest("QX", "New Quiz", "ml_riasec", null, null, 30,5, 1);
+        CreateQuizRequest req = new CreateQuizRequest(
+                "QX", "New Quiz", null, null, 30
+        );
 
-        QuizDto created =
-                new QuizDto(100, "QX", "New Quiz", "draft", "ml_riasec", 5, 1, null, 30);
+        QuizDto created = new QuizDto(100, "QX", "New Quiz", "DRAFT", "ML_RIASEC", null, 1, null, 30);
+        when(quizService.create(req, 1)).thenReturn(created);
 
-        when(quizService.create(req)).thenReturn(created);
-
-        QuizDto result = controller.create(req);
+        QuizDto result = controller.create(req, user);
 
         assertThat(result.id()).isEqualTo(100);
-        verify(quizService).create(req);
+        verify(quizService).create(req, 1);
     }
 
     @Test

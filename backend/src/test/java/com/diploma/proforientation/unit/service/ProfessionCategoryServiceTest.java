@@ -108,7 +108,7 @@ class ProfessionCategoryServiceTest {
 
         assertThatThrownBy(() -> service.update(100, req))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Category not found");
+                .hasMessageContaining("error.category.not_found");
 
         verify(repo).findById(100);
         verify(repo, never()).save(any());

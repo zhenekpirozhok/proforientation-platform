@@ -36,7 +36,7 @@ public class Quiz {
     private QuizProcessingMode processingMode = QuizProcessingMode.LLM;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
+    @JoinColumn(name = "category_id")
     private ProfessionCategory category;
 
     @Column(name = "created_at")

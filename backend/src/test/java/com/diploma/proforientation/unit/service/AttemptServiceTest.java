@@ -12,7 +12,7 @@ import com.diploma.proforientation.service.impl.AttemptServiceImpl;
 import com.diploma.proforientation.scoring.ScoringEngine;
 import com.diploma.proforientation.scoring.impl.ScoringEngineFactory;
 import com.diploma.proforientation.dto.ml.ScoringResult;
-import com.diploma.proforientation.util.LocaleProvider;
+import com.diploma.proforientation.util.I18n;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ class AttemptServiceTest {
     @Mock ScoringEngineFactory scoringEngineFactory;
     @Mock ScoringEngine scoringEngine;
     @Mock TranslationResolver translationResolver;
-    @Mock LocaleProvider localeProvider;
+    @Mock I18n localeProvider;
 
     @InjectMocks AttemptServiceImpl service;
 

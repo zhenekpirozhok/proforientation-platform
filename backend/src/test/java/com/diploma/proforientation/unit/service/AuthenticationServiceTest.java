@@ -13,7 +13,7 @@ import com.diploma.proforientation.repository.PasswordResetTokenRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.impl.AuthenticationServiceImpl;
 import com.diploma.proforientation.service.impl.EmailServiceImpl;
-import com.diploma.proforientation.util.LocaleProvider;
+import com.diploma.proforientation.util.I18n;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +58,7 @@ class AuthenticationServiceTest {
     private GoogleIdTokenVerifier googleIdTokenVerifier;
 
     @Mock
-    private LocaleProvider localeProvider;
+    private I18n localeProvider;
 
     @InjectMocks
     private AuthenticationServiceImpl authService;
@@ -133,7 +133,7 @@ class AuthenticationServiceTest {
 
         assertThatThrownBy(() -> authService.authenticate(dto))
                 .isInstanceOf(BadCredentialsException.class)
-                .hasMessage("Invalid email or password");
+                .hasMessage("error.invalid_credentials");
     }
 
     @Test
@@ -209,7 +209,7 @@ class AuthenticationServiceTest {
 
         assertThatThrownBy(() -> authService.sendResetToken(email))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Email not found");
+                .hasMessageContaining("error.email_not_found");
 
         verify(tokenRepo, never()).save(any());
         verifyNoInteractions(emailService);
@@ -245,7 +245,7 @@ class AuthenticationServiceTest {
 
         assertThatThrownBy(() -> authService.resetPassword("invalid", "password"))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Invalid");
+                .hasMessageContaining("error.invalid_password_reset_token");
     }
 
     @Test
@@ -258,7 +258,7 @@ class AuthenticationServiceTest {
 
         assertThatThrownBy(() -> authService.resetPassword("token", "password"))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("token expired");
+                .hasMessageContaining("error.password_reset_token_expired");
     }
 
     @Test
@@ -272,7 +272,7 @@ class AuthenticationServiceTest {
 
         assertThatThrownBy(() -> authService.resetPassword("token", "password"))
                 .isInstanceOf(UserNotFoundForPasswordResetException.class)
-                .hasMessageContaining("Unknown user");
+                .hasMessageContaining("error.user_not_found_for_password_reset");
     }
 
     @Test
@@ -403,7 +403,7 @@ class AuthenticationServiceTest {
 
         assertThatThrownBy(() -> authService.authenticateWithGoogleIdToken("invalid"))
                 .isInstanceOf(InvalidGoogleIdTokenException.class)
-                .hasMessageContaining("Invalid Google ID token");
+                .hasMessageContaining("error.invalid_google_id_token");
     }
 
     @Test
@@ -413,6 +413,6 @@ class AuthenticationServiceTest {
 
         assertThatThrownBy(() -> authService.authenticateWithGoogleIdToken("token"))
                 .isInstanceOf(GoogleTokenVerificationFailedException.class)
-                .hasMessageContaining("Failed to verify Google ID token");
+                .hasMessageContaining("error.google_token_verification_failed");
     }
 }
