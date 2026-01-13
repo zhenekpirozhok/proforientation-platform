@@ -36,8 +36,7 @@ export type QuestionDraft = {
 };
 
 export type ResultsDraft = {
-    selectedCategoryIds: number[];
-    selectedProfessionIds: number[];
+    categoryId?: number;
 };
 
 type BuilderState = {
@@ -154,8 +153,7 @@ const initialState = {
     activeQuestionTempId: undefined as string | undefined,
 
     results: {
-        selectedCategoryIds: [],
-        selectedProfessionIds: [],
+        categoryId: undefined as number | undefined,
     } as ResultsDraft,
 };
 
@@ -190,10 +188,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
 
             addSingleScale: (v) =>
                 set({
-                    scales: [
-                        ...get().scales,
-                        { ...v, tempId: id('scale'), polarity: 'single' as const },
-                    ],
+                    scales: [...get().scales, { ...v, tempId: id('scale'), polarity: 'single' as const }],
                 }),
 
             addBipolarPair: (v) => {
@@ -286,10 +281,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                         const weights = buildWeights(traitIds.filter((x) => allowed.includes(x)));
                         return {
                             ...q,
-                            options: [
-                                ...q.options,
-                                { tempId: id('opt'), ord, label: '', weightsByTraitId: weights },
-                            ],
+                            options: [...q.options, { tempId: id('opt'), ord, label: '', weightsByTraitId: weights }],
                         };
                     }),
                 }),
@@ -325,10 +317,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                             ...q,
                             options: q.options.map((o) => ({
                                 ...o,
-                                weightsByTraitId: ensureWeights(
-                                    o.weightsByTraitId,
-                                    traitIds.filter((x) => allowSet.has(x)),
-                                ),
+                                weightsByTraitId: ensureWeights(o.weightsByTraitId, traitIds.filter((x) => allowSet.has(x))),
                             })),
                         };
                     }),
@@ -344,10 +333,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                             linkedTraitIds,
                             options: q.options.map((o) => ({
                                 ...o,
-                                weightsByTraitId: ensureWeights(
-                                    o.weightsByTraitId,
-                                    Array.from(allowSet.values()),
-                                ),
+                                weightsByTraitId: ensureWeights(o.weightsByTraitId, Array.from(allowSet.values())),
                             })),
                         };
                     }),
@@ -390,7 +376,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
         }),
         {
             name: 'admin-quiz-builder',
-            version: 5,
+            version: 6,
             partialize: (s) => ({
                 step: s.step,
                 quizId: s.quizId,
