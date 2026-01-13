@@ -1,3 +1,4 @@
+// features/admin-quiz-builder/model/store.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -6,22 +7,21 @@ export type ScaleMode = 'single' | 'bipolar' | null;
 
 export type ScaleDraft = {
     tempId: string;
-    pairId?: string;
-    side?: 'LEFT' | 'RIGHT';
-    bipolarPairCode?: string;
     name: string;
     code: string;
-    codeTouched: boolean;
-    color?: string;
-    polarity: 'single' | 'bipolar';
     description: string;
+    polarity: 'single' | 'bipolar';
+    side?: 'LEFT' | 'RIGHT';
+    pairId?: string;
+    bipolarPairCode?: string;
     traitId?: number;
+    codeTouched?: boolean;
 };
 
 export type OptionDraft = {
     tempId: string;
-    label: string;
     ord: number;
+    label: string;
     optionId?: number;
     weightsByTraitId: Record<number, number>;
 };
@@ -52,66 +52,57 @@ type BuilderState = {
     init: {
         title: string;
         code: string;
-        description?: string;
-        codeTouched: boolean;
+        description: string;
     };
 
+    scales: ScaleDraft[];
     scaleMode: ScaleMode;
     editingScaleTempId?: string;
     editingPairId?: string;
 
+    questions: QuestionDraft[];
     activeQuestionTempId?: string;
 
-    scales: ScaleDraft[];
-    questions: QuestionDraft[];
     results: ResultsDraft;
 
     setHydrated: (v: boolean) => void;
 
     setStep: (s: BuilderStep) => void;
 
-    setQuizContext: (v: {
-        quizId: number;
-        version: number;
-        quizVersionId?: number;
-    }) => void;
+    setQuizContext: (v: { quizId: number; version: number; quizVersionId?: number }) => void;
 
     patchInit: (v: Partial<BuilderState['init']>) => void;
 
-    setScaleMode: (m: ScaleMode) => void;
+    setActiveQuestion: (tempId?: string) => void;
+
+    setScaleMode: (mode: ScaleMode) => void;
     startEditScale: (tempId: string) => void;
     startEditPair: (pairId: string) => void;
     stopEdit: () => void;
 
-    addSingleScale: (v: {
-        name: string;
-        code: string;
-        description: string;
-        color?: string;
-    }) => void;
-
+    addScale: (v: Omit<ScaleDraft, 'tempId'>) => void;
+    addSingleScale: (v: Omit<Omit<ScaleDraft, 'tempId'>, 'polarity' | 'side' | 'pairId'>) => void;
     addBipolarPair: (v: {
         pairCode: string;
-        left: { name: string; code: string; description: string; color?: string };
-        right: { name: string; code: string; description: string; color?: string };
+        left: Omit<Omit<Omit<ScaleDraft, 'tempId'>, 'polarity'>, 'side' | 'pairId'>;
+        right: Omit<Omit<Omit<ScaleDraft, 'tempId'>, 'polarity'>, 'side' | 'pairId'>;
     }) => void;
-
     patchScale: (tempId: string, v: Partial<ScaleDraft>) => void;
-
     removeScale: (tempId: string) => void;
     removePair: (pairId: string) => void;
 
-    setActiveQuestion: (tempId?: string) => void;
-
-    addQuestion: (v: { ord: number; qtype: string; text: string }, traitIds: number[]) => void;
+    addQuestion: (v: Omit<QuestionDraft, 'tempId' | 'options'>, traitIds: number[]) => void;
     patchQuestion: (tempId: string, v: Partial<Omit<QuestionDraft, 'tempId' | 'options'>>) => void;
     removeQuestion: (tempId: string) => void;
 
     addOption: (questionTempId: string, ord: number, traitIds: number[]) => void;
-    patchOption: (questionTempId: string, optionTempId: string, v: Partial<Omit<OptionDraft, 'tempId'>>) => void;
+    patchOption: (questionTempId: string, optionTempId: string, v: Partial<OptionDraft>) => void;
     removeOption: (questionTempId: string, optionTempId: string) => void;
 
     syncOptionWeightsWithTraits: (traitIds: number[]) => void;
+
+    reorderQuestions: (activeId: string, overId: string) => void;
+    reorderOptions: (questionTempId: string, activeId: string, overId: string) => void;
 
     reset: () => void;
 };
@@ -120,36 +111,24 @@ function id(prefix: string) {
     return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 }
 
-function deriveScaleMode(scales: ScaleDraft[]): ScaleMode {
-    if (scales.length === 0) return null;
-    const p = scales[0]?.polarity;
-    return p === 'single' || p === 'bipolar' ? p : null;
-}
-
-function cleanupEditState(scales: ScaleDraft[], editingScaleTempId?: string, editingPairId?: string) {
-    let nextEditingScaleTempId = editingScaleTempId;
-    let nextEditingPairId = editingPairId;
-
-    if (nextEditingScaleTempId && !scales.some((s) => s.tempId === nextEditingScaleTempId)) {
-        nextEditingScaleTempId = undefined;
-    }
-
-    if (nextEditingPairId && !scales.some((s) => s.pairId === nextEditingPairId)) {
-        nextEditingPairId = undefined;
-    }
-
-    return { nextEditingScaleTempId, nextEditingPairId };
-}
-
 function buildWeights(traitIds: number[]) {
-    const obj: Record<number, number> = {};
-    for (const tid of traitIds) obj[tid] = 0;
-    return obj;
+    const out: Record<number, number> = {};
+    for (const tid of traitIds) out[tid] = 0;
+    return out;
+}
+
+function ensureWeights(current: Record<number, number>, traitIds: number[]) {
+    const next = { ...(current ?? {}) };
+    for (const tid of traitIds) if (!(tid in next)) next[tid] = 0;
+    for (const k of Object.keys(next)) {
+        const n = Number(k);
+        if (!traitIds.includes(n)) delete next[n];
+    }
+    return next;
 }
 
 const initialState = {
     hydrated: false as const,
-
     step: 0 as BuilderStep,
 
     quizId: undefined as number | undefined,
@@ -160,17 +139,16 @@ const initialState = {
         title: '',
         code: '',
         description: '',
-        codeTouched: false,
     },
 
-    scaleMode: null as ScaleMode,
+    scales: [] as ScaleDraft[],
+    scaleMode: 'single' as ScaleMode,
     editingScaleTempId: undefined as string | undefined,
     editingPairId: undefined as string | undefined,
 
+    questions: [] as QuestionDraft[],
     activeQuestionTempId: undefined as string | undefined,
 
-    scales: [] as ScaleDraft[],
-    questions: [] as QuestionDraft[],
     results: {
         selectedCategoryIds: [],
         selectedProfessionIds: [],
@@ -186,81 +164,52 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
 
             setStep: (step) => set({ step }),
 
-            setQuizContext: ({ quizId, version, quizVersionId }) =>
-                set({ quizId, version, quizVersionId }),
+            setQuizContext: ({ quizId, version, quizVersionId }) => set({ quizId, version, quizVersionId }),
 
             patchInit: (v) => set({ init: { ...get().init, ...v } }),
 
-            setScaleMode: (scaleMode) => {
-                const hasScales = get().scales.length > 0;
-                if (hasScales) return;
-                set({ scaleMode });
-            },
+            setActiveQuestion: (tempId) => set({ activeQuestionTempId: tempId }),
 
-            startEditScale: (editingScaleTempId) =>
-                set({ editingScaleTempId, editingPairId: undefined }),
+            setScaleMode: (mode) => set({ scaleMode: mode }),
 
-            startEditPair: (editingPairId) =>
-                set({ editingPairId, editingScaleTempId: undefined }),
+            startEditScale: (tempId) => set({ editingScaleTempId: tempId }),
+
+            startEditPair: (pairId) => set({ editingPairId: pairId }),
 
             stopEdit: () => set({ editingScaleTempId: undefined, editingPairId: undefined }),
 
-            addSingleScale: (v) => {
-                const mode = get().scaleMode;
-                if (mode && mode !== 'single') return;
+            addScale: (v) => set({ scales: [...get().scales, { ...v, tempId: id('scale') }] }),
 
-                if (!mode) set({ scaleMode: 'single' });
-
+            addSingleScale: (v) =>
                 set({
                     scales: [
                         ...get().scales,
-                        {
-                            tempId: id('scale'),
-                            polarity: 'single',
-                            name: v.name,
-                            code: v.code,
-                            description: v.description,
-                            color: v.color,
-                            codeTouched: true,
-                        },
+                        { ...v, tempId: id('scale'), polarity: 'single' as const },
                     ],
-                });
-            },
+                }),
 
-            addBipolarPair: ({ pairCode, left, right }) => {
-                const mode = get().scaleMode;
-                if (mode && mode !== 'bipolar') return;
-
-                if (!mode) set({ scaleMode: 'bipolar' });
-
+            addBipolarPair: (v) => {
                 const pairId = id('pair');
-
-                set({
+                const leftTempId = id('scale');
+                const rightTempId = id('scale');
+                return set({
                     scales: [
                         ...get().scales,
                         {
-                            tempId: id('scale'),
+                            ...v.left,
+                            tempId: leftTempId,
+                            polarity: 'bipolar' as const,
+                            side: 'LEFT' as const,
                             pairId,
-                            side: 'LEFT',
-                            bipolarPairCode: pairCode,
-                            polarity: 'bipolar',
-                            name: left.name,
-                            code: left.code,
-                            description: left.description,
-                            color: left.color,
-                            codeTouched: true,
+                            bipolarPairCode: v.pairCode,
                         },
                         {
-                            tempId: id('scale'),
+                            ...v.right,
+                            tempId: rightTempId,
+                            polarity: 'bipolar' as const,
+                            side: 'RIGHT' as const,
                             pairId,
-                            side: 'RIGHT',
-                            bipolarPairCode: pairCode,
-                            polarity: 'bipolar',
-                            name: right.name,
-                            code: right.code,
-                            description: right.description,
-                            color: right.color,
-                            codeTouched: true,
+                            bipolarPairCode: v.pairCode,
                         },
                     ],
                 });
@@ -271,84 +220,48 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                     scales: get().scales.map((s) => (s.tempId === tempId ? { ...s, ...v } : s)),
                 }),
 
-            removeScale: (tempId) => {
-                const prev = get().scales;
-                const next = prev.filter((s) => s.tempId !== tempId);
+            removeScale: (tempId) => set({ scales: get().scales.filter((s) => s.tempId !== tempId) }),
 
-                const { nextEditingScaleTempId, nextEditingPairId } = cleanupEditState(
-                    next,
-                    get().editingScaleTempId,
-                    get().editingPairId,
-                );
-
+            removePair: (pairId) =>
                 set({
-                    scales: next,
-                    scaleMode: deriveScaleMode(next),
-                    editingScaleTempId: nextEditingScaleTempId,
-                    editingPairId: nextEditingPairId,
-                });
-            },
-
-            removePair: (pairId) => {
-                const prev = get().scales;
-                const next = prev.filter((s) => s.pairId !== pairId);
-
-                const { nextEditingScaleTempId, nextEditingPairId } = cleanupEditState(
-                    next,
-                    get().editingScaleTempId,
-                    get().editingPairId,
-                );
-
-                set({
-                    scales: next,
-                    scaleMode: deriveScaleMode(next),
-                    editingScaleTempId: nextEditingScaleTempId,
-                    editingPairId: nextEditingPairId,
-                });
-            },
-
-            setActiveQuestion: (tempId) => set({ activeQuestionTempId: tempId }),
+                    scales: get().scales.filter((s) => s.pairId !== pairId),
+                }),
 
             addQuestion: (v, traitIds) => {
                 const qTempId = id('q');
-                const oTempId = id('opt');
+                const optTempId = id('opt');
 
-                set({
-                    activeQuestionTempId: qTempId,
-                    questions: [
-                        ...get().questions,
+                const q: QuestionDraft = {
+                    ...v,
+                    tempId: qTempId,
+                    options: [
                         {
-                            tempId: qTempId,
-                            ord: v.ord,
-                            qtype: v.qtype,
-                            text: v.text,
-                            options: [
-                                {
-                                    tempId: oTempId,
-                                    ord: 1,
-                                    label: '',
-                                    weightsByTraitId: buildWeights(traitIds),
-                                },
-                            ],
+                            tempId: optTempId,
+                            ord: 1,
+                            label: '',
+                            weightsByTraitId: buildWeights(traitIds),
                         },
                     ],
+                };
+
+                set({
+                    questions: [...get().questions, q],
+                    activeQuestionTempId: qTempId,
                 });
             },
 
             patchQuestion: (tempId, v) =>
                 set({
-                    questions: get().questions.map((q) =>
-                        q.tempId === tempId ? { ...q, ...v } : q,
-                    ),
+                    questions: get().questions.map((q) => (q.tempId === tempId ? { ...q, ...v } : q)),
                 }),
 
             removeQuestion: (tempId) => {
                 const next = get().questions.filter((q) => q.tempId !== tempId);
                 const active = get().activeQuestionTempId;
-                const nextActive =
-                    active === tempId ? next.at(-1)?.tempId : active;
-
-                set({ questions: next, activeQuestionTempId: nextActive });
+                set({
+                    questions: next,
+                    activeQuestionTempId: active === tempId ? undefined : active,
+                });
             },
 
             addOption: (questionTempId, ord, traitIds) =>
@@ -360,12 +273,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                                 ...q,
                                 options: [
                                     ...q.options,
-                                    {
-                                        tempId: id('opt'),
-                                        ord,
-                                        label: '',
-                                        weightsByTraitId: buildWeights(traitIds),
-                                    },
+                                    { tempId: id('opt'), ord, label: '', weightsByTraitId: buildWeights(traitIds) },
                                 ],
                             },
                     ),
@@ -378,57 +286,81 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                             ? q
                             : {
                                 ...q,
-                                options: q.options.map((o) =>
-                                    o.tempId === optionTempId ? { ...o, ...v } : o,
-                                ),
+                                options: q.options.map((o) => (o.tempId === optionTempId ? { ...o, ...v } : o)),
                             },
                     ),
                 }),
 
             removeOption: (questionTempId, optionTempId) =>
                 set({
-                    questions: get().questions.map((q) =>
-                        q.tempId !== questionTempId
-                            ? q
-                            : {
-                                ...q,
-                                options: q.options.filter((o) => o.tempId !== optionTempId),
-                            },
-                    ),
+                    questions: get().questions.map((q) => {
+                        if (q.tempId !== questionTempId) return q;
+                        const nextOpts = q.options.filter((o) => o.tempId !== optionTempId);
+                        const reOrd = nextOpts.map((o, idx) => ({ ...o, ord: idx + 1 }));
+                        return { ...q, options: reOrd };
+                    }),
                 }),
 
             syncOptionWeightsWithTraits: (traitIds) =>
                 set({
                     questions: get().questions.map((q) => ({
                         ...q,
-                        options: q.options.map((o) => {
-                            const next = { ...o.weightsByTraitId };
-                            for (const tid of traitIds) if (!(tid in next)) next[tid] = 0;
-                            for (const key of Object.keys(next)) {
-                                const n = Number(key);
-                                if (!traitIds.includes(n)) delete next[n];
-                            }
-                            return { ...o, weightsByTraitId: next };
-                        }),
+                        options: q.options.map((o) => ({
+                            ...o,
+                            weightsByTraitId: ensureWeights(o.weightsByTraitId, traitIds),
+                        })),
                     })),
                 }),
+
+            reorderQuestions: (activeId, overId) => {
+                const arr = [...get().questions];
+                const from = arr.findIndex((x) => x.tempId === activeId);
+                const to = arr.findIndex((x) => x.tempId === overId);
+                if (from === -1 || to === -1 || from === to) return;
+
+                const [moved] = arr.splice(from, 1);
+                arr.splice(to, 0, moved);
+
+                const next = arr.map((q, idx) => ({ ...q, ord: idx + 1 }));
+
+                set({ questions: next });
+            },
+
+            reorderOptions: (questionTempId, activeId, overId) => {
+                const qs = get().questions.map((q) => {
+                    if (q.tempId !== questionTempId) return q;
+
+                    const opts = [...q.options];
+                    const from = opts.findIndex((x) => x.tempId === activeId);
+                    const to = opts.findIndex((x) => x.tempId === overId);
+                    if (from === -1 || to === -1 || from === to) return q;
+
+                    const [moved] = opts.splice(from, 1);
+                    opts.splice(to, 0, moved);
+
+                    const nextOpts = opts.map((o, idx) => ({ ...o, ord: idx + 1 }));
+                    return { ...q, options: nextOpts };
+                });
+
+                set({ questions: qs });
+            },
 
             reset: () => set({ ...initialState }),
         }),
         {
             name: 'admin-quiz-builder',
-            version: 5,
+            version: 4,
             partialize: (s) => ({
                 step: s.step,
                 quizId: s.quizId,
                 version: s.version,
                 quizVersionId: s.quizVersionId,
                 init: s.init,
-                scaleMode: s.scaleMode,
                 scales: s.scales,
+                scaleMode: s.scaleMode,
                 questions: s.questions,
-                results: s.results,
                 activeQuestionTempId: s.activeQuestionTempId,
+                results: s.results,
             }),
             onRehydrateStorage: () => (state) => state?.setHydrated(true),
         },

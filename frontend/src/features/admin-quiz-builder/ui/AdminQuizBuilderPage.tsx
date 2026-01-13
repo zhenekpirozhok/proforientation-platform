@@ -10,6 +10,7 @@ import { validateInit, validateScales, validateQuestions, validateResults } from
 
 import { useQuizBuilderActions } from '@/features/admin-quiz-builder/api/useQuizBuilderActions';
 import { useEnsureQuizTraits } from '../api/useEnsureQuizTraits';
+import { useCreateOrUpdateQuiz } from '../api/useCreateOrUpdateQuiz';
 
 import { StepperHeader } from './StepperHeader';
 import { StepActions } from './StepActions';
@@ -49,6 +50,7 @@ export function AdminQuizBuilderPage() {
     typeof quizVersionId === 'number' ? quizVersionId : 0
   );
   const ensureTraits = useEnsureQuizTraits(actions);
+  const createOrUpdateQuiz = useCreateOrUpdateQuiz(actions);
 
   const canGoNext = useMemo(() => {
     if (step === 0) return Object.keys(validateInit({ title: init.title, code: init.code, description: init.description })).length === 0;
@@ -75,6 +77,19 @@ export function AdminQuizBuilderPage() {
     if (Object.keys(e).length > 0) {
       message.error(t('validation.fixErrors'));
       return;
+    }
+
+    if (step === 0) {
+      const success = await createOrUpdateQuiz(
+        {
+          quizId,
+          title: init.title,
+          code: init.code,
+          descriptionDefault: init.description,
+        },
+        !!quizId,
+      );
+      if (!success) return;
     }
 
     if (step === 1) {
