@@ -118,7 +118,7 @@ function SortableQuestionCard(props: {
           </Button>
         </div>
 
-        <div className="pt-3 text-sm text-slate-600 dark:text-slate-300">
+        <div className="pt-3 text-sm text-slate-600 dark:text-slate-300 pb-1">
           {props.optionsPreview.map((x, idx) => (
             <div key={idx} className="truncate">
               • {x}
@@ -461,7 +461,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
                   active={active?.tempId === q.tempId}
                   title={q.text.trim() ? q.text : t('untitledQuestion')}
                   typeLabel={`${t('typeLabel')}: ${q.qtype}`}
-                  optionsPreview={q.options.slice(0, 4).map((o) => (o.label.trim() ? o.label : t('emptyOption')))}
+                  optionsPreview={q.options.map((o) => (o.label.trim() ? o.label : t('emptyOption')))}
                   onClick={() => setActiveQuestion(q.tempId)}
                   onRemove={() => removeQuestion(q.tempId)}
                   errors={getQuestionErrors(q.tempId)}
