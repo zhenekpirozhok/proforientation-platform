@@ -31,6 +31,7 @@ jobs:
       TF_VAR_google_client_id: ${{ secrets.GOOGLE_CLIENT_ID }}
       TF_VAR_google_client_secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
       TF_VAR_openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+      TF_VAR_frontend_base_url: ${{ secrets.FRONTEND_BASE_URL }}
 
     steps:
       - uses: actions/checkout@v4
