@@ -571,6 +571,7 @@
       "addQuestion": "Добавить вопрос",
       "editorTitle": "Редактор вопроса",
       "editorTitleNew": "Создайте первый вопрос",
+      "editorTitleEdit": "Редактировать вопрос",
       "questionText": "Вопрос",
       "questionTextPh": "Введите текст вопроса",
       "questionType": "Тип",
@@ -589,6 +590,13 @@
       "weightsTitle": "Веса для шкал",
       "noTraitsYet": "Пока нет шкал/traits. Вернитесь назад и добавьте шкалы.",
       "noQuestionsYet": "Пока нет вопросов. Нажмите «Добавить вопрос»."
+      ,"selectTraits": "Выберите трейты",
+      "selectTraitsPh": "Выберите трейты",
+      "selectTraitsHint": "Выберите трейты, чтобы назначать веса вариантам.",
+      "addThisQuestion": "Добавить вопрос",
+      "saveChanges": "Сохранить изменения",
+      "cancelEdit": "Отменить",
+      "edit": "Редактировать"
     },
   "results": {
     "title": "Шаг 3 — Результаты",
