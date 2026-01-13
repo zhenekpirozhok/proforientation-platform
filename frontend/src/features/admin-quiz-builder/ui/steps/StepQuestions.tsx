@@ -1,12 +1,185 @@
+// features/admin-quiz-builder/ui/steps/StepQuestions.tsx
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, Input, Select, Typography, InputNumber } from 'antd';
 import { useTranslations } from 'next-intl';
+
+import {
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+  sortableKeyboardCoordinates,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 import { SectionCard } from '../SectionCard';
 import { FieldError } from '../FieldError';
 import { useAdminQuizBuilderStore } from '../../model/store';
+
+type DraftOption = {
+  tempId: string;
+  label: string;
+  weightsByTraitId: Record<number, number>;
+};
+
+type DraftQuestion = {
+  text: string;
+  qtype: string;
+  options: DraftOption[];
+};
+
+function id(prefix: string) {
+  return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
+}
+
+function buildWeights(traitIds: number[]) {
+  const obj: Record<number, number> = {};
+  for (const tid of traitIds) obj[tid] = 0;
+  return obj;
+}
+
+function ensureWeights(current: Record<number, number>, traitIds: number[]) {
+  const next = { ...current };
+  for (const tid of traitIds) if (!(tid in next)) next[tid] = 0;
+  for (const k of Object.keys(next)) {
+    const n = Number(k);
+    if (!traitIds.includes(n)) delete next[n];
+  }
+  return next;
+}
+
+function DragHandle() {
+  return (
+    <div className="mr-3 flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-slate-500 dark:border-slate-800 dark:text-slate-400 sm:h-10 sm:w-10">
+      <span className="select-none text-lg leading-none">⋮⋮</span>
+    </div>
+  );
+}
+
+function SortableQuestionCard(props: {
+  id: string;
+  active: boolean;
+  title: string;
+  typeLabel: string;
+  optionsPreview: string[];
+  onClick: () => void;
+  onRemove: () => void;
+  errors: string[];
+  removeLabel: string;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: props.id,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.7 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card
+        className={`!rounded-2xl ${props.active ? 'border-indigo-300 dark:border-indigo-700' : ''}`}
+        role="button"
+        onClick={props.onClick}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-1 items-start">
+            <div {...attributes} {...listeners} onClick={(e) => e.stopPropagation()}>
+              <DragHandle />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="truncate font-semibold">{props.title}</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">{props.typeLabel}</div>
+            </div>
+          </div>
+
+          <Button
+            danger
+            onClick={(e) => {
+              e.stopPropagation();
+              props.onRemove();
+            }}
+          >
+            {props.removeLabel}
+          </Button>
+        </div>
+
+        <div className="pt-3 text-sm text-slate-600 dark:text-slate-300">
+          {props.optionsPreview.map((x, idx) => (
+            <div key={idx} className="truncate">
+              • {x}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-1 pt-3">
+          {props.errors.map((er, i) => (
+            <FieldError key={i} code={er} />
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function SortableOptionRow(props: {
+  id: string;
+  label: string;
+  placeholder: string;
+  disableRemove: boolean;
+  onChange: (v: string) => void;
+  onRemove: () => void;
+  error?: string;
+  renderWeights: () => React.ReactNode;
+  removeLabel: string;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: props.id,
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.7 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card size="small" className="!rounded-2xl">
+        <div className="flex items-start gap-3">
+          <div {...attributes} {...listeners} className="pt-1">
+            <DragHandle />
+          </div>
+
+          <div className="flex-1">
+            <Input value={props.label} onChange={(e) => props.onChange(e.target.value)} placeholder={props.placeholder} />
+            <FieldError code={props.error} />
+          </div>
+
+          <Button danger onClick={props.onRemove} disabled={props.disableRemove}>
+            {props.removeLabel}
+          </Button>
+        </div>
+
+        {props.renderWeights()}
+      </Card>
+    </div>
+  );
+}
 
 export function StepQuestions({ errors }: { errors: Record<string, string> }) {
   const t = useTranslations('AdminQuizBuilder.questions');
@@ -27,6 +200,9 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
 
   const syncOptionWeightsWithTraits = useAdminQuizBuilderStore((s) => s.syncOptionWeightsWithTraits);
 
+  const reorderQuestions = useAdminQuizBuilderStore((s) => s.reorderQuestions);
+  const reorderOptions = useAdminQuizBuilderStore((s) => s.reorderOptions);
+
   const traitIds = useMemo(
     () => scales.map((s) => s.traitId).filter((x): x is number => typeof x === 'number'),
     [scales],
@@ -45,97 +221,200 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
   }, [traitIds.join('|')]);
 
   const active = useMemo(() => {
-    if (!activeQuestionTempId) return questions.at(-1) ?? null;
-    return questions.find((q) => q.tempId === activeQuestionTempId) ?? (questions.at(-1) ?? null);
+    if (!activeQuestionTempId) return null;
+    return questions.find((q) => q.tempId === activeQuestionTempId) ?? null;
   }, [activeQuestionTempId, questions]);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 220, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const [draft, setDraft] = useState<DraftQuestion>(() => ({
+    text: '',
+    qtype: 'SINGLE_CHOICE',
+    options: [{ tempId: id('dopt'), label: '', weightsByTraitId: buildWeights(traitIds) }],
+  }));
+
   useEffect(() => {
-    if (!active && questions.length === 0) {
-      setActiveQuestion(undefined);
-    }
-    if (!activeQuestionTempId && questions.length > 0) {
-      setActiveQuestion(questions.at(-1)?.tempId);
-    }
-  }, [questions.length]);
+    setDraft((d) => ({
+      ...d,
+      options: d.options.map((o) => ({ ...o, weightsByTraitId: ensureWeights(o.weightsByTraitId, traitIds) })),
+    }));
+  }, [traitIds.join('|')]);
 
-  function getQuestionError(tempId: string, field: string) {
-    return errors[`q.${tempId}.${field}`];
+  const [draftErrors, setDraftErrors] = useState<Record<string, string>>({});
+
+  function resetDraft() {
+    setActiveQuestion(undefined);
+    setDraft({
+      text: '',
+      qtype: 'SINGLE_CHOICE',
+      options: [{ tempId: id('dopt'), label: '', weightsByTraitId: buildWeights(traitIds) }],
+    });
+    setDraftErrors({});
   }
 
-  function getOptionError(optionTempId: string, field: string) {
-    return errors[`o.${optionTempId}.${field}`];
+  function validateDraft() {
+    const e: Record<string, string> = {};
+    if (!draft.text.trim()) e.draftText = 'required';
+    if (!draft.qtype.trim()) e.draftType = 'required';
+    if (draft.options.length < 2) e.draftOptions = 'min2';
+    for (const o of draft.options) if (!o.label.trim()) e[`draftOpt.${o.tempId}.label`] = 'required';
+    return e;
   }
 
-  function onAddQuestion() {
+  function addDraftOption() {
+    setDraft((d) => ({
+      ...d,
+      options: [...d.options, { tempId: id('dopt'), label: '', weightsByTraitId: buildWeights(traitIds) }],
+    }));
+  }
+
+  function removeDraftOption(optTempId: string) {
+    setDraft((d) => ({ ...d, options: d.options.filter((o) => o.tempId !== optTempId) }));
+  }
+
+  function patchDraftOption(optTempId: string, v: Partial<DraftOption>) {
+    setDraft((d) => ({
+      ...d,
+      options: d.options.map((o) => (o.tempId === optTempId ? { ...o, ...v } : o)),
+    }));
+  }
+
+  function commitDraftToStore() {
+    const e = validateDraft();
+    setDraftErrors(e);
+    if (Object.keys(e).length > 0) return;
+
     const ord = (questions.at(-1)?.ord ?? 0) + 1;
-    addQuestion({ ord, qtype: 'SINGLE_CHOICE', text: '' }, traitIds);
+
+    addQuestion({ ord, qtype: draft.qtype, text: draft.text }, traitIds);
+
+    const st = useAdminQuizBuilderStore.getState();
+    const qTempId = st.activeQuestionTempId;
+    if (!qTempId) return;
+
+    patchQuestion(qTempId, { text: draft.text, qtype: draft.qtype });
+
+    const q = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+    if (!q) return;
+
+    const first = q.options[0];
+    if (first) {
+      patchOption(qTempId, first.tempId, {
+        label: draft.options[0]?.label ?? '',
+        weightsByTraitId: draft.options[0]?.weightsByTraitId ?? buildWeights(traitIds),
+      });
+    }
+
+    for (let i = 1; i < draft.options.length; i++) {
+      const ordOpt = i + 1;
+      addOption(qTempId, ordOpt, traitIds);
+
+      const q2 = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+      const created = q2?.options.find((x) => x.ord === ordOpt) ?? q2?.options.at(-1);
+      if (!created) continue;
+
+      patchOption(qTempId, created.tempId, {
+        label: draft.options[i]?.label ?? '',
+        weightsByTraitId: draft.options[i]?.weightsByTraitId ?? buildWeights(traitIds),
+      });
+    }
+
+    resetDraft();
   }
 
-  function onAddOption(questionTempId: string) {
-    const q = questions.find((x) => x.tempId === questionTempId);
-    const ord = (q?.options.at(-1)?.ord ?? 0) + 1;
-    addOption(questionTempId, ord, traitIds);
+  function getQuestionErrors(qTempId: string) {
+    return [errors[`q.${qTempId}.text`], errors[`q.${qTempId}.qtype`], errors[`q.${qTempId}.options`]].filter(
+      Boolean,
+    ) as string[];
+  }
+
+  function getOptionError(optionTempId: string) {
+    return errors[`o.${optionTempId}.label`];
+  }
+
+  function renderWeightsBlock(weights: Record<number, number>, onChange: (next: Record<number, number>) => void) {
+    if (traits.length === 0) {
+      return (
+        <div className="mt-3">
+          <Typography.Text type="secondary">{t('noTraitsYet')}</Typography.Text>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-4">
+        <Typography.Text type="secondary" className="block">
+          {t('weightsTitle')}
+        </Typography.Text>
+
+        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {traits.map((tr) => (
+            <div
+              key={tr.traitId}
+              className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2 dark:border-slate-800"
+            >
+              <div className="min-w-0 truncate text-sm">{tr.name}</div>
+              <InputNumber
+                value={weights?.[tr.traitId] ?? 0}
+                onChange={(v) => {
+                  const next = { ...(weights ?? {}) };
+                  next[tr.traitId] = typeof v === 'number' ? v : 0;
+                  onChange(next);
+                }}
+                step={0.25}
+                className="w-28"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
-      <div className="flex items-center justify-between gap-3">
-        <Typography.Title level={4} className="!m-0">
-          {t('title')}
-        </Typography.Title>
-        <Button type="primary" onClick={onAddQuestion}>
-          {t('addQuestion')}
-        </Button>
-      </div>
-
       {questions.length > 0 ? (
-        <div className="flex flex-col gap-3">
-          {questions.map((q) => {
-            const isActive = active?.tempId === q.tempId;
-            return (
-              <Card
-                key={q.tempId}
-                className={`!rounded-2xl ${isActive ? 'border-indigo-300 dark:border-indigo-700' : ''}`}
-                onClick={() => setActiveQuestion(q.tempId)}
-                role="button"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="truncate font-semibold">
-                      {q.text.trim() ? q.text : t('untitledQuestion')}
-                    </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">
-                      {t('typeLabel')}: {q.qtype}
-                    </div>
-                  </div>
-                  <Button danger onClick={(e) => { e.stopPropagation(); removeQuestion(q.tempId); }}>
-                    {t('remove')}
-                  </Button>
-                </div>
-
-                <div className="pt-3 text-sm text-slate-600 dark:text-slate-300">
-                  {q.options.slice(0, 4).map((o) => (
-                    <div key={o.tempId} className="truncate">
-                      • {o.label.trim() ? o.label : t('emptyOption')}
-                    </div>
-                  ))}
-                  {q.options.length > 4 ? <div>…</div> : null}
-                </div>
-
-                <div className="flex flex-col gap-1 pt-3">
-                  <FieldError code={getQuestionError(q.tempId, 'text')} />
-                  <FieldError code={getQuestionError(q.tempId, 'qtype')} />
-                  <FieldError code={getQuestionError(q.tempId, 'options')} />
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={({ active: a, over }) => {
+            if (!over) return;
+            if (a.id === over.id) return;
+            reorderQuestions(String(a.id), String(over.id));
+          }}
+        >
+          <SortableContext items={questions.map((q) => q.tempId)} strategy={verticalListSortingStrategy}>
+            <div className="flex flex-col gap-3">
+              {questions.map((q) => (
+                <SortableQuestionCard
+                  key={q.tempId}
+                  id={q.tempId}
+                  active={active?.tempId === q.tempId}
+                  title={q.text.trim() ? q.text : t('untitledQuestion')}
+                  typeLabel={`${t('typeLabel')}: ${q.qtype}`}
+                  optionsPreview={q.options.slice(0, 4).map((o) => (o.label.trim() ? o.label : t('emptyOption')))}
+                  onClick={() => setActiveQuestion(q.tempId)}
+                  onRemove={() => removeQuestion(q.tempId)}
+                  errors={getQuestionErrors(q.tempId)}
+                  removeLabel={t('remove')}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       ) : null}
 
       <SectionCard title={active ? t('editorTitle') : t('editorTitleNew')}>
         {active ? (
           <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-end">
+              <Button onClick={resetDraft}>{t('newQuestion')}</Button>
+            </div>
+
             <div>
               <Typography.Text className="block">{t('questionText')}</Typography.Text>
               <Input
@@ -144,7 +423,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
                 size="large"
                 placeholder={t('questionTextPh')}
               />
-              <FieldError code={getQuestionError(active.tempId, 'text')} />
+              <FieldError code={errors[`q.${active.tempId}.text`]} />
             </div>
 
             <div>
@@ -157,86 +436,137 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
                 options={[
                   { value: 'SINGLE_CHOICE', label: t('types.single') },
                   { value: 'MULTI_CHOICE', label: t('types.multi') },
-                  { value: 'LIKERT_5', label: t('types.likert5') }
+                  { value: 'LIKERT_5', label: t('types.likert5') },
                 ]}
               />
-              <FieldError code={getQuestionError(active.tempId, 'qtype')} />
+              <FieldError code={errors[`q.${active.tempId}.qtype`]} />
             </div>
 
             <div className="flex flex-col gap-3">
               <Typography.Text className="block font-medium">{t('options')}</Typography.Text>
 
-              <div className="flex flex-col gap-3">
-                {active.options.map((o) => (
-                  <Card key={o.tempId} size="small" className="!rounded-2xl">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1">
-                        <Input
-                          value={o.label}
-                          onChange={(e) =>
-                            patchOption(active.tempId, o.tempId, { label: e.target.value })
-                          }
-                          placeholder={t('optionPh')}
-                        />
-                        <FieldError code={getOptionError(o.tempId, 'label')} />
-                      </div>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={({ active: a, over }) => {
+                  if (!over) return;
+                  if (a.id === over.id) return;
+                  reorderOptions(active.tempId, String(a.id), String(over.id));
+                }}
+              >
+                <SortableContext items={active.options.map((o) => o.tempId)} strategy={verticalListSortingStrategy}>
+                  <div className="flex flex-col gap-3">
+                    {active.options.map((o) => (
+                      <SortableOptionRow
+                        key={o.tempId}
+                        id={o.tempId}
+                        label={o.label}
+                        placeholder={t('optionPh')}
+                        disableRemove={active.options.length <= 1}
+                        onChange={(v) => patchOption(active.tempId, o.tempId, { label: v })}
+                        onRemove={() => removeOption(active.tempId, o.tempId)}
+                        error={getOptionError(o.tempId)}
+                        renderWeights={() =>
+                          renderWeightsBlock(o.weightsByTraitId ?? {}, (next) =>
+                            patchOption(active.tempId, o.tempId, { weightsByTraitId: next }),
+                          )
+                        }
+                        removeLabel={t('remove')}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
 
-                      <Button
-                        danger
-                        onClick={() => removeOption(active.tempId, o.tempId)}
-                        disabled={active.options.length <= 1}
-                      >
-                        {t('remove')}
-                      </Button>
-                    </div>
-
-                    {traits.length > 0 ? (
-                      <div className="mt-4">
-                        <Typography.Text type="secondary" className="block">
-                          {t('weightsTitle')}
-                        </Typography.Text>
-
-                        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                          {traits.map((tr) => (
-                            <div
-                              key={tr.traitId}
-                              className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2 dark:border-slate-800"
-                            >
-                              <div className="min-w-0 truncate text-sm">{tr.name}</div>
-                              <InputNumber
-                                value={o.weightsByTraitId?.[tr.traitId] ?? 0}
-                                onChange={(v) => {
-                                  const next = { ...(o.weightsByTraitId ?? {}) };
-                                  next[tr.traitId] = typeof v === 'number' ? v : 0;
-                                  patchOption(active.tempId, o.tempId, { weightsByTraitId: next });
-                                }}
-                                step={0.25}
-                                className="w-28"
-                              />
-                            </div>
-                          ))}
-                        </div>
-
-                        <FieldError code={getOptionError(o.tempId, 'weights')} />
-                      </div>
-                    ) : (
-                      <div className="mt-3">
-                        <Typography.Text type="secondary">{t('noTraitsYet')}</Typography.Text>
-                      </div>
-                    )}
-                  </Card>
-                ))}
-              </div>
-
-              <div>
-                <Button onClick={() => onAddOption(active.tempId)}>{t('addOption')}</Button>
-                <FieldError code={getQuestionError(active.tempId, 'options')} />
+              <div className="flex items-center justify-between gap-3">
+                <Button onClick={() => addOption(active.tempId, (active.options.at(-1)?.ord ?? 0) + 1, traitIds)}>
+                  {t('addOption')}
+                </Button>
+                <FieldError code={errors[`q.${active.tempId}.options`]} />
               </div>
             </div>
           </div>
         ) : (
-          <div className="py-2">
-            <Typography.Text type="secondary">{t('noQuestionsYet')}</Typography.Text>
+          <div className="flex flex-col gap-4">
+            <div>
+              <Typography.Text className="block">{t('questionText')}</Typography.Text>
+              <Input
+                value={draft.text}
+                onChange={(e) => setDraft((d) => ({ ...d, text: e.target.value }))}
+                size="large"
+                placeholder={t('questionTextPh')}
+              />
+              <FieldError code={draftErrors.draftText} />
+            </div>
+
+            <div>
+              <Typography.Text className="block">{t('questionType')}</Typography.Text>
+              <Select
+                value={draft.qtype}
+                onChange={(v) => setDraft((d) => ({ ...d, qtype: String(v) }))}
+                className="w-full"
+                size="large"
+                options={[
+                  { value: 'SINGLE_CHOICE', label: t('types.single') },
+                  { value: 'MULTI_CHOICE', label: t('types.multi') },
+                  { value: 'LIKERT_5', label: t('types.likert5') },
+                ]}
+              />
+              <FieldError code={draftErrors.draftType} />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Typography.Text className="block font-medium">{t('options')}</Typography.Text>
+
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={({ active: a, over }) => {
+                  if (!over) return;
+                  if (a.id === over.id) return;
+
+                  setDraft((d) => {
+                    const ids = d.options.map((x) => x.tempId);
+                    const from = ids.indexOf(String(a.id));
+                    const to = ids.indexOf(String(over.id));
+                    if (from === -1 || to === -1 || from === to) return d;
+                    return { ...d, options: arrayMove(d.options, from, to) };
+                  });
+                }}
+              >
+                <SortableContext items={draft.options.map((o) => o.tempId)} strategy={verticalListSortingStrategy}>
+                  <div className="flex flex-col gap-3">
+                    {draft.options.map((o) => (
+                      <SortableOptionRow
+                        key={o.tempId}
+                        id={o.tempId}
+                        label={o.label}
+                        placeholder={t('optionPh')}
+                        disableRemove={draft.options.length <= 1}
+                        onChange={(v) => patchDraftOption(o.tempId, { label: v })}
+                        onRemove={() => removeDraftOption(o.tempId)}
+                        error={draftErrors[`draftOpt.${o.tempId}.label`]}
+                        renderWeights={() =>
+                          renderWeightsBlock(o.weightsByTraitId ?? {}, (next) => patchDraftOption(o.tempId, { weightsByTraitId: next }))
+                        }
+                        removeLabel={t('remove')}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+
+              <div className="flex items-center justify-between gap-3">
+                <Button onClick={addDraftOption}>{t('addOption')}</Button>
+                <FieldError code={draftErrors.draftOptions} />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end">
+              <Button type="primary" size="large" onClick={commitDraftToStore}>
+                {t('addThisQuestion')}
+              </Button>
+            </div>
           </div>
         )}
       </SectionCard>
