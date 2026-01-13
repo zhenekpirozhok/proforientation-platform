@@ -1,84 +1,83 @@
 'use client';
 
-import { Button, Input, Select, Typography, message } from 'antd';
-import { useMemo, useState } from 'react';
+import { Button, Select, Typography, message } from 'antd';
+import { useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 
 import { SectionCard } from '../SectionCard';
 import { FieldError } from '../FieldError';
 import { useAdminQuizBuilderStore } from '../../model/store';
 
-
 import { useAdminCategories } from '@/entities/category/api/useAdminCategories';
-import { useAdminCreateCategory } from '@/entities/category/api/useAdminCreateCategory';
 import { useAdminProfessions } from '@/entities/profession/api/useAdminProfessions';
-import { useAdminCreateProfession } from '@/entities/profession/api/useAdminCreateProfession';
+import { useAdminUpdateQuiz } from '@/entities/quiz/api/useAdminUpdateQuiz';
+
+import type { ProfessionCategoryDto as Category } from '@/shared/api/generated/model/professionCategoryDto';
+import type { ProfessionDto as Profession } from '@/shared/api/generated/model/professionDto';
+
+function toNumber(v: unknown): number | undefined {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function toArray<T>(v: unknown): T[] {
+  if (Array.isArray(v)) return v as T[];
+  if (!v || typeof v !== 'object') return [];
+
+  const o = v as any;
+
+  if (Array.isArray(o.items)) return o.items as T[];
+  if (Array.isArray(o.results)) return o.results as T[];
+  if (Array.isArray(o.rows)) return o.rows as T[];
+  if (Array.isArray(o.content)) return o.content as T[];
+
+  if (o.data !== undefined) return toArray<T>(o.data);
+  if (o.result !== undefined) return toArray<T>(o.result);
+  if (o.payload !== undefined) return toArray<T>(o.payload);
+
+  return [];
+}
 
 export function StepResults({ errors }: { errors: Record<string, string> }) {
   const t = useTranslations('AdminQuizBuilder.results');
 
-  const [results, patchResults, setResults] = useAdminQuizBuilderStore(
-    (s) => [s.results, s.patchResults, s.setResults]
-  ) as [
-    {
-      selectedCategoryIds: number[];
-      selectedProfessionIds: number[];
-      // ...other result fields if needed
-    },
-    (patch: Partial<any>) => void,
-    (results: any) => void
-  ];
+  const quizId = useAdminQuizBuilderStore((s) => s.quizId);
+  const results = useAdminQuizBuilderStore((s) => s.results);
+  const patchResults = useAdminQuizBuilderStore((s) => s.patchResults);
 
   const categories = useAdminCategories();
   const professions = useAdminProfessions();
 
-  const createCategory = useAdminCreateCategory();
-  const createProfession = useAdminCreateProfession();
+  const updateQuiz = useAdminUpdateQuiz();
 
-  const [catName, setCatName] = useState('');
-  const [profName, setProfName] = useState('');
+  const categoryOptions = useMemo(() => {
+    const arr = toArray<Category>((categories as any).data ?? categories);
+    return arr.map((c: any) => ({
+      value: c.id,
+      label: c.title ?? c.name ?? c.code ?? c.id,
+    }));
+  }, [(categories as any).data, categories]);
 
-  const categoryOptions = useMemo(
-    () => {
-      const arr = Array.isArray(categories.data) ? categories.data : [];
-      return arr.map((c: any) => ({
-        value: c.id,
-        label: c.name ?? c.code ?? c.id,
-      }));
-    },
-    [categories.data],
-  );
+  const professionsInCategory = useMemo(() => {
+    const all = toArray<Profession>((professions as any).data ?? professions) as any[];
+    const categoryId = toNumber(results.categoryId);
+    if (typeof categoryId !== 'number') return [];
+    return all.filter((p) => toNumber(p.categoryId) === categoryId);
+  }, [(professions as any).data, professions, results.categoryId]);
 
-  const professionOptions = useMemo(
-    () => {
-      const arr = Array.isArray(professions.data) ? professions.data : [];
-      return arr.map((p: any) => ({
-        value: p.id,
-        label: p.name ?? p.code ?? p.id,
-      }));
-    },
-    [professions.data],
-  );
+  const canSave = typeof quizId === 'number' && typeof toNumber(results.categoryId) === 'number';
 
-  async function onCreateCategory() {
-    try {
-      const name = catName.trim();
-      if (!name) return;
-      await createCategory.mutateAsync({ data: { name } as any });
-      setCatName('');
-      message.success(t('categoryCreated'));
-    } catch (e) {
-      message.error((e as Error).message);
+  async function onSave() {
+    if (!canSave) {
+      message.error(t('validation.fixErrors'));
+      return;
     }
-  }
-
-  async function onCreateProfession() {
     try {
-      const name = profName.trim();
-      if (!name) return;
-      await createProfession.mutateAsync({ data: { name } as any });
-      setProfName('');
-      message.success(t('professionCreated'));
+      await updateQuiz.mutateAsync({
+        id: quizId as any,
+        data: { categoryId: toNumber(results.categoryId) } as any,
+      });
+      message.success(t('saved'));
     } catch (e) {
       message.error((e as Error).message);
     }
@@ -87,67 +86,42 @@ export function StepResults({ errors }: { errors: Record<string, string> }) {
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       <SectionCard title={t('title')}>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="flex flex-col gap-2">
-            <Typography.Text className="block">{t('categories')}</Typography.Text>
-            <Select
-              mode="multiple"
-              value={results.selectedCategoryIds}
-              onChange={(ids) => patchResults({ selectedCategoryIds: ids as number[] })}
-              options={categoryOptions}
-              className="w-full"
-              placeholder={t('categoriesPh')}
-            />
-            <FieldError code={errors.categories} />
+        <div className="flex flex-col gap-3">
+          <Typography.Text className="block">{t('categories')}</Typography.Text>
+          <Select
+            value={results.categoryId as any}
+            onChange={(id) => patchResults({ categoryId: toNumber(id) })}
+            options={categoryOptions}
+            className="w-full"
+            placeholder={t('categoriesPh')}
+            allowClear
+          />
+          <FieldError code={errors.categoryId} />
 
-            <div className="mt-2 flex gap-2">
-              <Input
-                value={catName}
-                onChange={(e) => setCatName(e.target.value)}
-                placeholder={t('newCategoryPh')}
-              />
-              <Button
-                type="primary"
-                onClick={onCreateCategory}
-                loading={createCategory.isPending}
-              >
-                {t('add')}
-              </Button>
-            </div>
-          </div>
+          <Button type="primary" onClick={onSave} disabled={!canSave} loading={updateQuiz.isPending}>
+            {t('save')}
+          </Button>
 
-          <div className="flex flex-col gap-2">
+          <div className="mt-2">
             <Typography.Text className="block">{t('professions')}</Typography.Text>
-            <Select
-              mode="multiple"
-              value={results.selectedProfessionIds}
-              onChange={(ids) => patchResults({ selectedProfessionIds: ids as number[] })}
-              options={professionOptions}
-              className="w-full"
-              placeholder={t('professionsPh')}
-            />
-            <FieldError code={errors.professions} />
 
-            <div className="mt-2 flex gap-2">
-              <Input
-                value={profName}
-                onChange={(e) => setProfName(e.target.value)}
-                placeholder={t('newProfessionPh')}
-              />
-              <Button
-                type="primary"
-                onClick={onCreateProfession}
-                loading={createProfession.isPending}
-              >
-                {t('add')}
-              </Button>
-            </div>
+            {typeof toNumber(results.categoryId) !== 'number' ? (
+              <Typography.Text type="secondary">{t('chooseCategoryToSeeProfessions')}</Typography.Text>
+            ) : professionsInCategory.length === 0 ? (
+              <Typography.Text type="secondary">{t('noProfessionsInCategory')}</Typography.Text>
+            ) : (
+              <ul className="mt-2 list-disc pl-6">
+                {professionsInCategory.map((p: any) => (
+                  <li key={p.id}>{p.title ?? p.name ?? p.code ?? p.id}</li>
+                ))}
+              </ul>
+            )}
           </div>
-        </div>
 
-        <Typography.Text type="secondary" className="mt-3 block">
-          {t('note')}
-        </Typography.Text>
+          <Typography.Text type="secondary" className="mt-3 block">
+            {t('note')}
+          </Typography.Text>
+        </div>
       </SectionCard>
     </div>
   );
