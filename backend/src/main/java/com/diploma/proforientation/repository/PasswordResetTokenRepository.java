@@ -22,12 +22,5 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
      * @return an {@link Optional} containing the token if found, or empty if not found
      */
     Optional<PasswordResetToken> findByToken(String token);
-
-    /**
-     * Deletes the {@link PasswordResetToken} entity with the given token string.
-     *
-     * @param token the unique token string of the token to delete
-     */
-    void deleteByToken(String token);
     void deleteAllByUser(User user);
 }
