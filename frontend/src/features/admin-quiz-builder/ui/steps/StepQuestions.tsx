@@ -1,9 +1,8 @@
-// features/admin-quiz-builder/ui/steps/StepQuestions.tsx
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, Input, Select, Typography, InputNumber } from 'antd';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 import {
   DndContext,
@@ -36,6 +35,7 @@ type DraftOption = {
 type DraftQuestion = {
   text: string;
   qtype: string;
+  linkedTraitIds: number[];
   options: DraftOption[];
 };
 
@@ -50,7 +50,7 @@ function buildWeights(traitIds: number[]) {
 }
 
 function ensureWeights(current: Record<number, number>, traitIds: number[]) {
-  const next = { ...current };
+  const next = { ...(current ?? {}) };
   for (const tid of traitIds) if (!(tid in next)) next[tid] = 0;
   for (const k of Object.keys(next)) {
     const n = Number(k);
@@ -183,6 +183,8 @@ function SortableOptionRow(props: {
 
 export function StepQuestions({ errors }: { errors: Record<string, string> }) {
   const t = useTranslations('AdminQuizBuilder.questions');
+  const localeRaw = useLocale();
+  const locale = (localeRaw?.toString().startsWith('ru') ? 'ru' : 'en') as 'ru' | 'en';
 
   const scales = useAdminQuizBuilderStore((s) => s.scales);
   const questions = useAdminQuizBuilderStore((s) => s.questions);
@@ -194,6 +196,8 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
   const patchQuestion = useAdminQuizBuilderStore((s) => s.patchQuestion);
   const removeQuestion = useAdminQuizBuilderStore((s) => s.removeQuestion);
 
+  const applyLinkedTraitsToQuestion = useAdminQuizBuilderStore((s) => s.applyLinkedTraitsToQuestion);
+
   const addOption = useAdminQuizBuilderStore((s) => s.addOption);
   const patchOption = useAdminQuizBuilderStore((s) => s.patchOption);
   const removeOption = useAdminQuizBuilderStore((s) => s.removeOption);
@@ -203,12 +207,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
   const reorderQuestions = useAdminQuizBuilderStore((s) => s.reorderQuestions);
   const reorderOptions = useAdminQuizBuilderStore((s) => s.reorderOptions);
 
-  const traitIds = useMemo(
-    () => scales.map((s) => s.traitId).filter((x): x is number => typeof x === 'number'),
-    [scales],
-  );
-
-  const traits = useMemo(
+  const availableTraits = useMemo(
     () =>
       scales
         .filter((s) => typeof s.traitId === 'number')
@@ -216,9 +215,11 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
     [scales],
   );
 
+  const allTraitIds = useMemo(() => availableTraits.map((x) => x.traitId), [availableTraits]);
+
   useEffect(() => {
-    syncOptionWeightsWithTraits(traitIds);
-  }, [traitIds.join('|')]);
+    syncOptionWeightsWithTraits(allTraitIds);
+  }, [allTraitIds.join('|')]);
 
   const active = useMemo(() => {
     if (!activeQuestionTempId) return null;
@@ -231,18 +232,30 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
+  const likertLabels = useMemo(
+    () =>
+      locale === 'ru'
+        ? ['Нет', 'Скорее нет', 'Нейтрально', 'Скорее да', 'Да']
+        : ['No', 'Rather no', 'Neutral', 'Rather yes', 'Yes'],
+    [locale],
+  );
+
   const [draft, setDraft] = useState<DraftQuestion>(() => ({
     text: '',
     qtype: 'SINGLE_CHOICE',
-    options: [{ tempId: id('dopt'), label: '', weightsByTraitId: buildWeights(traitIds) }],
+    linkedTraitIds: [],
+    options: [{ tempId: id('dopt'), label: '', weightsByTraitId: {} }],
   }));
 
   useEffect(() => {
     setDraft((d) => ({
       ...d,
-      options: d.options.map((o) => ({ ...o, weightsByTraitId: ensureWeights(o.weightsByTraitId, traitIds) })),
+      options: d.options.map((o) => ({
+        ...o,
+        weightsByTraitId: ensureWeights(o.weightsByTraitId, d.linkedTraitIds),
+      })),
     }));
-  }, [traitIds.join('|')]);
+  }, [draft.linkedTraitIds.join('|')]);
 
   const [draftErrors, setDraftErrors] = useState<Record<string, string>>({});
 
@@ -251,7 +264,8 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
     setDraft({
       text: '',
       qtype: 'SINGLE_CHOICE',
-      options: [{ tempId: id('dopt'), label: '', weightsByTraitId: buildWeights(traitIds) }],
+      linkedTraitIds: [],
+      options: [{ tempId: id('dopt'), label: '', weightsByTraitId: {} }],
     });
     setDraftErrors({});
   }
@@ -260,6 +274,8 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
     const e: Record<string, string> = {};
     if (!draft.text.trim()) e.draftText = 'required';
     if (!draft.qtype.trim()) e.draftType = 'required';
+    if (draft.linkedTraitIds.length < 1) e.draftTraits = 'min1';
+    if (draft.linkedTraitIds.length > 2) e.draftTraits = 'max2';
     if (draft.options.length < 2) e.draftOptions = 'min2';
     for (const o of draft.options) if (!o.label.trim()) e[`draftOpt.${o.tempId}.label`] = 'required';
     return e;
@@ -268,7 +284,10 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
   function addDraftOption() {
     setDraft((d) => ({
       ...d,
-      options: [...d.options, { tempId: id('dopt'), label: '', weightsByTraitId: buildWeights(traitIds) }],
+      options: [
+        ...d.options,
+        { tempId: id('dopt'), label: '', weightsByTraitId: buildWeights(d.linkedTraitIds) },
+      ],
     }));
   }
 
@@ -283,6 +302,35 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
     }));
   }
 
+  function onDraftTypeChange(v: string) {
+    setDraft((d) => {
+      if (v === 'LIKERT_5') {
+        const opts = likertLabels.map((label, idx) => ({
+          tempId: id('dopt'),
+          label,
+          weightsByTraitId: buildWeights(d.linkedTraitIds),
+        }));
+        return { ...d, qtype: v, options: opts };
+      }
+
+      const hasAny = d.options.length > 0;
+      const nextOptions = hasAny
+        ? d.options.map((o) => ({ ...o, weightsByTraitId: ensureWeights(o.weightsByTraitId, d.linkedTraitIds) }))
+        : [{ tempId: id('dopt'), label: '', weightsByTraitId: buildWeights(d.linkedTraitIds) }];
+
+      return { ...d, qtype: v, options: nextOptions };
+    });
+  }
+
+  function onDraftTraitsChange(next: number[]) {
+    const trimmed = next.slice(0, 2);
+    setDraft((d) => ({
+      ...d,
+      linkedTraitIds: trimmed,
+      options: d.options.map((o) => ({ ...o, weightsByTraitId: ensureWeights(o.weightsByTraitId, trimmed) })),
+    }));
+  }
+
   function commitDraftToStore() {
     const e = validateDraft();
     setDraftErrors(e);
@@ -290,12 +338,16 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
 
     const ord = (questions.at(-1)?.ord ?? 0) + 1;
 
-    addQuestion({ ord, qtype: draft.qtype, text: draft.text }, traitIds);
+    addQuestion(
+      { ord, qtype: draft.qtype, text: draft.text, linkedTraitIds: draft.linkedTraitIds },
+      allTraitIds,
+    );
 
     const st = useAdminQuizBuilderStore.getState();
     const qTempId = st.activeQuestionTempId;
     if (!qTempId) return;
 
+    applyLinkedTraitsToQuestion(qTempId, draft.linkedTraitIds);
     patchQuestion(qTempId, { text: draft.text, qtype: draft.qtype });
 
     const q = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
@@ -305,13 +357,13 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
     if (first) {
       patchOption(qTempId, first.tempId, {
         label: draft.options[0]?.label ?? '',
-        weightsByTraitId: draft.options[0]?.weightsByTraitId ?? buildWeights(traitIds),
+        weightsByTraitId: ensureWeights(draft.options[0]?.weightsByTraitId ?? {}, draft.linkedTraitIds),
       });
     }
 
     for (let i = 1; i < draft.options.length; i++) {
       const ordOpt = i + 1;
-      addOption(qTempId, ordOpt, traitIds);
+      addOption(qTempId, ordOpt, allTraitIds);
 
       const q2 = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
       const created = q2?.options.find((x) => x.ord === ordOpt) ?? q2?.options.at(-1);
@@ -319,7 +371,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
 
       patchOption(qTempId, created.tempId, {
         label: draft.options[i]?.label ?? '',
-        weightsByTraitId: draft.options[i]?.weightsByTraitId ?? buildWeights(traitIds),
+        weightsByTraitId: ensureWeights(draft.options[i]?.weightsByTraitId ?? {}, draft.linkedTraitIds),
       });
     }
 
@@ -327,20 +379,27 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
   }
 
   function getQuestionErrors(qTempId: string) {
-    return [errors[`q.${qTempId}.text`], errors[`q.${qTempId}.qtype`], errors[`q.${qTempId}.options`]].filter(
-      Boolean,
-    ) as string[];
+    return [
+      errors[`q.${qTempId}.text`],
+      errors[`q.${qTempId}.qtype`],
+      errors[`q.${qTempId}.options`],
+      errors[`q.${qTempId}.traits`],
+    ].filter(Boolean) as string[];
   }
 
   function getOptionError(optionTempId: string) {
     return errors[`o.${optionTempId}.label`];
   }
 
-  function renderWeightsBlock(weights: Record<number, number>, onChange: (next: Record<number, number>) => void) {
-    if (traits.length === 0) {
+  function renderWeightsBlock(
+    linkedTraits: { traitId: number; name: string }[],
+    weights: Record<number, number>,
+    onChange: (next: Record<number, number>) => void,
+  ) {
+    if (linkedTraits.length === 0) {
       return (
         <div className="mt-3">
-          <Typography.Text type="secondary">{t('noTraitsYet')}</Typography.Text>
+          <Typography.Text type="secondary">{t('selectTraitsHint')}</Typography.Text>
         </div>
       );
     }
@@ -352,7 +411,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
         </Typography.Text>
 
         <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {traits.map((tr) => (
+          {linkedTraits.map((tr) => (
             <div
               key={tr.traitId}
               className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2 dark:border-slate-800"
@@ -374,6 +433,12 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
       </div>
     );
   }
+
+  const activeLinkedTraits = useMemo(() => {
+    if (!active) return [];
+    const allow = new Set<number>(active.linkedTraitIds ?? []);
+    return availableTraits.filter((x) => allow.has(x.traitId));
+  }, [active?.tempId, (active?.linkedTraitIds ?? []).join('|'), availableTraits]);
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
@@ -430,7 +495,51 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
               <Typography.Text className="block">{t('questionType')}</Typography.Text>
               <Select
                 value={active.qtype}
-                onChange={(v) => patchQuestion(active.tempId, { qtype: String(v) })}
+                onChange={(v) => {
+                  const type = String(v);
+                  patchQuestion(active.tempId, { qtype: type });
+
+                  if (type === 'LIKERT_5') {
+                    const traitIds = active.linkedTraitIds ?? [];
+                    const st = useAdminQuizBuilderStore.getState();
+
+                    const q = st.questions.find((x) => x.tempId === active.tempId);
+                    if (!q) return;
+
+                    const first = q.options[0];
+                    if (first) {
+                      patchOption(active.tempId, first.tempId, {
+                        label: likertLabels[0],
+                        weightsByTraitId: buildWeights(traitIds),
+                      });
+                    }
+
+                    for (let i = 1; i < 5; i++) {
+                      const ordOpt = i + 1;
+                      if (q.options.some((o) => o.ord === ordOpt)) {
+                        const existing = q.options.find((o) => o.ord === ordOpt);
+                        if (existing) {
+                          patchOption(active.tempId, existing.tempId, {
+                            label: likertLabels[i],
+                            weightsByTraitId: ensureWeights(existing.weightsByTraitId, traitIds),
+                          });
+                        }
+                        continue;
+                      }
+
+                      addOption(active.tempId, ordOpt, allTraitIds);
+
+                      const q2 = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === active.tempId);
+                      const created = q2?.options.find((x) => x.ord === ordOpt) ?? q2?.options.at(-1);
+                      if (!created) continue;
+
+                      patchOption(active.tempId, created.tempId, {
+                        label: likertLabels[i],
+                        weightsByTraitId: buildWeights(traitIds),
+                      });
+                    }
+                  }
+                }}
                 className="w-full"
                 size="large"
                 options={[
@@ -440,6 +549,25 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
                 ]}
               />
               <FieldError code={errors[`q.${active.tempId}.qtype`]} />
+            </div>
+
+            <div>
+              <Typography.Text className="block">{t('selectTraits')}</Typography.Text>
+              <Select
+                value={active.linkedTraitIds ?? []}
+                onChange={(vals) => {
+                  const next = (vals as number[]).slice(0, 2);
+                  applyLinkedTraitsToQuestion(active.tempId, next);
+                  if ((vals as number[]).length > 2) return;
+                }}
+                mode="multiple"
+                className="w-full"
+                size="large"
+                optionFilterProp="label"
+                options={availableTraits.map((x) => ({ value: x.traitId, label: x.name }))}
+                placeholder={t('selectTraitsPh')}
+              />
+              <FieldError code={errors[`q.${active.tempId}.traits`]} />
             </div>
 
             <div className="flex flex-col gap-3">
@@ -467,7 +595,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
                         onRemove={() => removeOption(active.tempId, o.tempId)}
                         error={getOptionError(o.tempId)}
                         renderWeights={() =>
-                          renderWeightsBlock(o.weightsByTraitId ?? {}, (next) =>
+                          renderWeightsBlock(activeLinkedTraits, o.weightsByTraitId ?? {}, (next) =>
                             patchOption(active.tempId, o.tempId, { weightsByTraitId: next }),
                           )
                         }
@@ -479,7 +607,10 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
               </DndContext>
 
               <div className="flex items-center justify-between gap-3">
-                <Button onClick={() => addOption(active.tempId, (active.options.at(-1)?.ord ?? 0) + 1, traitIds)}>
+                <Button
+                  onClick={() => addOption(active.tempId, (active.options.at(-1)?.ord ?? 0) + 1, allTraitIds)}
+                  disabled={active.qtype === 'LIKERT_5'}
+                >
                   {t('addOption')}
                 </Button>
                 <FieldError code={errors[`q.${active.tempId}.options`]} />
@@ -503,7 +634,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
               <Typography.Text className="block">{t('questionType')}</Typography.Text>
               <Select
                 value={draft.qtype}
-                onChange={(v) => setDraft((d) => ({ ...d, qtype: String(v) }))}
+                onChange={(v) => onDraftTypeChange(String(v))}
                 className="w-full"
                 size="large"
                 options={[
@@ -513,6 +644,21 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
                 ]}
               />
               <FieldError code={draftErrors.draftType} />
+            </div>
+
+            <div>
+              <Typography.Text className="block">{t('selectTraits')}</Typography.Text>
+              <Select
+                value={draft.linkedTraitIds}
+                onChange={(v) => onDraftTraitsChange(v as number[])}
+                mode="multiple"
+                className="w-full"
+                size="large"
+                optionFilterProp="label"
+                options={availableTraits.map((x) => ({ value: x.traitId, label: x.name }))}
+                placeholder={t('selectTraitsPh')}
+              />
+              <FieldError code={draftErrors.draftTraits} />
             </div>
 
             <div className="flex flex-col gap-3">
@@ -547,7 +693,11 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
                         onRemove={() => removeDraftOption(o.tempId)}
                         error={draftErrors[`draftOpt.${o.tempId}.label`]}
                         renderWeights={() =>
-                          renderWeightsBlock(o.weightsByTraitId ?? {}, (next) => patchDraftOption(o.tempId, { weightsByTraitId: next }))
+                          renderWeightsBlock(
+                            availableTraits.filter((x) => draft.linkedTraitIds.includes(x.traitId)),
+                            o.weightsByTraitId ?? {},
+                            (next) => patchDraftOption(o.tempId, { weightsByTraitId: next }),
+                          )
                         }
                         removeLabel={t('remove')}
                       />
@@ -557,7 +707,9 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
               </DndContext>
 
               <div className="flex items-center justify-between gap-3">
-                <Button onClick={addDraftOption}>{t('addOption')}</Button>
+                <Button onClick={addDraftOption} disabled={draft.qtype === 'LIKERT_5'}>
+                  {t('addOption')}
+                </Button>
                 <FieldError code={draftErrors.draftOptions} />
               </div>
             </div>

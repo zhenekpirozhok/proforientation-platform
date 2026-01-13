@@ -1,4 +1,3 @@
-// features/admin-quiz-builder/model/store.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -31,6 +30,7 @@ export type QuestionDraft = {
     ord: number;
     qtype: string;
     text: string;
+    linkedTraitIds: number[];
     questionId?: number;
     options: OptionDraft[];
 };
@@ -100,6 +100,8 @@ type BuilderState = {
     removeOption: (questionTempId: string, optionTempId: string) => void;
 
     syncOptionWeightsWithTraits: (traitIds: number[]) => void;
+
+    applyLinkedTraitsToQuestion: (questionTempId: string, linkedTraitIds: number[]) => void;
 
     reorderQuestions: (activeId: string, overId: string) => void;
     reorderOptions: (questionTempId: string, activeId: string, overId: string) => void;
@@ -220,11 +222,16 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                     scales: get().scales.map((s) => (s.tempId === tempId ? { ...s, ...v } : s)),
                 }),
 
-            removeScale: (tempId) => set({ scales: get().scales.filter((s) => s.tempId !== tempId) }),
+            removeScale: (tempId) =>
+                set({
+                    scales: get().scales.filter((s) => s.tempId !== tempId),
+                    editingScaleTempId: get().editingScaleTempId === tempId ? undefined : get().editingScaleTempId,
+                }),
 
             removePair: (pairId) =>
                 set({
                     scales: get().scales.filter((s) => s.pairId !== pairId),
+                    editingPairId: get().editingPairId === pairId ? undefined : get().editingPairId,
                 }),
 
             addQuestion: (v, traitIds) => {
@@ -234,6 +241,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                 const q: QuestionDraft = {
                     ...v,
                     tempId: qTempId,
+                    linkedTraitIds: (v as any).linkedTraitIds ?? [],
                     options: [
                         {
                             tempId: optTempId,
@@ -266,17 +274,18 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
 
             addOption: (questionTempId, ord, traitIds) =>
                 set({
-                    questions: get().questions.map((q) =>
-                        q.tempId !== questionTempId
-                            ? q
-                            : {
-                                ...q,
-                                options: [
-                                    ...q.options,
-                                    { tempId: id('opt'), ord, label: '', weightsByTraitId: buildWeights(traitIds) },
-                                ],
-                            },
-                    ),
+                    questions: get().questions.map((q) => {
+                        if (q.tempId !== questionTempId) return q;
+                        const allowed = q.linkedTraitIds ?? [];
+                        const weights = buildWeights(traitIds.filter((x) => allowed.includes(x)));
+                        return {
+                            ...q,
+                            options: [
+                                ...q.options,
+                                { tempId: id('opt'), ord, label: '', weightsByTraitId: weights },
+                            ],
+                        };
+                    }),
                 }),
 
             patchOption: (questionTempId, optionTempId, v) =>
@@ -303,13 +312,39 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
 
             syncOptionWeightsWithTraits: (traitIds) =>
                 set({
-                    questions: get().questions.map((q) => ({
-                        ...q,
-                        options: q.options.map((o) => ({
-                            ...o,
-                            weightsByTraitId: ensureWeights(o.weightsByTraitId, traitIds),
-                        })),
-                    })),
+                    questions: get().questions.map((q) => {
+                        const allowed = q.linkedTraitIds ?? [];
+                        const allowSet = new Set<number>(allowed);
+                        return {
+                            ...q,
+                            options: q.options.map((o) => ({
+                                ...o,
+                                weightsByTraitId: ensureWeights(
+                                    o.weightsByTraitId,
+                                    traitIds.filter((x) => allowSet.has(x)),
+                                ),
+                            })),
+                        };
+                    }),
+                }),
+
+            applyLinkedTraitsToQuestion: (questionTempId, linkedTraitIds) =>
+                set({
+                    questions: get().questions.map((q) => {
+                        if (q.tempId !== questionTempId) return q;
+                        const allowSet = new Set<number>(linkedTraitIds);
+                        return {
+                            ...q,
+                            linkedTraitIds,
+                            options: q.options.map((o) => ({
+                                ...o,
+                                weightsByTraitId: ensureWeights(
+                                    o.weightsByTraitId,
+                                    Array.from(allowSet.values()),
+                                ),
+                            })),
+                        };
+                    }),
                 }),
 
             reorderQuestions: (activeId, overId) => {
@@ -349,7 +384,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
         }),
         {
             name: 'admin-quiz-builder',
-            version: 4,
+            version: 5,
             partialize: (s) => ({
                 step: s.step,
                 quizId: s.quizId,
