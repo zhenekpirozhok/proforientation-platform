@@ -45,6 +45,14 @@ export function AdminQuizBuilderPage() {
     [scales],
   );
 
+  const liveErrors = useMemo(() => {
+    if (step === 0) return validateInit({ title: init.title, code: init.code, description: init.description });
+    if (step === 1) return validateScales(scales);
+    if (step === 2) return validateQuestions(questions, traitIds);
+    if (step === 3) return validateResults(results);
+    return {} as Record<string, string>;
+  }, [step, init.title, init.code, init.description, scales, questions, traitIds, results]);
+
   const actions = useQuizBuilderActions(
     typeof quizId === 'number' ? quizId : 0,
     typeof quizVersionId === 'number' ? quizVersionId : 0
@@ -127,6 +135,19 @@ export function AdminQuizBuilderPage() {
           {step === 3 ? <StepResults errors={errors} /> : null}
           {step === 4 ? <StepPreview /> : null}
         </div>
+
+        {Object.keys(liveErrors).length > 0 ? (
+          <div className="mt-4">
+            <Typography.Text strong>{t('validation.fixErrors')}:</Typography.Text>
+            <ul className="mt-2 list-disc pl-6">
+              {Object.entries(liveErrors).map(([k, code]) => (
+                <li key={k}>
+                  <span className="font-mono">{k}</span>: {t(`validation.${code}`) ?? code}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         <div className="hidden sm:block">
           <StepActions step={step} onPrev={goPrev} onNext={goNext} canGoNext={canGoNext} />

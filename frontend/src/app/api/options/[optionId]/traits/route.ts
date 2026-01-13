@@ -1,9 +1,6 @@
 import { bffAuthFetch } from '@/shared/api/bffAuthFetch';
 
-export async function POST(
-    req: Request,
-    ctx: { params: { optionId: string } },
-) {
+export async function POST(req: any, ctx: any) {
     const body = await req.text();
 
     const upstream = await bffAuthFetch(`/options/${ctx.params.optionId}/traits`, {

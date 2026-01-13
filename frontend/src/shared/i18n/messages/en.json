@@ -291,6 +291,7 @@
       "pairIncomplete": "Bipolar pair must contain both sides.",
       "pairCodeRequired": "Bipolar pair code is required.",
       "pairCodeMismatch": "Bipolar pair code must be the same for both sides."
+        ,"weightsMissing": "Assign weights for scales"
   },
   "steps": {
     "init": "Init",
