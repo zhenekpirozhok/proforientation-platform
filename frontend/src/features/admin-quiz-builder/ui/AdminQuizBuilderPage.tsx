@@ -53,10 +53,9 @@ export function AdminQuizBuilderPage() {
     return {} as Record<string, string>;
   }, [step, init.title, init.code, init.description, scales, questions, traitIds, results]);
 
-  const actions = useQuizBuilderActions(
-    typeof quizId === 'number' ? quizId : 0,
-    typeof quizVersionId === 'number' ? quizVersionId : 0
-  );
+  const hasContext = typeof quizId === 'number' && typeof quizVersionId === 'number';
+
+  const actions = useQuizBuilderActions(hasContext ? quizId : 0, hasContext ? quizVersionId : 0);
   const ensureTraits = useEnsureQuizTraits(actions);
   const createOrUpdateQuiz = useCreateOrUpdateQuiz(actions);
 
@@ -70,7 +69,7 @@ export function AdminQuizBuilderPage() {
 
   function goPrev() {
     setErrors({});
-    setStep((Math.max(0, step - 1) as any));
+    setStep(Math.max(0, step - 1) as any);
   }
 
   async function goNext() {
@@ -88,16 +87,16 @@ export function AdminQuizBuilderPage() {
     }
 
     if (step === 0) {
-      const success = await createOrUpdateQuiz(
+      const ok = await createOrUpdateQuiz(
         {
           quizId,
           title: init.title,
           code: init.code,
           descriptionDefault: init.description,
         },
-        !!quizId,
+        typeof quizId === 'number',
       );
-      if (!success) return;
+      if (!ok) return;
     }
 
     if (step === 1) {
@@ -105,7 +104,7 @@ export function AdminQuizBuilderPage() {
       if (!ok) return;
     }
 
-    setStep(((step + 1) as any));
+    setStep((step + 1) as any);
   }
 
   return (
@@ -124,8 +123,8 @@ export function AdminQuizBuilderPage() {
 
         <StepperHeader step={step} />
 
-        {step > 0 && (!quizId || !version) ? (
-          <Alert type="warning" message={t('needQuizContext')} />
+        {step > 0 && (!hasContext || typeof version !== 'number') ? (
+          <Alert type="warning" title={t('needQuizContext')} />
         ) : null}
 
         <div className="flex flex-col gap-4 sm:gap-6">

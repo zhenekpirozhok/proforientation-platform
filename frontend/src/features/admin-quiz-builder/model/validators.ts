@@ -88,9 +88,8 @@ export function validateQuestions(questions: QuestionDraft[], traitIds: number[]
     return out;
 }
 
-export function validateResults(v: ResultsDraft): ValidationErrors {
-    const out: ValidationErrors = {};
-    if (v.selectedCategoryIds.length < 1) add(out, 'categories', 'min1');
-    if (v.selectedProfessionIds.length < 1) add(out, 'professions', 'min1');
-    return out;
+export function validateResults(results: ResultsDraft) {
+    const e: Record<string, string> = {};
+    if (typeof results.categoryId !== 'number') e.categoryId = 'required';
+    return e;
 }
