@@ -73,10 +73,11 @@ function SortableQuestionCard(props: {
   title: string;
   typeLabel: string;
   optionsPreview: string[];
-  onClick: () => void;
+  onEdit: () => void;
   onRemove: () => void;
   errors: string[];
   removeLabel: string;
+  editLabel: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: props.id,
@@ -90,14 +91,10 @@ function SortableQuestionCard(props: {
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card
-        className={`!rounded-2xl ${props.active ? 'border-indigo-300 dark:border-indigo-700' : ''}`}
-        role="button"
-        onClick={props.onClick}
-      >
+      <Card className={`!rounded-2xl ${props.active ? 'border-indigo-300 dark:border-indigo-700' : ''}`}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-start">
-            <div {...attributes} {...listeners} onClick={(e) => e.stopPropagation()}>
+            <div {...attributes} {...listeners}>
               <DragHandle />
             </div>
 
@@ -107,15 +104,12 @@ function SortableQuestionCard(props: {
             </div>
           </div>
 
-          <Button
-            danger
-            onClick={(e) => {
-              e.stopPropagation();
-              props.onRemove();
-            }}
-          >
-            {props.removeLabel}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={props.onEdit}>{props.editLabel}</Button>
+            <Button danger onClick={props.onRemove}>
+              {props.removeLabel}
+            </Button>
+          </div>
         </div>
 
         <div className="pt-3 text-sm text-slate-600 dark:text-slate-300 pb-1">
@@ -188,9 +182,6 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
 
   const scales = useAdminQuizBuilderStore((s) => s.scales);
   const questions = useAdminQuizBuilderStore((s) => s.questions);
-  const activeQuestionTempId = useAdminQuizBuilderStore((s) => s.activeQuestionTempId);
-
-  const setActiveQuestion = useAdminQuizBuilderStore((s) => s.setActiveQuestion);
 
   const addQuestion = useAdminQuizBuilderStore((s) => s.addQuestion);
   const patchQuestion = useAdminQuizBuilderStore((s) => s.patchQuestion);
@@ -221,11 +212,6 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
     syncOptionWeightsWithTraits(allTraitIds);
   }, [allTraitIds.join('|')]);
 
-  const active = useMemo(() => {
-    if (!activeQuestionTempId) return null;
-    return questions.find((q) => q.tempId === activeQuestionTempId) ?? null;
-  }, [activeQuestionTempId, questions]);
-
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 220, tolerance: 8 } }),
@@ -247,6 +233,9 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
     options: [{ tempId: id('dopt'), label: '', weightsByTraitId: {} }],
   }));
 
+  const [draftErrors, setDraftErrors] = useState<Record<string, string>>({});
+  const [editingTempId, setEditingTempId] = useState<string | null>(null);
+
   useEffect(() => {
     setDraft((d) => ({
       ...d,
@@ -257,10 +246,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
     }));
   }, [draft.linkedTraitIds.join('|')]);
 
-  const [draftErrors, setDraftErrors] = useState<Record<string, string>>({});
-
   function resetDraft() {
-    setActiveQuestion(undefined);
     setDraft({
       text: '',
       qtype: 'SINGLE_CHOICE',
@@ -268,6 +254,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
       options: [{ tempId: id('dopt'), label: '', weightsByTraitId: {} }],
     });
     setDraftErrors({});
+    setEditingTempId(null);
   }
 
   function validateDraft() {
@@ -305,7 +292,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
   function onDraftTypeChange(v: string) {
     setDraft((d) => {
       if (v === 'LIKERT_5') {
-        const opts = likertLabels.map((label, idx) => ({
+        const opts = likertLabels.map((label) => ({
           tempId: id('dopt'),
           label,
           weightsByTraitId: buildWeights(d.linkedTraitIds),
@@ -329,53 +316,6 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
       linkedTraitIds: trimmed,
       options: d.options.map((o) => ({ ...o, weightsByTraitId: ensureWeights(o.weightsByTraitId, trimmed) })),
     }));
-  }
-
-  function commitDraftToStore() {
-    const e = validateDraft();
-    setDraftErrors(e);
-    if (Object.keys(e).length > 0) return;
-
-    const ord = (questions.at(-1)?.ord ?? 0) + 1;
-
-    addQuestion(
-      { ord, qtype: draft.qtype, text: draft.text, linkedTraitIds: draft.linkedTraitIds },
-      allTraitIds,
-    );
-
-    const st = useAdminQuizBuilderStore.getState();
-    const qTempId = st.activeQuestionTempId;
-    if (!qTempId) return;
-
-    applyLinkedTraitsToQuestion(qTempId, draft.linkedTraitIds);
-    patchQuestion(qTempId, { text: draft.text, qtype: draft.qtype });
-
-    const q = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
-    if (!q) return;
-
-    const first = q.options[0];
-    if (first) {
-      patchOption(qTempId, first.tempId, {
-        label: draft.options[0]?.label ?? '',
-        weightsByTraitId: ensureWeights(draft.options[0]?.weightsByTraitId ?? {}, draft.linkedTraitIds),
-      });
-    }
-
-    for (let i = 1; i < draft.options.length; i++) {
-      const ordOpt = i + 1;
-      addOption(qTempId, ordOpt, allTraitIds);
-
-      const q2 = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
-      const created = q2?.options.find((x) => x.ord === ordOpt) ?? q2?.options.at(-1);
-      if (!created) continue;
-
-      patchOption(qTempId, created.tempId, {
-        label: draft.options[i]?.label ?? '',
-        weightsByTraitId: ensureWeights(draft.options[i]?.weightsByTraitId ?? {}, draft.linkedTraitIds),
-      });
-    }
-
-    resetDraft();
   }
 
   function getQuestionErrors(qTempId: string) {
@@ -434,11 +374,128 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
     );
   }
 
-  const activeLinkedTraits = useMemo(() => {
-    if (!active) return [];
-    const allow = new Set<number>(active.linkedTraitIds ?? []);
-    return availableTraits.filter((x) => allow.has(x.traitId));
-  }, [active?.tempId, (active?.linkedTraitIds ?? []).join('|'), availableTraits]);
+  const draftLinkedTraits = useMemo(
+    () => availableTraits.filter((x) => draft.linkedTraitIds.includes(x.traitId)),
+    [availableTraits, draft.linkedTraitIds.join('|')],
+  );
+
+  function startEditQuestion(qTempId: string) {
+    const q = questions.find((x) => x.tempId === qTempId);
+    if (!q) return;
+
+    const linkedTraitIds = (q.linkedTraitIds ?? []).slice(0, 2);
+
+    setEditingTempId(qTempId);
+    setDraft({
+      text: q.text ?? '',
+      qtype: q.qtype ?? 'SINGLE_CHOICE',
+      linkedTraitIds,
+      options: (q.options ?? []).map((o) => ({
+        tempId: id('dopt'),
+        label: o.label ?? '',
+        weightsByTraitId: ensureWeights(o.weightsByTraitId ?? {}, linkedTraitIds),
+      })),
+    });
+    setDraftErrors({});
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function applyDraftToExistingQuestion(qTempId: string) {
+    const e = validateDraft();
+    setDraftErrors(e);
+    if (Object.keys(e).length > 0) return;
+
+    const q = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+    if (!q) return;
+
+    patchQuestion(qTempId, { text: draft.text, qtype: draft.qtype });
+    applyLinkedTraitsToQuestion(qTempId, draft.linkedTraitIds);
+
+    const existingIds = q.options.map((o) => o.tempId);
+    const desiredCount = draft.options.length;
+
+    for (let i = existingIds.length; i < desiredCount; i++) {
+      addOption(qTempId, i + 1, allTraitIds);
+    }
+
+    const qAfterAdd = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+    if (!qAfterAdd) return;
+
+    const idsNow = qAfterAdd.options
+      .slice()
+      .sort((a, b) => a.ord - b.ord)
+      .map((o) => o.tempId);
+
+    for (let i = desiredCount; i < idsNow.length; i++) {
+      const optId = idsNow[i];
+      removeOption(qTempId, optId);
+    }
+
+    const qFinal = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+    if (!qFinal) return;
+
+    const orderedFinal = qFinal.options.slice().sort((a, b) => a.ord - b.ord);
+
+    for (let i = 0; i < desiredCount; i++) {
+      const opt = orderedFinal[i];
+      if (!opt) continue;
+
+      const dopt = draft.options[i];
+      patchOption(qTempId, opt.tempId, {
+        label: dopt?.label ?? '',
+        weightsByTraitId: ensureWeights(dopt?.weightsByTraitId ?? {}, draft.linkedTraitIds),
+      });
+    }
+
+    resetDraft();
+  }
+
+  function commitDraftToStore() {
+    const e = validateDraft();
+    setDraftErrors(e);
+    if (Object.keys(e).length > 0) return;
+
+    const ord = (questions.at(-1)?.ord ?? 0) + 1;
+
+    addQuestion(
+      { ord, qtype: draft.qtype, text: draft.text, linkedTraitIds: draft.linkedTraitIds },
+      allTraitIds,
+    );
+
+    const st = useAdminQuizBuilderStore.getState();
+    const qTempId = st.activeQuestionTempId;
+    if (!qTempId) return;
+
+    applyLinkedTraitsToQuestion(qTempId, draft.linkedTraitIds);
+    patchQuestion(qTempId, { text: draft.text, qtype: draft.qtype });
+
+    const q = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+    if (!q) return;
+
+    const first = q.options[0];
+    if (first) {
+      patchOption(qTempId, first.tempId, {
+        label: draft.options[0]?.label ?? '',
+        weightsByTraitId: ensureWeights(draft.options[0]?.weightsByTraitId ?? {}, draft.linkedTraitIds),
+      });
+    }
+
+    for (let i = 1; i < draft.options.length; i++) {
+      const ordOpt = i + 1;
+      addOption(qTempId, ordOpt, allTraitIds);
+
+      const q2 = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+      const created = q2?.options.find((x) => x.ord === ordOpt) ?? q2?.options.at(-1);
+      if (!created) continue;
+
+      patchOption(qTempId, created.tempId, {
+        label: draft.options[i]?.label ?? '',
+        weightsByTraitId: ensureWeights(draft.options[i]?.weightsByTraitId ?? {}, draft.linkedTraitIds),
+      });
+    }
+
+    resetDraft();
+  }
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
@@ -458,14 +515,18 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
                 <SortableQuestionCard
                   key={q.tempId}
                   id={q.tempId}
-                  active={active?.tempId === q.tempId}
+                  active={editingTempId === q.tempId}
                   title={q.text.trim() ? q.text : t('untitledQuestion')}
                   typeLabel={`${t('typeLabel')}: ${q.qtype}`}
                   optionsPreview={q.options.map((o) => (o.label.trim() ? o.label : t('emptyOption')))}
-                  onClick={() => setActiveQuestion(q.tempId)}
-                  onRemove={() => removeQuestion(q.tempId)}
+                  onEdit={() => startEditQuestion(q.tempId)}
+                  onRemove={() => {
+                    removeQuestion(q.tempId);
+                    if (editingTempId === q.tempId) resetDraft();
+                  }}
                   errors={getQuestionErrors(q.tempId)}
                   removeLabel={t('remove')}
+                  editLabel={t('edit')}
                 />
               ))}
             </div>
@@ -473,254 +534,116 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
         </DndContext>
       ) : null}
 
-      <SectionCard title={active ? t('editorTitle') : t('editorTitleNew')}>
-        {active ? (
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-end">
-              <Button onClick={resetDraft}>{t('newQuestion')}</Button>
-            </div>
+      <SectionCard title={editingTempId ? t('editorTitleEdit') : t('editorTitleNew')}>
+        <div className="flex flex-col gap-4">
+          <div>
+            <Typography.Text className="block">{t('questionText')}</Typography.Text>
+            <Input
+              value={draft.text}
+              onChange={(e) => setDraft((d) => ({ ...d, text: e.target.value }))}
+              size="large"
+              placeholder={t('questionTextPh')}
+            />
+            <FieldError code={draftErrors.draftText} />
+          </div>
 
-            <div>
-              <Typography.Text className="block">{t('questionText')}</Typography.Text>
-              <Input
-                value={active.text}
-                onChange={(e) => patchQuestion(active.tempId, { text: e.target.value })}
-                size="large"
-                placeholder={t('questionTextPh')}
-              />
-              <FieldError code={errors[`q.${active.tempId}.text`]} />
-            </div>
+          <div>
+            <Typography.Text className="block">{t('questionType')}</Typography.Text>
+            <Select
+              value={draft.qtype}
+              onChange={(v) => onDraftTypeChange(String(v))}
+              className="w-full"
+              size="large"
+              options={[
+                { value: 'SINGLE_CHOICE', label: t('types.single') },
+                { value: 'MULTI_CHOICE', label: t('types.multi') },
+                { value: 'LIKERT_5', label: t('types.likert5') },
+              ]}
+            />
+            <FieldError code={draftErrors.draftType} />
+          </div>
 
-            <div>
-              <Typography.Text className="block">{t('questionType')}</Typography.Text>
-              <Select
-                value={active.qtype}
-                onChange={(v) => {
-                  const type = String(v);
-                  patchQuestion(active.tempId, { qtype: type });
+          <div>
+            <Typography.Text className="block">{t('selectTraits')}</Typography.Text>
+            <Select
+              value={draft.linkedTraitIds}
+              onChange={(v) => onDraftTraitsChange(v as number[])}
+              mode="multiple"
+              className="w-full"
+              size="large"
+              optionFilterProp="label"
+              options={availableTraits.map((x) => ({ value: x.traitId, label: x.name }))}
+              placeholder={t('selectTraitsPh')}
+            />
+            <FieldError code={draftErrors.draftTraits} />
+          </div>
 
-                  if (type === 'LIKERT_5') {
-                    const traitIds = active.linkedTraitIds ?? [];
-                    const st = useAdminQuizBuilderStore.getState();
+          <div className="flex flex-col gap-3">
+            <Typography.Text className="block font-medium">{t('options')}</Typography.Text>
 
-                    const q = st.questions.find((x) => x.tempId === active.tempId);
-                    if (!q) return;
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={({ active: a, over }) => {
+                if (!over) return;
+                if (a.id === over.id) return;
 
-                    const first = q.options[0];
-                    if (first) {
-                      patchOption(active.tempId, first.tempId, {
-                        label: likertLabels[0],
-                        weightsByTraitId: buildWeights(traitIds),
-                      });
-                    }
-
-                    for (let i = 1; i < 5; i++) {
-                      const ordOpt = i + 1;
-                      if (q.options.some((o) => o.ord === ordOpt)) {
-                        const existing = q.options.find((o) => o.ord === ordOpt);
-                        if (existing) {
-                          patchOption(active.tempId, existing.tempId, {
-                            label: likertLabels[i],
-                            weightsByTraitId: ensureWeights(existing.weightsByTraitId, traitIds),
-                          });
-                        }
-                        continue;
+                setDraft((d) => {
+                  const ids = d.options.map((x) => x.tempId);
+                  const from = ids.indexOf(String(a.id));
+                  const to = ids.indexOf(String(over.id));
+                  if (from === -1 || to === -1 || from === to) return d;
+                  return { ...d, options: arrayMove(d.options, from, to) };
+                });
+              }}
+            >
+              <SortableContext items={draft.options.map((o) => o.tempId)} strategy={verticalListSortingStrategy}>
+                <div className="flex flex-col gap-3">
+                  {draft.options.map((o) => (
+                    <SortableOptionRow
+                      key={o.tempId}
+                      id={o.tempId}
+                      label={o.label}
+                      placeholder={t('optionPh')}
+                      disableRemove={draft.options.length <= 1 || draft.qtype === 'LIKERT_5'}
+                      onChange={(v) => patchDraftOption(o.tempId, { label: v })}
+                      onRemove={() => removeDraftOption(o.tempId)}
+                      error={draftErrors[`draftOpt.${o.tempId}.label`]}
+                      renderWeights={() =>
+                        renderWeightsBlock(draftLinkedTraits, o.weightsByTraitId ?? {}, (next) =>
+                          patchDraftOption(o.tempId, { weightsByTraitId: next }),
+                        )
                       }
+                      removeLabel={t('remove')}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
 
-                      addOption(active.tempId, ordOpt, allTraitIds);
-
-                      const q2 = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === active.tempId);
-                      const created = q2?.options.find((x) => x.ord === ordOpt) ?? q2?.options.at(-1);
-                      if (!created) continue;
-
-                      patchOption(active.tempId, created.tempId, {
-                        label: likertLabels[i],
-                        weightsByTraitId: buildWeights(traitIds),
-                      });
-                    }
-                  }
-                }}
-                className="w-full"
-                size="large"
-                options={[
-                  { value: 'SINGLE_CHOICE', label: t('types.single') },
-                  { value: 'MULTI_CHOICE', label: t('types.multi') },
-                  { value: 'LIKERT_5', label: t('types.likert5') },
-                ]}
-              />
-              <FieldError code={errors[`q.${active.tempId}.qtype`]} />
-            </div>
-
-            <div>
-              <Typography.Text className="block">{t('selectTraits')}</Typography.Text>
-              <Select
-                value={active.linkedTraitIds ?? []}
-                onChange={(vals) => {
-                  const next = (vals as number[]).slice(0, 2);
-                  applyLinkedTraitsToQuestion(active.tempId, next);
-                  if ((vals as number[]).length > 2) return;
-                }}
-                mode="multiple"
-                className="w-full"
-                size="large"
-                optionFilterProp="label"
-                options={availableTraits.map((x) => ({ value: x.traitId, label: x.name }))}
-                placeholder={t('selectTraitsPh')}
-              />
-              <FieldError code={errors[`q.${active.tempId}.traits`]} />
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <Typography.Text className="block font-medium">{t('options')}</Typography.Text>
-
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={({ active: a, over }) => {
-                  if (!over) return;
-                  if (a.id === over.id) return;
-                  reorderOptions(active.tempId, String(a.id), String(over.id));
-                }}
-              >
-                <SortableContext items={active.options.map((o) => o.tempId)} strategy={verticalListSortingStrategy}>
-                  <div className="flex flex-col gap-3">
-                    {active.options.map((o) => (
-                      <SortableOptionRow
-                        key={o.tempId}
-                        id={o.tempId}
-                        label={o.label}
-                        placeholder={t('optionPh')}
-                        disableRemove={active.options.length <= 1}
-                        onChange={(v) => patchOption(active.tempId, o.tempId, { label: v })}
-                        onRemove={() => removeOption(active.tempId, o.tempId)}
-                        error={getOptionError(o.tempId)}
-                        renderWeights={() =>
-                          renderWeightsBlock(activeLinkedTraits, o.weightsByTraitId ?? {}, (next) =>
-                            patchOption(active.tempId, o.tempId, { weightsByTraitId: next }),
-                          )
-                        }
-                        removeLabel={t('remove')}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
-
-              <div className="flex items-center justify-between gap-3">
-                <Button
-                  onClick={() => addOption(active.tempId, (active.options.at(-1)?.ord ?? 0) + 1, allTraitIds)}
-                  disabled={active.qtype === 'LIKERT_5'}
-                >
-                  {t('addOption')}
-                </Button>
-                <FieldError code={errors[`q.${active.tempId}.options`]} />
-              </div>
+            <div className="flex items-center justify-between gap-3">
+              <Button onClick={addDraftOption} disabled={draft.qtype === 'LIKERT_5'}>
+                {t('addOption')}
+              </Button>
+              <FieldError code={draftErrors.draftOptions} />
             </div>
           </div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            <div>
-              <Typography.Text className="block">{t('questionText')}</Typography.Text>
-              <Input
-                value={draft.text}
-                onChange={(e) => setDraft((d) => ({ ...d, text: e.target.value }))}
-                size="large"
-                placeholder={t('questionTextPh')}
-              />
-              <FieldError code={draftErrors.draftText} />
-            </div>
 
-            <div>
-              <Typography.Text className="block">{t('questionType')}</Typography.Text>
-              <Select
-                value={draft.qtype}
-                onChange={(v) => onDraftTypeChange(String(v))}
-                className="w-full"
-                size="large"
-                options={[
-                  { value: 'SINGLE_CHOICE', label: t('types.single') },
-                  { value: 'MULTI_CHOICE', label: t('types.multi') },
-                  { value: 'LIKERT_5', label: t('types.likert5') },
-                ]}
-              />
-              <FieldError code={draftErrors.draftType} />
-            </div>
-
-            <div>
-              <Typography.Text className="block">{t('selectTraits')}</Typography.Text>
-              <Select
-                value={draft.linkedTraitIds}
-                onChange={(v) => onDraftTraitsChange(v as number[])}
-                mode="multiple"
-                className="w-full"
-                size="large"
-                optionFilterProp="label"
-                options={availableTraits.map((x) => ({ value: x.traitId, label: x.name }))}
-                placeholder={t('selectTraitsPh')}
-              />
-              <FieldError code={draftErrors.draftTraits} />
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <Typography.Text className="block font-medium">{t('options')}</Typography.Text>
-
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={({ active: a, over }) => {
-                  if (!over) return;
-                  if (a.id === over.id) return;
-
-                  setDraft((d) => {
-                    const ids = d.options.map((x) => x.tempId);
-                    const from = ids.indexOf(String(a.id));
-                    const to = ids.indexOf(String(over.id));
-                    if (from === -1 || to === -1 || from === to) return d;
-                    return { ...d, options: arrayMove(d.options, from, to) };
-                  });
-                }}
-              >
-                <SortableContext items={draft.options.map((o) => o.tempId)} strategy={verticalListSortingStrategy}>
-                  <div className="flex flex-col gap-3">
-                    {draft.options.map((o) => (
-                      <SortableOptionRow
-                        key={o.tempId}
-                        id={o.tempId}
-                        label={o.label}
-                        placeholder={t('optionPh')}
-                        disableRemove={draft.options.length <= 1}
-                        onChange={(v) => patchDraftOption(o.tempId, { label: v })}
-                        onRemove={() => removeDraftOption(o.tempId)}
-                        error={draftErrors[`draftOpt.${o.tempId}.label`]}
-                        renderWeights={() =>
-                          renderWeightsBlock(
-                            availableTraits.filter((x) => draft.linkedTraitIds.includes(x.traitId)),
-                            o.weightsByTraitId ?? {},
-                            (next) => patchDraftOption(o.tempId, { weightsByTraitId: next }),
-                          )
-                        }
-                        removeLabel={t('remove')}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
-
-              <div className="flex items-center justify-between gap-3">
-                <Button onClick={addDraftOption} disabled={draft.qtype === 'LIKERT_5'}>
-                  {t('addOption')}
+          <div className="flex items-center justify-end gap-2">
+            {editingTempId ? (
+              <>
+                <Button onClick={resetDraft}>{t('cancelEdit')}</Button>
+                <Button type="primary" size="large" onClick={() => applyDraftToExistingQuestion(editingTempId)}>
+                  {t('saveChanges')}
                 </Button>
-                <FieldError code={draftErrors.draftOptions} />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end">
+              </>
+            ) : (
               <Button type="primary" size="large" onClick={commitDraftToStore}>
                 {t('addThisQuestion')}
               </Button>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </SectionCard>
     </div>
   );

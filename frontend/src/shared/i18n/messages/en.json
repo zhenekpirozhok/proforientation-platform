@@ -349,6 +349,7 @@
       "addQuestion": "Add question",
       "editorTitle": "Question editor",
       "editorTitleNew": "Create your first question",
+      "editorTitleEdit": "Edit question",
       "questionText": "Question",
       "questionTextPh": "Type the question",
       "questionType": "Type",
@@ -367,6 +368,13 @@
       "weightsTitle": "Weights for scales",
       "noTraitsYet": "No scales/traits yet. Go back and add scales first.",
       "noQuestionsYet": "No questions yet. Click “Add question”."
+      ,"selectTraits": "Select traits",
+      "selectTraitsPh": "Select traits",
+      "selectTraitsHint": "Select traits to enable weights for options.",
+      "addThisQuestion": "Add question",
+      "saveChanges": "Save changes",
+      "cancelEdit": "Cancel",
+      "edit": "Edit"
     },
   "results": {
     "title": "Step 3 — Results",
