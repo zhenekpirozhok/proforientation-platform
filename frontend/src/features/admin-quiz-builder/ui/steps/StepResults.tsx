@@ -8,6 +8,7 @@ import { SectionCard } from '../SectionCard';
 import { FieldError } from '../FieldError';
 import { useAdminQuizBuilderStore } from '../../model/store';
 
+
 import { useAdminCategories } from '@/entities/category/api/useAdminCategories';
 import { useAdminCreateCategory } from '@/entities/category/api/useAdminCreateCategory';
 import { useAdminProfessions } from '@/entities/profession/api/useAdminProfessions';
@@ -16,15 +17,17 @@ import { useAdminCreateProfession } from '@/entities/profession/api/useAdminCrea
 export function StepResults({ errors }: { errors: Record<string, string> }) {
   const t = useTranslations('AdminQuizBuilder.results');
 
-  const results = useAdminQuizBuilderStore((s) => s.results);
-  const patchResults = useAdminQuizBuilderStore((s) => (v: any) => {
-    const cur = s.results;
-    s.results = { ...cur, ...v };
-  });
-
-  const setResults = useAdminQuizBuilderStore((s) => (v: any) => {
-    s.results = v;
-  });
+  const [results, patchResults, setResults] = useAdminQuizBuilderStore(
+    (s) => [s.results, s.patchResults, s.setResults]
+  ) as [
+    {
+      selectedCategoryIds: number[];
+      selectedProfessionIds: number[];
+      // ...other result fields if needed
+    },
+    (patch: Partial<any>) => void,
+    (results: any) => void
+  ];
 
   const categories = useAdminCategories();
   const professions = useAdminProfessions();
@@ -90,11 +93,7 @@ export function StepResults({ errors }: { errors: Record<string, string> }) {
             <Select
               mode="multiple"
               value={results.selectedCategoryIds}
-              onChange={(ids) =>
-                useAdminQuizBuilderStore.setState({
-                  results: { ...results, selectedCategoryIds: ids as number[] },
-                })
-              }
+              onChange={(ids) => patchResults({ selectedCategoryIds: ids as number[] })}
               options={categoryOptions}
               className="w-full"
               placeholder={t('categoriesPh')}
@@ -122,11 +121,7 @@ export function StepResults({ errors }: { errors: Record<string, string> }) {
             <Select
               mode="multiple"
               value={results.selectedProfessionIds}
-              onChange={(ids) =>
-                useAdminQuizBuilderStore.setState({
-                  results: { ...results, selectedProfessionIds: ids as number[] },
-                })
-              }
+              onChange={(ids) => patchResults({ selectedProfessionIds: ids as number[] })}
               options={professionOptions}
               className="w-full"
               placeholder={t('professionsPh')}

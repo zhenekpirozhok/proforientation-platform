@@ -1,6 +1,6 @@
 import { bffAuthFetch } from '@/shared/api/bffAuthFetch';
 
-export async function POST(req: Request, ctx: { params: { id: string } }) {
+export async function POST(req: any, ctx: any) {
     const upstream = await bffAuthFetch(`/quizzes/${ctx.params.id}/publish`, {
         method: 'POST',
         headers: {

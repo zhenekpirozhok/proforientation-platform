@@ -107,6 +107,8 @@ type BuilderState = {
     reorderOptions: (questionTempId: string, activeId: string, overId: string) => void;
 
     reset: () => void;
+    patchResults: (v: Partial<ResultsDraft>) => void;
+    setResults: (v: ResultsDraft) => void;
 };
 
 function id(prefix: string) {
@@ -169,6 +171,10 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
             setQuizContext: ({ quizId, version, quizVersionId }) => set({ quizId, version, quizVersionId }),
 
             patchInit: (v) => set({ init: { ...get().init, ...v } }),
+
+            patchResults: (v) => set({ results: { ...get().results, ...v } }),
+
+            setResults: (v) => set({ results: v }),
 
             setActiveQuestion: (tempId) => set({ activeQuestionTempId: tempId }),
 

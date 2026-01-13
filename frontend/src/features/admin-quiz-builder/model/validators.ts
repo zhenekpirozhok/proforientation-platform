@@ -74,9 +74,11 @@ export function validateQuestions(questions: QuestionDraft[], traitIds: number[]
         for (const o of q.options) {
             if (!o.label.trim()) add(out, `o.${o.tempId}.label`, 'required');
 
-            if (traitIds.length > 0) {
+            // Prefer question-linked traits; if none linked, fall back to global traitIds
+            const neededTraitIds = (q.linkedTraitIds && q.linkedTraitIds.length > 0) ? q.linkedTraitIds : traitIds;
+            if (neededTraitIds.length > 0) {
                 const map = o.weightsByTraitId ?? {};
-                for (const tid of traitIds) {
+                for (const tid of neededTraitIds) {
                     if (!(tid in map)) add(out, `o.${o.tempId}.weights`, 'weightsMissing');
                 }
             }
