@@ -23,7 +23,7 @@ export type OptionDraft = {
     label: string;
     ord: number;
     optionId?: number;
-    traits: Array<{ traitId: number; weight: number }>;
+    weightsByTraitId: Record<number, number>;
 };
 
 export type QuestionDraft = {
@@ -59,6 +59,8 @@ type BuilderState = {
     scaleMode: ScaleMode;
     editingScaleTempId?: string;
     editingPairId?: string;
+
+    activeQuestionTempId?: string;
 
     scales: ScaleDraft[];
     questions: QuestionDraft[];
@@ -99,17 +101,17 @@ type BuilderState = {
     removeScale: (tempId: string) => void;
     removePair: (pairId: string) => void;
 
-    addQuestion: (v: Omit<QuestionDraft, 'tempId'>) => void;
-    patchQuestion: (tempId: string, v: Partial<QuestionDraft>) => void;
+    setActiveQuestion: (tempId?: string) => void;
+
+    addQuestion: (v: { ord: number; qtype: string; text: string }, traitIds: number[]) => void;
+    patchQuestion: (tempId: string, v: Partial<Omit<QuestionDraft, 'tempId' | 'options'>>) => void;
     removeQuestion: (tempId: string) => void;
 
-    addOption: (questionTempId: string, v: Omit<OptionDraft, 'tempId'>) => void;
-    patchOption: (
-        questionTempId: string,
-        optionTempId: string,
-        v: Partial<OptionDraft>,
-    ) => void;
+    addOption: (questionTempId: string, ord: number, traitIds: number[]) => void;
+    patchOption: (questionTempId: string, optionTempId: string, v: Partial<Omit<OptionDraft, 'tempId'>>) => void;
     removeOption: (questionTempId: string, optionTempId: string) => void;
+
+    syncOptionWeightsWithTraits: (traitIds: number[]) => void;
 
     reset: () => void;
 };
@@ -139,6 +141,12 @@ function cleanupEditState(scales: ScaleDraft[], editingScaleTempId?: string, edi
     return { nextEditingScaleTempId, nextEditingPairId };
 }
 
+function buildWeights(traitIds: number[]) {
+    const obj: Record<number, number> = {};
+    for (const tid of traitIds) obj[tid] = 0;
+    return obj;
+}
+
 const initialState = {
     hydrated: false as const,
 
@@ -158,6 +166,8 @@ const initialState = {
     scaleMode: null as ScaleMode,
     editingScaleTempId: undefined as string | undefined,
     editingPairId: undefined as string | undefined,
+
+    activeQuestionTempId: undefined as string | undefined,
 
     scales: [] as ScaleDraft[],
     questions: [] as QuestionDraft[],
@@ -263,7 +273,6 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
 
             removeScale: (tempId) => {
                 const prev = get().scales;
-                const removed = prev.find((s) => s.tempId === tempId);
                 const next = prev.filter((s) => s.tempId !== tempId);
 
                 const { nextEditingScaleTempId, nextEditingPairId } = cleanupEditState(
@@ -272,19 +281,12 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                     get().editingPairId,
                 );
 
-                const nextMode = deriveScaleMode(next);
-
                 set({
                     scales: next,
-                    scaleMode: nextMode,
+                    scaleMode: deriveScaleMode(next),
                     editingScaleTempId: nextEditingScaleTempId,
                     editingPairId: nextEditingPairId,
                 });
-
-                if (removed?.polarity === 'bipolar' && removed.pairId) {
-                    const stillHasPair = next.some((s) => s.pairId === removed.pairId);
-                    if (stillHasPair) return;
-                }
             },
 
             removePair: (pairId) => {
@@ -297,20 +299,41 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                     get().editingPairId,
                 );
 
-                const nextMode = deriveScaleMode(next);
-
                 set({
                     scales: next,
-                    scaleMode: nextMode,
+                    scaleMode: deriveScaleMode(next),
                     editingScaleTempId: nextEditingScaleTempId,
                     editingPairId: nextEditingPairId,
                 });
             },
 
-            addQuestion: (v) =>
+            setActiveQuestion: (tempId) => set({ activeQuestionTempId: tempId }),
+
+            addQuestion: (v, traitIds) => {
+                const qTempId = id('q');
+                const oTempId = id('opt');
+
                 set({
-                    questions: [...get().questions, { ...v, tempId: id('q') }],
-                }),
+                    activeQuestionTempId: qTempId,
+                    questions: [
+                        ...get().questions,
+                        {
+                            tempId: qTempId,
+                            ord: v.ord,
+                            qtype: v.qtype,
+                            text: v.text,
+                            options: [
+                                {
+                                    tempId: oTempId,
+                                    ord: 1,
+                                    label: '',
+                                    weightsByTraitId: buildWeights(traitIds),
+                                },
+                            ],
+                        },
+                    ],
+                });
+            },
 
             patchQuestion: (tempId, v) =>
                 set({
@@ -319,17 +342,31 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                     ),
                 }),
 
-            removeQuestion: (tempId) =>
-                set({ questions: get().questions.filter((q) => q.tempId !== tempId) }),
+            removeQuestion: (tempId) => {
+                const next = get().questions.filter((q) => q.tempId !== tempId);
+                const active = get().activeQuestionTempId;
+                const nextActive =
+                    active === tempId ? next.at(-1)?.tempId : active;
 
-            addOption: (questionTempId, v) =>
+                set({ questions: next, activeQuestionTempId: nextActive });
+            },
+
+            addOption: (questionTempId, ord, traitIds) =>
                 set({
                     questions: get().questions.map((q) =>
                         q.tempId !== questionTempId
                             ? q
                             : {
                                 ...q,
-                                options: [...q.options, { ...v, tempId: id('opt') }],
+                                options: [
+                                    ...q.options,
+                                    {
+                                        tempId: id('opt'),
+                                        ord,
+                                        label: '',
+                                        weightsByTraitId: buildWeights(traitIds),
+                                    },
+                                ],
                             },
                     ),
                 }),
@@ -360,11 +397,27 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                     ),
                 }),
 
+            syncOptionWeightsWithTraits: (traitIds) =>
+                set({
+                    questions: get().questions.map((q) => ({
+                        ...q,
+                        options: q.options.map((o) => {
+                            const next = { ...o.weightsByTraitId };
+                            for (const tid of traitIds) if (!(tid in next)) next[tid] = 0;
+                            for (const key of Object.keys(next)) {
+                                const n = Number(key);
+                                if (!traitIds.includes(n)) delete next[n];
+                            }
+                            return { ...o, weightsByTraitId: next };
+                        }),
+                    })),
+                }),
+
             reset: () => set({ ...initialState }),
         }),
         {
             name: 'admin-quiz-builder',
-            version: 4,
+            version: 5,
             partialize: (s) => ({
                 step: s.step,
                 quizId: s.quizId,
@@ -375,6 +428,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                 scales: s.scales,
                 questions: s.questions,
                 results: s.results,
+                activeQuestionTempId: s.activeQuestionTempId,
             }),
             onRehydrateStorage: () => (state) => state?.setHydrated(true),
         },

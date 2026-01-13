@@ -1,376 +1,244 @@
 'use client';
 
-import { Button, Input, InputNumber, Select, Typography, message } from 'antd';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
+import { Button, Card, Input, Select, Typography, InputNumber } from 'antd';
 import { useTranslations } from 'next-intl';
 
 import { SectionCard } from '../SectionCard';
 import { FieldError } from '../FieldError';
 import { useAdminQuizBuilderStore } from '../../model/store';
 
-import { useAdminTraits } from '@/entities/trait/api/useAdminTraits';
-import { useQuizBuilderActions } from '@/features/admin-quiz-builder/api/useQuizBuilderActions';
-
-function nextOrd(existing: number[]) {
-  const m = existing.length ? Math.max(...existing) : 0;
-  return m + 1;
-}
-
 export function StepQuestions({ errors }: { errors: Record<string, string> }) {
   const t = useTranslations('AdminQuizBuilder.questions');
 
-  const quizId = useAdminQuizBuilderStore((s) => s.quizId);
-  const version = useAdminQuizBuilderStore((s) => s.version);
-  const quizVersionId = useAdminQuizBuilderStore((s) => s.quizVersionId);
-
+  const scales = useAdminQuizBuilderStore((s) => s.scales);
   const questions = useAdminQuizBuilderStore((s) => s.questions);
+  const activeQuestionTempId = useAdminQuizBuilderStore((s) => s.activeQuestionTempId);
+
+  const setActiveQuestion = useAdminQuizBuilderStore((s) => s.setActiveQuestion);
+
   const addQuestion = useAdminQuizBuilderStore((s) => s.addQuestion);
   const patchQuestion = useAdminQuizBuilderStore((s) => s.patchQuestion);
   const removeQuestion = useAdminQuizBuilderStore((s) => s.removeQuestion);
+
   const addOption = useAdminQuizBuilderStore((s) => s.addOption);
   const patchOption = useAdminQuizBuilderStore((s) => s.patchOption);
   const removeOption = useAdminQuizBuilderStore((s) => s.removeOption);
 
-  const traits = useAdminTraits();
+  const syncOptionWeightsWithTraits = useAdminQuizBuilderStore((s) => s.syncOptionWeightsWithTraits);
 
-  const traitOptions = useMemo(
-    () =>
-      Array.isArray(traits.data)
-        ? traits.data.map((x: any) => ({
-            label: `${x.name ?? x.code ?? x.id}`,
-            value: x.id,
-          }))
-        : [],
-    [traits.data],
+  const traitIds = useMemo(
+    () => scales.map((s) => s.traitId).filter((x): x is number => typeof x === 'number'),
+    [scales],
   );
 
-  const actions =
-    typeof quizId === 'number' && typeof version === 'number'
-      ? useQuizBuilderActions(quizId, version)
-      : null;
+  const traits = useMemo(
+    () =>
+      scales
+        .filter((s) => typeof s.traitId === 'number')
+        .map((s) => ({ traitId: s.traitId as number, name: s.name })),
+    [scales],
+  );
 
-  const [draftText, setDraftText] = useState('');
-  const [draftType, setDraftType] = useState('single_choice');
+  useEffect(() => {
+    syncOptionWeightsWithTraits(traitIds);
+  }, [traitIds.join('|')]);
 
-  function addDraftQuestion() {
-    const ord = nextOrd(questions.map((q) => q.ord));
-    addQuestion({
-      ord,
-      qtype: draftType,
-      text: draftText,
-      options: [],
-    });
-    setDraftText('');
+  const active = useMemo(() => {
+    if (!activeQuestionTempId) return questions.at(-1) ?? null;
+    return questions.find((q) => q.tempId === activeQuestionTempId) ?? (questions.at(-1) ?? null);
+  }, [activeQuestionTempId, questions]);
+
+  useEffect(() => {
+    if (!active && questions.length === 0) {
+      setActiveQuestion(undefined);
+    }
+    if (!activeQuestionTempId && questions.length > 0) {
+      setActiveQuestion(questions.at(-1)?.tempId);
+    }
+  }, [questions.length]);
+
+  function getQuestionError(tempId: string, field: string) {
+    return errors[`q.${tempId}.${field}`];
   }
 
-  async function persistQuestion(qTempId: string) {
-    if (!actions || typeof quizVersionId !== 'number') return;
-
-    const q = questions.find((x) => x.tempId === qTempId);
-    if (!q) return;
-
-    try {
-      const created = await actions.createQuestion.mutateAsync({
-        data: {
-          quizVersionId,
-          ord: q.ord,
-          qtype: q.qtype as any,
-          text: q.text,
-        },
-      } as any);
-
-      const questionId = (created as any).id as number | undefined;
-      if (typeof questionId === 'number') patchQuestion(qTempId, { questionId });
-
-      message.success(t('questionSaved'));
-    } catch (e) {
-      message.error((e as Error).message);
-    }
+  function getOptionError(optionTempId: string, field: string) {
+    return errors[`o.${optionTempId}.${field}`];
   }
 
-  async function persistOption(qTempId: string, oTempId: string) {
-    if (!actions) return;
-
-    const q = questions.find((x) => x.tempId === qTempId);
-    const o = q?.options.find((x) => x.tempId === oTempId);
-    if (!q || !o || typeof q.questionId !== 'number') return;
-
-    try {
-      const created = await actions.createOption.mutateAsync({
-        data: {
-          questionId: q.questionId,
-          ord: o.ord,
-          label: o.label,
-        },
-      } as any);
-
-      const optionId = (created as any).id as number | undefined;
-      if (typeof optionId === 'number') {
-        patchOption(qTempId, oTempId, { optionId });
-      }
-
-      message.success(t('optionSaved'));
-    } catch (e) {
-      message.error((e as Error).message);
-    }
+  function onAddQuestion() {
+    const ord = (questions.at(-1)?.ord ?? 0) + 1;
+    addQuestion({ ord, qtype: 'SINGLE_CHOICE', text: '' }, traitIds);
   }
 
-  async function persistOptionTraits(qTempId: string, oTempId: string) {
-    if (!actions) return;
-
-    const q = questions.find((x) => x.tempId === qTempId);
-    const o = q?.options.find((x) => x.tempId === oTempId);
-    if (!o || typeof o.optionId !== 'number') return;
-
-    try {
-      await actions.assignOptionTraits.mutateAsync({
-        optionId: o.optionId,
-        data: { traits: o.traits } as any,
-      } as any);
-
-      message.success(t('mappingSaved'));
-    } catch (e) {
-      message.error((e as Error).message);
-    }
+  function onAddOption(questionTempId: string) {
+    const q = questions.find((x) => x.tempId === questionTempId);
+    const ord = (q?.options.at(-1)?.ord ?? 0) + 1;
+    addOption(questionTempId, ord, traitIds);
   }
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
-      <SectionCard title={t('title')}>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
-          <div className="sm:col-span-3">
-            <Typography.Text className="block">{t('text')}</Typography.Text>
-            <Input
-              value={draftText}
-              onChange={(e) => setDraftText(e.target.value)}
-              placeholder={t('textPh')}
-              size="large"
-            />
-          </div>
+      <div className="flex items-center justify-between gap-3">
+        <Typography.Title level={4} className="!m-0">
+          {t('title')}
+        </Typography.Title>
+        <Button type="primary" onClick={onAddQuestion}>
+          {t('addQuestion')}
+        </Button>
+      </div>
 
-          <div className="sm:col-span-2">
-            <Typography.Text className="block">{t('type')}</Typography.Text>
-            <Select
-              value={draftType}
-              onChange={setDraftType}
-              size="large"
-              className="w-full"
-              options={[
-                { value: 'single_choice', label: t('typeSingle') },
-                { value: 'multi_choice', label: t('typeMulti') },
-                { value: 'liker_scale_5', label: t('typeLikert5') },
-              ]}
-            />
-          </div>
-        </div>
-
-        <div className="mt-3 flex justify-end">
-          <Button type="primary" size="large" onClick={addDraftQuestion} disabled={!draftText.trim()}>
-            {t('addQuestion')}
-          </Button>
-        </div>
-
-        <FieldError code={errors.questions} />
-      </SectionCard>
-
-      <SectionCard title={t('list')}>
-        <div className="flex flex-col gap-4">
-          {questions.length === 0 ? (
-            <Typography.Text type="secondary">{t('empty')}</Typography.Text>
-          ) : null}
-
-          {questions.map((q) => (
-            <div
-              key={q.tempId}
-              className="rounded-2xl border border-slate-200 p-3 dark:border-slate-800"
-            >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex min-w-0 flex-1 flex-col gap-2">
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-6">
-                    <div className="sm:col-span-1">
-                      <Typography.Text className="block">{t('ord')}</Typography.Text>
-                      <InputNumber
-                        value={q.ord}
-                        onChange={(v) => patchQuestion(q.tempId, { ord: Number(v ?? 1) })}
-                        min={1}
-                        className="w-full"
-                      />
+      {questions.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          {questions.map((q) => {
+            const isActive = active?.tempId === q.tempId;
+            return (
+              <Card
+                key={q.tempId}
+                className={`!rounded-2xl ${isActive ? 'border-indigo-300 dark:border-indigo-700' : ''}`}
+                onClick={() => setActiveQuestion(q.tempId)}
+                role="button"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="truncate font-semibold">
+                      {q.text.trim() ? q.text : t('untitledQuestion')}
                     </div>
-                    <div className="sm:col-span-2">
-                      <Typography.Text className="block">{t('type')}</Typography.Text>
-                      <Select
-                        value={q.qtype}
-                        onChange={(v) => patchQuestion(q.tempId, { qtype: v })}
-                        className="w-full"
-                        options={[
-                          { value: 'single_choice', label: t('typeSingle') },
-                          { value: 'multi_choice', label: t('typeMulti') },
-                          { value: 'liker_scale_5', label: t('typeLikert5') },
-                        ]}
-                      />
-                    </div>
-                    <div className="sm:col-span-3">
-                      <Typography.Text className="block">{t('text')}</Typography.Text>
-                      <Input
-                        value={q.text}
-                        onChange={(e) => patchQuestion(q.tempId, { text: e.target.value })}
-                      />
-                      <FieldError code={errors[`q.${q.tempId}.text`]} />
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      {t('typeLabel')}: {q.qtype}
                     </div>
                   </div>
+                  <Button danger onClick={(e) => { e.stopPropagation(); removeQuestion(q.tempId); }}>
+                    {t('remove')}
+                  </Button>
+                </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      type="primary"
-                      onClick={() => persistQuestion(q.tempId)}
-                      disabled={!actions || !quizVersionId}
-                      loading={actions?.createQuestion.isPending}
-                    >
-                      {q.questionId ? t('saveAgain') : t('saveQuestion')}
-                    </Button>
-                    <Button danger onClick={() => removeQuestion(q.tempId)}>
-                      {t('removeQuestion')}
-                    </Button>
-                    <FieldError code={errors[`q.${q.tempId}.qtype`]} />
-                    <FieldError code={errors[`q.${q.tempId}.options`]} />
-                  </div>
-
-                  <div className="mt-2 flex flex-col gap-3">
-                    <Typography.Text className="block font-medium">
-                      {t('options')}
-                    </Typography.Text>
-
-                    <div className="flex flex-col gap-3">
-                      {q.options.map((o) => (
-                        <div
-                          key={o.tempId}
-                          className="rounded-2xl border border-slate-200 p-3 dark:border-slate-800"
-                        >
-                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-6">
-                            <div className="sm:col-span-1">
-                              <Typography.Text className="block">{t('ord')}</Typography.Text>
-                              <InputNumber
-                                value={o.ord}
-                                onChange={(v) =>
-                                  patchOption(q.tempId, o.tempId, { ord: Number(v ?? 1) })
-                                }
-                                min={1}
-                                className="w-full"
-                              />
-                            </div>
-                            <div className="sm:col-span-5">
-                              <Typography.Text className="block">{t('label')}</Typography.Text>
-                              <Input
-                                value={o.label}
-                                onChange={(e) =>
-                                  patchOption(q.tempId, o.tempId, { label: e.target.value })
-                                }
-                              />
-                              <FieldError code={errors[`o.${o.tempId}.label`]} />
-                            </div>
-                          </div>
-
-                          <div className="mt-3 flex flex-wrap items-center gap-2">
-                            <Button
-                              onClick={() => persistOption(q.tempId, o.tempId)}
-                              disabled={!actions || !q.questionId}
-                              loading={actions?.createOption.isPending}
-                            >
-                              {o.optionId ? t('saveAgain') : t('saveOption')}
-                            </Button>
-                            <Button
-                              type="primary"
-                              onClick={() => persistOptionTraits(q.tempId, o.tempId)}
-                              disabled={!actions || !o.optionId}
-                              loading={actions?.assignOptionTraits.isPending}
-                            >
-                              {t('saveMapping')}
-                            </Button>
-                            <Button danger onClick={() => removeOption(q.tempId, o.tempId)}>
-                              {t('removeOption')}
-                            </Button>
-                            <FieldError code={errors[`o.${o.tempId}.traits`]} />
-                          </div>
-
-                          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            <div>
-                              <Typography.Text className="block">
-                                {t('traits')}
-                              </Typography.Text>
-                              <Select
-                                mode="multiple"
-                                value={o.traits.map((x) => x.traitId)}
-                                onChange={(ids) => {
-                                  const next = (ids as number[]).map((traitId) => {
-                                    const prev = o.traits.find((x) => x.traitId === traitId);
-                                    return prev ?? { traitId, weight: 1 };
-                                  });
-                                  patchOption(q.tempId, o.tempId, { traits: next });
-                                }}
-                                options={traitOptions}
-                                className="w-full"
-                              />
-                            </div>
-
-                            <div className="flex flex-col gap-2">
-                              <Typography.Text className="block">
-                                {t('weights')}
-                              </Typography.Text>
-                              <div className="flex flex-col gap-2">
-                                {o.traits.map((m) => (
-                                  <div
-                                    key={m.traitId}
-                                    className="flex items-center gap-2"
-                                  >
-                                    <div className="min-w-0 flex-1 truncate">
-                                      {traitOptions.find((x) => x.value === m.traitId)?.label ??
-                                        m.traitId}
-                                    </div>
-                                    <InputNumber
-                                      value={m.weight}
-                                      onChange={(v) => {
-                                        const next = o.traits.map((x) =>
-                                          x.traitId === m.traitId
-                                            ? { ...x, weight: Number(v ?? 0) }
-                                            : x,
-                                        );
-                                        patchOption(q.tempId, o.tempId, { traits: next });
-                                      }}
-                                      className="w-28"
-                                    />
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                <div className="pt-3 text-sm text-slate-600 dark:text-slate-300">
+                  {q.options.slice(0, 4).map((o) => (
+                    <div key={o.tempId} className="truncate">
+                      • {o.label.trim() ? o.label : t('emptyOption')}
                     </div>
+                  ))}
+                  {q.options.length > 4 ? <div>…</div> : null}
+                </div>
 
-                    <div className="flex">
+                <div className="flex flex-col gap-1 pt-3">
+                  <FieldError code={getQuestionError(q.tempId, 'text')} />
+                  <FieldError code={getQuestionError(q.tempId, 'qtype')} />
+                  <FieldError code={getQuestionError(q.tempId, 'options')} />
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      ) : null}
+
+      <SectionCard title={active ? t('editorTitle') : t('editorTitleNew')}>
+        {active ? (
+          <div className="flex flex-col gap-4">
+            <div>
+              <Typography.Text className="block">{t('questionText')}</Typography.Text>
+              <Input
+                value={active.text}
+                onChange={(e) => patchQuestion(active.tempId, { text: e.target.value })}
+                size="large"
+                placeholder={t('questionTextPh')}
+              />
+              <FieldError code={getQuestionError(active.tempId, 'text')} />
+            </div>
+
+            <div>
+              <Typography.Text className="block">{t('questionType')}</Typography.Text>
+              <Select
+                value={active.qtype}
+                onChange={(v) => patchQuestion(active.tempId, { qtype: String(v) })}
+                className="w-full"
+                size="large"
+                options={[
+                  { value: 'SINGLE_CHOICE', label: t('types.single') },
+                  { value: 'MULTI_CHOICE', label: t('types.multi') },
+                  { value: 'LIKERT_5', label: t('types.likert5') }
+                ]}
+              />
+              <FieldError code={getQuestionError(active.tempId, 'qtype')} />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Typography.Text className="block font-medium">{t('options')}</Typography.Text>
+
+              <div className="flex flex-col gap-3">
+                {active.options.map((o) => (
+                  <Card key={o.tempId} size="small" className="!rounded-2xl">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1">
+                        <Input
+                          value={o.label}
+                          onChange={(e) =>
+                            patchOption(active.tempId, o.tempId, { label: e.target.value })
+                          }
+                          placeholder={t('optionPh')}
+                        />
+                        <FieldError code={getOptionError(o.tempId, 'label')} />
+                      </div>
+
                       <Button
-                        onClick={() =>
-                          addOption(q.tempId, {
-                            label: '',
-                            ord: nextOrd(q.options.map((o) => o.ord)),
-                            traits: [],
-                          })
-                        }
-                        disabled={!q.questionId}
+                        danger
+                        onClick={() => removeOption(active.tempId, o.tempId)}
+                        disabled={active.options.length <= 1}
                       >
-                        {t('addOption')}
+                        {t('remove')}
                       </Button>
                     </div>
-                  </div>
-                </div>
 
-                <div className="sm:pl-4">
-                  <FieldError code={errors[`q.${q.tempId}.options`]} />
-                </div>
+                    {traits.length > 0 ? (
+                      <div className="mt-4">
+                        <Typography.Text type="secondary" className="block">
+                          {t('weightsTitle')}
+                        </Typography.Text>
+
+                        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                          {traits.map((tr) => (
+                            <div
+                              key={tr.traitId}
+                              className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3 py-2 dark:border-slate-800"
+                            >
+                              <div className="min-w-0 truncate text-sm">{tr.name}</div>
+                              <InputNumber
+                                value={o.weightsByTraitId?.[tr.traitId] ?? 0}
+                                onChange={(v) => {
+                                  const next = { ...(o.weightsByTraitId ?? {}) };
+                                  next[tr.traitId] = typeof v === 'number' ? v : 0;
+                                  patchOption(active.tempId, o.tempId, { weightsByTraitId: next });
+                                }}
+                                step={0.25}
+                                className="w-28"
+                              />
+                            </div>
+                          ))}
+                        </div>
+
+                        <FieldError code={getOptionError(o.tempId, 'weights')} />
+                      </div>
+                    ) : (
+                      <div className="mt-3">
+                        <Typography.Text type="secondary">{t('noTraitsYet')}</Typography.Text>
+                      </div>
+                    )}
+                  </Card>
+                ))}
+              </div>
+
+              <div>
+                <Button onClick={() => onAddOption(active.tempId)}>{t('addOption')}</Button>
+                <FieldError code={getQuestionError(active.tempId, 'options')} />
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="py-2">
+            <Typography.Text type="secondary">{t('noQuestionsYet')}</Typography.Text>
+          </div>
+        )}
       </SectionCard>
     </div>
   );
