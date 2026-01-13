@@ -22,12 +22,18 @@ export function AppFooter() {
     >
       {/* Left / bottom: legal */}
       <div className="flex flex-wrap items-center gap-4">
-        <span className="cursor-pointer transition-colors hover:text-slate-900 dark:hover:text-white">
+        <Link
+          href="/privacy"
+          className="cursor-pointer transition-colors hover:text-slate-900 dark:hover:text-white"
+        >
           {tFooter('privacy')}
-        </span>
-        <span className="cursor-pointer transition-colors hover:text-slate-900 dark:hover:text-white">
+        </Link>
+        <Link
+          href="/terms"
+          className="cursor-pointer transition-colors hover:text-slate-900 dark:hover:text-white"
+        >
           {tFooter('terms')}
-        </span>
+        </Link>
       </div>
 
       {/* Right / top: locale switch */}
