@@ -1,7 +1,8 @@
 'use client';
 
-import { Button, Select, Typography, message } from 'antd';
-import { useMemo } from 'react';
+import { Button, ColorPicker, Input, Select, Typography, message } from 'antd';
+import type { Color } from 'antd/es/color-picker';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 
 import { SectionCard } from '../SectionCard';
@@ -9,11 +10,12 @@ import { FieldError } from '../FieldError';
 import { useAdminQuizBuilderStore } from '../../model/store';
 
 import { useAdminCategories } from '@/entities/category/api/useAdminCategories';
-import { useAdminProfessions } from '@/entities/profession/api/useAdminProfessions';
-import { useAdminUpdateQuiz } from '@/entities/quiz/api/useAdminUpdateQuiz';
+import { useQuizBuilderActions } from '@/features/admin-quiz-builder/api/useQuizBuilderActions';
 
 import type { ProfessionCategoryDto as Category } from '@/shared/api/generated/model/professionCategoryDto';
 import type { ProfessionDto as Profession } from '@/shared/api/generated/model/professionDto';
+
+import { generateEntityCode } from '@/shared/lib/code/generateEntityCode';
 
 function toNumber(v: unknown): number | undefined {
   const n = typeof v === 'number' ? v : Number(v);
@@ -38,6 +40,17 @@ function toArray<T>(v: unknown): T[] {
   return [];
 }
 
+function colorToHex(c: string | Color | null | undefined): string | undefined {
+  if (!c) return undefined;
+  if (typeof c === 'string') return /^#[0-9A-Fa-f]{6}$/.test(c) ? c : undefined;
+  try {
+    const hex = (c as any).toHexString?.();
+    return typeof hex === 'string' && /^#[0-9A-Fa-f]{6}$/.test(hex) ? hex : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function StepResults({ errors }: { errors: Record<string, string> }) {
   const t = useTranslations('AdminQuizBuilder.results');
 
@@ -46,26 +59,62 @@ export function StepResults({ errors }: { errors: Record<string, string> }) {
   const patchResults = useAdminQuizBuilderStore((s) => s.patchResults);
 
   const categories = useAdminCategories();
-  const professions = useAdminProfessions();
 
-  const updateQuiz = useAdminUpdateQuiz();
+  const [page, setPage] = useState(1);
+  const [size] = useState(20);
+  const [allProfessions, setAllProfessions] = useState<Profession[]>([]);
+  const [allLoaded, setAllLoaded] = useState(false);
+
+  const selectedCategoryId = toNumber(Array.isArray(results.selectedCategoryIds) ? results.selectedCategoryIds[0] : undefined);
+
+  const actions = useQuizBuilderActions(quizId as number, 0 as any);
+  const searchRes = actions.searchProfessionsHook({ categoryId: selectedCategoryId, page, size });
+
+  const updateQuiz = actions.updateQuiz;
+  const createCategory = actions.createCategory;
+  const createProfession = actions.createProfession;
+
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
+  const [showCreateProfession, setShowCreateProfession] = useState(false);
+
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryColor, setNewCategoryColor] = useState<Color | string | null>(null);
+
+  const [newProfessionTitle, setNewProfessionTitle] = useState('');
+  const [newProfessionDescription, setNewProfessionDescription] = useState('');
 
   const categoryOptions = useMemo(() => {
-    const arr = toArray<Category>((categories as any).data ?? categories);
-    return arr.map((c: any) => ({
+    const arr = toArray<Category>((categories as any).data ?? categories) as any[];
+    return arr.map((c) => ({
       value: c.id,
       label: c.title ?? c.name ?? c.code ?? c.id,
     }));
   }, [(categories as any).data, categories]);
 
-  const professionsInCategory = useMemo(() => {
-    const all = toArray<Profession>((professions as any).data ?? professions) as any[];
-    const categoryId = toNumber(results.categoryId);
-    if (typeof categoryId !== 'number') return [];
-    return all.filter((p) => toNumber(p.categoryId) === categoryId);
-  }, [(professions as any).data, professions, results.categoryId]);
+  useEffect(() => {
+    setPage(1);
+    setAllProfessions([]);
+    setAllLoaded(false);
+  }, [selectedCategoryId]);
 
-  const canSave = typeof quizId === 'number' && typeof toNumber(results.categoryId) === 'number';
+  useEffect(() => {
+    const items = toArray<Profession>(searchRes.data ?? []) as Profession[];
+
+    setAllProfessions((prev) => {
+      if (page === 1) return items;
+      const ids = new Set(prev.map((p) => (p as any).id));
+      const next = [...prev];
+      for (const it of items) {
+        const id = (it as any).id;
+        if (!ids.has(id)) next.push(it);
+      }
+      return next;
+    });
+
+    setAllLoaded(items.length < size);
+  }, [searchRes.data, page, size]);
+
+  const canSave = typeof quizId === 'number' && typeof selectedCategoryId === 'number';
 
   async function onSave() {
     if (!canSave) {
@@ -75,7 +124,7 @@ export function StepResults({ errors }: { errors: Record<string, string> }) {
     try {
       await updateQuiz.mutateAsync({
         id: quizId as any,
-        data: { categoryId: toNumber(results.categoryId) } as any,
+        data: { categoryId: selectedCategoryId } as any,
       });
       message.success(t('saved'));
     } catch (e) {
@@ -83,42 +132,194 @@ export function StepResults({ errors }: { errors: Record<string, string> }) {
     }
   }
 
+  async function onCreateCategory() {
+    const name = newCategoryName.trim();
+    if (!name) {
+      message.error(t('validation.fixErrors'));
+      return;
+    }
+
+    const colorCode = colorToHex(newCategoryColor);
+    if (newCategoryColor && !colorCode) {
+      message.error(t('invalidColor'));
+      return;
+    }
+
+    try {
+      const code = generateEntityCode(name, { fallback: 'category' });
+
+      const res: any = await createCategory.mutateAsync({
+        data: { name, code, colorCode } as any,
+      });
+
+      const createdId = toNumber(res?.id ?? res?.data?.id ?? res?.result?.id);
+      if (typeof createdId === 'number') {
+        patchResults({ selectedCategoryIds: [createdId] });
+        setShowCreateCategory(false);
+      }
+
+      setNewCategoryName('');
+      setNewCategoryColor(null);
+      message.success(t('categoryCreated'));
+    } catch (e) {
+      message.error((e as Error).message);
+    }
+  }
+
+  async function onCreateProfession() {
+    const title = newProfessionTitle.trim();
+    const description = newProfessionDescription.trim();
+
+    if (!title || typeof selectedCategoryId !== 'number') {
+      message.error(t('validation.fixErrors'));
+      return;
+    }
+
+    try {
+      const code = generateEntityCode(title, { fallback: 'profession' });
+
+      const res: any = await createProfession.mutateAsync({
+        data: {
+          title,
+          code,
+          description: description || undefined,
+          categoryId: selectedCategoryId,
+        } as any,
+      });
+
+      const created: any = res?.data ?? res?.result ?? res;
+      const createdId = toNumber(created?.id);
+      const createdCatId = toNumber(created?.categoryId);
+
+      if (created && typeof createdId === 'number' && createdCatId === selectedCategoryId) {
+        setAllProfessions((prev) => {
+          if (prev.some((p: any) => toNumber((p as any).id) === createdId)) return prev;
+          return [created as Profession, ...prev];
+        });
+      } else {
+        setPage(1);
+      }
+
+      setNewProfessionTitle('');
+      setNewProfessionDescription('');
+      setShowCreateProfession(false);
+      message.success(t('professionCreated'));
+    } catch (e) {
+      message.error((e as Error).message);
+    }
+  }
+
+  const isCategoryBusy = (categories as any).isLoading || createCategory.isPending;
+  const isProfessionBusy = searchRes.isFetching || createProfession.isPending;
+
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       <SectionCard title={t('title')}>
-        <div className="flex flex-col gap-3">
-          <Typography.Text className="block">{t('categories')}</Typography.Text>
-          <Select
-            value={results.categoryId as any}
-            onChange={(id) => patchResults({ categoryId: toNumber(id) })}
-            options={categoryOptions}
-            className="w-full"
-            placeholder={t('categoriesPh')}
-            allowClear
-          />
-          <FieldError code={errors.categoryId} />
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <Typography.Text className="block">{t('categories')}</Typography.Text>
+            <Select
+              value={selectedCategoryId as any}
+              onChange={(id) => patchResults({ selectedCategoryIds: typeof id === 'undefined' ? [] : [toNumber(id) as number] })}
+              options={categoryOptions}
+              className="w-full"
+              placeholder={t('categoriesPh')}
+              allowClear
+              loading={(categories as any).isLoading}
+              disabled={isCategoryBusy}
+            />
+            <FieldError code={errors.categories ?? errors.categoryId} />
 
-          <Button type="primary" onClick={onSave} disabled={!canSave} loading={updateQuiz.isPending}>
-            {t('save')}
-          </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => setShowCreateCategory((v) => !v)} disabled={isCategoryBusy}>
+                {showCreateCategory ? t('close') : t('addCategory')}
+              </Button>
 
-          <div className="mt-2">
-            <Typography.Text className="block">{t('professions')}</Typography.Text>
+              <Button type="primary" onClick={onSave} disabled={!canSave || updateQuiz.isPending} loading={updateQuiz.isPending}>
+                {t('save')}
+              </Button>
+            </div>
 
-            {typeof toNumber(results.categoryId) !== 'number' ? (
-              <Typography.Text type="secondary">{t('chooseCategoryToSeeProfessions')}</Typography.Text>
-            ) : professionsInCategory.length === 0 ? (
-              <Typography.Text type="secondary">{t('noProfessionsInCategory')}</Typography.Text>
-            ) : (
-              <ul className="mt-2 list-disc pl-6">
-                {professionsInCategory.map((p: any) => (
-                  <li key={p.id}>{p.title ?? p.name ?? p.code ?? p.id}</li>
-                ))}
-              </ul>
-            )}
+            {showCreateCategory ? (
+              <div className="mt-2 flex flex-col gap-2 rounded-md border border-neutral-200 p-3">
+                <Input
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder={t('newCategoryNamePh')}
+                  disabled={isCategoryBusy}
+                />
+                <div className="flex items-center justify-between gap-3">
+                  <Typography.Text>{t('newCategoryColorPh')}</Typography.Text>
+                  <ColorPicker value={newCategoryColor as any} onChange={(c) => setNewCategoryColor(c)} disabled={isCategoryBusy} />
+                </div>
+                <Button type="primary" onClick={onCreateCategory} loading={createCategory.isPending} disabled={isCategoryBusy}>
+                  {t('add')}
+                </Button>
+              </div>
+            ) : null}
           </div>
 
-          <Typography.Text type="secondary" className="mt-3 block">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-3">
+              <Typography.Text className="block">{t('professions')}</Typography.Text>
+              <Button
+                onClick={() => setShowCreateProfession((v) => !v)}
+                disabled={typeof selectedCategoryId !== 'number' || isProfessionBusy}
+              >
+                {showCreateProfession ? t('close') : t('addProfession')}
+              </Button>
+            </div>
+
+            {typeof selectedCategoryId !== 'number' ? (
+              <Typography.Text type="secondary">{t('chooseCategoryToSeeProfessions')}</Typography.Text>
+            ) : allProfessions.length === 0 ? (
+              <Typography.Text type="secondary">{searchRes.isFetching ? t('loading') : t('noProfessionsInCategory')}</Typography.Text>
+            ) : (
+              <div>
+                <ul className="mt-2 list-disc pl-6">
+                  {allProfessions.map((p: any) => (
+                    <li key={p.id}>{p.title ?? p.name ?? p.code ?? p.id}</li>
+                  ))}
+                </ul>
+
+                {!allLoaded ? (
+                  <div className="mt-2">
+                    <Button onClick={() => setPage((s) => s + 1)} loading={searchRes.isFetching}>
+                      {t('loadMore')}
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+            )}
+
+            {showCreateProfession ? (
+              <div className="mt-2 flex flex-col gap-2 rounded-md border border-neutral-200 p-3">
+                <Input
+                  value={newProfessionTitle}
+                  onChange={(e) => setNewProfessionTitle(e.target.value)}
+                  placeholder={t('newProfessionTitlePh')}
+                  disabled={typeof selectedCategoryId !== 'number' || isProfessionBusy}
+                />
+                <Input.TextArea
+                  value={newProfessionDescription}
+                  onChange={(e) => setNewProfessionDescription(e.target.value)}
+                  placeholder={t('newProfessionDescriptionPh')}
+                  disabled={typeof selectedCategoryId !== 'number' || isProfessionBusy}
+                  autoSize={{ minRows: 2, maxRows: 6 }}
+                />
+                <Button
+                  type="primary"
+                  onClick={onCreateProfession}
+                  loading={createProfession.isPending}
+                  disabled={typeof selectedCategoryId !== 'number' || isProfessionBusy}
+                >
+                  {t('add')}
+                </Button>
+              </div>
+            ) : null}
+          </div>
+
+          <Typography.Text type="secondary" className="mt-1 block">
             {t('note')}
           </Typography.Text>
         </div>

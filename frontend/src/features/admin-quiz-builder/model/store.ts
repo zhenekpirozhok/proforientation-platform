@@ -34,9 +34,9 @@ export type QuestionDraft = {
     questionId?: number;
     options: OptionDraft[];
 };
-
 export type ResultsDraft = {
-    categoryId?: number;
+    selectedCategoryIds: number[];
+    selectedProfessionIds: number[];
 };
 
 type BuilderState = {
@@ -52,6 +52,7 @@ type BuilderState = {
         title: string;
         code: string;
         description: string;
+        codeTouched?: boolean;
     };
 
     scales: ScaleDraft[];
@@ -153,7 +154,8 @@ const initialState = {
     activeQuestionTempId: undefined as string | undefined,
 
     results: {
-        categoryId: undefined as number | undefined,
+        selectedCategoryIds: [] as number[],
+        selectedProfessionIds: [] as number[],
     } as ResultsDraft,
 };
 

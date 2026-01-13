@@ -90,6 +90,8 @@ export function validateQuestions(questions: QuestionDraft[], traitIds: number[]
 
 export function validateResults(results: ResultsDraft) {
     const e: Record<string, string> = {};
-    if (typeof results.categoryId !== 'number') e.categoryId = 'required';
+    if (!Array.isArray(results.selectedCategoryIds) || results.selectedCategoryIds.length === 0) {
+        e.categories = 'required';
+    }
     return e;
 }

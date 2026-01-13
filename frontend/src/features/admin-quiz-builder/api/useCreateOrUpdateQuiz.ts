@@ -23,14 +23,12 @@ export function useCreateOrUpdateQuiz(actions: ReturnTypeUseQuizBuilderActions |
 
             try {
                 if (isUpdate && 'quizId' in payload && payload.quizId) {
-                    // Update existing quiz
                     const { quizId, ...updateData } = payload;
                     await actions.updateQuiz.mutateAsync({
                         id: quizId,
                         data: updateData as UpdateQuizRequest,
                     });
                 } else {
-                    // Create new quiz
                     const response = await actions.createQuiz.mutateAsync({
                         data: payload as CreateQuizRequest,
                     });
