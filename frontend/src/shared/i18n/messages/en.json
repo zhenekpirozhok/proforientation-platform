@@ -437,6 +437,40 @@
     "publish": "Publish",
     "published": "Quiz published"
   }
-}
+},
+  "AdminQuizTranslations": {
+    "title": "Quiz translations",
+    "quizId": "quizId: {id}",
+    "back": "Back",
+    "saveAll": "Save all",
+    "saveLocale": "Save {locale}",
+    "titleLabel": "Title",
+    "descriptionLabel": "Description",
+    "placeholderTitleRu": "Title (RU)",
+    "placeholderTitleEn": "English title",
+    "placeholderDescRu": "Description (RU)",
+    "placeholderDescEn": "English description",
+    "currentBackendRu": "RU (current on backend)",
+    "currentBackendEn": "EN (current on backend)",
+    "saveSuccessRu": "RU translation saved",
+    "saveSuccessEn": "EN translation saved",
+    "titleRequired": "Title is required"
+  }
+
+  ,"AdminDashboard": {
+    "title": "Admin Dashboard",
+    "subtitle": "All your quizzes (drafts and published)",
+    "create": "Create quiz",
+    "empty": "No quizzes yet",
+    "published": "Published",
+    "draft": "Draft",
+    "created": "Created",
+    "updated": "Updated",
+    "publishedAt": "Published",
+    "edit": "Edit",
+    "translations": "Translations",
+    "publish": "Publish",
+    "analytics": "Analytics"
+  }
 
 }

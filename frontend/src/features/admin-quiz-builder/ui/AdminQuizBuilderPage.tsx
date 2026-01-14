@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Alert, Typography, message } from 'antd';
+import { Alert, Typography, message, Spin } from 'antd';
 import { useTranslations } from 'next-intl';
 
 import { useAdminQuizBuilderStore } from '../model/store';
@@ -16,6 +16,7 @@ import {
 import { useQuizBuilderActions } from '@/features/admin-quiz-builder/api/useQuizBuilderActions';
 import { useEnsureQuizTraits } from '../api/useEnsureQuizTraits';
 import { useCreateOrUpdateQuiz } from '../api/useCreateOrUpdateQuiz';
+import { useAdminQuiz } from '@/entities/quiz/api/useAdminQuiz';
 
 import { StepperHeader } from './StepperHeader';
 import { StepActions } from './StepActions';
@@ -27,21 +28,54 @@ import { StepQuestions } from './steps/StepQuestions';
 import { StepResults } from './steps/StepResults';
 import { StepPreview } from './steps/StepPreview';
 
-export function AdminQuizBuilderPage() {
+export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number } = {}) {
   const t = useTranslations('AdminQuizBuilder');
   const router = useRouter();
 
   const step = useAdminQuizBuilderStore((s) => s.step);
   const setStep = useAdminQuizBuilderStore((s) => s.setStep);
 
-  const quizId = useAdminQuizBuilderStore((s) => s.quizId);
+  const storeQuizId = useAdminQuizBuilderStore((s) => s.quizId);
   const version = useAdminQuizBuilderStore((s) => s.version);
   const quizVersionId = useAdminQuizBuilderStore((s) => s.quizVersionId);
+
+  const quizId = propQuizId ?? storeQuizId;
 
   const init = useAdminQuizBuilderStore((s) => s.init);
   const scales = useAdminQuizBuilderStore((s) => s.scales);
   const questions = useAdminQuizBuilderStore((s) => s.questions);
   const results = useAdminQuizBuilderStore((s) => s.results);
+  
+  const resetStore = useAdminQuizBuilderStore((s) => s.reset);
+  const setQuizContext = useAdminQuizBuilderStore((s) => s.setQuizContext);
+  const patchInit = useAdminQuizBuilderStore((s) => s.patchInit);
+
+  const { data: quizData, isLoading: quizLoading } = useAdminQuiz(propQuizId ?? 0, {
+    query: { enabled: typeof propQuizId === 'number' },
+  });
+
+  useEffect(() => {
+    if (!propQuizId) {
+      resetStore();
+    }
+  }, [propQuizId, resetStore]);
+
+  useEffect(() => {
+    if (propQuizId && quizData) {
+      const quiz = quizData as any;
+      setQuizContext({
+        quizId: quiz.id,
+        version: quiz.version,
+        quizVersionId: quiz.quizVersionId,
+      });
+      
+      patchInit({
+        title: quiz.title ?? '',
+        code: quiz.code ?? '',
+        description: quiz.description ?? '',
+      });
+    }
+  }, [propQuizId, quizData, setQuizContext, patchInit]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -81,6 +115,14 @@ export function AdminQuizBuilderPage() {
   ]);
 
   const hasContext = typeof quizId === 'number' && typeof quizVersionId === 'number';
+
+  if (propQuizId && quizLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   const actions = useQuizBuilderActions(hasContext ? quizId : 0, hasContext ? quizVersionId : 0);
   const ensureTraits = useEnsureQuizTraits(actions);
