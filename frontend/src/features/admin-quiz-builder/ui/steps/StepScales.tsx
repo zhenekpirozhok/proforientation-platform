@@ -9,6 +9,10 @@ import { FieldError } from '../FieldError';
 import { useAdminQuizBuilderStore, type ScaleDraft, type ScaleMode } from '../../model/store';
 import { generateEntityCode } from '@/shared/lib/code/generateEntityCode';
 
+import { useStepValidation } from '../../lib/validation/useStepValidation';
+import { StepValidationSummary } from '../../lib/validation/StepValidationSummary';
+import { parsePairKey, parseScaleKey } from '../../lib/validation/validationKeys';
+
 type SingleForm = {
   name: string;
   code: string;
@@ -44,8 +48,16 @@ function groupBipolar(scales: ScaleDraft[]) {
   return Array.from(m.entries()).map(([pairId, v]) => ({ pairId, ...v }));
 }
 
-export function StepScales({ errors }: { errors: Record<string, string> }) {
+export function StepScales({
+  errors,
+  submitAttempted,
+}: {
+  errors: Record<string, string>;
+  submitAttempted?: boolean;
+}) {
   const t = useTranslations('AdminQuizBuilder.scales');
+
+  const v = useStepValidation({ errors, submitAttempted });
 
   const scaleMode = useAdminQuizBuilderStore((s) => s.scaleMode);
   const setScaleMode = useAdminQuizBuilderStore((s) => s.setScaleMode);
@@ -136,10 +148,10 @@ export function StepScales({ errors }: { errors: Record<string, string> }) {
     });
   }
 
-  function onModeChange(v: string | number) {
+  function onModeChange(vv: string | number) {
     if (!canChooseMode) return;
-    if (v !== 'single' && v !== 'bipolar') return;
-    setScaleMode(v);
+    if (vv !== 'single' && vv !== 'bipolar') return;
+    setScaleMode(vv);
     stopEdit();
     resetForms();
   }
@@ -212,11 +224,43 @@ export function StepScales({ errors }: { errors: Record<string, string> }) {
 
   const hasScales = scales.length > 0;
 
+  const summaryItems = useMemo(() => {
+    if (!v.submitAttempted) return [];
+    const items: Array<{ field: string; label: string }> = [];
+
+    for (const { field } of v.visibleErrors) {
+      if (field === 'scales') {
+        items.push({ field: 'scales', label: t('title') });
+        continue;
+      }
+
+      const sk = parseScaleKey(field);
+      if (sk) {
+        const s = scales.find((x) => x.tempId === sk.tempId);
+        const sName = s?.name?.trim() ? s.name : t('untitled');
+        const fld =
+          sk.field === 'name' ? t('name') : sk.field === 'code' ? t('code') : t('description');
+        items.push({ field, label: `${sName}: ${fld}` });
+        continue;
+      }
+
+      const pk = parsePairKey(field);
+      if (pk) {
+        items.push({ field, label: `${t('pairTitle')}: ${pk.pairId}` });
+        continue;
+      }
+    }
+
+    return items;
+  }, [v.visibleErrors, v.submitAttempted, scales, t]);
+
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       <SectionCard title={t('title')}>
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <StepValidationSummary title={t('validation.fixErrors')} items={summaryItems} />
+
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between" data-field="scales">
             <div className="min-w-0">
               <Typography.Text className="block">{t('modeTitle')}</Typography.Text>
               <Typography.Text type="secondary" className="block">
@@ -235,7 +279,7 @@ export function StepScales({ errors }: { errors: Record<string, string> }) {
             />
           </div>
 
-          <FieldError code={errors.scales} />
+          {v.showError('scales') ? <FieldError code={errors.scales} /> : null}
         </div>
       </SectionCard>
 
@@ -270,9 +314,21 @@ export function StepScales({ errors }: { errors: Record<string, string> }) {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <FieldError code={getScaleFieldError(errors, s.tempId, 'name')} />
-                      <FieldError code={getScaleFieldError(errors, s.tempId, 'code')} />
-                      <FieldError code={getScaleFieldError(errors, s.tempId, 'description')} />
+                      {v.showError(`scale.${s.tempId}.name`) ? (
+                        <div data-field={`scale.${s.tempId}.name`}>
+                          <FieldError code={getScaleFieldError(errors, s.tempId, 'name')} />
+                        </div>
+                      ) : null}
+                      {v.showError(`scale.${s.tempId}.code`) ? (
+                        <div data-field={`scale.${s.tempId}.code`}>
+                          <FieldError code={getScaleFieldError(errors, s.tempId, 'code')} />
+                        </div>
+                      ) : null}
+                      {v.showError(`scale.${s.tempId}.description`) ? (
+                        <div data-field={`scale.${s.tempId}.description`}>
+                          <FieldError code={getScaleFieldError(errors, s.tempId, 'description')} />
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </Card>
@@ -300,7 +356,11 @@ export function StepScales({ errors }: { errors: Record<string, string> }) {
                     }
                   >
                     <div className="flex flex-col gap-3">
-                      {pairErr ? <FieldError code={pairErr} /> : null}
+                      {v.showError(`pair.${p.pairId}`) && pairErr ? (
+                        <div data-field={`pair.${p.pairId}`}>
+                          <FieldError code={pairErr} />
+                        </div>
+                      ) : null}
 
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <Card className="!rounded-2xl" size="small" title={t('left')}>
@@ -310,13 +370,24 @@ export function StepScales({ errors }: { errors: Record<string, string> }) {
                               {p.left?.code}
                             </div>
                             <Typography.Text type="secondary">{p.left?.description}</Typography.Text>
+
                             {p.left ? (
                               <div className="flex flex-col gap-1">
-                                <FieldError code={getScaleFieldError(errors, p.left.tempId, 'name')} />
-                                <FieldError code={getScaleFieldError(errors, p.left.tempId, 'code')} />
-                                <FieldError
-                                  code={getScaleFieldError(errors, p.left.tempId, 'description')}
-                                />
+                                {v.showError(`scale.${p.left.tempId}.name`) ? (
+                                  <div data-field={`scale.${p.left.tempId}.name`}>
+                                    <FieldError code={getScaleFieldError(errors, p.left.tempId, 'name')} />
+                                  </div>
+                                ) : null}
+                                {v.showError(`scale.${p.left.tempId}.code`) ? (
+                                  <div data-field={`scale.${p.left.tempId}.code`}>
+                                    <FieldError code={getScaleFieldError(errors, p.left.tempId, 'code')} />
+                                  </div>
+                                ) : null}
+                                {v.showError(`scale.${p.left.tempId}.description`) ? (
+                                  <div data-field={`scale.${p.left.tempId}.description`}>
+                                    <FieldError code={getScaleFieldError(errors, p.left.tempId, 'description')} />
+                                  </div>
+                                ) : null}
                               </div>
                             ) : null}
                           </div>
@@ -329,13 +400,24 @@ export function StepScales({ errors }: { errors: Record<string, string> }) {
                               {p.right?.code}
                             </div>
                             <Typography.Text type="secondary">{p.right?.description}</Typography.Text>
+
                             {p.right ? (
                               <div className="flex flex-col gap-1">
-                                <FieldError code={getScaleFieldError(errors, p.right.tempId, 'name')} />
-                                <FieldError code={getScaleFieldError(errors, p.right.tempId, 'code')} />
-                                <FieldError
-                                  code={getScaleFieldError(errors, p.right.tempId, 'description')}
-                                />
+                                {v.showError(`scale.${p.right.tempId}.name`) ? (
+                                  <div data-field={`scale.${p.right.tempId}.name`}>
+                                    <FieldError code={getScaleFieldError(errors, p.right.tempId, 'name')} />
+                                  </div>
+                                ) : null}
+                                {v.showError(`scale.${p.right.tempId}.code`) ? (
+                                  <div data-field={`scale.${p.right.tempId}.code`}>
+                                    <FieldError code={getScaleFieldError(errors, p.right.tempId, 'code')} />
+                                  </div>
+                                ) : null}
+                                {v.showError(`scale.${p.right.tempId}.description`) ? (
+                                  <div data-field={`scale.${p.right.tempId}.description`}>
+                                    <FieldError code={getScaleFieldError(errors, p.right.tempId, 'description')} />
+                                  </div>
+                                ) : null}
                               </div>
                             ) : null}
                           </div>
