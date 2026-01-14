@@ -188,7 +188,10 @@ export function StepPreview() {
       : null;
 
   async function onPublish() {
-    if (!actions || typeof quizId !== 'number') return;
+    if (!actions || typeof quizId !== 'number') {
+      message.error(t('validation.fixErrors') || 'Invalid quiz id');
+      return;
+    }
 
     try {
       await actions.publishQuiz.mutateAsync({ id: quizId } as any);
