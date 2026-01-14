@@ -17,24 +17,53 @@ import { useAdminCreateProfession } from '@/entities/profession/api/useAdminCrea
 import { useSearchProfessions } from '@/entities/profession/api/useSearchProfessions';
 
 export function useQuizBuilderActions(quizId: number, version: number) {
+    const createQuiz = useAdminCreateQuiz();
+    const updateQuiz = useAdminUpdateQuiz();
+    const copyLatestVersion = useAdminCopyLatestVersion();
+    const publish = useAdminPublishQuiz();
+
+    const createTrait = useAdminCreateTrait();
+
+    const createQuestion = useAdminCreateQuestion(quizId, version);
+    const updateQuestion = useAdminUpdateQuestion(quizId, version);
+
+    const createOption = useAdminCreateOption();
+    const assignOptionTraits = useAdminAssignOptionTraits();
+
+    const createCategory = useAdminCreateCategory();
+    const createProfession = useAdminCreateProfession();
+
+    const searchProfessionsHook = useSearchProfessions;
+
+    const publishQuiz = {
+        ...publish,
+        mutateAsync: async (vars: any, ...rest: any[]) => {
+            const id = vars?.id;
+            if (!Number.isFinite(Number(id))) {
+                throw new Error('Invalid quiz id');
+            }
+            return publish.mutateAsync({ id: Number(id) }, ...rest);
+        },
+    } as typeof publish;
+
     return {
-        createQuiz: useAdminCreateQuiz(),
-        updateQuiz: useAdminUpdateQuiz(),
-        copyLatestVersion: useAdminCopyLatestVersion(),
-        publishQuiz: useAdminPublishQuiz(),
+        createQuiz,
+        updateQuiz,
+        copyLatestVersion,
+        publishQuiz,
 
-        createTrait: useAdminCreateTrait(),
+        createTrait,
 
-        createQuestion: useAdminCreateQuestion(quizId, version),
-        updateQuestion: useAdminUpdateQuestion(quizId, version),
+        createQuestion,
+        updateQuestion,
 
-        createOption: useAdminCreateOption(),
-        assignOptionTraits: useAdminAssignOptionTraits(),
+        createOption,
+        assignOptionTraits,
 
-        createCategory: useAdminCreateCategory(),
-        createProfession: useAdminCreateProfession(),
+        createCategory,
+        createProfession,
 
-        searchProfessionsHook: useSearchProfessions,
+        searchProfessionsHook,
     };
 }
 
