@@ -3,26 +3,18 @@
 import { useTranslations } from 'next-intl';
 
 export default function PrivacyPage() {
-    const t = useTranslations('Privacy');
+  const t = useTranslations('Privacy');
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 space-y-8">
       <header>
-        <h1 className="mb-2 text-2xl font-semibold">
-          {t('title')}
-        </h1>
-        <p className="text-sm text-slate-500">
-          {t('lastUpdated')}
-        </p>
+        <h1 className="mb-2 text-2xl font-semibold">{t('title')}</h1>
+        <p className="text-sm text-slate-500">{t('lastUpdated')}</p>
       </header>
 
       <section className="space-y-3">
-        <p className="text-slate-700 dark:text-slate-300">
-          {t('intro')}
-        </p>
-        <p className="text-slate-700 dark:text-slate-300">
-          {t('description')}
-        </p>
+        <p className="text-slate-700 dark:text-slate-300">{t('intro')}</p>
+        <p className="text-slate-700 dark:text-slate-300">{t('description')}</p>
       </section>
 
       {/* Render sections */}
