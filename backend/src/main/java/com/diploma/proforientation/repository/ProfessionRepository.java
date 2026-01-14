@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProfessionRepository extends JpaRepository<Profession, Integer> {
-    Optional<Profession> findByTitleDefault(String titleDefault);
     List<Profession> findByCategoryId(Integer categoryId);
     @Query("SELECT p.id FROM Profession p WHERE p.mlClassCode = :code")
     Optional<Integer> findIdByMlClassCode(String code);
