@@ -89,6 +89,7 @@ jobs:
           GOOGLE_CLIENT_ID: dummy
           GOOGLE_CLIENT_SECRET: dummy
           OPENAI_API_KEY: dummy
+          FRONTEND_BASE_URL: http://localhost:3000
         run: |
           set -euo pipefail
 
