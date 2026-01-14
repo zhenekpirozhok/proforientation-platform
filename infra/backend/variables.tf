@@ -65,3 +65,8 @@ variable "openai_api_key" {
   type      = string
   sensitive = true
 }
+
+variable "frontend_base_url" {
+  type      = string
+  sensitive = true
+}

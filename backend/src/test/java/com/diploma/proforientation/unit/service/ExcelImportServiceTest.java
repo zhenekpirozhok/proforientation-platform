@@ -357,7 +357,7 @@ class ExcelImportServiceTest {
 
         assertThatThrownBy(() -> service.importQuestions(file))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Empty Excel file");
+                .hasMessageContaining("error.excel_empty_file");
     }
 
     private MockMultipartFile excelFile(String filename, String[] headers, Object[][] rows) throws Exception {

@@ -88,7 +88,7 @@ public class ExcelImportServiceImpl implements ImportService {
 
             return new ImportResultDto(total, valid.size(), errors);
         } catch (Exception e) {
-            throw new IllegalStateException("Excel translations import failed: " + e.getMessage(), e);
+            throw new IllegalStateException(ERROR_EXCEL_TRANSLATIONS_IMPORT_FAILED + e.getMessage(), e);
         }
     }
 
@@ -144,7 +144,7 @@ public class ExcelImportServiceImpl implements ImportService {
 
             return new ImportResultDto(total, valid.size(), errors);
         } catch (Exception e) {
-            throw new IllegalStateException("Excel quizzes import failed: " + e.getMessage(), e);
+            throw new IllegalStateException(ERROR_EXCEL_QUIZZES_IMPORT_FAILED + e.getMessage(), e);
         }
     }
 
@@ -189,7 +189,7 @@ public class ExcelImportServiceImpl implements ImportService {
 
             return new ImportResultDto(total, valid.size(), errors);
         } catch (Exception e) {
-            throw new IllegalStateException("Excel professions import failed: " + e.getMessage(), e);
+            throw new IllegalStateException(ERROR_EXCEL_PROFESSIONS_IMPORT_FAILED + e.getMessage(), e);
         }
     }
 
@@ -232,7 +232,7 @@ public class ExcelImportServiceImpl implements ImportService {
 
             return new ImportResultDto(total, valid.size(), errors);
         } catch (Exception e) {
-            throw new IllegalStateException("Excel questions import failed: " + e.getMessage(), e);
+            throw new IllegalStateException(ERROR_EXCEL_QUESTIONS_IMPORT_FAILED + e.getMessage(), e);
         }
     }
 
@@ -344,7 +344,7 @@ public class ExcelImportServiceImpl implements ImportService {
         if (!isBlank(code)) {
             String key = code.trim().toLowerCase();
             if (!codesInFile.add(key)) {
-                rowErrors.add(new ImportErrorDto(rowNum, COL_CODE, "Duplicate code in file"));
+                rowErrors.add(new ImportErrorDto(rowNum, COL_CODE, ERROR_EXCEL_DUPLICATE_CODE));
             }
         }
     }
@@ -446,14 +446,14 @@ public class ExcelImportServiceImpl implements ImportService {
 
     private void validateFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("Empty Excel file");
+            throw new IllegalArgumentException(ERROR_EXCEL_EMPTY_FILE);
         }
     }
 
     private Map<String, Integer> headerIndex(Sheet sheet, List<ImportErrorDto> errors) {
         Row header = sheet.getRow(0);
         if (header == null) {
-            errors.add(new ImportErrorDto(1, FIELD_ROW, "Missing header row"));
+            errors.add(new ImportErrorDto(1, FIELD_ROW, ERROR_EXCEL_MISSING_HEADER));
             return Map.of();
         }
 

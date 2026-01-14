@@ -204,6 +204,14 @@ public final class Constants {
     public static final String ERROR_DATA_INTEGRITY = "error.data_integrity";
     public static final String ERROR_IO = "error.io";
     public static final String ERROR_UNEXPECTED = "error.unexpected";
+    public static final String ERROR_EXCEL_TRANSLATIONS_IMPORT_FAILED = "error.excel_translations_import_failed";
+    public static final String ERROR_EXCEL_QUIZZES_IMPORT_FAILED = "error.excel_quizzes_import_failed";
+    public static final String ERROR_EXCEL_PROFESSIONS_IMPORT_FAILED = "error.excel_professions_import_failed";
+    public static final String ERROR_EXCEL_QUESTIONS_IMPORT_FAILED = "error.excel_questions_import_failed";
+
+    public static final String ERROR_EXCEL_DUPLICATE_CODE = "error.excel_duplicate_code";
+    public static final String ERROR_EXCEL_EMPTY_FILE = "error.excel_empty_file";
+    public static final String ERROR_EXCEL_MISSING_HEADER = "error.excel_missing_header";
 
     private Constants() {}
 }
