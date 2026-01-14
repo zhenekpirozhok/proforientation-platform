@@ -273,5 +273,227 @@
     "SuccessSubtitle": "You can now sign in with your new password.",
     "SuccessBody": "Your password was successfully updated.",
     "SignIn": "Sign in"
+  },
+
+  "Privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: 13/01/2026",
+
+    "intro": "This Privacy Policy explains how we collect, use, store, and protect personal data when you use the Career Guidance Platform (the \"Platform\", \"Service\", \"we\", \"us\", or \"our\").",
+    "description": "The Platform provides career guidance through personality and aptitude tests, data analysis, and AI-based profession recommendations.",
+
+    "sections": {
+      "controller": {
+        "title": "1. Data Controller",
+        "text": "The data controller is the operator of this Platform.",
+        "contact": "For questions regarding this Privacy Policy or personal data, please contact us at:",
+        "email": "Emails: alena.tsibets@gmail.com, ya.kavalchuk@gmail.com"
+      },
+
+      "dataCollected": {
+        "title": "2. Personal Data We Collect",
+        "intro": "We collect the minimum data necessary to provide the Service.",
+
+        "direct": {
+          "title": "2.1 Data You Provide Directly",
+          "items": [
+            "Account information (email, encrypted password)",
+            "Optional profile data",
+            "Quiz responses and test results",
+            "Saved preferences (language, settings)"
+          ]
+        },
+
+        "automatic": {
+          "title": "2.2 Data Collected Automatically",
+          "items": [
+            "Technical data (IP address, browser type, device information)",
+            "Session data and usage logs",
+            "Cookies and similar technologies"
+          ]
+        },
+
+        "guests": {
+          "title": "2.3 Guest Users",
+          "text": "Guest users may complete quizzes without registration. Guest data is stored temporarily and may be deleted automatically unless converted to a registered account."
+        }
+      },
+
+      "purpose": {
+        "title": "3. Purpose of Data Processing",
+        "items": [
+          "Providing career quizzes and displaying results",
+          "Generating personalized profession recommendations",
+          "Storing quiz history and analytics",
+          "User authentication and security",
+          "Improving system performance and usability",
+          "Ensuring legal and regulatory compliance (e.g., GDPR)"
+        ]
+      },
+
+      "legalBasis": {
+        "title": "4. Legal Basis for Processing (GDPR)",
+        "items": [
+          "User consent (Article 6(1)(a) GDPR)",
+          "Performance of a contract (Article 6(1)(b) GDPR)",
+          "Legitimate interests, such as platform security and analytics (Article 6(1)(f) GDPR)"
+        ],
+        "note": "Consent can be withdrawn at any time."
+      },
+
+      "ai": {
+        "title": "5. AI & Automated Decision-Making",
+        "items": [
+          "The Platform uses AI-based models to recommend professions based on test results",
+          "Recommendations are advisory and not mandatory",
+          "No legal or significant decisions are made solely by automated means",
+          "Users may review and retake tests at any time"
+        ]
+      },
+
+      "security": {
+        "title": "6. Data Storage & Security",
+        "items": [
+          "Data is stored in secure databases",
+          "All data in transit is encrypted via HTTPS (TLS)",
+          "Passwords are hashed using strong cryptographic algorithms",
+          "Access is restricted via role-based authorization",
+          "Industry-standard security practices are applied"
+        ]
+      },
+
+      "retention": {
+        "title": "7. Data Retention",
+        "items": [
+          "Account data is stored while the account is active",
+          "Quiz results are stored until deleted by the user",
+          "Users may delete their account and associated data at any time",
+          "Anonymized data may be retained for statistical or academic purposes"
+        ]
+      },
+
+      "cookies": {
+        "title": "8. Cookies",
+        "items": [
+          "Maintaining user sessions",
+          "Improving usability",
+          "Storing language preferences"
+        ],
+        "note": "You can disable cookies in your browser settings, but some features may not function properly."
+      },
+
+      "rights": {
+        "title": "9. User Rights (GDPR)",
+        "items": [
+          "Access personal data",
+          "Correct inaccurate data",
+          "Delete personal data (right to be forgotten)",
+          "Restrict or object to processing",
+          "Data portability",
+          "Withdraw consent at any time"
+        ],
+        "note": "Requests can be made using the contact details above."
+      },
+
+      "thirdParties": {
+        "title": "10. Third Parties",
+        "text": "We do not sell personal data. Data may be processed by trusted infrastructure providers strictly for operating the Platform under appropriate data protection agreements."
+      },
+
+      "changes": {
+        "title": "11. Changes to This Policy",
+        "text": "We may update this Privacy Policy periodically. Changes will be published on this page with an updated revision date."
+      },
+
+      "contact": {
+        "title": "12. Contact",
+        "text": "If you have questions or complaints regarding data protection, please contact us at:",
+        "email": "Emails: alena.tsibets@gmail.com, ya.kavalchuk@gmail.com"
+      }
+    }
+  },
+
+  "Terms": {
+    "title": "Terms of Use",
+    "lastUpdated": "Last updated: 13/01/2026",
+
+    "intro": "These Terms of Use govern your access to and use of the Career Guidance Platform. By using the Platform, you agree to these Terms.",
+
+    "sections": {
+      "purpose": {
+        "title": "1. Purpose of the Platform",
+        "text": "The Platform provides career orientation tools, including quizzes, analytics, and AI-based recommendations, for informational and educational purposes only. It does not replace professional career counseling or psychological advice."
+      },
+
+      "accounts": {
+        "title": "2. User Accounts",
+        "items": [
+          "Users may access the Platform as guests or registered users",
+          "You are responsible for maintaining account confidentiality",
+          "You must provide accurate and lawful information",
+          "One person may not use another user’s account"
+        ]
+      },
+
+      "acceptableUse": {
+        "title": "3. Acceptable Use",
+        "items": [
+          "Misuse or disrupt the Platform",
+          "Attempt unauthorized access to systems or data",
+          "Upload malicious or unlawful content",
+          "Use the Platform for discriminatory or harmful purposes"
+        ],
+        "note": "We reserve the right to suspend or terminate access for violations."
+      },
+
+      "ip": {
+        "title": "4. Intellectual Property",
+        "text": "All content on the Platform, including quizzes, text, UI design, algorithms, and databases, is protected by intellectual property laws and may not be copied, redistributed, or modified without permission."
+      },
+
+      "aiDisclaimer": {
+        "title": "5. AI Recommendations Disclaimer",
+        "items": [
+          "Recommendations are generated algorithmically",
+          "Results depend on user input and model limitations",
+          "We do not guarantee accuracy or career outcomes"
+        ],
+        "note": "Users should treat results as guidance, not absolute advice."
+      },
+
+      "availability": {
+        "title": "6. Availability & Changes",
+        "items": [
+          "The Platform is provided \"as is\"",
+          "Features may be modified, updated, or discontinued",
+          "Temporary outages may occur due to maintenance or technical reasons"
+        ]
+      },
+
+      "liability": {
+        "title": "7. Limitation of Liability",
+        "items": [
+          "We are not liable for decisions made based on Platform results",
+          "We are not responsible for indirect or consequential damages",
+          "Use of the Platform is at your own risk"
+        ]
+      },
+
+      "termination": {
+        "title": "8. Account Termination",
+        "text": "Users may delete their account at any time. We may suspend or terminate accounts that violate these Terms."
+      },
+
+      "law": {
+        "title": "9. Governing Law",
+        "text": "These Terms are governed by applicable data protection and consumer laws of the operating jurisdiction."
+      },
+
+      "contact": {
+        "title": "10. Contact",
+        "text": "For questions regarding these Terms, please contact us at:",
+        "email": "Emails: alena.tsibets@gmail.com, ya.kavalchuk@gmail.com"
+      }
+    }
   }
 }

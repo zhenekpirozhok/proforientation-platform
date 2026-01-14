@@ -2,11 +2,13 @@ package com.diploma.proforientation.controller;
 
 import com.diploma.proforientation.dto.QuizDto;
 import com.diploma.proforientation.dto.QuizVersionDto;
+import com.diploma.proforientation.dto.TraitDto;
 import com.diploma.proforientation.dto.request.create.CreateQuizRequest;
 import com.diploma.proforientation.dto.request.update.UpdateQuizRequest;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.service.QuizService;
 import com.diploma.proforientation.service.QuizVersionService;
+import com.diploma.proforientation.service.TraitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -33,6 +35,7 @@ public class QuizController {
 
     private final QuizService quizService;
     private final QuizVersionService versionService;
+    private final TraitService traitService;
 
     @GetMapping
     @Operation(
@@ -202,6 +205,30 @@ public class QuizController {
         quizService.delete(id);
     }
 
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Get quizzes created by the current admin",
+            description = "Returns all quizzes (published or draft) created by the currently authenticated admin"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "List of quizzes by author",
+            content = @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = QuizDto.class))
+            )
+    )
+    public Page<QuizDto> getMyQuizzes(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "20") int size,
+            @RequestParam(required = false, defaultValue = "id") String sort
+    ) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
+        return quizService.getByAuthor(user.getId(), pageable);
+    }
+
     @PostMapping("/{id}/publish")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
@@ -356,5 +383,58 @@ public class QuizController {
     ) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
         return quizService.search(search, categoryId, minDurationSec, maxDurationSec, pageable);
+    }
+
+    @PostMapping("/{id}/versions")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Create new quiz version",
+            description = "Creates a new draft version for the quiz. The version is not published automatically. (ADMIN only)"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Quiz version created",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = QuizVersionDto.class)
+            )
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "Quiz not found",
+            content = @Content(
+                    schema = @Schema(implementation = com.diploma.proforientation.dto.ExceptionDto.class)
+            )
+    )
+    @ApiResponse(
+            responseCode = "403",
+            description = "Access denied",
+            content = @Content(
+                    schema = @Schema(implementation = com.diploma.proforientation.dto.ExceptionDto.class)
+            )
+    )
+    public QuizVersionDto createVersion(@PathVariable Integer id) {
+        return versionService.createDraftVersion(id);
+    }
+
+    @GetMapping("/{quizId}/traits")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Get traits for a quiz",
+            description = "Returns all traits (scales) used in a specific quiz or quiz version. " +
+                    "The traits are collected from all options of the quiz questions."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "List of traits returned successfully",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = TraitDto.class)
+            )
+    )
+    @ApiResponse(responseCode = "403", description = "Access forbidden")
+    @ApiResponse(responseCode = "404", description = "Quiz or quiz version not found")
+    public List<TraitDto> getTraits(@PathVariable Integer quizId) {
+        return traitService.getTraitsForQuizVersion(quizId);
     }
 }

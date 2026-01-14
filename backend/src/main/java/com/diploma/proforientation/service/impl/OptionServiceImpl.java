@@ -5,13 +5,19 @@ import com.diploma.proforientation.dto.request.create.CreateOptionRequest;
 import com.diploma.proforientation.dto.request.update.UpdateOptionRequest;
 import com.diploma.proforientation.model.Question;
 import com.diploma.proforientation.model.QuestionOption;
+import com.diploma.proforientation.model.QuestionOptionTrait;
 import com.diploma.proforientation.repository.QuestionOptionRepository;
+import com.diploma.proforientation.repository.QuestionOptionTraitRepository;
 import com.diploma.proforientation.repository.QuestionRepository;
 import com.diploma.proforientation.service.OptionService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.diploma.proforientation.util.Constants.OPTION_NOT_FOUND;
 import static com.diploma.proforientation.util.Constants.QUESTION_NOT_FOUND;
@@ -22,6 +28,7 @@ public class OptionServiceImpl implements OptionService {
 
     private final QuestionOptionRepository optionRepo;
     private final QuestionRepository questionRepo;
+    private final QuestionOptionTraitRepository traitRepo;
 
     @Override
     @Transactional
@@ -43,12 +50,8 @@ public class OptionServiceImpl implements OptionService {
         QuestionOption opt = optionRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(OPTION_NOT_FOUND));
 
-        if (req.ord() != null) {
-            opt.setOrd(req.ord());
-        }
-        if (req.label() != null) {
-            opt.setLabelDefault(req.label());
-        }
+        if (req.ord() != null) opt.setOrd(req.ord());
+        if (req.label() != null) opt.setLabelDefault(req.label());
 
         return toDto(optionRepo.save(opt));
     }
@@ -68,11 +71,20 @@ public class OptionServiceImpl implements OptionService {
     }
 
     private OptionDto toDto(QuestionOption opt) {
+        List<QuestionOptionTrait> traits = traitRepo.findByOptionId(opt.getId());
+
+        Map<Integer, Double> weightsByTraitId = traits.stream()
+                .collect(Collectors.toMap(
+                        t -> t.getTrait().getId(),
+                        t -> t.getWeight().doubleValue()
+                ));
+
         return new OptionDto(
                 opt.getId(),
                 opt.getQuestion().getId(),
                 opt.getOrd(),
-                opt.getLabelDefault()
+                opt.getLabelDefault(),
+                weightsByTraitId
         );
     }
 }

@@ -4,6 +4,7 @@ import com.diploma.proforientation.dto.QuizMetricsFilter;
 import com.diploma.proforientation.exception.CsvExportException;
 import com.diploma.proforientation.exception.ExcelExportException;
 import com.diploma.proforientation.repository.spec.QuizPublicMetricsSpecs;
+import com.diploma.proforientation.repository.view.*;
 import com.diploma.proforientation.service.ExportService;
 import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.repository.*;
@@ -39,6 +40,12 @@ public class ExportServiceImpl implements ExportService {
     private final AttemptRepository attemptRepo;
     private final TranslationRepository translationRepo;
     private final QuizPublicMetricsRepository quizPublicMetricsRepo;
+    private final QuizFunnelOverviewRepository funnelRepo;
+    private final QuizActivityDailyRepository activityRepo;
+    private final QuizTopProfessionRepository topProfRepo;
+    private final QuizQuestionAvgChoiceRepository avgChoiceRepo;
+    private final QuizQuestionOptionDistributionRepository distRepo;
+    private final QuizQuestionDiscriminationRepository discRepo;
 
     private final Map<String, Consumer<CSVWriter>> csvExporters = new LinkedHashMap<>();
 
@@ -165,6 +172,160 @@ public class ExportServiceImpl implements ExportService {
 
         } catch (IOException | RuntimeException ex) {
             throw new ExcelExportException(EXCEL_EXPORT_FAILED + ENTITY_QUIZ_PUBLIC_METRICS, ex);
+        }
+    }
+
+    @Override
+    public byte[] exportQuizAnalyticsOverviewCsv(Integer quizId, Integer quizVersionId) {
+        try (StringWriter sw = new StringWriter();
+             CSVWriter writer = new CSVWriter(
+                     sw,
+                     ICSVWriter.DEFAULT_SEPARATOR,
+                     ICSVWriter.NO_QUOTE_CHARACTER,
+                     ICSVWriter.DEFAULT_ESCAPE_CHARACTER,
+                     ICSVWriter.DEFAULT_LINE_END
+             )) {
+
+            // Sheet 1: funnel
+            writer.writeNext(HEADERS_ANALYTICS_FUNNEL);
+            var f = funnelRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
+            if (f != null) {
+                writer.writeNext(new String[]{
+                        stringValue(f.getId().getQuizId()),
+                        stringValue(f.getId().getQuizVersionId()),
+                        stringValue(f.getAttemptsStarted()),
+                        stringValue(f.getAttemptsCompleted()),
+                        stringValue(f.getCompletionRate()),
+                        stringValue(f.getAvgDurationSeconds())
+                });
+            }
+
+            writer.writeNext(new String[]{}); // blank line
+
+            // Sheet 2 in CSV: activity daily
+            writer.writeNext(HEADERS_ANALYTICS_ACTIVITY_DAILY);
+            var days = activityRepo.findByIdQuizIdAndIdQuizVersionIdOrderByIdDayAsc(quizId, quizVersionId);
+            for (var d : days) {
+                writer.writeNext(new String[]{
+                        stringValue(d.getId().getDay()),
+                        stringValue(d.getAttemptsStarted()),
+                        stringValue(d.getAttemptsCompleted()),
+                        stringValue(d.getAvgDurationSeconds())
+                });
+            }
+
+            writer.writeNext(new String[]{}); // blank line
+
+            // Sheet 3 in CSV: top professions
+            writer.writeNext(HEADERS_ANALYTICS_TOP_PROFESSIONS);
+            var top = topProfRepo.findByIdQuizIdAndIdQuizVersionIdOrderByTop1CountDesc(quizId, quizVersionId);
+            for (var p : top) {
+                writer.writeNext(new String[]{
+                        stringValue(p.getId().getProfessionId()),
+                        stringValue(p.getProfessionTitle()),
+                        stringValue(p.getTop1Count())
+                });
+            }
+
+            writer.flush();
+            return sw.toString().getBytes(StandardCharsets.UTF_8);
+
+        } catch (IOException | RuntimeException ex) {
+            throw new CsvExportException(CSV_EXPORT_FAILED + ENTITY_ANALYTICS_OVERVIEW, ex);
+        }
+    }
+
+    @Override
+    public byte[] exportQuizAnalyticsDetailedCsv(Integer quizId, Integer quizVersionId) {
+        try (StringWriter sw = new StringWriter();
+             CSVWriter writer = new CSVWriter(
+                     sw,
+                     ICSVWriter.DEFAULT_SEPARATOR,
+                     ICSVWriter.NO_QUOTE_CHARACTER,
+                     ICSVWriter.DEFAULT_ESCAPE_CHARACTER,
+                     ICSVWriter.DEFAULT_LINE_END
+             )) {
+
+            // Avg choice per question
+            writer.writeNext(HEADERS_ANALYTICS_AVG_CHOICE);
+            var avg = avgChoiceRepo.findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId);
+            for (var r : avg) {
+                writer.writeNext(new String[]{
+                        stringValue(r.getId().getQuestionId()),
+                        stringValue(r.getQuestionOrd()),
+                        stringValue(r.getAvgChoice()),
+                        stringValue(r.getAnswersCount())
+                });
+            }
+
+            writer.writeNext(new String[]{}); // blank
+
+            // Option distribution
+            writer.writeNext(HEADERS_ANALYTICS_OPTION_DISTRIBUTION);
+            var dist = distRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
+            for (var r : dist) {
+                writer.writeNext(new String[]{
+                        stringValue(r.getId().getQuestionId()),
+                        stringValue(r.getQuestionOrd()),
+                        stringValue(r.getId().getOptionId()),
+                        stringValue(r.getOptionOrd()),
+                        stringValue(r.getCount())
+                });
+            }
+
+            writer.writeNext(new String[]{}); // blank
+
+            // Discrimination
+            writer.writeNext(HEADERS_ANALYTICS_DISCRIMINATION);
+            var disc = discRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
+            for (var r : disc) {
+                writer.writeNext(new String[]{
+                        stringValue(r.getId().getQuestionId()),
+                        stringValue(r.getDiscNorm()),
+                        stringValue(r.getDiscQuality()),
+                        stringValue(r.getAttemptsSubmitted())
+                });
+            }
+
+            writer.flush();
+            return sw.toString().getBytes(StandardCharsets.UTF_8);
+
+        } catch (IOException | RuntimeException ex) {
+            throw new CsvExportException(CSV_EXPORT_FAILED + ENTITY_ANALYTICS_DETAILED, ex);
+        }
+    }
+
+    @Override
+    public byte[] exportQuizAnalyticsOverviewExcel(Integer quizId, Integer quizVersionId) {
+        try (Workbook wb = new XSSFWorkbook()) {
+
+            writeAnalyticsFunnelSheet(wb, quizId, quizVersionId);
+            writeAnalyticsActivityDailySheet(wb, quizId, quizVersionId);
+            writeAnalyticsTopProfessionsSheet(wb, quizId, quizVersionId);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            wb.write(out);
+            return out.toByteArray();
+
+        } catch (IOException | RuntimeException ex) {
+            throw new ExcelExportException(EXCEL_EXPORT_FAILED + ENTITY_ANALYTICS_OVERVIEW, ex);
+        }
+    }
+
+    @Override
+    public byte[] exportQuizAnalyticsDetailedExcel(Integer quizId, Integer quizVersionId) {
+        try (Workbook wb = new XSSFWorkbook()) {
+
+            writeAnalyticsAvgChoiceSheet(wb, quizId, quizVersionId);
+            writeAnalyticsOptionDistributionSheet(wb, quizId, quizVersionId);
+            writeAnalyticsDiscriminationSheet(wb, quizId, quizVersionId);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            wb.write(out);
+            return out.toByteArray();
+
+        } catch (IOException | RuntimeException ex) {
+            throw new ExcelExportException(EXCEL_EXPORT_FAILED + ENTITY_ANALYTICS_DETAILED, ex);
         }
     }
 
@@ -405,6 +566,117 @@ public class ExportServiceImpl implements ExportService {
                     t.getField(),
                     t.getText()
             });
+        }
+    }
+
+    private void writeAnalyticsFunnelSheet(Workbook wb, Integer quizId, Integer quizVersionId) {
+        Sheet s = wb.createSheet(SHEET_ANALYTICS_FUNNEL);
+        row(s, 0, (Object[]) HEADERS_ANALYTICS_FUNNEL);
+
+        var f = funnelRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
+
+        if (f == null) return;
+
+        row(s, 1,
+                f.getId().getQuizId(),
+                f.getId().getQuizVersionId(),
+                f.getAttemptsStarted(),
+                f.getAttemptsCompleted(),
+                f.getCompletionRate(),
+                f.getAvgDurationSeconds()
+        );
+    }
+
+    private void writeAnalyticsActivityDailySheet(Workbook wb, Integer quizId, Integer quizVersionId) {
+        Sheet s = wb.createSheet(SHEET_ANALYTICS_ACTIVITY_DAILY);
+        row(s, 0, (Object[]) HEADERS_ANALYTICS_ACTIVITY_DAILY);
+
+        int r = 1;
+        var rows = activityRepo.findByIdQuizIdAndIdQuizVersionIdOrderByIdDayAsc(quizId, quizVersionId);
+
+        for (var d : rows) {
+            row(s, r++,
+                    d.getId().getDay(),
+                    d.getAttemptsStarted(),
+                    d.getAttemptsCompleted(),
+                    d.getAvgDurationSeconds()
+            );
+        }
+    }
+
+    private void writeAnalyticsTopProfessionsSheet(
+            Workbook wb,
+            Integer quizId,
+            Integer quizVersionId
+    ) {
+        Sheet s = wb.createSheet(SHEET_ANALYTICS_TOP_PROFESSIONS);
+        row(s, 0, (Object[]) HEADERS_ANALYTICS_TOP_PROFESSIONS);
+
+        int r = 1;
+        var rows =
+                topProfRepo.findByIdQuizIdAndIdQuizVersionIdOrderByTop1CountDesc(
+                        quizId,
+                        quizVersionId
+                );
+
+        for (var p : rows) {
+            row(s, r++,
+                    p.getId().getProfessionId(),
+                    p.getProfessionTitle(),
+                    p.getTop1Count()
+            );
+        }
+    }
+
+    private void writeAnalyticsAvgChoiceSheet(Workbook wb, Integer quizId, Integer quizVersionId) {
+        Sheet s = wb.createSheet(SHEET_ANALYTICS_AVG_CHOICE);
+        row(s, 0, (Object[]) HEADERS_ANALYTICS_AVG_CHOICE);
+
+        int r = 1;
+        var rows = avgChoiceRepo.findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId);
+
+        for (var x : rows) {
+            row(s, r++,
+                    x.getId().getQuestionId(),
+                    x.getQuestionOrd(),
+                    x.getAvgChoice(),
+                    x.getAnswersCount()
+            );
+        }
+    }
+
+    private void writeAnalyticsOptionDistributionSheet(Workbook wb, Integer quizId, Integer quizVersionId) {
+        Sheet s = wb.createSheet(SHEET_ANALYTICS_OPTION_DISTRIBUTION);
+        row(s, 0, (Object[]) HEADERS_ANALYTICS_OPTION_DISTRIBUTION);
+
+        int r = 1;
+        var rows = distRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
+
+        for (var x : rows) {
+            row(s, r++,
+                    x.getId().getQuestionId(),
+                    x.getQuestionOrd(),
+                    x.getId().getOptionId(),
+                    x.getOptionOrd(),
+                    x.getCount()
+            );
+        }
+    }
+
+    private void writeAnalyticsDiscriminationSheet(Workbook wb, Integer quizId, Integer quizVersionId) {
+        Sheet s = wb.createSheet(SHEET_ANALYTICS_DISCRIMINATION);
+        row(s, 0, (Object[]) HEADERS_ANALYTICS_DISCRIMINATION);
+
+        int r = 1;
+        var rows = discRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
+
+        for (var x : rows) {
+            row(s, r++,
+                    x.getId().getQuestionId(),
+                    x.getDiscNorm(),
+                    x.getDiscQuality(),
+                    x.getAttemptsSubmitted()
+            );
         }
     }
 }

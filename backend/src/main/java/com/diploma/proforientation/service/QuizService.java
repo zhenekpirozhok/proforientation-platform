@@ -16,6 +16,7 @@ public interface QuizService {
     QuizDto create(CreateQuizRequest req, Integer authorId);
     QuizDto update(Integer id, UpdateQuizRequest req);
     void delete(Integer id);
+    Page<QuizDto> getByAuthor(Integer authorId, Pageable pageable);
     Page<QuizDto> search(
             String search,
             Integer categoryId,

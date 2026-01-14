@@ -3,7 +3,7 @@ package com.diploma.proforientation.service.impl;
 import com.diploma.proforientation.dto.QuizMetricsFilter;
 import com.diploma.proforientation.dto.QuizPublicMetricsDto;
 import com.diploma.proforientation.model.view.QuizPublicMetricsEntity;
-import com.diploma.proforientation.repository.QuizPublicMetricsRepository;
+import com.diploma.proforientation.repository.view.QuizPublicMetricsRepository;
 import com.diploma.proforientation.repository.spec.QuizPublicMetricsSpecs;
 import com.diploma.proforientation.service.QuizMetricsService;
 import jakarta.persistence.EntityNotFoundException;

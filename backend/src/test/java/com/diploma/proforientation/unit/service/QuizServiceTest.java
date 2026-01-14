@@ -8,7 +8,7 @@ import com.diploma.proforientation.model.Quiz;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
 import com.diploma.proforientation.repository.ProfessionCategoryRepository;
-import com.diploma.proforientation.repository.QuizPublicMetricsRepository;
+import com.diploma.proforientation.repository.view.QuizPublicMetricsRepository;
 import com.diploma.proforientation.repository.QuizRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.impl.QuizServiceImpl;
@@ -246,6 +246,41 @@ class QuizServiceTest {
 
         assertThatThrownBy(() -> service.update(77, req))
                 .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    void getByAuthor_shouldReturnPageOfQuizzes() {
+        Quiz quiz1 = new Quiz();
+        quiz1.setId(1);
+        quiz1.setTitleDefault("Quiz 1");
+        quiz1.setAuthor(author);
+
+        Quiz quiz2 = new Quiz();
+        quiz2.setId(2);
+        quiz2.setTitleDefault("Quiz 2");
+        quiz2.setAuthor(author);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Quiz> page = new PageImpl<>(List.of(quiz1, quiz2), pageable, 2);
+
+        when(quizRepo.findAllByAuthorId(author.getId(), pageable)).thenReturn(page);
+
+        when(localeProvider.currentLanguage()).thenReturn("en");
+
+        when(translationResolver.resolve(
+                anyString(), anyInt(), anyString(), eq("en"), anyString()
+        )).thenAnswer(invocation -> invocation.getArgument(4)); // возвращаем default
+
+        Page<QuizDto> result = service.getByAuthor(author.getId(), pageable);
+
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getContent().get(0).title()).isEqualTo("Quiz 1");
+        assertThat(result.getContent().get(1).title()).isEqualTo("Quiz 2");
+
+        verify(quizRepo).findAllByAuthorId(author.getId(), pageable);
+        verify(localeProvider).currentLanguage();
+        verify(translationResolver, times(2))
+                .resolve(anyString(), anyInt(), anyString(), eq("en"), anyString());
     }
 
     @Test

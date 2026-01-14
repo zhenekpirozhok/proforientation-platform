@@ -54,6 +54,16 @@ public final class Constants {
     public static final String ENTITY_ATTEMPTS = "attempts";
     public static final String ENTITY_TRANSLATIONS = "translations";
     public static final String ENTITY_QUIZ_PUBLIC_METRICS = "quiz_public_metrics";
+    public static final String ENTITY_ANALYTICS_OVERVIEW = "quiz_analytics_overview";
+    public static final String ENTITY_ANALYTICS_DETAILED = "quiz_analytics_detailed";
+
+    public static final String SHEET_ANALYTICS_FUNNEL = "overview_funnel";
+    public static final String SHEET_ANALYTICS_ACTIVITY_DAILY = "overview_activity_daily";
+    public static final String SHEET_ANALYTICS_TOP_PROFESSIONS = "overview_top_professions";
+
+    public static final String SHEET_ANALYTICS_AVG_CHOICE = "detailed_avg_choice";
+    public static final String SHEET_ANALYTICS_OPTION_DISTRIBUTION = "detailed_option_distribution";
+    public static final String SHEET_ANALYTICS_DISCRIMINATION = "detailed_discrimination";
 
     public static final String[] HEADERS_QUIZ_PUBLIC_METRICS = {
             "quiz_id","quiz_code","quiz_status","category_id",
@@ -90,6 +100,30 @@ public final class Constants {
 
     public static final String[] HEADERS_TRANSLATIONS = {
             "id", "entity_type", "entity_id", "locale", "field", "text"
+    };
+
+    public static final String[] HEADERS_ANALYTICS_FUNNEL = {
+            "quiz_id","quiz_version_id","attempts_started","attempts_completed","completion_rate","avg_duration_seconds"
+    };
+
+    public static final String[] HEADERS_ANALYTICS_ACTIVITY_DAILY = {
+            "day","attempts_started","attempts_completed","avg_duration_seconds"
+    };
+
+    public static final String[] HEADERS_ANALYTICS_TOP_PROFESSIONS = {
+            "profession_id","profession_title","top1_count"
+    };
+
+    public static final String[] HEADERS_ANALYTICS_AVG_CHOICE = {
+            "question_id","question_ord","avg_choice","answers_count"
+    };
+
+    public static final String[] HEADERS_ANALYTICS_OPTION_DISTRIBUTION = {
+            "question_id","question_ord","option_id","option_ord","count"
+    };
+
+    public static final String[] HEADERS_ANALYTICS_DISCRIMINATION = {
+            "question_id","disc_norm","disc_quality","attempts_submitted"
     };
 
     // EMAIL

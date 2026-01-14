@@ -20,6 +20,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -152,11 +153,17 @@ class QuestionControllerTest {
 
         LocaleContextHolder.setLocale(Locale.ENGLISH);
 
+        Map<Integer, Double> weights = Map.of(
+                1, 2.0,
+                2, 1.0
+        );
+
         OptionDto option = new OptionDto(
                 100,
                 15,
                 1,
-                "Localized option"
+                "Localized option",
+                weights
         );
 
         when(service.getOptionsForQuestionLocalized(15))
@@ -165,7 +172,11 @@ class QuestionControllerTest {
         List<OptionDto> result = controller.getOptionsForQuestion(15);
 
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().label()).isEqualTo("Localized option");
+        OptionDto dto = result.getFirst();
+
+        assertThat(dto.label()).isEqualTo("Localized option");
+        assertThat(dto.weightsByTraitId()).containsEntry(1, 2.0);
+        assertThat(dto.weightsByTraitId()).containsEntry(2, 1.0);
 
         verify(service).getOptionsForQuestionLocalized(15);
     }

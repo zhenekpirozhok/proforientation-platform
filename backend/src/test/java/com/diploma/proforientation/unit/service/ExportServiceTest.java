@@ -6,8 +6,9 @@ import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.model.enumeration.QuestionType;
 import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
 import com.diploma.proforientation.model.enumeration.QuizStatus;
-import com.diploma.proforientation.model.view.QuizPublicMetricsEntity;
+import com.diploma.proforientation.model.view.*;
 import com.diploma.proforientation.repository.*;
+import com.diploma.proforientation.repository.view.*;
 import com.diploma.proforientation.service.ExportService;
 import com.diploma.proforientation.service.impl.ExportServiceImpl;
 import org.apache.poi.ss.usermodel.Row;
@@ -42,6 +43,12 @@ class ExportServiceTest {
     @Mock AttemptRepository attemptRepo;
     @Mock TranslationRepository translationRepo;
     @Mock QuizPublicMetricsRepository quizPublicMetricsRepo;
+    @Mock QuizFunnelOverviewRepository funnelRepo;
+    @Mock QuizActivityDailyRepository activityRepo;
+    @Mock QuizTopProfessionRepository topProfRepo;
+    @Mock QuizQuestionAvgChoiceRepository avgChoiceRepo;
+    @Mock QuizQuestionOptionDistributionRepository distRepo;
+    @Mock QuizQuestionDiscriminationRepository discRepo;
 
     ExportService service;
 
@@ -55,7 +62,13 @@ class ExportServiceTest {
                 professionRepo,
                 attemptRepo,
                 translationRepo,
-                quizPublicMetricsRepo
+                quizPublicMetricsRepo,
+                funnelRepo,
+                activityRepo,
+                topProfRepo,
+                avgChoiceRepo,
+                distRepo,
+                discRepo
         );
         impl.initExporters();
         service = impl;
@@ -592,6 +605,239 @@ class ExportServiceTest {
 
         verify(quizPublicMetricsRepo).findAll(any(Specification.class));
         verifyNoMoreInteractions(quizPublicMetricsRepo);
+    }
+
+    @Test
+    void exportQuizAnalyticsOverviewCsv_containsFunnelActivityAndTopProfessions() {
+        Integer quizId = 1;
+        Integer quizVersionId = 10;
+
+        // funnel
+        QuizFunnelOverviewEntity f = new QuizFunnelOverviewEntity();
+        f.setId(new QuizFunnelOverviewEntity.Id(quizId, quizVersionId));
+        f.setAttemptsStarted(100);
+        f.setAttemptsCompleted(80);
+        f.setCompletionRate(new java.math.BigDecimal("0.800000"));
+        f.setAvgDurationSeconds(new java.math.BigDecimal("650.5"));
+
+        when(funnelRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId))
+                .thenReturn(f);
+
+        // activity daily
+        QuizActivityDailyEntity d1 = new QuizActivityDailyEntity();
+        d1.setId(new QuizActivityDailyEntity.Id(quizId, quizVersionId, java.time.LocalDate.of(2026, 1, 1)));
+        d1.setAttemptsStarted(10);
+        d1.setAttemptsCompleted(8);
+        d1.setAvgDurationSeconds(new java.math.BigDecimal("600"));
+
+        QuizActivityDailyEntity d2 = new QuizActivityDailyEntity();
+        d2.setId(new QuizActivityDailyEntity.Id(quizId, quizVersionId, java.time.LocalDate.of(2026, 1, 2)));
+        d2.setAttemptsStarted(20);
+        d2.setAttemptsCompleted(15);
+        d2.setAvgDurationSeconds(new java.math.BigDecimal("700"));
+
+        when(activityRepo.findByIdQuizIdAndIdQuizVersionIdOrderByIdDayAsc(quizId, quizVersionId))
+                .thenReturn(List.of(d1, d2));
+
+        // top professions
+        QuizTopProfessionEntity p1 = new QuizTopProfessionEntity();
+        p1.setId(new QuizTopProfessionEntity.Id(quizId, quizVersionId, 7));
+        p1.setProfessionTitle("Java Developer");
+        p1.setTop1Count(12);
+
+        when(topProfRepo.findByIdQuizIdAndIdQuizVersionIdOrderByTop1CountDesc(quizId, quizVersionId))
+                .thenReturn(List.of(p1));
+
+        String csv = new String(
+                service.exportQuizAnalyticsOverviewCsv(quizId, quizVersionId),
+                StandardCharsets.UTF_8
+        );
+
+        // funnel header + row
+        assertThat(csv).contains("quiz_id,quiz_version_id,attempts_started,attempts_completed,completion_rate,avg_duration_seconds");
+        assertThat(csv).contains("1,10,100,80,0.800000,650.5");
+
+        // activity header + rows
+        assertThat(csv).contains("day,attempts_started,attempts_completed,avg_duration_seconds");
+        assertThat(csv).contains("2026-01-01,10,8,600");
+        assertThat(csv).contains("2026-01-02,20,15,700");
+
+        // top professions header + row
+        assertThat(csv).contains("profession_id,profession_title,top1_count");
+        assertThat(csv).contains("7,Java Developer,12");
+
+        verify(funnelRepo).findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
+        verify(activityRepo).findByIdQuizIdAndIdQuizVersionIdOrderByIdDayAsc(quizId, quizVersionId);
+        verify(topProfRepo).findByIdQuizIdAndIdQuizVersionIdOrderByTop1CountDesc(quizId, quizVersionId);
+    }
+
+    @Test
+    void exportQuizAnalyticsDetailedCsv_containsAvgChoiceDistributionAndDiscrimination() {
+        Integer quizId = 2;
+        Integer quizVersionId = 20;
+
+        // avg choice
+        QuizQuestionAvgChoiceEntity a1 = new QuizQuestionAvgChoiceEntity();
+        a1.setId(new QuizQuestionAvgChoiceEntity.Id(quizId, quizVersionId, 100));
+        a1.setQuestionOrd(1);
+        a1.setAvgChoice(new java.math.BigDecimal("2.5000"));
+        a1.setAnswersCount(40);
+
+        when(avgChoiceRepo.findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId))
+                .thenReturn(List.of(a1));
+
+        // option distribution
+        QuizQuestionOptionDistributionEntity o1 = new QuizQuestionOptionDistributionEntity();
+        o1.setId(new QuizQuestionOptionDistributionEntity.Id(quizId, quizVersionId, 100, 1000));
+        o1.setQuestionOrd(1);
+        o1.setOptionOrd(1);
+        o1.setCount(10);
+
+        when(distRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId))
+                .thenReturn(List.of(o1));
+
+        // discrimination
+        QuizQuestionDiscriminationEntity qd = new QuizQuestionDiscriminationEntity();
+        qd.setId(new QuizQuestionDiscriminationEntity.Id(quizId, quizVersionId, 100));
+        qd.setDiscNorm(new java.math.BigDecimal("0.250000"));
+        qd.setDiscQuality("ok");
+        qd.setAttemptsSubmitted(80);
+
+        when(discRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId))
+                .thenReturn(List.of(qd));
+
+        String csv = new String(
+                service.exportQuizAnalyticsDetailedCsv(quizId, quizVersionId),
+                StandardCharsets.UTF_8
+        );
+
+        assertThat(csv).contains("question_id,question_ord,avg_choice,answers_count");
+        assertThat(csv).contains("100,1,2.5000,40");
+
+        assertThat(csv).contains("question_id,question_ord,option_id,option_ord,count");
+        assertThat(csv).contains("100,1,1000,1,10");
+
+        assertThat(csv).contains("question_id,disc_norm,disc_quality,attempts_submitted");
+        assertThat(csv).contains("100,0.250000,ok,80");
+
+        verify(avgChoiceRepo).findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId);
+        verify(distRepo).findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
+        verify(discRepo).findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
+    }
+
+    @Test
+    void exportQuizAnalyticsOverviewExcel_createsSheetsAndWritesRows() throws Exception {
+        Integer quizId = 1;
+        Integer quizVersionId = 10;
+
+        QuizFunnelOverviewEntity f = new QuizFunnelOverviewEntity();
+        f.setId(new QuizFunnelOverviewEntity.Id(quizId, quizVersionId));
+        f.setAttemptsStarted(5);
+        f.setAttemptsCompleted(3);
+        f.setCompletionRate(new java.math.BigDecimal("0.600000"));
+        f.setAvgDurationSeconds(new java.math.BigDecimal("100"));
+
+        when(funnelRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId)).thenReturn(f);
+
+        QuizActivityDailyEntity d = new QuizActivityDailyEntity();
+        d.setId(new QuizActivityDailyEntity.Id(quizId, quizVersionId, java.time.LocalDate.of(2026, 1, 1)));
+        d.setAttemptsStarted(5);
+        d.setAttemptsCompleted(3);
+        d.setAvgDurationSeconds(new java.math.BigDecimal("100"));
+
+        when(activityRepo.findByIdQuizIdAndIdQuizVersionIdOrderByIdDayAsc(quizId, quizVersionId))
+                .thenReturn(List.of(d));
+
+        QuizTopProfessionEntity tp = new QuizTopProfessionEntity();
+        tp.setId(new QuizTopProfessionEntity.Id(quizId, quizVersionId, 7));
+        tp.setProfessionTitle("Java Developer");
+        tp.setTop1Count(1);
+
+        when(topProfRepo.findByIdQuizIdAndIdQuizVersionIdOrderByTop1CountDesc(quizId, quizVersionId))
+                .thenReturn(List.of(tp));
+
+        Workbook wb = workbook(service.exportQuizAnalyticsOverviewExcel(quizId, quizVersionId));
+
+        Sheet funnel = wb.getSheet("overview_funnel");
+        Sheet activity = wb.getSheet("overview_activity_daily");
+        Sheet top = wb.getSheet("overview_top_professions");
+
+        assertThat(funnel).isNotNull();
+        assertThat(activity).isNotNull();
+        assertThat(top).isNotNull();
+
+        // funnel data row
+        assertThat(cell(funnel, 1, 0)).isEqualTo("1");   // quiz_id
+        assertThat(cell(funnel, 1, 1)).isEqualTo("10");  // quiz_version_id
+        assertThat(cell(funnel, 1, 2)).isEqualTo("5");   // attempts_started
+        assertThat(cell(funnel, 1, 3)).isEqualTo("3");   // attempts_completed
+
+        // activity row day
+        assertThat(cell(activity, 1, 0)).isEqualTo("2026-01-01");
+
+        // top profession row
+        assertThat(cell(top, 1, 0)).isEqualTo("7");
+        assertThat(cell(top, 1, 1)).isEqualTo("Java Developer");
+        assertThat(cell(top, 1, 2)).isEqualTo("1");
+    }
+
+    @Test
+    void exportQuizAnalyticsDetailedExcel_createsSheetsAndWritesRows() throws Exception {
+        Integer quizId = 2;
+        Integer quizVersionId = 20;
+
+        QuizQuestionAvgChoiceEntity avg = new QuizQuestionAvgChoiceEntity();
+        avg.setId(new QuizQuestionAvgChoiceEntity.Id(quizId, quizVersionId, 100));
+        avg.setQuestionOrd(1);
+        avg.setAvgChoice(new java.math.BigDecimal("2.5000"));
+        avg.setAnswersCount(40);
+
+        when(avgChoiceRepo.findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId))
+                .thenReturn(List.of(avg));
+
+        QuizQuestionOptionDistributionEntity dist = new QuizQuestionOptionDistributionEntity();
+        dist.setId(new QuizQuestionOptionDistributionEntity.Id(quizId, quizVersionId, 100, 1000));
+        dist.setQuestionOrd(1);
+        dist.setOptionOrd(1);
+        dist.setCount(10);
+
+        when(distRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId))
+                .thenReturn(List.of(dist));
+
+        QuizQuestionDiscriminationEntity disc = new QuizQuestionDiscriminationEntity();
+        disc.setId(new QuizQuestionDiscriminationEntity.Id(quizId, quizVersionId, 100));
+        disc.setDiscNorm(new java.math.BigDecimal("0.250000"));
+        disc.setDiscQuality("ok");
+        disc.setAttemptsSubmitted(80);
+
+        when(discRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId))
+                .thenReturn(List.of(disc));
+
+        Workbook wb = workbook(service.exportQuizAnalyticsDetailedExcel(quizId, quizVersionId));
+
+        Sheet sAvg = wb.getSheet("detailed_avg_choice");
+        Sheet sDist = wb.getSheet("detailed_option_distribution");
+        Sheet sDisc = wb.getSheet("detailed_discrimination");
+
+        assertThat(sAvg).isNotNull();
+        assertThat(sDist).isNotNull();
+        assertThat(sDisc).isNotNull();
+
+        // avg choice row
+        assertThat(cell(sAvg, 1, 0)).isEqualTo("100");
+        assertThat(cell(sAvg, 1, 1)).isEqualTo("1");
+        assertThat(cell(sAvg, 1, 2)).isEqualTo("2.5000");
+        assertThat(cell(sAvg, 1, 3)).isEqualTo("40");
+
+        // dist row
+        assertThat(cell(sDist, 1, 0)).isEqualTo("100");
+        assertThat(cell(sDist, 1, 2)).isEqualTo("1000");
+
+        // disc row
+        assertThat(cell(sDisc, 1, 0)).isEqualTo("100");
+        assertThat(cell(sDisc, 1, 1)).isEqualTo("0.250000");
+        assertThat(cell(sDisc, 1, 2)).isEqualTo("ok");
+        assertThat(cell(sDisc, 1, 3)).isEqualTo("80");
     }
 
     private String csv(byte[] bytes) {

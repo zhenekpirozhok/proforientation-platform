@@ -227,4 +227,103 @@ class QuizVersionServiceTest {
         assertThatThrownBy(() -> service.getVersion(10, 99))
                 .isInstanceOf(RuntimeException.class);
     }
+
+    @Test
+    void createDraftVersion_shouldCreateDraftFromLatest() {
+        when(quizRepo.findById(10)).thenReturn(Optional.of(quiz));
+        when(versionRepo.findTopByQuizIdOrderByVersionDesc(10))
+                .thenReturn(Optional.of(version1));
+
+        QuizVersion saved = new QuizVersion();
+        saved.setId(200);
+        saved.setQuiz(quiz);
+        saved.setVersion(2);
+        saved.setCurrent(false);
+        saved.setPublishedAt(null);
+
+        when(versionRepo.save(any())).thenReturn(saved);
+        when(questionRepo.findByQuizVersionId(100)).thenReturn(List.of());
+
+        QuizVersionDto dto = service.createDraftVersion(10);
+
+        assertThat(dto.version()).isEqualTo(2);
+        assertThat(dto.isCurrent()).isFalse();
+        assertThat(dto.publishedAt()).isNull();
+
+        verify(versionRepo).save(argThat(v ->
+                !v.isCurrent() &&
+                        v.getPublishedAt() == null &&
+                        v.getVersion() == 2
+        ));
+    }
+
+    @Test
+    void createDraftVersion_shouldCreateFirstVersionIfNoneExist() {
+        when(quizRepo.findById(10)).thenReturn(Optional.of(quiz));
+        when(versionRepo.findTopByQuizIdOrderByVersionDesc(10))
+                .thenReturn(Optional.empty());
+
+        QuizVersion saved = new QuizVersion();
+        saved.setId(101);
+        saved.setQuiz(quiz);
+        saved.setVersion(1);
+        saved.setCurrent(false);
+        saved.setPublishedAt(null);
+
+        when(versionRepo.save(any())).thenReturn(saved);
+
+        QuizVersionDto dto = service.createDraftVersion(10);
+
+        assertThat(dto.version()).isEqualTo(1);
+        assertThat(dto.isCurrent()).isFalse();
+        assertThat(dto.publishedAt()).isNull();
+
+        verify(questionRepo, never()).findByQuizVersionId(any());
+    }
+
+    @Test
+    void createDraftVersion_shouldCopyQuestionsAndOptions() {
+        when(quizRepo.findById(10)).thenReturn(Optional.of(quiz));
+        when(versionRepo.findTopByQuizIdOrderByVersionDesc(10))
+                .thenReturn(Optional.of(version1));
+
+        Question q = new Question();
+        q.setId(500);
+        q.setOrd(1);
+        q.setQtype(QuestionType.MULTI_CHOICE);
+        q.setTextDefault("Question");
+
+        QuestionOption opt = new QuestionOption();
+        opt.setId(600);
+        opt.setOrd(1);
+        opt.setLabelDefault("Option");
+
+        when(questionRepo.findByQuizVersionId(100)).thenReturn(List.of(q));
+        when(optionRepo.findByQuestionId(500)).thenReturn(List.of(opt));
+
+        when(questionRepo.save(any())).thenReturn(new Question());
+        when(optionRepo.save(any())).thenReturn(new QuestionOption());
+
+        QuizVersion saved = new QuizVersion();
+        saved.setId(222);
+        saved.setQuiz(quiz);
+        saved.setVersion(2);
+
+        when(versionRepo.save(any())).thenReturn(saved);
+
+        QuizVersionDto dto = service.createDraftVersion(10);
+
+        assertThat(dto.version()).isEqualTo(2);
+
+        verify(questionRepo).save(any());
+        verify(optionRepo).save(any());
+    }
+
+    @Test
+    void createDraftVersion_shouldFailIfQuizNotFound() {
+        when(quizRepo.findById(99)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.createDraftVersion(99))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
 }

@@ -13,4 +13,5 @@ public interface TraitService {
     TraitDto create(CreateTraitRequest req);
     TraitDto update(Integer id, CreateTraitRequest req);
     void delete(Integer id);
+    List<TraitDto> getTraitsForQuizVersion(Integer quizId);
 }

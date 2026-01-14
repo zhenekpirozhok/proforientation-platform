@@ -3,6 +3,8 @@ package com.diploma.proforientation.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 
+import java.util.Map;
+
 @Schema(description = "Represents a selectable option for a quiz question")
 public record OptionDto(
         @Schema(
@@ -26,5 +28,6 @@ public record OptionDto(
                 description = "Text label shown to the user for this option",
                 examples = "Strongly agree"
         )
-        String label
+        String label,
+        Map<Integer, Double> weightsByTraitId
 ) {}

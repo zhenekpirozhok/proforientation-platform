@@ -9,6 +9,7 @@ import com.diploma.proforientation.model.QuestionOption;
 import com.diploma.proforientation.model.QuizVersion;
 import com.diploma.proforientation.model.enumeration.QuestionType;
 import com.diploma.proforientation.repository.QuestionOptionRepository;
+import com.diploma.proforientation.repository.QuestionOptionTraitRepository;
 import com.diploma.proforientation.repository.QuestionRepository;
 import com.diploma.proforientation.repository.QuizVersionRepository;
 import com.diploma.proforientation.service.QuestionService;
@@ -22,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.diploma.proforientation.util.Constants.*;
 
@@ -33,6 +36,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuizVersionRepository quizVersionRepo;
     private final QuestionOptionRepository optionRepo;
     private final TranslationResolver translationResolver;
+    private final QuestionOptionTraitRepository traitRepo;
     private final I18n i18n;
 
     @Override
@@ -110,39 +114,16 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public List<OptionDto> getOptionsForQuestionLocalized(
-            Integer questionId
-    ) {
+    public List<OptionDto> getOptionsForQuestionLocalized(Integer questionId) {
         String locale = i18n.currentLanguage();
 
         questionRepo.findById(questionId)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Question not found")
-                );
+                .orElseThrow(() -> new EntityNotFoundException(QUESTION_NOT_FOUND));
 
-        List<QuestionOption> options =
-                optionRepo.findByQuestionIdOrderByOrdAsc(questionId);
-
-        return options.stream()
-                .map(option -> optionToDto(option, locale))
+        return optionRepo.findByQuestionIdOrderByOrdAsc(questionId)
+                .stream()
+                .map(opt -> toOptionDtoWithWeights(opt, locale))
                 .toList();
-    }
-
-    private OptionDto optionToDto(QuestionOption option, String locale) {
-        String label = translationResolver.resolve(
-                ENTITY_TYPE_OPTION,
-                option.getId(),
-                FIELD_TEXT,
-                locale,
-                option.getLabelDefault()
-        );
-
-        return new OptionDto(
-                option.getId(),
-                option.getQuestion().getId(),
-                option.getOrd(),
-                label
-        );
     }
 
     private Page<QuestionDto> loadQuestions(
@@ -167,7 +148,6 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     private QuestionDto toLocalizedDto(Question q, String locale) {
-
         String localized = translationResolver.resolve(
                 ENTITY_TYPE_QUESTION,
                 q.getId(),
@@ -176,11 +156,9 @@ public class QuestionServiceImpl implements QuestionService {
                 q.getTextDefault()
         );
 
-        List<QuestionOption> options =
-                optionRepo.findByQuestionIdOrderByOrd(q.getId());
-
-        List<OptionDto> optionDtos = options.stream()
-                .map(opt -> optionToDto(opt, locale))
+        List<OptionDto> optionDtos = optionRepo.findByQuestionIdOrderByOrd(q.getId())
+                .stream()
+                .map(opt -> toOptionDtoWithWeights(opt, locale))
                 .toList();
 
         return new QuestionDto(
@@ -190,6 +168,31 @@ public class QuestionServiceImpl implements QuestionService {
                 q.getQtype().toString(),
                 localized,
                 optionDtos
+        );
+    }
+
+    private OptionDto toOptionDtoWithWeights(QuestionOption option, String locale) {
+        String label = translationResolver.resolve(
+                ENTITY_TYPE_OPTION,
+                option.getId(),
+                FIELD_TEXT,
+                locale,
+                option.getLabelDefault()
+        );
+
+        Map<Integer, Double> weightsByTraitId = traitRepo.findByOptionId(option.getId())
+                .stream()
+                .collect(Collectors.toMap(
+                        t -> t.getTrait().getId(),
+                        t -> t.getWeight().doubleValue()
+                ));
+
+        return new OptionDto(
+                option.getId(),
+                option.getQuestion().getId(),
+                option.getOrd(),
+                label,
+                weightsByTraitId
         );
     }
 }
