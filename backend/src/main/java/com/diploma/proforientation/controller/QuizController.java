@@ -205,6 +205,30 @@ public class QuizController {
         quizService.delete(id);
     }
 
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Get quizzes created by the current admin",
+            description = "Returns all quizzes (published or draft) created by the currently authenticated admin"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "List of quizzes by author",
+            content = @Content(
+                    mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = QuizDto.class))
+            )
+    )
+    public Page<QuizDto> getMyQuizzes(
+            @AuthenticationPrincipal User user,
+            @RequestParam(required = false, defaultValue = "1") int page,
+            @RequestParam(required = false, defaultValue = "20") int size,
+            @RequestParam(required = false, defaultValue = "id") String sort
+    ) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(sort));
+        return quizService.getByAuthor(user.getId(), pageable);
+    }
+
     @PostMapping("/{id}/publish")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(

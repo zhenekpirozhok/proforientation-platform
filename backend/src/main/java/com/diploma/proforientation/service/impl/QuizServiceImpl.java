@@ -149,6 +149,14 @@ public class QuizServiceImpl implements QuizService {
         quizRepo.delete(quiz);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public Page<QuizDto> getByAuthor(Integer authorId, Pageable pageable) {
+        String locale = i18n.currentLanguage();
+        return quizRepo.findAllByAuthorId(authorId, pageable)
+                .map(q -> toDtoLocalized(q, locale));
+    }
+
     @Override
     @Transactional(readOnly = true)
     public Page<QuizDto> search(

@@ -228,6 +228,30 @@ class QuizControllerTest {
     }
 
     @Test
+    void getMyQuizzes_asAdmin_shouldReturnQuizzes() {
+        setAdmin();
+
+        User user = new User();
+        user.setId(1);
+
+        QuizDto dto1 = new QuizDto(1, "Q1", "My Quiz 1", "DRAFT", "ml", 5, 1, null, 30);
+        QuizDto dto2 = new QuizDto(2, "Q2", "My Quiz 2", "PUBLISHED", "ml", 5, 1, null, 30);
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
+        Page<QuizDto> pageResult = new PageImpl<>(List.of(dto1, dto2), pageable, 2);
+
+        when(quizService.getByAuthor(1, pageable)).thenReturn(pageResult);
+
+        Page<QuizDto> result = controller.getMyQuizzes(user, 1, 10, "id");
+
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getContent().get(0).title()).isEqualTo("My Quiz 1");
+        assertThat(result.getContent().get(1).title()).isEqualTo("My Quiz 2");
+
+        verify(quizService).getByAuthor(1, pageable);
+    }
+
+    @Test
     void search_emptyResult_shouldReturnEmptyPage_withDefaults() {
         int page = 1;
         int size = 20;
