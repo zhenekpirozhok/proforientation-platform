@@ -45,6 +45,7 @@ import type {
   ExportQuizMetricsCsvParams,
   ExportQuizMetricsExcelParams,
   FilterMetricsParams,
+  GetAdminQuizzesParams,
   GetAll1Params,
   GetAll2Params,
   GetQuestionsForQuizParams,
@@ -2283,6 +2284,124 @@ export const useCreate2 = <TError = ExceptionDto | ExceptionDto,
       return useMutation(mutationOptions, queryClient);
     }
     
+/**
+ * Returns a paginated list of quizzes created by the current authenticated admin.
+
+Pagination is supported via standard Spring Data parameters:
+- `page` (default: 1)
+- `size` (number of items per page, default: 20)
+- `sort` (sorting criteria, e.g. `id,asc` or `title,desc`)
+
+Example:
+`/quizzes/my?page=0&size=10&sort=title,asc`
+
+ * @summary Get quizzes created by current admin (paginated)
+ */
+export const getGetAdminQuizzesUrl = (params?: GetAdminQuizzesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/quizzes/my?${stringifiedParams}` : `/quizzes/my`
+}
+
+export const getAdminQuizzes = async (params?: GetAdminQuizzesParams, options?: RequestInit): Promise<QuizDto> => {
+  
+  return orvalFetch<QuizDto>(getGetAdminQuizzesUrl(params),
+  {      
+    ...options,
+    method: 'GET'
+    
+    
+  }
+);}
+
+
+
+
+
+export const getGetAdminQuizzesQueryKey = (params?: GetAdminQuizzesParams,) => {
+    return [
+    `/quizzes/my`, ...(params ? [params]: [])
+    ] as const;
+    }
+
+    
+export const getGetAdminQuizzesQueryOptions = <TData = Awaited<ReturnType<typeof getAdminQuizzes>>, TError = ExceptionDto>(params?: GetAdminQuizzesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminQuizzes>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdminQuizzesQueryKey(params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminQuizzes>>> = ({ signal }) => getAdminQuizzes(params, { signal, ...requestOptions });
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdminQuizzes>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAdminQuizzesQueryResult = NonNullable<Awaited<ReturnType<typeof getAdminQuizzes>>>
+export type GetAdminQuizzesQueryError = ExceptionDto
+
+
+export function useGetAdminQuizzes<TData = Awaited<ReturnType<typeof getAdminQuizzes>>, TError = ExceptionDto>(
+ params: undefined |  GetAdminQuizzesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminQuizzes>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminQuizzes>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminQuizzes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminQuizzes<TData = Awaited<ReturnType<typeof getAdminQuizzes>>, TError = ExceptionDto>(
+ params?: GetAdminQuizzesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminQuizzes>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdminQuizzes>>,
+          TError,
+          Awaited<ReturnType<typeof getAdminQuizzes>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdminQuizzes<TData = Awaited<ReturnType<typeof getAdminQuizzes>>, TError = ExceptionDto>(
+ params?: GetAdminQuizzesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminQuizzes>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get quizzes created by current admin (paginated)
+ */
+
+export function useGetAdminQuizzes<TData = Awaited<ReturnType<typeof getAdminQuizzes>>, TError = ExceptionDto>(
+ params?: GetAdminQuizzesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdminQuizzes>>, TError, TData>>, request?: SecondParameter<typeof orvalFetch>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAdminQuizzesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+
 /**
  * Publishes a quiz and creates a new current quiz version (ADMIN only)
  * @summary Publish quiz

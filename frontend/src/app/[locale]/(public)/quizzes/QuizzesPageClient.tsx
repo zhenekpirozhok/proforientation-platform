@@ -15,7 +15,7 @@ import { QuizzesFilters } from '@/features/quizzes/ui/QuizzesFilters';
 import { QuizGridSkeleton } from '@/features/quizzes/ui/QuizGridSkeleton';
 import { QuizEmptyState } from '@/features/quizzes/ui/QuizEmptyState';
 import { QuizCard } from '@/entities/quiz/ui/QuizCard';
-import { QuizzesPagination } from '@/features/quizzes/ui/QuizzesPagination';
+import { QuizzesPagination } from '@/entities/quiz/ui/QuizzesPagination';
 
 function durationSeconds(item: QuizCatalogItem): number | null {
   const v =

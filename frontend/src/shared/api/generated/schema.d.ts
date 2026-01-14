@@ -335,6 +335,34 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/quizzes/my": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get quizzes created by current admin (paginated)
+         * @description Returns a paginated list of quizzes created by the current authenticated admin.
+         *
+         *     Pagination is supported via standard Spring Data parameters:
+         *     - `page` (default: 1)
+         *     - `size` (number of items per page, default: 20)
+         *     - `sort` (sorting criteria, e.g. `id,asc` or `title,desc`)
+         *
+         *     Example:
+         *     `/quizzes/my?page=0&size=10&sort=title,asc`
+         */
+        get: operations["getAdminQuizzes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/quizzes/{id}/publish": {
         parameters: {
             query?: never;
@@ -3546,6 +3574,51 @@ export interface operations {
                 };
             };
             /** @description Access denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
+            };
+        };
+    };
+    getAdminQuizzes: {
+        parameters: {
+            query?: {
+                /** @description Page number */
+                page?: string;
+                /** @description Number of items per page */
+                size?: string;
+                /** @description Sort by field */
+                sort?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Page of admin's quizzes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizDto"];
+                };
+            };
+            /** @description Unauthorized - authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ExceptionDto"];
+                };
+            };
+            /** @description Access denied - admin role required */
             403: {
                 headers: {
                     [name: string]: unknown;

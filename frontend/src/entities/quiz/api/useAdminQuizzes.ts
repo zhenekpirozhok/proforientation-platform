@@ -1,8 +1,8 @@
 'use client';
 
-import { useGetAll1 } from '@/shared/api/generated/api';
-import type { GetAll1Params } from '@/shared/api/generated/model';
+import { useGetAdminQuizzes } from '@/shared/api/generated/api';
+import type { GetAdminQuizzesParams } from '@/shared/api/generated/model';
 
-export function useAdminQuizzes(params?: GetAll1Params) {
-    return useGetAll1(params);
+export function useAdminQuizzes(params?: GetAdminQuizzesParams) {
+    return useGetAdminQuizzes(params);
 }
