@@ -659,6 +659,40 @@
     "publish": "Опубликовать",
     "published": "Квиз опубликован"
   }
-}
-  
-}
+  },
+  "AdminQuizTranslations": {
+    "title": "Переводы квиза",
+    "quizId": "quizId: {id}",
+    "back": "Назад",
+    "saveAll": "Сохранить всё",
+    "saveLocale": "Сохранить {locale}",
+    "titleLabel": "Заголовок",
+    "descriptionLabel": "Описание",
+    "placeholderTitleRu": "Название на русском",
+    "placeholderTitleEn": "Название на английском",
+    "placeholderDescRu": "Описание на русском",
+    "placeholderDescEn": "Описание на английском",
+    "currentBackendRu": "RU (текущее на бэке)",
+    "currentBackendEn": "EN (текущее на бэке)",
+    "saveSuccessRu": "RU перевод сохранён",
+    "saveSuccessEn": "EN перевод сохранён",
+    "titleRequired": "Title обязателен"
+  }
+
+
+  ,"AdminDashboard": {
+    "title": "Панель администратора",
+    "subtitle": "Все ваши квизы (черновики и опубликованные)",
+    "create": "Создать квиз",
+    "empty": "Пока нет квизов",
+    "published": "Опубликован",
+    "draft": "Черновик",
+    "created": "Создан",
+    "updated": "Обновлён",
+    "publishedAt": "Опубликован",
+    "edit": "Редактировать",
+    "translations": "Переводы",
+    "publish": "Опубликовать",
+    "analytics": "Аналитика"
+  }
+} 
