@@ -17,6 +17,9 @@ import type { ProfessionDto as Profession } from '@/shared/api/generated/model/p
 
 import { generateEntityCode } from '@/shared/lib/code/generateEntityCode';
 
+import { useStepValidation } from '../../lib/validation/useStepValidation';
+import { StepValidationSummary } from '../../lib/validation/StepValidationSummary';
+
 function toNumber(v: unknown): number | undefined {
   const n = typeof v === 'number' ? v : Number(v);
   return Number.isFinite(n) ? n : undefined;
@@ -51,8 +54,16 @@ function colorToHex(c: string | Color | null | undefined): string | undefined {
   }
 }
 
-export function StepResults({ errors }: { errors: Record<string, string> }) {
+export function StepResults({
+  errors,
+  submitAttempted,
+}: {
+  errors: Record<string, string>;
+  submitAttempted?: boolean;
+}) {
   const t = useTranslations('AdminQuizBuilder.results');
+
+  const v = useStepValidation({ errors, submitAttempted });
 
   const quizId = useAdminQuizBuilderStore((s) => s.quizId);
   const results = useAdminQuizBuilderStore((s) => s.results);
@@ -67,7 +78,7 @@ export function StepResults({ errors }: { errors: Record<string, string> }) {
 
   const selectedCategoryId = toNumber(Array.isArray(results.selectedCategoryIds) ? results.selectedCategoryIds[0] : undefined);
 
-  const actions = useQuizBuilderActions(quizId as number, 0 as any);
+  const actions = useQuizBuilderActions((quizId as number) ?? 0, 0 as any);
   const searchRes = actions.searchProfessionsHook({ categoryId: selectedCategoryId, page, size });
 
   const updateQuiz = actions.updateQuiz;
@@ -102,7 +113,7 @@ export function StepResults({ errors }: { errors: Record<string, string> }) {
 
     setAllProfessions((prev) => {
       if (page === 1) return items;
-      const ids = new Set(prev.map((p) => (p as any).id));
+      const ids = new Set(prev.map((p: any) => p.id));
       const next = [...prev];
       for (const it of items) {
         const id = (it as any).id;
@@ -212,15 +223,30 @@ export function StepResults({ errors }: { errors: Record<string, string> }) {
   const isCategoryBusy = (categories as any).isLoading || createCategory.isPending;
   const isProfessionBusy = searchRes.isFetching || createProfession.isPending;
 
+  const summaryItems = useMemo(() => {
+    const items: Array<{ field: string; label: string }> = [];
+    if (v.showError('categories')) items.push({ field: 'categories', label: t('categories') });
+    if (v.showError('categoryId')) items.push({ field: 'categoryId', label: t('categories') });
+    return items;
+  }, [v, t]);
+
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
       <SectionCard title={t('title')}>
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
+          <StepValidationSummary title={t('validation.fixErrors')} items={summaryItems} />
+
+          <div className="flex flex-col gap-2" data-field="categories">
             <Typography.Text className="block">{t('categories')}</Typography.Text>
             <Select
               value={selectedCategoryId as any}
-              onChange={(id) => patchResults({ selectedCategoryIds: typeof id === 'undefined' ? [] : [toNumber(id) as number] })}
+              status={v.fieldStatus('categories') || v.fieldStatus('categoryId')}
+              onBlur={() => v.markTouched('categories')}
+              onChange={(id) =>
+                patchResults({
+                  selectedCategoryIds: typeof id === 'undefined' ? [] : [toNumber(id) as number],
+                })
+              }
               options={categoryOptions}
               className="w-full"
               placeholder={t('categoriesPh')}
@@ -228,14 +254,20 @@ export function StepResults({ errors }: { errors: Record<string, string> }) {
               loading={(categories as any).isLoading}
               disabled={isCategoryBusy}
             />
-            <FieldError code={errors.categories ?? errors.categoryId} />
+            {v.showError('categories') ? <FieldError code={errors.categories} /> : null}
+            {v.showError('categoryId') ? <FieldError code={errors.categoryId} /> : null}
 
             <div className="flex flex-wrap gap-2">
-              <Button onClick={() => setShowCreateCategory((v) => !v)} disabled={isCategoryBusy}>
+              <Button onClick={() => setShowCreateCategory((vv) => !vv)} disabled={isCategoryBusy}>
                 {showCreateCategory ? t('close') : t('addCategory')}
               </Button>
 
-              <Button type="primary" onClick={onSave} disabled={!canSave || updateQuiz.isPending} loading={updateQuiz.isPending}>
+              <Button
+                type="primary"
+                onClick={onSave}
+                disabled={!canSave || updateQuiz.isPending}
+                loading={updateQuiz.isPending}
+              >
                 {t('save')}
               </Button>
             </div>
@@ -250,7 +282,11 @@ export function StepResults({ errors }: { errors: Record<string, string> }) {
                 />
                 <div className="flex items-center justify-between gap-3">
                   <Typography.Text>{t('newCategoryColorPh')}</Typography.Text>
-                  <ColorPicker value={newCategoryColor as any} onChange={(c) => setNewCategoryColor(c)} disabled={isCategoryBusy} />
+                  <ColorPicker
+                    value={newCategoryColor as any}
+                    onChange={(c) => setNewCategoryColor(c)}
+                    disabled={isCategoryBusy}
+                  />
                 </div>
                 <Button type="primary" onClick={onCreateCategory} loading={createCategory.isPending} disabled={isCategoryBusy}>
                   {t('add')}
@@ -263,7 +299,7 @@ export function StepResults({ errors }: { errors: Record<string, string> }) {
             <div className="flex items-center justify-between gap-3">
               <Typography.Text className="block">{t('professions')}</Typography.Text>
               <Button
-                onClick={() => setShowCreateProfession((v) => !v)}
+                onClick={() => setShowCreateProfession((vv) => !vv)}
                 disabled={typeof selectedCategoryId !== 'number' || isProfessionBusy}
               >
                 {showCreateProfession ? t('close') : t('addProfession')}
@@ -273,7 +309,9 @@ export function StepResults({ errors }: { errors: Record<string, string> }) {
             {typeof selectedCategoryId !== 'number' ? (
               <Typography.Text type="secondary">{t('chooseCategoryToSeeProfessions')}</Typography.Text>
             ) : allProfessions.length === 0 ? (
-              <Typography.Text type="secondary">{searchRes.isFetching ? t('loading') : t('noProfessionsInCategory')}</Typography.Text>
+              <Typography.Text type="secondary">
+                {searchRes.isFetching ? t('loading') : t('noProfessionsInCategory')}
+              </Typography.Text>
             ) : (
               <div>
                 <ul className="mt-2 list-disc pl-6">

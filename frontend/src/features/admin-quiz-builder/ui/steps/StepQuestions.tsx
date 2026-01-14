@@ -26,6 +26,10 @@ import { SectionCard } from '../SectionCard';
 import { FieldError } from '../FieldError';
 import { useAdminQuizBuilderStore } from '../../model/store';
 
+import { useStepValidation } from '../../lib/validation/useStepValidation';
+import { StepValidationSummary } from '../../lib/validation/StepValidationSummary';
+import { parseOptionKey, parseQuestionKey } from '../../lib/validation/validationKeys';
+
 type DraftOption = {
   tempId: string;
   label: string;
@@ -75,7 +79,7 @@ function SortableQuestionCard(props: {
   optionsPreview: string[];
   onEdit: () => void;
   onRemove: () => void;
-  errors: string[];
+  errors: Array<{ key: string; code: string }>;
   removeLabel: string;
   editLabel: string;
 }) {
@@ -120,11 +124,15 @@ function SortableQuestionCard(props: {
           ))}
         </div>
 
-        <div className="flex flex-col gap-1 pt-3">
-          {props.errors.map((er, i) => (
-            <FieldError key={i} code={er} />
-          ))}
-        </div>
+        {props.errors.length > 0 ? (
+          <div className="flex flex-col gap-1 pt-3">
+            {props.errors.map((er) => (
+              <div key={er.key} data-field={er.key}>
+                <FieldError code={er.code} />
+              </div>
+            ))}
+          </div>
+        ) : null}
       </Card>
     </div>
   );
@@ -161,7 +169,7 @@ function SortableOptionRow(props: {
 
           <div className="flex-1">
             <Input value={props.label} onChange={(e) => props.onChange(e.target.value)} placeholder={props.placeholder} />
-            <FieldError code={props.error} />
+            {props.error ? <FieldError code={props.error} /> : null}
           </div>
 
           <Button danger onClick={props.onRemove} disabled={props.disableRemove}>
@@ -175,10 +183,18 @@ function SortableOptionRow(props: {
   );
 }
 
-export function StepQuestions({ errors }: { errors: Record<string, string> }) {
+export function StepQuestions({
+  errors,
+  submitAttempted,
+}: {
+  errors: Record<string, string>;
+  submitAttempted?: boolean;
+}) {
   const t = useTranslations('AdminQuizBuilder.questions');
   const localeRaw = useLocale();
   const locale = (localeRaw?.toString().startsWith('ru') ? 'ru' : 'en') as 'ru' | 'en';
+
+  const v = useStepValidation({ errors, submitAttempted });
 
   const scales = useAdminQuizBuilderStore((s) => s.scales);
   const questions = useAdminQuizBuilderStore((s) => s.questions);
@@ -196,7 +212,6 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
   const syncOptionWeightsWithTraits = useAdminQuizBuilderStore((s) => s.syncOptionWeightsWithTraits);
 
   const reorderQuestions = useAdminQuizBuilderStore((s) => s.reorderQuestions);
-  const reorderOptions = useAdminQuizBuilderStore((s) => s.reorderOptions);
 
   const availableTraits = useMemo(
     () =>
@@ -282,22 +297,22 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
     setDraft((d) => ({ ...d, options: d.options.filter((o) => o.tempId !== optTempId) }));
   }
 
-  function patchDraftOption(optTempId: string, v: Partial<DraftOption>) {
+  function patchDraftOption(optTempId: string, vv: Partial<DraftOption>) {
     setDraft((d) => ({
       ...d,
-      options: d.options.map((o) => (o.tempId === optTempId ? { ...o, ...v } : o)),
+      options: d.options.map((o) => (o.tempId === optTempId ? { ...o, ...vv } : o)),
     }));
   }
 
-  function onDraftTypeChange(v: string) {
+  function onDraftTypeChange(vv: string) {
     setDraft((d) => {
-      if (v === 'LIKERT_5') {
+      if (vv === 'LIKERT_5') {
         const opts = likertLabels.map((label) => ({
           tempId: id('dopt'),
           label,
           weightsByTraitId: buildWeights(d.linkedTraitIds),
         }));
-        return { ...d, qtype: v, options: opts };
+        return { ...d, qtype: vv, options: opts };
       }
 
       const hasAny = d.options.length > 0;
@@ -305,7 +320,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
         ? d.options.map((o) => ({ ...o, weightsByTraitId: ensureWeights(o.weightsByTraitId, d.linkedTraitIds) }))
         : [{ tempId: id('dopt'), label: '', weightsByTraitId: buildWeights(d.linkedTraitIds) }];
 
-      return { ...d, qtype: v, options: nextOptions };
+      return { ...d, qtype: vv, options: nextOptions };
     });
   }
 
@@ -318,17 +333,17 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
     }));
   }
 
-  function getQuestionErrors(qTempId: string) {
-    return [
-      errors[`q.${qTempId}.text`],
-      errors[`q.${qTempId}.qtype`],
-      errors[`q.${qTempId}.options`],
-      errors[`q.${qTempId}.traits`],
-    ].filter(Boolean) as string[];
-  }
-
-  function getOptionError(optionTempId: string) {
-    return errors[`o.${optionTempId}.label`];
+  function getQuestionErrorPairs(qTempId: string) {
+    const pairs: Array<{ key: string; code: string }> = [];
+    const a = errors[`q.${qTempId}.text`];
+    const b = errors[`q.${qTempId}.qtype`];
+    const c = errors[`q.${qTempId}.options`];
+    const d = errors[`q.${qTempId}.traits`];
+    if (a) pairs.push({ key: `q.${qTempId}.text`, code: a });
+    if (b) pairs.push({ key: `q.${qTempId}.qtype`, code: b });
+    if (c) pairs.push({ key: `q.${qTempId}.options`, code: c });
+    if (d) pairs.push({ key: `q.${qTempId}.traits`, code: d });
+    return pairs;
   }
 
   function renderWeightsBlock(
@@ -359,9 +374,9 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
               <div className="min-w-0 truncate text-sm">{tr.name}</div>
               <InputNumber
                 value={weights?.[tr.traitId] ?? 0}
-                onChange={(v) => {
+                onChange={(vv) => {
                   const next = { ...(weights ?? {}) };
-                  next[tr.traitId] = typeof v === 'number' ? v : 0;
+                  next[tr.traitId] = typeof vv === 'number' ? vv : 0;
                   onChange(next);
                 }}
                 step={0.25}
@@ -497,8 +512,35 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
     resetDraft();
   }
 
+  const summaryItems = useMemo(() => {
+    if (!v.submitAttempted) return [];
+    const items: Array<{ field: string; label: string }> = [];
+
+    if (errors.questions) items.push({ field: 'questions', label: t('title') });
+
+    for (const { field } of v.visibleErrors) {
+      const qk = parseQuestionKey(field);
+      if (qk) {
+        const q = questions.find((x) => x.tempId === qk.tempId);
+        const qTitle = q?.text?.trim() ? q.text : t('untitledQuestion');
+        items.push({ field, label: `${qTitle}` });
+        continue;
+      }
+
+      const ok = parseOptionKey(field);
+      if (ok) {
+        items.push({ field, label: t('options') });
+        continue;
+      }
+    }
+
+    return items;
+  }, [v.visibleErrors, v.submitAttempted, errors.questions, questions, t]);
+
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
+      <StepValidationSummary title={t('validation.fixErrors')} items={summaryItems} />
+
       {questions.length > 0 ? (
         <DndContext
           sensors={sensors}
@@ -511,24 +553,27 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
         >
           <SortableContext items={questions.map((q) => q.tempId)} strategy={verticalListSortingStrategy}>
             <div className="flex flex-col gap-3">
-              {questions.map((q) => (
-                <SortableQuestionCard
-                  key={q.tempId}
-                  id={q.tempId}
-                  active={editingTempId === q.tempId}
-                  title={q.text.trim() ? q.text : t('untitledQuestion')}
-                  typeLabel={`${t('typeLabel')}: ${q.qtype}`}
-                  optionsPreview={q.options.map((o) => (o.label.trim() ? o.label : t('emptyOption')))}
-                  onEdit={() => startEditQuestion(q.tempId)}
-                  onRemove={() => {
-                    removeQuestion(q.tempId);
-                    if (editingTempId === q.tempId) resetDraft();
-                  }}
-                  errors={getQuestionErrors(q.tempId)}
-                  removeLabel={t('remove')}
-                  editLabel={t('edit')}
-                />
-              ))}
+              {questions.map((q) => {
+                const errPairs = v.submitAttempted ? getQuestionErrorPairs(q.tempId) : [];
+                return (
+                  <SortableQuestionCard
+                    key={q.tempId}
+                    id={q.tempId}
+                    active={editingTempId === q.tempId}
+                    title={q.text.trim() ? q.text : t('untitledQuestion')}
+                    typeLabel={`${t('typeLabel')}: ${q.qtype}`}
+                    optionsPreview={q.options.map((o) => (o.label.trim() ? o.label : t('emptyOption')))}
+                    onEdit={() => startEditQuestion(q.tempId)}
+                    onRemove={() => {
+                      removeQuestion(q.tempId);
+                      if (editingTempId === q.tempId) resetDraft();
+                    }}
+                    errors={errPairs}
+                    removeLabel={t('remove')}
+                    editLabel={t('edit')}
+                  />
+                );
+              })}
             </div>
           </SortableContext>
         </DndContext>
@@ -544,14 +589,14 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
               size="large"
               placeholder={t('questionTextPh')}
             />
-            <FieldError code={draftErrors.draftText} />
+            {draftErrors.draftText ? <FieldError code={draftErrors.draftText} /> : null}
           </div>
 
           <div>
             <Typography.Text className="block">{t('questionType')}</Typography.Text>
             <Select
               value={draft.qtype}
-              onChange={(v) => onDraftTypeChange(String(v))}
+              onChange={(vv) => onDraftTypeChange(String(vv))}
               className="w-full"
               size="large"
               options={[
@@ -560,14 +605,14 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
                 { value: 'LIKERT_5', label: t('types.likert5') },
               ]}
             />
-            <FieldError code={draftErrors.draftType} />
+            {draftErrors.draftType ? <FieldError code={draftErrors.draftType} /> : null}
           </div>
 
           <div>
             <Typography.Text className="block">{t('selectTraits')}</Typography.Text>
             <Select
               value={draft.linkedTraitIds}
-              onChange={(v) => onDraftTraitsChange(v as number[])}
+              onChange={(vv) => onDraftTraitsChange(vv as number[])}
               mode="multiple"
               className="w-full"
               size="large"
@@ -575,7 +620,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
               options={availableTraits.map((x) => ({ value: x.traitId, label: x.name }))}
               placeholder={t('selectTraitsPh')}
             />
-            <FieldError code={draftErrors.draftTraits} />
+            {draftErrors.draftTraits ? <FieldError code={draftErrors.draftTraits} /> : null}
           </div>
 
           <div className="flex flex-col gap-3">
@@ -606,7 +651,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
                       label={o.label}
                       placeholder={t('optionPh')}
                       disableRemove={draft.options.length <= 1 || draft.qtype === 'LIKERT_5'}
-                      onChange={(v) => patchDraftOption(o.tempId, { label: v })}
+                      onChange={(vv) => patchDraftOption(o.tempId, { label: vv })}
                       onRemove={() => removeDraftOption(o.tempId)}
                       error={draftErrors[`draftOpt.${o.tempId}.label`]}
                       renderWeights={() =>
@@ -625,7 +670,7 @@ export function StepQuestions({ errors }: { errors: Record<string, string> }) {
               <Button onClick={addDraftOption} disabled={draft.qtype === 'LIKERT_5'}>
                 {t('addOption')}
               </Button>
-              <FieldError code={draftErrors.draftOptions} />
+              {draftErrors.draftOptions ? <FieldError code={draftErrors.draftOptions} /> : null}
             </div>
           </div>
 

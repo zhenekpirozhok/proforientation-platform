@@ -501,19 +501,21 @@
   "subtitle": "Create a quiz in 3 steps and publish it",
   "needQuizContext": "Create the quiz first (Step 0).",
   "validation": {
-    "required": "Required",
+    "required": "This field is required",
     "min3": "Must be at least 3 characters",
-    "min1": "Add at least one item to continue",
-    "min2": "Add at least 2 options",
+    "min1": "At least one item is required",
+    "min2": "At least 2 items are required",
     "map1": "Map at least one trait",
-    "invalid": "Invalid trait mapping",
-    "fixErrors": "Fix validation errors to continue",
-      "mixedPolarity": "You can’t mix single and bipolar scales.",
-      "pairRequired": "Bipolar scales must be created as pairs.",
-      "pairIncomplete": "Bipolar pair must contain both sides.",
-      "pairCodeRequired": "Bipolar pair code is required.",
-      "pairCodeMismatch": "Bipolar pair code must be the same for both sides."
-        ,"weightsMissing": "Assign weights for scales"
+    "invalid": "Invalid value",
+    "fixErrors": "Please fix the errors below",
+    "mixedPolarity": "Cannot mix single and bipolar scales",
+    "pairRequired": "Both left and right sides are required",
+    "pairIncomplete": "Bipolar pair must have both left and right sides",
+    "pairCodeRequired": "Pair code is required",
+    "pairCodeMismatch": "Left and right sides must have the same pair code",
+    "weightsMissing": "All traits must have weight values",
+    "quizOperationError": "Failed to save quiz",
+    "createQuizError": "Failed to create quiz"
   },
   "steps": {
     "init": "Init",
@@ -537,7 +539,10 @@
     "created": "Quiz created",
     "createFailed": "Failed to create quiz",
     "quizDescription": "Description",
-    "quizDescriptionPh": "Optional description for admins"
+    "quizDescriptionPh": "Optional description for admins",
+    "validation": {
+      "fixErrors": "Please fix the errors below"
+    }
   },
     "scales": {
       "title": "Scales",
@@ -565,7 +570,10 @@
       "remove": "Remove",
       "cancel": "Cancel",
       "untitled": "Untitled",
-      "chooseModeFirst": "Choose the scale type to start adding scales."
+      "chooseModeFirst": "Choose the scale type to start adding scales.",
+      "validation": {
+        "fixErrors": "Please fix the errors below"
+      }
     },
     "questions": {
       "title": "Questions",
@@ -597,7 +605,10 @@
       "addThisQuestion": "Add question",
       "saveChanges": "Save changes",
       "cancelEdit": "Cancel",
-      "edit": "Edit"
+      "edit": "Edit",
+      "validation": {
+        "fixErrors": "Please fix the errors below"
+      }
     },
   "results": {
     "title": "Step 3 — Results",
