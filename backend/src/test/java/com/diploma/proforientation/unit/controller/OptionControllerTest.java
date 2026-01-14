@@ -16,8 +16,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Locale;
+import java.util.Map;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 class OptionControllerTest {
@@ -31,7 +32,7 @@ class OptionControllerTest {
     @BeforeEach
     void setup() {
         MockitoAnnotations.openMocks(this);
-        LocaleContextHolder.setLocale(Locale.of("ru"));
+        LocaleContextHolder.setLocale(new Locale("ru"));
         SecurityContextHolder.clearContext();
     }
 
@@ -49,13 +50,14 @@ class OptionControllerTest {
         setAdmin();
 
         CreateOptionRequest req = new CreateOptionRequest(1, 1, "Yes");
-        OptionDto dto = new OptionDto(10, 1, 1, "Yes");
+        OptionDto dto = new OptionDto(10, 1, 1, "Yes", Map.of());
 
         when(service.create(req)).thenReturn(dto);
 
         OptionDto result = controller.create(req);
 
         assertThat(result.id()).isEqualTo(10);
+        assertThat(result.weightsByTraitId()).isEmpty();
         verify(service).create(req);
     }
 
@@ -64,13 +66,14 @@ class OptionControllerTest {
         setAdmin();
 
         UpdateOptionRequest req = new UpdateOptionRequest(2, "Updated");
-        OptionDto dto = new OptionDto(5, 1, 2, "Updated");
+        OptionDto dto = new OptionDto(5, 1, 2, "Updated", Map.of(1, 2.0));
 
         when(service.update(5, req)).thenReturn(dto);
 
         OptionDto result = controller.update(5, req);
 
         assertThat(result.ord()).isEqualTo(2);
+        assertThat(result.weightsByTraitId()).containsEntry(1, 2.0); // verify weights
         verify(service).update(5, req);
     }
 

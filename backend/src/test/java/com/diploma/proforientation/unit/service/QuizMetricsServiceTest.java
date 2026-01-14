@@ -4,7 +4,7 @@ import com.diploma.proforientation.dto.QuizMetricsFilter;
 import com.diploma.proforientation.dto.QuizPublicMetricsDto;
 import com.diploma.proforientation.model.enumeration.QuizStatus;
 import com.diploma.proforientation.model.view.QuizPublicMetricsEntity;
-import com.diploma.proforientation.repository.QuizPublicMetricsRepository;
+import com.diploma.proforientation.repository.view.QuizPublicMetricsRepository;
 import com.diploma.proforientation.service.impl.QuizMetricsServiceImpl;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;

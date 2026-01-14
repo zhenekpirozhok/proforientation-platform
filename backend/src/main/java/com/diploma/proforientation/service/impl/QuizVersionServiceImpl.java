@@ -122,6 +122,32 @@ public class QuizVersionServiceImpl implements QuizVersionService {
         return toDto(v);
     }
 
+    @Override
+    @Transactional
+    public QuizVersionDto createDraftVersion(Integer quizId) {
+        Quiz quiz = quizRepo.findById(quizId)
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
+
+        QuizVersion latest = versionRepo
+                .findTopByQuizIdOrderByVersionDesc(quizId)
+                .orElse(null);
+
+        int newVersionNumber = latest != null ? latest.getVersion() + 1 : 1;
+
+        QuizVersion draft = new QuizVersion();
+        draft.setQuiz(quiz);
+        draft.setVersion(newVersionNumber);
+        draft.setCurrent(false);
+        draft.setPublishedAt(null);
+        draft = versionRepo.save(draft);
+
+        if (latest != null) {
+            copyQuestionsAndOptions(latest, draft);
+        }
+
+        return toDto(draft);
+    }
+
     private QuizVersionDto toDto(QuizVersion v) {
         return new QuizVersionDto(
                 v.getId(),

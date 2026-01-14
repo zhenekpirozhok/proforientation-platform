@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,6 +32,7 @@ class QuestionServiceTest {
     @Mock private QuizVersionRepository versionRepo;
     @Mock private QuestionOptionRepository optionRepo;
     @Mock private TranslationResolver translationResolver;
+    @Mock private QuestionOptionTraitRepository traitRepo;
     @Mock private I18n localeProvider;
 
     @InjectMocks private QuestionServiceImpl service;
@@ -144,8 +146,6 @@ class QuestionServiceTest {
 
     @Test
     void getQuestionsForCurrentVersion_shouldLocalizeTextAndOptions() {
-
-        // locale comes from provider now
         when(localeProvider.currentLanguage()).thenReturn("ru");
 
         QuizVersion qv = new QuizVersion();
@@ -233,13 +233,12 @@ class QuestionServiceTest {
     }
 
     @Test
-    void getOptionsForQuestionLocalized_shouldReturnLocalizedOptions() {
-
+    void getOptionsForQuestionLocalized_shouldReturnLocalizedOptionsWithWeights() {
         Question question = new Question();
         question.setId(15);
 
-        when(questionRepo.findById(15))
-                .thenReturn(Optional.of(question));
+        when(questionRepo.findById(15)).thenReturn(Optional.of(question));
+        when(localeProvider.currentLanguage()).thenReturn("en");
 
         QuestionOption option = new QuestionOption();
         option.setId(100);
@@ -250,27 +249,76 @@ class QuestionServiceTest {
         when(optionRepo.findByQuestionIdOrderByOrdAsc(15))
                 .thenReturn(List.of(option));
 
-        when(localeProvider.currentLanguage()).thenReturn("en");
-
         when(translationResolver.resolve(
                 ENTITY_TYPE_OPTION, 100, FIELD_TEXT, "en", "Default option"
         )).thenReturn("Localized option");
 
-        List<OptionDto> result =
-                service.getOptionsForQuestionLocalized(15);
+        TraitProfile trait1 = new TraitProfile();
+        trait1.setId(1);
+        trait1.setCode("realistic");
+
+        TraitProfile trait2 = new TraitProfile();
+        trait2.setId(2);
+        trait2.setCode("investigative");
+
+        QuestionOptionTrait qot1 = new QuestionOptionTrait();
+        qot1.setOption(option);
+        qot1.setTrait(trait1);
+        qot1.setWeight(BigDecimal.valueOf(2.0));
+
+        QuestionOptionTrait qot2 = new QuestionOptionTrait();
+        qot2.setOption(option);
+        qot2.setTrait(trait2);
+        qot2.setWeight(BigDecimal.valueOf(1.0));
+
+        when(traitRepo.findByOptionId(100))
+                .thenReturn(List.of(qot1, qot2));
+
+        List<OptionDto> result = service.getOptionsForQuestionLocalized(15);
 
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().label()).isEqualTo("Localized option");
+        OptionDto dto = result.getFirst();
+        assertThat(dto.label()).isEqualTo("Localized option");
+        assertThat(dto.weightsByTraitId()).containsEntry(1, 2.0);
+        assertThat(dto.weightsByTraitId()).containsEntry(2, 1.0);
+    }
+
+    @Test
+    void getOptionsForQuestionLocalized_shouldReturnEmptyWeightsWhenNoTraits() {
+        Question question = new Question();
+        question.setId(20);
+
+        when(questionRepo.findById(20)).thenReturn(Optional.of(question));
+        when(localeProvider.currentLanguage()).thenReturn("en");
+
+        QuestionOption option = new QuestionOption();
+        option.setId(200);
+        option.setOrd(1);
+        option.setQuestion(question);
+        option.setLabelDefault("Option without traits");
+
+        when(optionRepo.findByQuestionIdOrderByOrdAsc(20))
+                .thenReturn(List.of(option));
+
+        when(translationResolver.resolve(
+                ENTITY_TYPE_OPTION, 200, FIELD_TEXT, "en", "Option without traits"
+        )).thenReturn("Localized label");
+
+        when(traitRepo.findByOptionId(200)).thenReturn(List.of());
+
+        List<OptionDto> result = service.getOptionsForQuestionLocalized(20);
+
+        assertThat(result).hasSize(1);
+        OptionDto dto = result.getFirst();
+        assertThat(dto.label()).isEqualTo("Localized label");
+        assertThat(dto.weightsByTraitId()).isEmpty();
     }
 
     @Test
     void getOptionsForQuestionLocalized_shouldFailWhenQuestionNotFound() {
+        when(questionRepo.findById(999)).thenReturn(Optional.empty());
 
-        when(questionRepo.findById(999))
-                .thenReturn(Optional.empty());
-
-        assertThatThrownBy(() ->
-                service.getOptionsForQuestionLocalized(999)
-        ).isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> service.getOptionsForQuestionLocalized(999))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 }

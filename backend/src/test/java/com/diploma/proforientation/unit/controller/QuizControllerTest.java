@@ -3,11 +3,13 @@ package com.diploma.proforientation.unit.controller;
 import com.diploma.proforientation.controller.QuizController;
 import com.diploma.proforientation.dto.QuizDto;
 import com.diploma.proforientation.dto.QuizVersionDto;
+import com.diploma.proforientation.dto.TraitDto;
 import com.diploma.proforientation.dto.request.create.CreateQuizRequest;
 import com.diploma.proforientation.dto.request.update.UpdateQuizRequest;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.service.QuizService;
 import com.diploma.proforientation.service.QuizVersionService;
+import com.diploma.proforientation.service.TraitService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,9 @@ class QuizControllerTest {
 
     @Mock
     private QuizVersionService versionService;
+
+    @Mock
+    private TraitService traitService;
 
     @InjectMocks
     private QuizController controller;
@@ -249,5 +254,118 @@ class QuizControllerTest {
 
         verify(quizService).search("", null, null, null, expectedPageable);
         verifyNoMoreInteractions(quizService);
+    }
+
+    @Test
+    void delete_asAdmin_shouldCallService() {
+        setAdmin();
+
+        doNothing().when(quizService).delete(50);
+
+        controller.delete(50);
+
+        verify(quizService).delete(50);
+    }
+
+    @Test
+    void getVersions_shouldReturnList() {
+        QuizVersionDto v1 = new QuizVersionDto(1, 10, 2, true, Instant.now());
+        QuizVersionDto v2 = new QuizVersionDto(2, 10, 1, false, null);
+
+        when(versionService.getVersionsForQuiz(10))
+                .thenReturn(List.of(v1, v2));
+
+        List<QuizVersionDto> result = controller.getVersions(10);
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).version()).isEqualTo(2);
+        assertThat(result.get(1).version()).isEqualTo(1);
+
+        verify(versionService).getVersionsForQuiz(10);
+    }
+
+    @Test
+    void getCurrentVersion_shouldReturnCurrent() {
+        QuizVersionDto current =
+                new QuizVersionDto(3, 10, 5, true, Instant.now());
+
+        when(versionService.getCurrentVersion(10))
+                .thenReturn(current);
+
+        QuizVersionDto result = controller.getCurrentVersion(10);
+
+        assertThat(result.version()).isEqualTo(5);
+        assertThat(result.isCurrent()).isTrue();
+
+        verify(versionService).getCurrentVersion(10);
+    }
+
+    @Test
+    void getCurrentVersion_shouldFailIfMissing() {
+        when(versionService.getCurrentVersion(10))
+                .thenThrow(new RuntimeException("Current version not found"));
+
+        assertThatThrownBy(() -> controller.getCurrentVersion(10))
+                .isInstanceOf(RuntimeException.class);
+
+        verify(versionService).getCurrentVersion(10);
+    }
+
+    @Test
+    void getVersion_shouldReturnSpecificVersion() {
+        QuizVersionDto version =
+                new QuizVersionDto(4, 10, 3, false, Instant.now());
+
+        when(versionService.getVersion(10, 3))
+                .thenReturn(version);
+
+        QuizVersionDto result = controller.getVersion(10, 3);
+
+        assertThat(result.version()).isEqualTo(3);
+        verify(versionService).getVersion(10, 3);
+    }
+
+    @Test
+    void getVersion_shouldFailIfNotFound() {
+        when(versionService.getVersion(10, 99))
+                .thenThrow(new RuntimeException("Version not found"));
+
+        assertThatThrownBy(() -> controller.getVersion(10, 99))
+                .isInstanceOf(RuntimeException.class);
+
+        verify(versionService).getVersion(10, 99);
+    }
+
+    @Test
+    void createVersion_asAdmin_shouldCreateDraftVersion() {
+        setAdmin();
+
+        QuizVersionDto draft =
+                new QuizVersionDto(7, 10, 4, false, null);
+
+        when(versionService.createDraftVersion(10))
+                .thenReturn(draft);
+
+        QuizVersionDto result = controller.createVersion(10);
+
+        assertThat(result.version()).isEqualTo(4);
+        assertThat(result.isCurrent()).isFalse();
+        assertThat(result.publishedAt()).isNull();
+
+        verify(versionService).createDraftVersion(10);
+    }
+
+    @Test
+    void getTraits_shouldReturnListFromService() {
+        TraitDto t1 = new TraitDto(1, "realistic", "Realistic", "desc1", null);
+        TraitDto t2 = new TraitDto(2, "analytical", "Analytical", "desc2", "realistic");
+
+        when(traitService.getTraitsForQuizVersion(10)).thenReturn(List.of(t1, t2));
+
+        List<TraitDto> result = controller.getTraits(10);
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(1).bipolarPairCode()).isEqualTo("realistic");
+        verify(traitService).getTraitsForQuizVersion(10);
     }
 }

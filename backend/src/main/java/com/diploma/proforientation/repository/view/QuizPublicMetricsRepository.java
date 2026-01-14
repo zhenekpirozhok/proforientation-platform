@@ -1,4 +1,4 @@
-package com.diploma.proforientation.repository;
+package com.diploma.proforientation.repository.view;
 
 import com.diploma.proforientation.model.view.QuizPublicMetricsEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

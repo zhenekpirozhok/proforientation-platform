@@ -9,7 +9,7 @@ import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
 import com.diploma.proforientation.model.enumeration.QuizStatus;
 import com.diploma.proforientation.repository.ProfessionCategoryRepository;
-import com.diploma.proforientation.repository.QuizPublicMetricsRepository;
+import com.diploma.proforientation.repository.view.QuizPublicMetricsRepository;
 import com.diploma.proforientation.repository.QuizRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.QuizService;
@@ -256,13 +256,15 @@ public class QuizServiceImpl implements QuizService {
                 q.getDescriptionDefault()
         );
 
+        Integer categoryId = q.getCategory() != null ? q.getCategory().getId() : null;
+
         return new QuizDto(
                 q.getId(),
                 q.getCode(),
                 title,
                 q.getStatus().name(),
                 q.getProcessingMode().name(),
-                q.getCategory().getId(),
+                categoryId,
                 q.getAuthor().getId(),
                 description,
                 q.getSecondsPerQuestionDefault()

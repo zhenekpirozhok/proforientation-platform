@@ -8,7 +8,7 @@ import com.diploma.proforientation.model.Quiz;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
 import com.diploma.proforientation.repository.ProfessionCategoryRepository;
-import com.diploma.proforientation.repository.QuizPublicMetricsRepository;
+import com.diploma.proforientation.repository.view.QuizPublicMetricsRepository;
 import com.diploma.proforientation.repository.QuizRepository;
 import com.diploma.proforientation.repository.UserRepository;
 import com.diploma.proforientation.service.impl.QuizServiceImpl;
