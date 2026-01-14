@@ -15,6 +15,7 @@ import { useAdminAssignOptionTraits } from '@/entities/option/api/useAdminAssign
 import { useAdminCreateCategory } from '@/entities/category/api/useAdminCreateCategory';
 import { useAdminCreateProfession } from '@/entities/profession/api/useAdminCreateProfession';
 import { useSearchProfessions } from '@/entities/profession/api/useSearchProfessions';
+import { useQuizTraits } from '@/entities/quiz/api/useQuizTraits';
 
 export function useQuizBuilderActions(quizId: number, version: number) {
     const createQuiz = useAdminCreateQuiz();
@@ -34,6 +35,7 @@ export function useQuizBuilderActions(quizId: number, version: number) {
     const createProfession = useAdminCreateProfession();
 
     const searchProfessionsHook = useSearchProfessions;
+    const quizTraits = useQuizTraits(quizId);
 
     const publishQuiz = {
         ...publish,
@@ -62,6 +64,7 @@ export function useQuizBuilderActions(quizId: number, version: number) {
 
         createCategory,
         createProfession,
+        quizTraits,
 
         searchProfessionsHook,
     };
