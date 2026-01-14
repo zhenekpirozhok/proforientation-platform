@@ -54,6 +54,13 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
     query: { enabled: typeof propQuizId === 'number' },
   });
 
+  const actions = useQuizBuilderActions(
+    typeof quizId === 'number' ? quizId : 0,
+    typeof quizVersionId === 'number' ? quizVersionId : 0,
+  );
+  const ensureTraits = useEnsureQuizTraits(actions);
+  const createOrUpdateQuiz = useCreateOrUpdateQuiz(actions);
+
   useEffect(() => {
     if (!propQuizId) {
       resetStore();
@@ -114,20 +121,6 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
     results,
   ]);
 
-  const hasContext = typeof quizId === 'number' && typeof quizVersionId === 'number';
-
-  if (propQuizId && quizLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Spin size="large" />
-      </div>
-    );
-  }
-
-  const actions = useQuizBuilderActions(hasContext ? quizId : 0, hasContext ? quizVersionId : 0);
-  const ensureTraits = useEnsureQuizTraits(actions);
-  const createOrUpdateQuiz = useCreateOrUpdateQuiz(actions);
-
   const canGoNext = useMemo(() => {
     if (step === 0)
       return (
@@ -156,13 +149,15 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
     results,
   ]);
 
-  function goPrev() {
+  const hasContext = typeof quizId === 'number' && typeof quizVersionId === 'number';
+
+  const goPrev = () => {
     setErrors({});
     setSubmitAttempted(false);
     setStep(Math.max(0, step - 1) as any);
-  }
+  };
 
-  async function goNext() {
+  const goNext = async () => {
     let e: Record<string, string> = {};
     if (step === 0)
       e = validateInit({
@@ -203,6 +198,14 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
     }
 
     setStep((step + 1) as any);
+  };
+
+  if (propQuizId && quizLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spin size="large" />
+      </div>
+    );
   }
 
   return (

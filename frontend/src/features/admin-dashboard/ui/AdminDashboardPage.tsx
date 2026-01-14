@@ -88,7 +88,7 @@ function formatDate(v: any): string | null {
   }
 }
 
-const EDIT_ROUTE = (id: number) => `/admin/quizzes/${id}`;
+const EDIT_ROUTE = (id: number) => `/admin/quizzes/${id}/edit`;
 const ANALYTICS_ROUTE = (id: number) => `/admin/quizzes/${id}/analytics`;
 const TRANSLATIONS_ROUTE = (id: number) => `/admin/quizzes/${id}/translations`;
 
