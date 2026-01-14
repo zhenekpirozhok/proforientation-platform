@@ -1,11 +1,19 @@
+import { NextRequest } from 'next/server';
 import { bffAuthFetch } from '@/shared/api/bffAuthFetch';
 
-export async function POST(req: Request, { params }: { params: { id?: string } }) {
-    let id = params?.id;
+export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+    let id: string | undefined;
+
+    try {
+        const p = await ctx.params;
+        id = p?.id;
+    } catch {
+        // ignore
+    }
 
     if (!id) {
         try {
-            const u = new URL((req as Request).url);
+            const u = new URL(req.url);
             const m = u.pathname.match(/\/api\/quizzes\/(\d+)\/publish\/?$/);
             if (m && m[1]) id = m[1];
         } catch {
@@ -16,7 +24,7 @@ export async function POST(req: Request, { params }: { params: { id?: string } }
     const upstream = await bffAuthFetch(`/quizzes/${id}/publish`, {
         method: 'POST',
         headers: {
-            accept: (req as Request).headers.get('accept') ?? 'application/json',
+            accept: req.headers.get('accept') ?? 'application/json',
         },
     });
 
