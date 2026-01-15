@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Typography, message, Spin } from 'antd';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
 import { useAdminQuizBuilderStore } from '../model/store';
@@ -91,6 +92,7 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setSubmitAttempted(false);
@@ -171,77 +173,84 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
 
       const { patchQuestion, patchOption } = useAdminQuizBuilderStore.getState();
 
-      try {
-        for (const q of questions) {
-          const questionTempId = q.tempId;
+      // Start persistence in background and advance immediately
+      const savingKey = 'quiz-saving';
+      message.loading({ content: t('savingInBackground'), key: savingKey, duration: 0 });
 
-          if (typeof q.questionId === 'number') {
-            const qRes: any = await actions.updateQuestion.mutateAsync({
-              id: q.questionId,
-              data: { qtype: q.qtype, text: q.text, ord: q.ord } as any,
-            });
-            const updated = qRes?.data ?? qRes?.result ?? qRes;
-            const updatedId = n(updated?.id) ?? q.questionId;
-            patchQuestion(questionTempId, { questionId: updatedId });
-          } else {
-            const qRes: any = await actions.createQuestion.mutateAsync({
-              data: { qtype: q.qtype, text: q.text, ord: q.ord } as any,
-            });
-            const created = qRes?.data ?? qRes?.result ?? qRes;
-            const createdId = n(created?.id);
-            if (typeof createdId !== 'number') throw new Error('Failed to create question');
-            patchQuestion(questionTempId, { questionId: createdId });
-          }
+      (async () => {
+        try {
+          for (const q of questions) {
+            const questionTempId = q.tempId;
 
-          const persistedQuestionId = n(useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === questionTempId)?.questionId);
-          if (typeof persistedQuestionId !== 'number') throw new Error('Failed to persist question id');
-
-          const sortedOptions = q.options.slice().sort((a, b) => a.ord - b.ord);
-
-          for (const opt of sortedOptions) {
-            const optionTempId = opt.tempId;
-
-            if (typeof opt.optionId === 'number') {
-              await actions.updateOption.mutateAsync({
-                id: opt.optionId,
-                data: { label: opt.label, ord: opt.ord } as any,
+            if (typeof q.questionId === 'number') {
+              const qRes: any = await actions.updateQuestion.mutateAsync({
+                id: q.questionId,
+                data: { qtype: q.qtype, text: q.text, ord: q.ord } as any,
               });
+              const updated = qRes?.data ?? qRes?.result ?? qRes;
+              const updatedId = n(updated?.id) ?? q.questionId;
+              patchQuestion(questionTempId, { questionId: updatedId });
             } else {
-              const optRes: any = await actions.createOption.mutateAsync({
-                data: { questionId: persistedQuestionId, label: opt.label, ord: opt.ord } as any,
+              const qRes: any = await actions.createQuestion.mutateAsync({
+                data: { qtype: q.qtype, text: q.text, ord: q.ord } as any,
               });
-              const createdOpt = optRes?.data ?? optRes?.result ?? optRes;
-              const createdOptId = n(createdOpt?.id);
-              if (typeof createdOptId !== 'number') throw new Error('Failed to create option');
-              patchOption(questionTempId, optionTempId, { optionId: createdOptId });
+              const created = qRes?.data ?? qRes?.result ?? qRes;
+              const createdId = n(created?.id);
+              if (typeof createdId !== 'number') throw new Error('Failed to create question');
+              patchQuestion(questionTempId, { questionId: createdId });
             }
 
-            const persistedOptionId = n(
-              useAdminQuizBuilderStore
-                .getState()
-                .questions.find((x) => x.tempId === questionTempId)
-                ?.options.find((o) => o.tempId === optionTempId)?.optionId,
-            );
+            const persistedQuestionId = n(useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === questionTempId)?.questionId);
+            if (typeof persistedQuestionId !== 'number') throw new Error('Failed to persist question id');
 
-            if (typeof persistedOptionId !== 'number') continue;
+            const sortedOptions = q.options.slice().sort((a, b) => a.ord - b.ord);
 
-            const weightsObj = opt.weightsByTraitId ?? {};
-            const traits = Object.keys(weightsObj)
-              .map((k) => ({ traitId: Number(k), weight: (weightsObj as any)[k] }))
-              .filter((x) => Number.isFinite(x.traitId) && typeof x.weight === 'number');
+            for (const opt of sortedOptions) {
+              const optionTempId = opt.tempId;
 
-            if (traits.length > 0) {
-              await actions.assignOptionTraits.mutateAsync({
-                optionId: persistedOptionId,
-                data: { traits } as any,
-              });
+              if (typeof opt.optionId === 'number') {
+                await actions.updateOption.mutateAsync({
+                  id: opt.optionId,
+                  data: { label: opt.label, ord: opt.ord } as any,
+                });
+              } else {
+                const optRes: any = await actions.createOption.mutateAsync({
+                  data: { questionId: persistedQuestionId, label: opt.label, ord: opt.ord } as any,
+                });
+                const createdOpt = optRes?.data ?? optRes?.result ?? optRes;
+                const createdOptId = n(createdOpt?.id);
+                if (typeof createdOptId !== 'number') throw new Error('Failed to create option');
+                patchOption(questionTempId, optionTempId, { optionId: createdOptId });
+              }
+
+              const persistedOptionId = n(
+                useAdminQuizBuilderStore
+                  .getState()
+                  .questions.find((x) => x.tempId === questionTempId)
+                  ?.options.find((o) => o.tempId === optionTempId)?.optionId,
+              );
+
+              if (typeof persistedOptionId !== 'number') continue;
+
+              const weightsObj = opt.weightsByTraitId ?? {};
+              const traits = Object.keys(weightsObj)
+                .map((k) => ({ traitId: Number(k), weight: (weightsObj as any)[k] }))
+                .filter((x) => Number.isFinite(x.traitId) && typeof x.weight === 'number');
+
+              if (traits.length > 0) {
+                await actions.assignOptionTraits.mutateAsync({
+                  optionId: persistedOptionId,
+                  data: { traits } as any,
+                });
+              }
             }
           }
+
+          message.success({ content: t('savedInBackground'), key: savingKey, duration: 3 });
+        } catch (err: any) {
+          message.error({ content: err?.message || t('validation.quizOperationError'), key: savingKey, duration: 5 });
         }
-      } catch (err: any) {
-        message.error(err?.message || t('validation.quizOperationError'));
-        return;
-      }
+      })();
 
       setStep((step + 1) as any);
       return;
@@ -268,6 +277,13 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
 
     setStep((step + 1) as any);
   };
+
+  useEffect(() => {
+    if (step > 4) {
+      message.success(t('toastCreated'));
+      router.push('/admin');
+    }
+  }, [step, router, t]);
 
   if (
     (propQuizId && quizLoading) ||
