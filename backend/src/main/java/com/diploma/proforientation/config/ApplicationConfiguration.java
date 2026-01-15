@@ -1,16 +1,20 @@
 package com.diploma.proforientation.config;
 
 import com.diploma.proforientation.repository.UserRepository;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.core.Ordered;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import static com.diploma.proforientation.util.Constants.USER_NOT_FOUND;
 
 /**
  * Application-level security configuration.
@@ -33,6 +37,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  */
 @Configuration
 public class ApplicationConfiguration {
+    private static final String MESSAGE_BASENAME = "classpath:messages";
+    private static final String MESSAGE_ENCODING = "UTF-8";
+    private static final boolean FALLBACK_TO_SYSTEM_LOCALE = false;
 
     private final UserRepository userRepository;
 
@@ -57,7 +64,7 @@ public class ApplicationConfiguration {
     @Bean
     public UserDetailsService userDetailsService() {
         return email -> userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
     }
 
     /**
@@ -112,9 +119,26 @@ public class ApplicationConfiguration {
     @Bean
     public MessageSource messageSource() {
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        messageSource.setBasename("classpath:messages");
-        messageSource.setDefaultEncoding("UTF-8");
-        messageSource.setFallbackToSystemLocale(false);
+        messageSource.setBasename(MESSAGE_BASENAME);
+        messageSource.setDefaultEncoding(MESSAGE_ENCODING);
+        messageSource.setFallbackToSystemLocale(FALLBACK_TO_SYSTEM_LOCALE);
         return messageSource;
+    }
+
+    /**
+     * Registers the {@link GlobalRateLimitFilter} as a servlet filter with the highest precedence.
+     * <p>
+     * This filter is applied early in the filter chain to enforce global rate limiting
+     * before other filters or request processing logic are executed.
+     *
+     * @param filter the {@link GlobalRateLimitFilter} to be registered
+     * @return a {@link FilterRegistrationBean} configured with the highest precedence
+     */
+    @Bean
+    public FilterRegistrationBean<GlobalRateLimitFilter> rateLimitFilter(GlobalRateLimitFilter filter) {
+        FilterRegistrationBean<GlobalRateLimitFilter> bean = new FilterRegistrationBean<>();
+        bean.setFilter(filter);
+        bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return bean;
     }
 }

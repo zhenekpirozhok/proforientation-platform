@@ -3,6 +3,7 @@ package com.diploma.proforientation.controller;
 import com.diploma.proforientation.dto.ExceptionDto;
 import com.diploma.proforientation.dto.QuizMetricsFilter;
 import com.diploma.proforientation.service.ExportService;
+import com.diploma.proforientation.util.rate.RateLimit;
 import com.google.common.net.HttpHeaders;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -44,6 +45,7 @@ public class ExportController {
                     mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
     )
+    @RateLimit(requests = 2, durationSeconds = 60)
     public ResponseEntity<byte[]> exportExcel() {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=data.xlsx")
@@ -69,6 +71,7 @@ public class ExportController {
             description = "Unsupported entity type",
             content = @Content(schema = @Schema(implementation = ExceptionDto.class))
     )
+    @RateLimit(requests = 3, durationSeconds = 60)
     public ResponseEntity<byte[]> exportCsv(
             @PathVariable
             @Parameter(

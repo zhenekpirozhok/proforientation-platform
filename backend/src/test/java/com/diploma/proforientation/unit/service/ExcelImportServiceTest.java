@@ -913,6 +913,301 @@ class ExcelImportServiceTest {
         verify(questionRepo, never()).saveAll(any());
     }
 
+    @Test
+    void importQuizzes_headerCaseAndSpaces_areNormalized() throws Exception {
+        ProfessionCategory cat = new ProfessionCategory(); cat.setId(5);
+        User author = new User(); author.setId(7);
+
+        MockMultipartFile file = excelFile(
+                "quizzes.xlsx",
+                new String[]{" Code ", "TITLE_DEFAULT", " Category_Id ", "AUTHOR_ID"},
+                new Object[][]{
+                        {"Q1", "Quiz One", 5, 7}
+                }
+        );
+
+        when(categoryRepo.findById(5)).thenReturn(Optional.of(cat));
+        when(userRepo.findById(7)).thenReturn(Optional.of(author));
+        when(quizRepo.findByCode("Q1")).thenReturn(Optional.empty());
+
+        ImportResultDto result = service.importQuizzes(file);
+
+        assertThat(result.totalRows()).isEqualTo(1);
+        assertThat(result.successCount()).isEqualTo(1);
+        assertThat(result.errors()).isEmpty();
+
+        verify(quizRepo).saveAll(any());
+    }
+
+    @Test
+    void importQuizzes_rowMissingColumnCategoryId_addsMissingColumnError_andDoesNotSaveRow() throws Exception {
+        // Header has category_id, but row omits the cell value -> required message (MESSAGE_REQUIRED)
+        // Missing column branch (MISSING_COLUMN) happens only if column not in header.
+        // So to hit MISSING_COLUMN, omit the column from header but still require it.
+        MockMultipartFile file = excelFile(
+                "quizzes.xlsx",
+                new String[]{"code", "title_default", "author_id"}, // category_id missing from header
+                new Object[][]{
+                        {"Q1", "Quiz One", 7}
+                }
+        );
+
+        ImportResultDto result = service.importQuizzes(file);
+
+        assertThat(result.totalRows()).isZero();      // header invalid => fail fast
+        assertThat(result.successCount()).isZero();
+        assertThat(result.errors()).isNotEmpty();
+
+        verify(quizRepo, never()).saveAll(any());
+    }
+
+    @Test
+    void importQuizzes_invalidCategoryId_notInteger_rowRejected() throws Exception {
+        // Hit getIntRequired NumberFormatException -> INVALID_INT
+        User author = new User(); author.setId(7);
+
+        MockMultipartFile file = excelFile(
+                "quizzes.xlsx",
+                new String[]{"code", "title_default", "category_id", "author_id"},
+                new Object[][]{
+                        {"Q1", "Quiz One", "abc", 7}
+                }
+        );
+
+        when(userRepo.findById(7)).thenReturn(Optional.of(author));
+
+        ImportResultDto result = service.importQuizzes(file);
+
+        assertThat(result.totalRows()).isEqualTo(1);
+        assertThat(result.successCount()).isZero();
+        assertThat(result.errors()).isNotEmpty();
+
+        // no valid rows => saveAll called with empty list (your service calls saveAll(valid) always)
+        // We can either verify called and captured empty, or verify it is called.
+        List<Quiz> saved = captureSavedAll(quizRepo);
+        assertThat(saved).isEmpty();
+    }
+
+    @Test
+    void importQuizzes_authorNotFound_rowRejected() throws Exception {
+        ProfessionCategory cat = new ProfessionCategory(); cat.setId(5);
+
+        MockMultipartFile file = excelFile(
+                "quizzes.xlsx",
+                new String[]{"code", "title_default", "category_id", "author_id"},
+                new Object[][]{
+                        {"Q1", "Quiz One", 5, 999}
+                }
+        );
+
+        when(categoryRepo.findById(5)).thenReturn(Optional.of(cat));
+        when(userRepo.findById(999)).thenReturn(Optional.empty());
+
+        ImportResultDto result = service.importQuizzes(file);
+
+        assertThat(result.totalRows()).isEqualTo(1);
+        assertThat(result.successCount()).isZero();
+        assertThat(result.errors()).isNotEmpty();
+
+        List<Quiz> saved = captureSavedAll(quizRepo);
+        assertThat(saved).isEmpty();
+    }
+
+    @Test
+    void importQuizzes_invalidProcessingModeEnum_rowRejected() throws Exception {
+        ProfessionCategory cat = new ProfessionCategory(); cat.setId(5);
+        User author = new User(); author.setId(7);
+
+        MockMultipartFile file = excelFile(
+                "quizzes.xlsx",
+                new String[]{"code", "title_default", "category_id", "author_id", "processing_mode"},
+                new Object[][]{
+                        {"Q1", "Quiz One", 5, 7, "NOT_A_MODE"}
+                }
+        );
+
+        when(categoryRepo.findById(5)).thenReturn(Optional.of(cat));
+        when(userRepo.findById(7)).thenReturn(Optional.of(author));
+
+        ImportResultDto result = service.importQuizzes(file);
+
+        assertThat(result.totalRows()).isEqualTo(1);
+        assertThat(result.successCount()).isZero();
+        assertThat(result.errors()).isNotEmpty();
+
+        List<Quiz> saved = captureSavedAll(quizRepo);
+        assertThat(saved).isEmpty();
+    }
+
+    @Test
+    void importQuizzes_publishedQuiz_currentVersionAlreadyPublished_doesNotSaveVersion() throws Exception {
+        ProfessionCategory cat = new ProfessionCategory(); cat.setId(5);
+        User author = new User(); author.setId(7);
+
+        Quiz quiz = new Quiz();
+        quiz.setId(100);
+        quiz.setCode("Q1");
+
+        QuizVersion current = new QuizVersion();
+        current.setId(200);
+        current.setQuiz(quiz);
+        current.setCurrent(true);
+        current.setPublishedAt(java.time.Instant.now()); // already set
+
+        MockMultipartFile file = excelFile(
+                "quizzes.xlsx",
+                new String[]{"code", "title_default", "category_id", "author_id", "status"},
+                new Object[][]{
+                        {"Q1", "Quiz One", 5, 7, "published"}
+                }
+        );
+
+        when(categoryRepo.findById(5)).thenReturn(Optional.of(cat));
+        when(userRepo.findById(7)).thenReturn(Optional.of(author));
+        when(quizRepo.findByCode("Q1")).thenReturn(Optional.of(quiz));
+        when(quizVersionRepo.findByQuizIdAndCurrentTrue(100)).thenReturn(Optional.of(current));
+
+        ImportResultDto result = service.importQuizzes(file);
+
+        assertThat(result.successCount()).isEqualTo(1);
+        verify(quizVersionRepo, never()).save(any(QuizVersion.class));
+    }
+
+    @Test
+    void importQuizzes_publishedQuiz_quizIdNull_doesNotTouchVersions() throws Exception {
+        ProfessionCategory cat = new ProfessionCategory(); cat.setId(5);
+        User author = new User(); author.setId(7);
+
+        Quiz quiz = new Quiz();
+        // id stays null
+        quiz.setCode("Q1");
+
+        MockMultipartFile file = excelFile(
+                "quizzes.xlsx",
+                new String[]{"code", "title_default", "category_id", "author_id", "status"},
+                new Object[][]{
+                        {"Q1", "Quiz One", 5, 7, "published"}
+                }
+        );
+
+        when(categoryRepo.findById(5)).thenReturn(Optional.of(cat));
+        when(userRepo.findById(7)).thenReturn(Optional.of(author));
+        when(quizRepo.findByCode("Q1")).thenReturn(Optional.of(quiz));
+
+        ImportResultDto result = service.importQuizzes(file);
+
+        assertThat(result.successCount()).isEqualTo(1);
+
+        verify(quizVersionRepo, never()).findByQuizIdAndCurrentTrue(anyInt());
+        verify(quizVersionRepo, never()).findByQuizIdOrderByVersionDesc(anyInt());
+        verify(quizVersionRepo, never()).save(any());
+    }
+
+    @Test
+    void importTranslations_multipleProblemsInRow_collectsMultipleErrors() throws Exception {
+        MockMultipartFile file = excelFile(
+                "translations.xlsx",
+                new String[]{"entity_type", "entity_id", "field", "locale", "text"},
+                new Object[][]{
+                        {"unknown", "abc", "", "", "Hello"} // unsupported entity + invalid int + missing required fields
+                }
+        );
+
+        ImportResultDto result = service.importTranslations(file);
+
+        assertThat(result.totalRows()).isEqualTo(1);
+        assertThat(result.successCount()).isZero();
+
+        // should accumulate more than 1 error from the same row
+        assertThat(result.errors().size()).isGreaterThanOrEqualTo(2);
+
+        List<Translation> saved = captureSavedAll(translationRepo);
+        assertThat(saved).isEmpty();
+    }
+
+    @Test
+    void importTranslations_blankRow_isIgnored_totalRowsCountsOnlyNonBlankRows() throws Exception {
+        MockMultipartFile file = excelFile(
+                "translations.xlsx",
+                new String[]{"entity_type", "entity_id", "field", "locale", "text"},
+                new Object[][]{
+                        {"quiz", 1, "title", "en", "Hello"},
+                        {"", "", "", "", ""} // blank row
+                }
+        );
+
+        when(translationRepo.findByEntityTypeAndEntityIdAndFieldAndLocale("quiz", 1, "title", "en"))
+                .thenReturn(Optional.empty());
+
+        ImportResultDto result = service.importTranslations(file);
+
+        assertThat(result.totalRows()).isEqualTo(1);  // blank ignored
+        assertThat(result.successCount()).isEqualTo(1);
+
+        List<Translation> saved = captureSavedAll(translationRepo);
+        assertThat(saved).hasSize(1);
+    }
+
+    @Test
+    void importProfessions_invalidCategoryId_notInteger_rowRejected() throws Exception {
+        MockMultipartFile file = excelFile(
+                "professions.xlsx",
+                new String[]{"code", "title_default", "category_id"},
+                new Object[][]{
+                        {"DEV", "Developer", "abc"}
+                }
+        );
+
+        ImportResultDto result = service.importProfessions(file);
+
+        assertThat(result.totalRows()).isEqualTo(1);
+        assertThat(result.successCount()).isZero();
+        assertThat(result.errors()).isNotEmpty();
+
+        List<Profession> saved = captureSavedAll(professionRepo);
+        assertThat(saved).isEmpty();
+    }
+
+    @Test
+    void importQuestions_invalidOrd_notInteger_rowRejected() throws Exception {
+        MockMultipartFile file = excelFile(
+                "questions.xlsx",
+                new String[]{"quiz_version_id", "ord", "qtype", "text_default"},
+                new Object[][]{
+                        {1, "abc", "single_choice", "Question text"}
+                }
+        );
+
+        when(quizVersionRepo.findById(1)).thenReturn(Optional.of(new QuizVersion()));
+
+        ImportResultDto result = service.importQuestions(file);
+
+        assertThat(result.totalRows()).isEqualTo(1);
+        assertThat(result.successCount()).isZero();
+        assertThat(result.errors()).isNotEmpty();
+
+        List<Question> saved = captureSavedAll(questionRepo);
+        assertThat(saved).isEmpty();
+    }
+
+    @Test
+    void importQuestions_nullFile_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> service.importQuestions(null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void importProfessions_emptyFile_throwsIllegalArgumentException() {
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "professions.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                new byte[0]
+        );
+
+        assertThatThrownBy(() -> service.importProfessions(file))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
     private MockMultipartFile excelFileWithoutHeader(String filename) throws Exception {
         try (Workbook wb = new XSSFWorkbook()) {
             var sheet = wb.createSheet("Sheet1");

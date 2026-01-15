@@ -9,6 +9,7 @@ import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.service.QuizService;
 import com.diploma.proforientation.service.QuizVersionService;
 import com.diploma.proforientation.service.TraitService;
+import com.diploma.proforientation.util.rate.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -60,6 +61,7 @@ public class QuizController {
                     schema = @Schema(implementation = QuizDto.class)
             )
     )
+    @RateLimit(requests = 30, durationSeconds = 60)
     public Page<QuizDto> getAll(
             @Parameter(description = "Page number", schema = @Schema(defaultValue = "1"))
             @RequestParam(required = false, defaultValue = "1") int page,
@@ -92,6 +94,7 @@ public class QuizController {
                     schema = @Schema(implementation = com.diploma.proforientation.dto.ExceptionDto.class)
             )
     )
+    @RateLimit(requests = 30, durationSeconds = 60)
     public QuizDto getById(@PathVariable Integer id) {
         return quizService.getByIdLocalized(id);
     }
@@ -116,6 +119,7 @@ public class QuizController {
                     schema = @Schema(implementation = com.diploma.proforientation.dto.ExceptionDto.class)
             )
     )
+    @RateLimit(requests = 30, durationSeconds = 60)
     public QuizDto getByCode(@PathVariable String code) {
         return quizService.getByCodeLocalized(code);
     }

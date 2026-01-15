@@ -5,6 +5,7 @@ import com.diploma.proforientation.dto.QuestionDto;
 import com.diploma.proforientation.dto.request.create.CreateQuestionRequest;
 import com.diploma.proforientation.dto.request.update.UpdateQuestionRequest;
 import com.diploma.proforientation.service.QuestionService;
+import com.diploma.proforientation.util.rate.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -117,6 +118,7 @@ public class QuestionController {
             description = "Page of questions",
             content = @Content(schema = @Schema(implementation = QuestionDto.class))
     )
+    @RateLimit(requests = 30, durationSeconds = 60)
     public Page<QuestionDto> getQuestionsForQuiz(
             @PathVariable Integer quizId,
             @Parameter(description = "Page number", schema = @Schema(defaultValue = "1"))
@@ -151,6 +153,7 @@ public class QuestionController {
             content = @Content(schema = @Schema(implementation = QuestionDto.class))
     )
     @ApiResponse(responseCode = "404", description = "Quiz version not found")
+    @RateLimit(requests = 30, durationSeconds = 60)
     public Page<QuestionDto> getQuestionsForQuizVersion(
             @PathVariable Integer quizId,
             @PathVariable Integer version,

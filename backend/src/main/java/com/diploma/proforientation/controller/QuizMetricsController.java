@@ -3,6 +3,7 @@ package com.diploma.proforientation.controller;
 import com.diploma.proforientation.dto.QuizMetricsFilter;
 import com.diploma.proforientation.dto.QuizPublicMetricsDto;
 import com.diploma.proforientation.service.QuizMetricsService;
+import com.diploma.proforientation.util.rate.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,6 +29,7 @@ public class QuizMetricsController {
             description = "Returns public analytics for all quizzes without filtering. " +
                     "Includes attempts count, average duration, and estimated duration."
     )
+    @RateLimit(requests = 20, durationSeconds = 60)
     public List<QuizPublicMetricsDto> getAllMetrics() {
         return service.getAllPublicMetrics();
     }
@@ -38,6 +40,7 @@ public class QuizMetricsController {
             description = "Returns aggregated public metrics for a single quiz identified by its ID. " +
                     "Throws 404 if the quiz metrics are not found."
     )
+    @RateLimit(requests = 20, durationSeconds = 60)
     public QuizPublicMetricsDto getMetrics(
             @PathVariable Integer quizId
     ) {
@@ -59,6 +62,7 @@ public class QuizMetricsController {
                     - Monitoring quiz performance
                     """
     )
+    @RateLimit(requests = 20, durationSeconds = 60)
     public List<QuizPublicMetricsDto> filterMetrics(
             @Parameter(description = "Filter criteria for quiz metrics")
             QuizMetricsFilter filter

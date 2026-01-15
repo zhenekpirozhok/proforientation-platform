@@ -313,6 +313,115 @@ class AdvisorControllerTest {
         verify(i18n).msg(ERROR_INVALID_PARAMETER_VALUE, "id", "abc");
     }
 
+    @Test
+    void testHandleNotReadable_whenMessageLooksLikeKey_usesThatKey() {
+        HttpMessageNotReadableException ex = mock(HttpMessageNotReadableException.class);
+        when(ex.getMessage()).thenReturn("error.custom_json");
+
+        when(i18n.msg("error.custom_json")).thenReturn("Localized custom json error");
+
+        ResponseEntity<ExceptionDto> response = advisor.handleNotReadable(ex);
+
+        assertEquals(400, response.getStatusCode().value());
+        assertEquals("Localized custom json error", response.getBody().message());
+
+        verify(i18n).msg("error.custom_json");
+        verify(i18n, never()).msg(ERROR_MALFORMED_JSON);
+    }
+
+    @Test
+    void testHandleNotReadable_whenKeyNotResolved_fallsBackToDefaultKey() {
+        HttpMessageNotReadableException ex = mock(HttpMessageNotReadableException.class);
+        when(ex.getMessage()).thenReturn("error.custom_json");
+
+        when(i18n.msg("error.custom_json")).thenReturn("error.custom_json");
+        when(i18n.msg(ERROR_MALFORMED_JSON)).thenReturn("Localized malformed json");
+
+        ResponseEntity<ExceptionDto> response = advisor.handleNotReadable(ex);
+
+        assertEquals(400, response.getStatusCode().value());
+        assertEquals("Localized malformed json", response.getBody().message());
+
+        verify(i18n).msg("error.custom_json");
+        verify(i18n).msg(ERROR_MALFORMED_JSON);
+    }
+
+    @Test
+    void testHandleNotReadable_whenMessageNull_usesFallbackKey() {
+        HttpMessageNotReadableException ex = mock(HttpMessageNotReadableException.class);
+        when(ex.getMessage()).thenReturn(null);
+
+        when(i18n.msg(ERROR_MALFORMED_JSON)).thenReturn("Localized malformed json");
+
+        ResponseEntity<ExceptionDto> response = advisor.handleNotReadable(ex);
+
+        assertEquals(400, response.getStatusCode().value());
+        assertEquals("Localized malformed json", response.getBody().message());
+
+        verify(i18n).msg(ERROR_MALFORMED_JSON);
+    }
+
+    @Test
+    void testHandleMissingHeader_whenMessageStartsWithEmailPrefix_usesMessageAsKey() {
+        MissingRequestHeaderException ex =
+                new MissingRequestHeaderException("Authorization", dummyMethodParameter());
+
+        MissingRequestHeaderException spy = spy(ex);
+        doReturn("email.header_missing").when(spy).getMessage();
+
+        when(i18n.msg("email.header_missing", "Authorization"))
+                .thenReturn("Localized email-like key");
+
+        ResponseEntity<ExceptionDto> response = advisor.handleMissingHeader(spy);
+
+        assertEquals(400, response.getStatusCode().value());
+        assertEquals("Localized email-like key", response.getBody().message());
+
+        verify(i18n).msg("email.header_missing", "Authorization");
+    }
+
+    @Test
+    void testHandleValidationErrors_localizesDefaultMessage_whenStartsWithErrorPrefix() throws Exception {
+        var binding = mock(org.springframework.validation.BindingResult.class);
+
+        var error = new FieldError("object", "email", "error.email_invalid");
+        when(binding.getFieldErrors()).thenReturn(List.of(error));
+
+        MethodParameter methodParam =
+                new MethodParameter(this.getClass().getDeclaredMethod("dummyMethod", String.class), 0);
+
+        MethodArgumentNotValidException ex = new MethodArgumentNotValidException(methodParam, binding);
+
+        when(i18n.msg("error.email_invalid")).thenReturn("Localized email invalid");
+
+        ResponseEntity<ExceptionDto> response = advisor.handleValidationExceptions(ex);
+
+        assertEquals(400, response.getStatusCode().value());
+        assertTrue(response.getBody().message().toString().contains("Localized email invalid"));
+
+        verify(i18n).msg("error.email_invalid");
+    }
+
+    @Test
+    void testHandleValidationErrors_whenDefaultMessageNull_putsNullValue() throws Exception {
+        var binding = mock(org.springframework.validation.BindingResult.class);
+
+        var error = new FieldError("object", "email", null);
+        when(binding.getFieldErrors()).thenReturn(List.of(error));
+
+        MethodParameter methodParam =
+                new MethodParameter(this.getClass().getDeclaredMethod("dummyMethod", String.class), 0);
+
+        MethodArgumentNotValidException ex = new MethodArgumentNotValidException(methodParam, binding);
+
+        ResponseEntity<ExceptionDto> response = advisor.handleValidationExceptions(ex);
+
+        assertEquals(400, response.getStatusCode().value());
+        assertTrue(response.getBody().message().toString().contains("email"));
+
+        verifyNoInteractions(i18n);
+    }
+
     private MethodParameter dummyMethodParameter() {
         try {
             return new MethodParameter(

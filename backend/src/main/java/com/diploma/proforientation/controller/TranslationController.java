@@ -5,6 +5,7 @@ import com.diploma.proforientation.dto.TranslationDto;
 import com.diploma.proforientation.dto.request.create.CreateTranslationRequest;
 import com.diploma.proforientation.dto.request.update.UpdateTranslationRequest;
 import com.diploma.proforientation.service.TranslationService;
+import com.diploma.proforientation.util.rate.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -140,6 +141,7 @@ public class TranslationController {
                     schema = @Schema(implementation = ExceptionDto.class)
             )
     )
+    @RateLimit(requests = 20, durationSeconds = 60)
     public List<TranslationDto> search(
             @RequestParam String entityType,
             @RequestParam Integer entityId,
@@ -161,6 +163,7 @@ public class TranslationController {
                     schema = @Schema(implementation = TranslationDto.class)
             )
     )
+    @RateLimit(requests = 20, durationSeconds = 60)
     public List<TranslationDto> getAllForEntityType(
             @PathVariable String entityType
     ) {
