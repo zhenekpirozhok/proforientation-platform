@@ -202,21 +202,28 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
               const optRes: any = await actions.createOption.mutateAsync({
                 data: { questionId, label: opt.label, ord: opt.ord } as any,
               });
+
               const createdOpt = optRes?.data ?? optRes?.result ?? optRes;
               optionId = typeof createdOpt?.id === 'number' ? createdOpt.id : undefined;
+
               if (typeof optionId !== 'number') throw new Error('Failed to create option');
+
               opt.optionId = optionId;
             }
+
+            if (typeof optionId !== 'number') continue;
 
             const weightsObj = opt.weightsByTraitId ?? {};
             const traits = Object.keys(weightsObj)
               .map((k) => ({ traitId: Number(k), weight: (weightsObj as any)[k] }))
               .filter((x) => Number.isFinite(x.traitId) && typeof x.weight === 'number');
 
-            await actions.assignOptionTraits.mutateAsync({
-              optionId,
-              data: { traits } as any,
-            });
+            if (traits.length > 0) {
+              await actions.assignOptionTraits.mutateAsync({
+                optionId,
+                data: { traits } as any,
+              });
+            }
           }
         }
       } catch (err: any) {
