@@ -25,6 +25,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { SectionCard } from '../SectionCard';
 import { FieldError } from '../FieldError';
 import { useAdminQuizBuilderStore } from '../../model/store';
+import { CreateQuestionRequestQtype } from '@/shared/api/generated/model/createQuestionRequestQtype';
 
 import { useStepValidation } from '../../lib/validation/useStepValidation';
 import { StepValidationSummary } from '../../lib/validation/StepValidationSummary';
@@ -243,7 +244,7 @@ export function StepQuestions({
 
   const [draft, setDraft] = useState<DraftQuestion>(() => ({
     text: '',
-    qtype: 'SINGLE_CHOICE',
+    qtype: CreateQuestionRequestQtype.SINGLE_CHOICE,
     linkedTraitIds: [],
     options: [{ tempId: id('dopt'), label: '', weightsByTraitId: {} }],
   }));
@@ -264,7 +265,7 @@ export function StepQuestions({
   function resetDraft() {
     setDraft({
       text: '',
-      qtype: 'SINGLE_CHOICE',
+      qtype: CreateQuestionRequestQtype.SINGLE_CHOICE,
       linkedTraitIds: [],
       options: [{ tempId: id('dopt'), label: '', weightsByTraitId: {} }],
     });
@@ -306,7 +307,7 @@ export function StepQuestions({
 
   function onDraftTypeChange(vv: string) {
     setDraft((d) => {
-      if (vv === 'LIKERT_5') {
+      if (vv === CreateQuestionRequestQtype.LIKER_SCALE_5) {
         const opts = likertLabels.map((label) => ({
           tempId: id('dopt'),
           label,
@@ -403,7 +404,7 @@ export function StepQuestions({
     setEditingTempId(qTempId);
     setDraft({
       text: q.text ?? '',
-      qtype: q.qtype ?? 'SINGLE_CHOICE',
+      qtype: q.qtype ?? CreateQuestionRequestQtype.SINGLE_CHOICE,
       linkedTraitIds,
       options: (q.options ?? []).map((o) => ({
         tempId: id('dopt'),
@@ -600,9 +601,9 @@ export function StepQuestions({
               className="w-full"
               size="large"
               options={[
-                { value: 'SINGLE_CHOICE', label: t('types.single') },
-                { value: 'MULTI_CHOICE', label: t('types.multi') },
-                { value: 'LIKERT_5', label: t('types.likert5') },
+                { value: CreateQuestionRequestQtype.SINGLE_CHOICE, label: t('types.single') },
+                { value: CreateQuestionRequestQtype.MULTI_CHOICE, label: t('types.multi') },
+                { value: CreateQuestionRequestQtype.LIKER_SCALE_5, label: t('types.likert5') },
               ]}
             />
             {draftErrors.draftType ? <FieldError code={draftErrors.draftType} /> : null}
@@ -650,7 +651,7 @@ export function StepQuestions({
                       id={o.tempId}
                       label={o.label}
                       placeholder={t('optionPh')}
-                      disableRemove={draft.options.length <= 1 || draft.qtype === 'LIKERT_5'}
+                      disableRemove={draft.options.length <= 1 || draft.qtype === CreateQuestionRequestQtype.LIKER_SCALE_5}
                       onChange={(vv) => patchDraftOption(o.tempId, { label: vv })}
                       onRemove={() => removeDraftOption(o.tempId)}
                       error={draftErrors[`draftOpt.${o.tempId}.label`]}
@@ -667,7 +668,7 @@ export function StepQuestions({
             </DndContext>
 
             <div className="flex items-center justify-between gap-3">
-              <Button onClick={addDraftOption} disabled={draft.qtype === 'LIKERT_5'}>
+              <Button onClick={addDraftOption} disabled={draft.qtype === CreateQuestionRequestQtype.LIKER_SCALE_5}>
                 {t('addOption')}
               </Button>
               {draftErrors.draftOptions ? <FieldError code={draftErrors.draftOptions} /> : null}
