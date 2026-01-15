@@ -3,6 +3,7 @@
 import { useAdminCreateQuiz } from '@/entities/quiz/api/useAdminCreateQuiz';
 import { useAdminUpdateQuiz } from '@/entities/quiz/api/useAdminUpdateQuiz';
 import { useAdminCopyLatestVersion } from '@/entities/quiz/api/useAdminCopyLatestVersion';
+import { useCreateQuizVersion } from '@/entities/quiz/api/useCreateQuizVersion';
 import { useAdminPublishQuiz } from '@/entities/quiz/api/useAdminPublishQuiz';
 import { useAdminCreateTrait } from '@/entities/trait/api/useAdminCreateTrait';
 
@@ -32,6 +33,8 @@ export function useQuizBuilderActions(quizId: number, version: number) {
     const createOption = useAdminCreateOption();
     const updateOption = useAdminUpdateOption();
     const assignOptionTraits = useAdminAssignOptionTraits();
+
+    const createQuizVersion = useCreateQuizVersion();
 
     const createCategory = useAdminCreateCategory();
     const createProfession = useAdminCreateProfession();
@@ -64,6 +67,8 @@ export function useQuizBuilderActions(quizId: number, version: number) {
         createOption,
         updateOption,
         assignOptionTraits,
+
+        createQuizVersion,
 
         createCategory,
         createProfession,
