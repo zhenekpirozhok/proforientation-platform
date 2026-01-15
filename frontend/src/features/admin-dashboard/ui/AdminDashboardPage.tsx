@@ -2,12 +2,13 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Button, Card, Empty, Tag, Typography, message } from 'antd';
+import { Button, Card, Empty, Tag, Typography, message, Modal } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useAdminQuizzes } from '@/entities/quiz/api/useAdminQuizzes';
 import { useAdminPublishQuiz } from '@/entities/quiz/api/useAdminPublishQuiz';
+import { useDeleteQuiz } from '@/entities/quiz/api/useDeleteQuiz';
 import { getGetAllQueryKey } from '@/shared/api/generated/api';
 import { QuizzesPagination } from '@/entities/quiz/ui/QuizzesPagination';
 
@@ -102,6 +103,9 @@ export function AdminDashboardPage() {
 
   const quizzesQuery = useAdminQuizzes({ page, size } as any);
   const publishQuiz = useAdminPublishQuiz();
+  const deleteQuiz = useDeleteQuiz();
+
+  const [deletingQuizId, setDeletingQuizId] = useState<number | null>(null);
 
   const data = quizzesQuery.data as any;
   const items = useMemo(() => toArray<any>(data), [data]);
@@ -248,6 +252,18 @@ export function AdminDashboardPage() {
                       >
                         {t('analytics')}
                       </Button>
+
+                      <Button
+                        danger
+                        onClick={() => {
+                          if (!Number.isFinite(id)) return;
+                          setDeletingQuizId(id);
+                        }}
+                        loading={deleteQuiz.isPending && deletingQuizId === id}
+                        disabled={!Number.isFinite(id)}
+                      >
+                        {t('delete')}
+                      </Button>
                     </div>
                   </div>
                 </Card>
@@ -267,6 +283,29 @@ export function AdminDashboardPage() {
           }}
         />
       </div>
+
+      <Modal
+        title={t('deleteConfirmTitle')}
+        open={deletingQuizId !== null}
+        onOk={async () => {
+          const id = deletingQuizId;
+          if (id === null) return;
+          try {
+            await deleteQuiz.mutateAsync({ id } as any);
+            await qc.invalidateQueries({ queryKey: getGetAllQueryKey() as any });
+            await quizzesQuery.refetch();
+            message.success(t('toastDeleted'));
+          } catch (e) {
+            message.error((e as Error).message);
+          } finally {
+            setDeletingQuizId(null);
+          }
+        }}
+        onCancel={() => setDeletingQuizId(null)}
+        okButtonProps={{ danger: true }}
+      >
+        <p>{t('deleteConfirmBody')}</p>
+      </Modal>
     </div>
   );
 }
