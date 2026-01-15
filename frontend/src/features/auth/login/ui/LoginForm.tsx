@@ -14,6 +14,7 @@ import {
   useSessionStore,
   type SessionUser,
 } from '@/entities/session/model/store';
+import { hasRole } from '@/entities/session/model/roles';
 import { useGoogleOneTapLogin } from '@/features/auth/login/model/useGoogleOneTapLogin';
 import { GoogleOneTapInit } from '@/features/auth/login/ui/GoogleOneTapInit';
 import { orvalFetch } from '@/shared/api/orvalFetch';
@@ -65,7 +66,10 @@ export function LoginForm() {
     useSessionStore.getState().setUser(me ? toSessionUser(me) : null);
 
     message.success(t('Success'));
-    router.replace('/me/results');
+    const sessionUser = me ? toSessionUser(me) : null;
+    const isAdmin = hasRole(sessionUser, 'ADMIN');
+
+    router.replace(isAdmin ? '/admin' : '/me/results');
   }
 
   return (

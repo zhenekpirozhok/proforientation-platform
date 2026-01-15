@@ -499,6 +499,9 @@
   "AdminQuizBuilder": {
   "title": "Конструктор квиза",
   "subtitle": "Создайте квиз в 3 шага и опубликуйте",
+  "savingInBackground": "Сохранение в фоне…",
+  "savedInBackground": "Сохранено",
+  "toastCreated": "Квиз создан",
   "needQuizContext": "Сначала создайте квиз (Шаг 0).",
   "validation": {
     "required": "Это поле обязательно",
