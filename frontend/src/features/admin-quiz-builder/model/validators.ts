@@ -26,7 +26,8 @@ export function validateInit(v: { title: string; code: string; description?: str
 
 export function validateScales(scales: ScaleDraft[]): ValidationErrors {
     const out: ValidationErrors = {};
-    if (scales.length < 1) add(out, 'scales', 'min1');
+    // If there are no scales defined, treat scales as optional and return no errors.
+    if (scales.length === 0) return out;
 
     const hasSingle = scales.some((s) => s.polarity === 'single');
     const hasBipolar = scales.some((s) => s.polarity === 'bipolar');

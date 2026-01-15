@@ -1,13 +1,13 @@
 import { NextRequest } from 'next/server';
-import { bffFetch } from '@/shared/api/bff/proxy';
+import { bffAuthFetch } from '@/shared/api/bffAuthFetch';
 
-export async function GET(req: NextRequest, ctx: { params: Promise<{ quizId: string }> }) {
-  const { quizId } = await ctx.params;
+export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
 
-  const upstreamPath = `/quizzes/${quizId}/traits${req.nextUrl.search}`;
+  const upstreamPath = `/quizzes/${id}/traits${req.nextUrl.search}`;
   const xLocale = req.headers.get('x-locale') ?? '';
 
-  const upstreamRes = await bffFetch(upstreamPath, {
+  const upstreamRes = await bffAuthFetch(upstreamPath, {
     method: 'GET',
     headers: {
       ...(xLocale ? { 'x-locale': xLocale } : {}),

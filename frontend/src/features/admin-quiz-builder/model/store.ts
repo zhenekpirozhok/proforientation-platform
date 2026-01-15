@@ -34,6 +34,7 @@ export type QuestionDraft = {
     questionId?: number;
     options: OptionDraft[];
 };
+
 export type ResultsDraft = {
     selectedCategoryIds: number[];
     selectedProfessionIds: number[];
@@ -109,6 +110,11 @@ type BuilderState = {
     reset: () => void;
     patchResults: (v: Partial<ResultsDraft>) => void;
     setResults: (v: ResultsDraft) => void;
+
+    setScales: (v: ScaleDraft[]) => void;
+    setQuestions: (v: QuestionDraft[]) => void;
+
+    hydrateFromServerQuiz: (quiz: any) => void;
 };
 
 function id(prefix: string) {
@@ -129,6 +135,44 @@ function ensureWeights(current: Record<number, number>, traitIds: number[]) {
         if (!traitIds.includes(n)) delete next[n];
     }
     return next;
+}
+
+function toNumber(v: unknown): number | undefined {
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isFinite(n) ? n : undefined;
+}
+
+function toArray<T>(v: unknown): T[] {
+    if (Array.isArray(v)) return v as T[];
+    if (!v || typeof v !== 'object') return [];
+    const o = v as any;
+    if (Array.isArray(o.items)) return o.items as T[];
+    if (Array.isArray(o.results)) return o.results as T[];
+    if (Array.isArray(o.rows)) return o.rows as T[];
+    if (Array.isArray(o.content)) return o.content as T[];
+    if (o.data !== undefined) return toArray<T>(o.data);
+    if (o.result !== undefined) return toArray<T>(o.result);
+    if (o.payload !== undefined) return toArray<T>(o.payload);
+    return [];
+}
+
+function safeIds(v: unknown): number[] {
+    return Array.isArray(v)
+        ? (v.filter((x) => typeof x === 'number' && Number.isFinite(x)) as number[])
+        : [];
+}
+
+function normalizeWeights(weights: unknown): Record<number, number> {
+    if (!weights || typeof weights !== 'object') return {};
+    const o = weights as Record<string, unknown>;
+    const out: Record<number, number> = {};
+    for (const [k, v] of Object.entries(o)) {
+        const tid = Number(k);
+        if (!Number.isFinite(tid)) continue;
+        const val = typeof v === 'number' ? v : Number(v);
+        out[tid] = Number.isFinite(val) ? val : 0;
+    }
+    return out;
 }
 
 const initialState = {
@@ -175,6 +219,10 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
             patchResults: (v) => set({ results: { ...get().results, ...v } }),
 
             setResults: (v) => set({ results: v }),
+
+            setScales: (v) => set({ scales: v }),
+
+            setQuestions: (v) => set({ questions: v }),
 
             setActiveQuestion: (tempId) => set({ activeQuestionTempId: tempId }),
 
@@ -319,7 +367,10 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                             ...q,
                             options: q.options.map((o) => ({
                                 ...o,
-                                weightsByTraitId: ensureWeights(o.weightsByTraitId, traitIds.filter((x) => allowSet.has(x))),
+                                weightsByTraitId: ensureWeights(
+                                    o.weightsByTraitId,
+                                    traitIds.filter((x) => allowSet.has(x)),
+                                ),
                             })),
                         };
                     }),
@@ -351,7 +402,6 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                 arr.splice(to, 0, moved);
 
                 const next = arr.map((q, idx) => ({ ...q, ord: idx + 1 }));
-
                 set({ questions: next });
             },
 
@@ -374,11 +424,156 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                 set({ questions: qs });
             },
 
-            reset: () => set({ ...initialState }),
+            hydrateFromServerQuiz: (quiz) => {
+                const q = quiz ?? {};
+
+                const ctxQuizId = toNumber(q.id);
+                const ctxVersion = toNumber(q.version);
+                const ctxQuizVersionId = toNumber(q.quizVersionId);
+
+                const initTitle = q.title ?? '';
+                const initCode = q.code ?? '';
+                const initDescription = q.description ?? '';
+
+                const backendTraits = toArray<any>(q.traits ?? q.scales ?? q.quizTraits ?? []);
+                const traitDrafts: ScaleDraft[] = backendTraits
+                    .flatMap((tr: any) => {
+                        const polarity = tr.polarity ?? tr.mode ?? tr.type ?? 'single';
+
+                        if (polarity === 'bipolar') {
+                            const pairId = String(tr.pairId ?? tr.pairCode ?? tr.bipolarPairCode ?? id('pair'));
+                            const pairCode = tr.pairCode ?? tr.bipolarPairCode ?? '';
+
+                            const left = tr.left ?? tr.negative ?? tr.a ?? {};
+                            const right = tr.right ?? tr.positive ?? tr.b ?? {};
+
+                            const leftTraitId = toNumber(left.id ?? left.traitId ?? tr.leftTraitId);
+                            const rightTraitId = toNumber(right.id ?? right.traitId ?? tr.rightTraitId);
+
+                            return [
+                                {
+                                    tempId: id('scale'),
+                                    traitId: leftTraitId,
+                                    polarity: 'bipolar',
+                                    side: 'LEFT',
+                                    pairId,
+                                    bipolarPairCode: pairCode,
+                                    name: left.name ?? left.title ?? tr.leftName ?? '',
+                                    code: left.code ?? tr.leftCode ?? '',
+                                    description: left.description ?? tr.leftDescription ?? '',
+                                    codeTouched: true,
+                                },
+                                {
+                                    tempId: id('scale'),
+                                    traitId: rightTraitId,
+                                    polarity: 'bipolar',
+                                    side: 'RIGHT',
+                                    pairId,
+                                    bipolarPairCode: pairCode,
+                                    name: right.name ?? right.title ?? tr.rightName ?? '',
+                                    code: right.code ?? tr.rightCode ?? '',
+                                    description: right.description ?? tr.rightDescription ?? '',
+                                    codeTouched: true,
+                                },
+                            ] as ScaleDraft[];
+                        }
+
+                        const tid = toNumber(tr.id ?? tr.traitId);
+                        return [
+                            {
+                                tempId: id('scale'),
+                                traitId: tid,
+                                polarity: 'single',
+                                name: tr.name ?? tr.title ?? '',
+                                code: tr.code ?? '',
+                                description: tr.description ?? '',
+                                codeTouched: true,
+                            } as ScaleDraft,
+                        ];
+                    })
+                    .filter(Boolean);
+
+                const detectedMode =
+                    traitDrafts.find((s) => s.polarity === 'bipolar')?.polarity ??
+                    traitDrafts.find((s) => s.polarity === 'single')?.polarity ??
+                    null;
+
+                const backendQuestions = toArray<any>(q.questions ?? q.items ?? q.quizQuestions ?? []);
+                const questionDrafts: QuestionDraft[] = backendQuestions
+                    .map((qq: any, idx: number) => {
+                        const qtype = qq.qtype ?? qq.type ?? 'SINGLE_CHOICE';
+                        const ord = toNumber(qq.ord ?? qq.order ?? qq.position) ?? idx + 1;
+
+                        const linkedTraitIds = safeIds(
+                            qq.linkedTraitIds ??
+                            qq.traitIds ??
+                            qq.traits ??
+                            (Array.isArray(qq.linkedTraits) ? qq.linkedTraits.map((x: any) => x?.id) : []),
+                        ).slice(0, 2);
+
+                        const opts = toArray<any>(qq.options ?? qq.answers ?? qq.variants ?? []);
+                        const optionDrafts: OptionDraft[] = opts.map((o: any, oidx: number) => ({
+                            tempId: id('opt'),
+                            ord: toNumber(o.ord ?? o.order ?? o.position) ?? oidx + 1,
+                            label: o.label ?? o.text ?? o.title ?? '',
+                            optionId: toNumber(o.id ?? o.optionId),
+                            weightsByTraitId: normalizeWeights(o.weightsByTraitId ?? o.weights ?? o.traitWeights ?? {}),
+                        }));
+
+                        return {
+                            tempId: id('q'),
+                            ord,
+                            qtype,
+                            text: qq.text ?? qq.title ?? qq.question ?? '',
+                            linkedTraitIds,
+                            questionId: toNumber(qq.id ?? qq.questionId),
+                            options: optionDrafts,
+                        };
+                    })
+                    .sort((a, b) => (a.ord ?? 0) - (b.ord ?? 0));
+
+                const backendResults = q.results ?? q.resultConfig ?? q.recommendations ?? q.outcome ?? {};
+                const selectedCategoryIds = safeIds(
+                    backendResults.selectedCategoryIds ??
+                    backendResults.categoryIds ??
+                    backendResults.categories ??
+                    q.selectedCategoryIds ??
+                    q.categoryIds,
+                );
+                const selectedProfessionIds = safeIds(
+                    backendResults.selectedProfessionIds ??
+                    backendResults.professionIds ??
+                    backendResults.professions ??
+                    q.selectedProfessionIds ??
+                    q.professionIds,
+                );
+
+                const nextResults: ResultsDraft = {
+                    selectedCategoryIds,
+                    selectedProfessionIds,
+                };
+
+                set({
+                    step: 0,
+                    quizId: ctxQuizId,
+                    version: ctxVersion,
+                    quizVersionId: ctxQuizVersionId,
+                    init: { title: initTitle, code: initCode, description: initDescription, codeTouched: true },
+                    scales: traitDrafts,
+                    scaleMode: detectedMode ?? get().scaleMode,
+                    editingScaleTempId: undefined,
+                    editingPairId: undefined,
+                    questions: questionDrafts,
+                    activeQuestionTempId: undefined,
+                    results: nextResults,
+                });
+            },
+
+            reset: () => set({ ...initialState, hydrated: get().hydrated }),
         }),
         {
             name: 'admin-quiz-builder',
-            version: 6,
+            version: 7,
             partialize: (s) => ({
                 step: s.step,
                 quizId: s.quizId,

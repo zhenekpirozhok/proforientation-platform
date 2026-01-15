@@ -1,8 +1,8 @@
 'use client';
 
+import { JSX, useEffect, useMemo, useState } from 'react';
 import { Button, Divider, Typography, message } from 'antd';
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo, useState } from 'react';
 
 import { SectionCard } from '../SectionCard';
 import { useAdminQuizBuilderStore } from '../../model/store';
@@ -14,6 +14,62 @@ import { useSearchProfessions } from '@/entities/profession/api/useSearchProfess
 
 import type { ProfessionCategoryDto as Category } from '@/shared/api/generated/model/professionCategoryDto';
 import type { ProfessionDto as Profession } from '@/shared/api/generated/model/professionDto';
+
+// Local interfaces for typed views and raw data
+interface Init {
+  title?: string;
+  code?: string;
+}
+
+interface Scale {
+  traitId?: number | string;
+  name?: string;
+  code?: string;
+  tempId?: string | number;
+  polarity?: 'bipolar' | string;
+  side?: string;
+}
+
+interface RawOption {
+  tempId?: string | number;
+  ord?: number;
+  label?: string;
+  weightsByTraitId?: Record<string | number, number> | undefined;
+}
+
+interface RawQuestion {
+  tempId?: string | number;
+  ord?: number;
+  qtype?: string;
+  text?: string;
+  options?: RawOption[];
+}
+
+interface QuestionOptionView {
+  id?: string | number;
+  ord?: number;
+  label?: string;
+  effect?: string;
+}
+
+interface QuestionView {
+  id?: string | number;
+  ord?: number;
+  qtype?: string;
+  text?: string;
+  options: QuestionOptionView[];
+}
+
+interface SelectedView {
+  id: number;
+  label: string | number;
+}
+
+interface Results {
+  selectedCategoryIds?: unknown;
+  selectedProfessionIds?: unknown;
+  [k: string]: any;
+}
 
 function toNumber(v: unknown): number | undefined {
   const n = typeof v === 'number' ? v : Number(v);
@@ -42,16 +98,16 @@ function safeIds(v: unknown): number[] {
   return Array.isArray(v) ? (v.filter((x) => typeof x === 'number' && Number.isFinite(x)) as number[]) : [];
 }
 
-export function StepPreview() {
+export function StepPreview(): JSX.Element {
   const t = useTranslations('AdminQuizBuilder.preview');
 
-  const quizId = useAdminQuizBuilderStore((s) => s.quizId);
-  const version = useAdminQuizBuilderStore((s) => s.version);
+  const quizId: number | undefined = useAdminQuizBuilderStore((s) => s.quizId);
+  const quizVersionId: number | undefined = useAdminQuizBuilderStore((s) => s.quizVersionId);
 
-  const init = useAdminQuizBuilderStore((s) => s.init);
-  const scales = useAdminQuizBuilderStore((s) => s.scales);
-  const questions = useAdminQuizBuilderStore((s) => s.questions);
-  const results = useAdminQuizBuilderStore((s) => s.results as any);
+  const init: Init = useAdminQuizBuilderStore((s) => s.init);
+  const scales: Scale[] | undefined = useAdminQuizBuilderStore((s) => s.scales);
+  const questions: RawQuestion[] | undefined = useAdminQuizBuilderStore((s) => s.questions);
+  const results: Results = useAdminQuizBuilderStore((s) => s.results as any);
 
   const categoriesQuery = useAdminCategories();
   const professionsAllQuery = useAdminProfessions();
@@ -108,7 +164,7 @@ export function StepPreview() {
     return m;
   }, [(professionsAllQuery as any).data, professionsAllQuery]);
 
-  const selectedCategoriesView = useMemo(() => {
+  const selectedCategoriesView: SelectedView[] = useMemo(() => {
     return selectedCategoryIds.map((id) => {
       const c: any = categoryById.get(id);
       return {
@@ -118,14 +174,14 @@ export function StepPreview() {
     });
   }, [selectedCategoryIds, categoryById]);
 
-  const selectedProfessionsView = useMemo(() => {
+  const selectedProfessionsView: SelectedView[] = useMemo(() => {
     const resolved = selectedProfessionIds
       .map((id) => {
         const p: any = professionById.get(id);
         if (!p) return null;
         return { id, label: p.title ?? p.name ?? p.code ?? p.id };
       })
-      .filter(Boolean) as Array<{ id: number; label: string }>;
+      .filter(Boolean) as SelectedView[];
 
     return resolved;
   }, [selectedProfessionIds, professionById]);
@@ -145,8 +201,8 @@ export function StepPreview() {
     return m;
   }, [scales]);
 
-  const questionsView = useMemo(() => {
-    const qs = (questions ?? []).slice().sort((a, b) => (a.ord ?? 0) - (b.ord ?? 0));
+  const questionsView: QuestionView[] = useMemo(() => {
+    const qs = (questions ?? []).slice().sort((a: any, b: any) => (a.ord ?? 0) - (b.ord ?? 0));
 
     const effectText = (weightsByTraitId: Record<number, number> | undefined) => {
       const w = weightsByTraitId ?? {};
@@ -165,30 +221,32 @@ export function StepPreview() {
         .join(', ');
     };
 
-    return qs.map((q) => ({
+    return qs.map((q: RawQuestion) => ({
       id: q.tempId,
       ord: q.ord,
       qtype: q.qtype,
       text: q.text,
       options: (q.options ?? [])
         .slice()
-        .sort((a, b) => (a.ord ?? 0) - (b.ord ?? 0))
-        .map((o) => ({
+        .sort((a: RawOption, b: RawOption) => (a.ord ?? 0) - (b.ord ?? 0))
+        .map((o: RawOption) => ({
           id: o.tempId,
           ord: o.ord,
           label: o.label,
           effect: effectText((o as any).weightsByTraitId),
         })),
-    }));
+    } as QuestionView));
   }, [questions, scaleLabelByTraitId, t]);
 
-  const actions =
-    typeof quizId === 'number' && typeof version === 'number'
-      ? useQuizBuilderActions(quizId, version)
-      : null;
+  const actions = useQuizBuilderActions(
+    typeof quizId === 'number' ? quizId : 0,
+    typeof quizVersionId === 'number' ? quizVersionId : 0,
+  );
+
+  const canPublish = typeof quizId === 'number' && quizId > 0;
 
   async function onPublish() {
-    if (!actions || typeof quizId !== 'number') {
+    if (!canPublish) {
       message.error(t('validation.fixErrors') || 'Invalid quiz id');
       return;
     }
@@ -212,9 +270,7 @@ export function StepPreview() {
         <Divider className="!my-3" />
 
         <Typography.Text className="font-medium">{t('scales')}</Typography.Text>
-        <Typography.Text type="secondary">
-          {scales.map((s) => s.name).join(', ') || t('none')}
-        </Typography.Text>
+        <Typography.Text type="secondary">{scales.map((s) => s.name).join(', ') || t('none')}</Typography.Text>
 
         <Divider className="!my-3" />
 
@@ -224,7 +280,7 @@ export function StepPreview() {
         ) : (
           <div className="flex flex-col gap-3">
             {questionsView.map((q) => (
-              <div key={q.id} className="rounded-md border border-neutral-200 p-3">
+              <div key={q.id} className="rounded-md border border-neutral-200 p-3 dark:border-neutral-800">
                 <Typography.Text className="block font-medium">
                   {q.ord}. {q.text}
                 </Typography.Text>
@@ -306,8 +362,8 @@ export function StepPreview() {
             type="primary"
             size="large"
             onClick={onPublish}
-            loading={actions?.publishQuiz.isPending}
-            disabled={!actions || typeof quizId !== 'number'}
+            loading={actions.publishQuiz.isPending}
+            disabled={!canPublish}
           >
             {t('publish')}
           </Button>

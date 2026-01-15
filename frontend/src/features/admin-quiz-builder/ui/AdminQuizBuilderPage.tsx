@@ -45,10 +45,9 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
   const scales = useAdminQuizBuilderStore((s) => s.scales);
   const questions = useAdminQuizBuilderStore((s) => s.questions);
   const results = useAdminQuizBuilderStore((s) => s.results);
-  
+
   const resetStore = useAdminQuizBuilderStore((s) => s.reset);
-  const setQuizContext = useAdminQuizBuilderStore((s) => s.setQuizContext);
-  const patchInit = useAdminQuizBuilderStore((s) => s.patchInit);
+  const hydrateFromServerQuiz = useAdminQuizBuilderStore((s) => s.hydrateFromServerQuiz);
 
   const { data: quizData, isLoading: quizLoading } = useAdminQuiz(propQuizId ?? 0, {
     query: { enabled: typeof propQuizId === 'number' },
@@ -69,20 +68,9 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
 
   useEffect(() => {
     if (propQuizId && quizData) {
-      const quiz = quizData as any;
-      setQuizContext({
-        quizId: quiz.id,
-        version: quiz.version,
-        quizVersionId: quiz.quizVersionId,
-      });
-      
-      patchInit({
-        title: quiz.title ?? '',
-        code: quiz.code ?? '',
-        description: quiz.description ?? '',
-      });
+      hydrateFromServerQuiz(quizData as any);
     }
-  }, [propQuizId, quizData, setQuizContext, patchInit]);
+  }, [propQuizId, quizData, hydrateFromServerQuiz]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -110,16 +98,7 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
     if (step === 2) return validateQuestions(questions, traitIds);
     if (step === 3) return validateResults(results);
     return {} as Record<string, string>;
-  }, [
-    step,
-    init.title,
-    init.code,
-    init.description,
-    scales,
-    questions,
-    traitIds,
-    results,
-  ]);
+  }, [step, init.title, init.code, init.description, scales, questions, traitIds, results]);
 
   const canGoNext = useMemo(() => {
     if (step === 0)
@@ -132,24 +111,15 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
           }),
         ).length === 0
       );
-    if (step === 1) return Object.keys(validateScales(scales)).length === 0;
-    if (step === 2)
-      return Object.keys(validateQuestions(questions, traitIds)).length === 0;
-    if (step === 3)
-      return Object.keys(validateResults(results)).length === 0;
+    // Allow progressing from scales step if there are no scales defined.
+    if (step === 1) return scales.length === 0 || Object.keys(validateScales(scales)).length === 0;
+    if (step === 2) return Object.keys(validateQuestions(questions, traitIds)).length === 0;
+    if (step === 3) return Object.keys(validateResults(results)).length === 0;
     return true;
-  }, [
-    step,
-    init.title,
-    init.code,
-    init.description,
-    scales,
-    questions,
-    traitIds,
-    results,
-  ]);
+  }, [step, init.title, init.code, init.description, scales, questions, traitIds, results]);
 
-  const hasContext = typeof quizId === 'number' && typeof quizVersionId === 'number';
+  const hasContext = typeof quizId === 'number' && typeof version === 'number';
+  const isEditing = typeof propQuizId === 'number';
 
   const goPrev = () => {
     setErrors({});
@@ -193,8 +163,11 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
     }
 
     if (step === 1) {
-      const ok = await ensureTraits();
-      if (!ok) return;
+      // If there are scales defined, ensure their traits exist. If none, skip.
+      if (scales.length > 0) {
+        const ok = await ensureTraits();
+        if (!ok) return;
+      }
     }
 
     setStep((step + 1) as any);
@@ -224,9 +197,7 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
 
         <StepperHeader step={step} />
 
-        {step > 0 && (!hasContext || typeof version !== 'number') ? (
-          <Alert type="warning" title={t('needQuizContext')} />
-        ) : null}
+        {step > 0 && !hasContext && !isEditing ? <Alert type="warning" title={t('needQuizContext')} /> : null}
 
         <div className="flex flex-col gap-4 sm:gap-6">
           {step === 0 ? <StepInit errors={errors} submitAttempted={submitAttempted} /> : null}
@@ -237,21 +208,11 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
         </div>
 
         <div className="hidden sm:block">
-          <StepActions
-            step={step}
-            onPrev={goPrev}
-            onNext={goNext}
-            canGoNext={canGoNext}
-          />
+          <StepActions step={step} onPrev={goPrev} onNext={goNext} canGoNext={canGoNext} />
         </div>
 
         <div className="sm:hidden">
-          <MobileBottomBar
-            step={step}
-            onPrev={goPrev}
-            onNext={goNext}
-            canGoNext={canGoNext}
-          />
+          <MobileBottomBar step={step} onPrev={goPrev} onNext={goNext} canGoNext={canGoNext} />
         </div>
       </div>
     </div>
