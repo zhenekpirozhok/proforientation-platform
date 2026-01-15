@@ -1,10 +1,12 @@
 'use client';
 
+import { useMemo } from 'react';
+
 import { useAdminCreateQuiz } from '@/entities/quiz/api/useAdminCreateQuiz';
 import { useAdminUpdateQuiz } from '@/entities/quiz/api/useAdminUpdateQuiz';
 import { useAdminCopyLatestVersion } from '@/entities/quiz/api/useAdminCopyLatestVersion';
 import { useAdminPublishQuiz } from '@/entities/quiz/api/useAdminPublishQuiz';
-import { useCreateQuizVersion } from '@/entities/quiz/api/useCreateQuizVersion';
+import { useCreateQuizVersion, type CreateQuizVersionVars } from '@/entities/quiz/api/useCreateQuizVersion';
 
 import { useAdminCreateTrait } from '@/entities/trait/api/useAdminCreateTrait';
 
@@ -18,13 +20,20 @@ import { useAdminAssignOptionTraits } from '@/entities/option/api/useAdminAssign
 import { useAdminCreateCategory } from '@/entities/category/api/useAdminCreateCategory';
 import { useAdminCreateProfession } from '@/entities/profession/api/useAdminCreateProfession';
 import { useSearchProfessions } from '@/entities/profession/api/useSearchProfessions';
+
 import { useQuizTraits } from '@/entities/quiz/api/useQuizTraits';
+
+function toId(v: unknown): number | null {
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isFinite(n) && n > 0 ? n : null;
+}
 
 export function useQuizBuilderActions(quizId: number, quizVersionId: number) {
     const createQuiz = useAdminCreateQuiz();
     const updateQuiz = useAdminUpdateQuiz();
     const copyLatestVersion = useAdminCopyLatestVersion();
-    const publish = useAdminPublishQuiz();
+
+    const publishBase = useAdminPublishQuiz();
 
     const createTrait = useAdminCreateTrait();
 
@@ -35,36 +44,50 @@ export function useQuizBuilderActions(quizId: number, quizVersionId: number) {
     const updateOption = useAdminUpdateOption();
     const assignOptionTraits = useAdminAssignOptionTraits();
 
-    const createQuizVersion = useCreateQuizVersion();
+    const createQuizVersionBase = useCreateQuizVersion();
 
-    const createQuizVersionWithContext = {
-        ...createQuizVersion,
-        mutateAsync: async (maybeQuizId?: number, ...rest: any[]) => {
-            const idToUse = Number.isFinite(Number(maybeQuizId)) ? Number(maybeQuizId) : Number(quizId);
-            if (!Number.isFinite(idToUse) || idToUse <= 0) throw new Error('Invalid quiz id');
-            return (createQuizVersion as any).mutateAsync(idToUse, ...rest);
-        },
-    } as typeof createQuizVersion;
+    const createQuizVersion = useMemo(() => {
+        return {
+            ...createQuizVersionBase,
+            mutateAsync: async (vars?: CreateQuizVersionVars, ...rest: any[]) => {
+                const direct =
+                    typeof vars === 'number'
+                        ? vars
+                        : vars && typeof vars === 'object'
+                            ? (vars as any).id
+                            : undefined;
+
+                const idToUse = toId(direct) ?? toId(quizId);
+
+                if (!idToUse) throw new Error(`Invalid quiz id: ${String(direct ?? quizId)}`);
+
+                return (createQuizVersionBase as any).mutateAsync(idToUse, ...rest);
+            },
+        } as typeof createQuizVersionBase;
+    }, [createQuizVersionBase, quizId]);
 
     const createCategory = useAdminCreateCategory();
     const createProfession = useAdminCreateProfession();
-
     const searchProfessionsHook = useSearchProfessions;
+
     const quizTraits = useQuizTraits(quizId);
 
-    const publishQuiz = {
-        ...publish,
-        mutateAsync: async (vars: any, ...rest: any[]) => {
-            const id = Number(vars?.id);
-            if (!Number.isFinite(id) || id <= 0) throw new Error('Invalid quiz id');
-            return publish.mutateAsync({ id }, ...rest);
-        },
-    } as typeof publish;
+    const publishQuiz = useMemo(() => {
+        return {
+            ...publishBase,
+            mutateAsync: async (vars: any, ...rest: any[]) => {
+                const idToUse = toId(vars?.id) ?? toId(quizId);
+                if (!idToUse) throw new Error(`Invalid quiz id: ${String(vars?.id ?? quizId)}`);
+                return publishBase.mutateAsync({ id: idToUse } as any, ...rest);
+            },
+        } as typeof publishBase;
+    }, [publishBase, quizId]);
 
     return {
         createQuiz,
         updateQuiz,
         copyLatestVersion,
+
         publishQuiz,
 
         createTrait,
@@ -76,7 +99,7 @@ export function useQuizBuilderActions(quizId: number, quizVersionId: number) {
         updateOption,
         assignOptionTraits,
 
-        createQuizVersion: createQuizVersionWithContext,
+        createQuizVersion,
 
         createCategory,
         createProfession,

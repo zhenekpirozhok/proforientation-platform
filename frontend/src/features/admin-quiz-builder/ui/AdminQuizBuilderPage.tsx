@@ -169,49 +169,61 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
         return;
       }
 
+      const { patchQuestion, patchOption } = useAdminQuizBuilderStore.getState();
+
       try {
         for (const q of questions) {
-          let questionId = q.questionId;
+          const questionTempId = q.tempId;
 
-          if (typeof questionId === 'number') {
+          if (typeof q.questionId === 'number') {
             const qRes: any = await actions.updateQuestion.mutateAsync({
-              id: questionId,
+              id: q.questionId,
               data: { qtype: q.qtype, text: q.text, ord: q.ord } as any,
             });
             const updated = qRes?.data ?? qRes?.result ?? qRes;
-            questionId = typeof updated?.id === 'number' ? updated.id : questionId;
+            const updatedId = n(updated?.id) ?? q.questionId;
+            patchQuestion(questionTempId, { questionId: updatedId });
           } else {
             const qRes: any = await actions.createQuestion.mutateAsync({
               data: { qtype: q.qtype, text: q.text, ord: q.ord } as any,
             });
             const created = qRes?.data ?? qRes?.result ?? qRes;
-            questionId = typeof created?.id === 'number' ? created.id : undefined;
+            const createdId = n(created?.id);
+            if (typeof createdId !== 'number') throw new Error('Failed to create question');
+            patchQuestion(questionTempId, { questionId: createdId });
           }
 
-          if (typeof questionId !== 'number') throw new Error('Failed to create or update question');
+          const persistedQuestionId = n(useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === questionTempId)?.questionId);
+          if (typeof persistedQuestionId !== 'number') throw new Error('Failed to persist question id');
 
-          for (const opt of q.options.slice().sort((a, b) => a.ord - b.ord)) {
-            let optionId = opt.optionId;
+          const sortedOptions = q.options.slice().sort((a, b) => a.ord - b.ord);
 
-            if (typeof optionId === 'number') {
+          for (const opt of sortedOptions) {
+            const optionTempId = opt.tempId;
+
+            if (typeof opt.optionId === 'number') {
               await actions.updateOption.mutateAsync({
-                id: optionId,
+                id: opt.optionId,
                 data: { label: opt.label, ord: opt.ord } as any,
               });
             } else {
               const optRes: any = await actions.createOption.mutateAsync({
-                data: { questionId, label: opt.label, ord: opt.ord } as any,
+                data: { questionId: persistedQuestionId, label: opt.label, ord: opt.ord } as any,
               });
-
               const createdOpt = optRes?.data ?? optRes?.result ?? optRes;
-              optionId = typeof createdOpt?.id === 'number' ? createdOpt.id : undefined;
-
-              if (typeof optionId !== 'number') throw new Error('Failed to create option');
-
-              opt.optionId = optionId;
+              const createdOptId = n(createdOpt?.id);
+              if (typeof createdOptId !== 'number') throw new Error('Failed to create option');
+              patchOption(questionTempId, optionTempId, { optionId: createdOptId });
             }
 
-            if (typeof optionId !== 'number') continue;
+            const persistedOptionId = n(
+              useAdminQuizBuilderStore
+                .getState()
+                .questions.find((x) => x.tempId === questionTempId)
+                ?.options.find((o) => o.tempId === optionTempId)?.optionId,
+            );
+
+            if (typeof persistedOptionId !== 'number') continue;
 
             const weightsObj = opt.weightsByTraitId ?? {};
             const traits = Object.keys(weightsObj)
@@ -220,7 +232,7 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
 
             if (traits.length > 0) {
               await actions.assignOptionTraits.mutateAsync({
-                optionId,
+                optionId: persistedOptionId,
                 data: { traits } as any,
               });
             }
