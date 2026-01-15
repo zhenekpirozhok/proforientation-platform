@@ -1,22 +1,24 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import {
-    getGetQuestionsForQuizVersionQueryKey,
-    useCreate3,
-} from '@/shared/api/generated/api';
-import { useCurrentQuizVersion } from '@/entities/quiz/api/useCurrentQuizVersion';
+import { getGetQuestionsForQuizVersionQueryKey, useCreate3 } from '@/shared/api/generated/api';
 import type { CreateQuestionRequest } from '@/shared/api/generated/model';
+import { useAdminQuizBuilderStore } from '@/features/admin-quiz-builder/model/store';
 
-export function useAdminCreateQuestion(quizId: number, version: number) {
+function toNum(v: unknown): number | undefined {
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isFinite(n) ? n : undefined;
+}
+
+export function useAdminCreateQuestion(quizId: number, quizVersionId: number) {
     const qc = useQueryClient();
-    const { data: currentVersion } = useCurrentQuizVersion(quizId);
+    const storeQuizVersionId = useAdminQuizBuilderStore((s) => s.quizVersionId);
 
     const baseMutation = useCreate3({
         mutation: {
             onSuccess: () => {
                 qc.invalidateQueries({
-                    queryKey: getGetQuestionsForQuizVersionQueryKey(quizId, version),
+                    queryKey: getGetQuestionsForQuizVersionQueryKey(quizId, quizVersionId),
                 });
             },
         },
@@ -25,14 +27,23 @@ export function useAdminCreateQuestion(quizId: number, version: number) {
     return {
         ...baseMutation,
         mutateAsync: async (variables: { data: CreateQuestionRequest }, ...args: any[]) => {
-            const quizVersionId = currentVersion?.id ?? (variables.data as any).quizVersionId;
-            const enhancedVariables = {
-                data: {
-                    ...variables.data,
-                    quizVersionId: quizVersionId || variables.data.quizVersionId,
+            const fromStore = toNum(storeQuizVersionId);
+            const fromArgs = toNum((variables.data as any)?.quizVersionId);
+            const effective = toNum(quizVersionId) ?? fromStore ?? fromArgs;
+
+            if (typeof effective !== 'number') {
+                throw new Error('Missing quizVersionId: create a draft version before creating questions');
+            }
+
+            return baseMutation.mutateAsync(
+                {
+                    data: {
+                        ...variables.data,
+                        quizVersionId: effective,
+                    },
                 },
-            };
-            return baseMutation.mutateAsync(enhancedVariables, ...args);
+                ...args,
+            );
         },
     };
 }

@@ -1,22 +1,19 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Alert, Typography, message, Spin } from 'antd';
 import { useTranslations } from 'next-intl';
 
 import { useAdminQuizBuilderStore } from '../model/store';
-import {
-  validateInit,
-  validateScales,
-  validateQuestions,
-  validateResults,
-} from '../model/validators';
+import { validateInit, validateScales, validateQuestions, validateResults } from '../model/validators';
 
 import { useQuizBuilderActions } from '@/features/admin-quiz-builder/api/useQuizBuilderActions';
 import { useEnsureQuizTraits } from '../api/useEnsureQuizTraits';
 import { useCreateOrUpdateQuiz } from '../api/useCreateOrUpdateQuiz';
+
 import { useAdminQuiz } from '@/entities/quiz/api/useAdminQuiz';
+import { useGetQuizVersions } from '@/entities/quiz/api/useGetQuizVersions';
+import { pickLatestQuizVersion } from '@/features/admin-quiz-builder/lib/quizVersion';
 
 import { StepperHeader } from './StepperHeader';
 import { StepActions } from './StepActions';
@@ -28,18 +25,19 @@ import { StepQuestions } from './steps/StepQuestions';
 import { StepResults } from './steps/StepResults';
 import { StepPreview } from './steps/StepPreview';
 
+function n(v: unknown): number | undefined {
+  const x = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(x) ? x : undefined;
+}
+
 export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number } = {}) {
   const t = useTranslations('AdminQuizBuilder');
-  const router = useRouter();
 
   const step = useAdminQuizBuilderStore((s) => s.step);
   const setStep = useAdminQuizBuilderStore((s) => s.setStep);
 
   const storeQuizId = useAdminQuizBuilderStore((s) => s.quizId);
-  const version = useAdminQuizBuilderStore((s) => s.version);
   const quizVersionId = useAdminQuizBuilderStore((s) => s.quizVersionId);
-
-  const quizId = propQuizId ?? storeQuizId;
 
   const init = useAdminQuizBuilderStore((s) => s.init);
   const scales = useAdminQuizBuilderStore((s) => s.scales);
@@ -48,30 +46,48 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
 
   const resetStore = useAdminQuizBuilderStore((s) => s.reset);
   const hydrateFromServerQuiz = useAdminQuizBuilderStore((s) => s.hydrateFromServerQuiz);
+  const setQuizContext = useAdminQuizBuilderStore((s) => s.setQuizContext);
+
+  const effectiveQuizId = useMemo(() => n(propQuizId ?? storeQuizId), [propQuizId, storeQuizId]);
 
   const { data: quizData, isLoading: quizLoading } = useAdminQuiz(propQuizId ?? 0, {
     query: { enabled: typeof propQuizId === 'number' },
   });
 
-  const actions = useQuizBuilderActions(
-    typeof quizId === 'number' ? quizId : 0,
-    typeof quizVersionId === 'number' ? quizVersionId : 0,
-  );
-  const setQuizContext = useAdminQuizBuilderStore((s) => s.setQuizContext);
-  const ensureTraits = useEnsureQuizTraits(actions);
-  const createOrUpdateQuiz = useCreateOrUpdateQuiz(actions);
+  const { data: versionsRes, isLoading: versionsLoading } = useGetQuizVersions(effectiveQuizId);
+
+  const latestVersion = useMemo(() => pickLatestQuizVersion(versionsRes), [versionsRes]);
+  const latestQuizVersionId = useMemo(() => n((latestVersion as any)?.id), [latestVersion]);
+  const latestVersionNumber = useMemo(() => n((latestVersion as any)?.version), [latestVersion]);
 
   useEffect(() => {
-    if (!propQuizId) {
-      resetStore();
-    }
+    if (!propQuizId) resetStore();
   }, [propQuizId, resetStore]);
 
   useEffect(() => {
-    if (propQuizId && quizData) {
-      hydrateFromServerQuiz(quizData as any);
-    }
+    if (propQuizId && quizData) hydrateFromServerQuiz(quizData as any);
   }, [propQuizId, quizData, hydrateFromServerQuiz]);
+
+  useEffect(() => {
+    if (typeof effectiveQuizId !== 'number') return;
+    if (typeof quizVersionId === 'number') return;
+
+    if (typeof latestQuizVersionId === 'number') {
+      setQuizContext({
+        quizId: effectiveQuizId,
+        version: typeof latestVersionNumber === 'number' ? latestVersionNumber : 1,
+        quizVersionId: latestQuizVersionId,
+      });
+    }
+  }, [effectiveQuizId, quizVersionId, latestQuizVersionId, latestVersionNumber, setQuizContext]);
+
+  const actions = useQuizBuilderActions(
+    typeof effectiveQuizId === 'number' ? effectiveQuizId : 0,
+    typeof quizVersionId === 'number' ? quizVersionId : 0,
+  );
+
+  const ensureTraits = useEnsureQuizTraits(actions);
+  const createOrUpdateQuiz = useCreateOrUpdateQuiz(actions);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -81,46 +97,20 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
   }, [step]);
 
   const traitIds = useMemo(
-    () =>
-      scales
-        .map((s) => s.traitId)
-        .filter((x): x is number => typeof x === 'number'),
+    () => scales.map((s) => s.traitId).filter((x): x is number => typeof x === 'number'),
     [scales],
   );
 
-  const liveErrors = useMemo(() => {
-    if (step === 0)
-      return validateInit({
-        title: init.title,
-        code: init.code,
-        description: init.description,
-      });
-    if (step === 1) return validateScales(scales);
-    if (step === 2) return validateQuestions(questions, traitIds);
-    if (step === 3) return validateResults(results);
-    return {} as Record<string, string>;
-  }, [step, init.title, init.code, init.description, scales, questions, traitIds, results]);
-
   const canGoNext = useMemo(() => {
     if (step === 0)
-      return (
-        Object.keys(
-          validateInit({
-            title: init.title,
-            code: init.code,
-            description: init.description,
-          }),
-        ).length === 0
-      );
-    // Allow progressing from scales step if there are no scales defined.
+      return Object.keys(validateInit({ title: init.title, code: init.code, description: init.description })).length === 0;
     if (step === 1) return scales.length === 0 || Object.keys(validateScales(scales)).length === 0;
     if (step === 2) return Object.keys(validateQuestions(questions, traitIds)).length === 0;
     if (step === 3) return Object.keys(validateResults(results)).length === 0;
     return true;
   }, [step, init.title, init.code, init.description, scales, questions, traitIds, results]);
 
-  const hasContext = typeof quizId === 'number' && typeof version === 'number';
-  const isEditing = typeof propQuizId === 'number';
+  const hasContext = typeof effectiveQuizId === 'number' && typeof quizVersionId === 'number';
 
   const goPrev = () => {
     setErrors({});
@@ -130,12 +120,7 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
 
   const goNext = async () => {
     let e: Record<string, string> = {};
-    if (step === 0)
-      e = validateInit({
-        title: init.title,
-        code: init.code,
-        description: init.description,
-      });
+    if (step === 0) e = validateInit({ title: init.title, code: init.code, description: init.description });
     if (step === 1) e = validateScales(scales);
     if (step === 2) e = validateQuestions(questions, traitIds);
     if (step === 3) e = validateResults(results);
@@ -151,154 +136,124 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
     setSubmitAttempted(false);
 
     if (step === 0) {
-      // If updating an existing published quiz, create a draft version first
-      if (typeof quizId === 'number' && quizData && (quizData as any).status === 'PUBLISHED') {
-        try {
-          const res: any = await actions.createQuizVersion.mutateAsync();
-          const created = res?.data ?? res?.result ?? res;
-          const newQuizVersionId = created && typeof created.id === 'number' ? created.id : created?.quizVersionId;
-          if (typeof newQuizVersionId === 'number') {
-            setQuizContext({ quizId: Number(quizId), version: created.version ?? Number(created.version ?? 0), quizVersionId: Number(newQuizVersionId) });
-          }
-        } catch (err) {
-          console.error('Failed to pre-create draft version for published quiz:', err);
-          message.error((err as Error).message || t('validation.quizOperationError'));
-          return;
-        }
-      }
-
       const ok = await createOrUpdateQuiz(
         {
-          quizId,
+          quizId: effectiveQuizId,
           title: init.title,
           code: init.code,
           descriptionDefault: init.description,
         },
-        typeof quizId === 'number',
+        typeof effectiveQuizId === 'number',
       );
       if (!ok) return;
 
-      // If this was a newly created quiz and backend didn't return a quizVersionId, create one explicitly
-      if (typeof quizId === 'number' && typeof quizVersionId !== 'number') {
-        try {
-          const res: any = await actions.createQuizVersion.mutateAsync();
-          const created = res?.data ?? res?.result ?? res;
-          const newQuizVersionId = created && typeof created.id === 'number' ? created.id : created?.quizVersionId;
-          if (typeof newQuizVersionId === 'number') {
-            setQuizContext({ quizId: Number(quizId), version: created.version ?? Number(created.version ?? 0), quizVersionId: Number(newQuizVersionId) });
-          }
-        } catch (err) {
-          console.error('Failed to create initial quiz version after create:', err);
-          // don't block the user on version creation failure here — they can create later
-        }
-      }
+      setStep((step + 1) as any);
+      return;
     }
 
     if (step === 1) {
-      // If there are scales defined, ensure their traits exist. If none, skip.
       if (scales.length > 0) {
         const ok = await ensureTraits();
         if (!ok) return;
       }
+      setStep((step + 1) as any);
+      return;
     }
 
     if (step === 2) {
-      // Persist questions, options and assign weights/traits
-      // Only do this if quiz version already exists (either editing existing quiz or just created it)
-      if (typeof quizId !== 'number') {
-        message.error(t('validation.fixErrors'));
+      const qid = n(useAdminQuizBuilderStore.getState().quizId) ?? effectiveQuizId;
+      const qvid = n(useAdminQuizBuilderStore.getState().quizVersionId) ?? latestQuizVersionId;
+
+      if (typeof qid !== 'number' || typeof qvid !== 'number') {
+        message.error(t('validation.quizOperationError'));
         return;
-      }
-
-      let effectiveQuizVersionId = quizVersionId;
-
-      if (typeof effectiveQuizVersionId !== 'number') {
-        // Try to create a draft version (copy latest) via builder actions
-        try {
-          const res: any = await actions.createQuizVersion.mutateAsync();
-          const created = res?.data ?? res?.result ?? res;
-          const newQuizVersionId = created && typeof created.id === 'number' ? created.id : created?.quizVersionId;
-          if (typeof newQuizVersionId === 'number') {
-            effectiveQuizVersionId = newQuizVersionId;
-            setQuizContext({ quizId: Number(quizId), version: created.version ?? Number(created.version ?? 0), quizVersionId: Number(newQuizVersionId) });
-          } else {
-            throw new Error('Failed to create quiz version');
-          }
-        } catch (err) {
-          console.error('Failed to create quiz version:', err);
-          message.error((err as Error).message || t('validation.fixErrors'));
-          return;
-        }
       }
 
       try {
         for (const q of questions) {
-          // create or update question
-          let createdQId: number | undefined;
-            const isExistingQuestion = typeof q.questionId === 'number';
+          let questionId = q.questionId;
 
-          if (isExistingQuestion) {
-            // Update existing question
-            const qRes: any = await actions.updateQuestion.mutateAsync({ id: q.questionId as number, data: { qtype: q.qtype, text: q.text, ord: q.ord } as any });
-            const updatedQ = qRes?.data ?? qRes?.result ?? qRes;
-            createdQId = (updatedQ && typeof updatedQ.id === 'number') ? updatedQ.id : q.questionId as number;
+          if (typeof questionId === 'number') {
+            const qRes: any = await actions.updateQuestion.mutateAsync({
+              id: questionId,
+              data: { qtype: q.qtype, text: q.text, ord: q.ord } as any,
+            });
+            const updated = qRes?.data ?? qRes?.result ?? qRes;
+            questionId = typeof updated?.id === 'number' ? updated.id : questionId;
           } else {
-            // Create new question (quizVersionId will be auto-injected by useAdminCreateQuestion)
-            const qRes: any = await actions.createQuestion.mutateAsync({ data: { qtype: q.qtype, text: q.text, ord: q.ord } as any });
-            const createdQ = qRes?.data ?? qRes?.result ?? qRes;
-            createdQId = (createdQ && typeof createdQ.id === 'number') ? createdQ.id : undefined;
+            const qRes: any = await actions.createQuestion.mutateAsync({
+              data: { qtype: q.qtype, text: q.text, ord: q.ord } as any,
+            });
+            const created = qRes?.data ?? qRes?.result ?? qRes;
+            questionId = typeof created?.id === 'number' ? created.id : undefined;
           }
 
-          if (!createdQId) throw new Error('Failed to create or update question');
+          if (typeof questionId !== 'number') throw new Error('Failed to create or update question');
 
-          for (const opt of q.options.slice().sort((a,b)=>a.ord - b.ord)) {
-            const isExistingOption = typeof opt.optionId === 'number';
+          for (const opt of q.options.slice().sort((a, b) => a.ord - b.ord)) {
+            let optionId = opt.optionId;
 
-            if (isExistingOption) {
-              await actions.updateOption.mutateAsync({ id: opt.optionId as number, data: { label: opt.label } as any });
+            if (typeof optionId === 'number') {
+              await actions.updateOption.mutateAsync({
+                id: optionId,
+                data: { label: opt.label, ord: opt.ord } as any,
+              });
             } else {
-              const optRes: any = await actions.createOption.mutateAsync({ data: { questionId: createdQId, label: opt.label, ord: opt.ord } as any });
+              const optRes: any = await actions.createOption.mutateAsync({
+                data: { questionId, label: opt.label, ord: opt.ord } as any,
+              });
               const createdOpt = optRes?.data ?? optRes?.result ?? optRes;
-              const optId = (createdOpt && typeof createdOpt.id === 'number') ? createdOpt.id : undefined;
-              if (!optId) throw new Error('Failed to create option');
-              opt.optionId = optId;
+              optionId = typeof createdOpt?.id === 'number' ? createdOpt.id : undefined;
+              if (typeof optionId !== 'number') throw new Error('Failed to create option');
+              opt.optionId = optionId;
             }
 
-            const optId = opt.optionId;
-            if (!optId) throw new Error('Failed to update or create option');
+            const weightsObj = opt.weightsByTraitId ?? {};
+            const traits = Object.keys(weightsObj)
+              .map((k) => ({ traitId: Number(k), weight: (weightsObj as any)[k] }))
+              .filter((x) => Number.isFinite(x.traitId) && typeof x.weight === 'number');
 
-            const weightPairs: Array<{ traitId: number; weight: number }> = Object.keys(opt.weightsByTraitId ?? {}).map((k) => ({ traitId: Number(k), weight: (opt.weightsByTraitId as any)[k] }));
-            if (weightPairs.length > 0) {
-              await actions.assignOptionTraits.mutateAsync({ optionId: optId, data: { traits: weightPairs } as any });
-            }
+            await actions.assignOptionTraits.mutateAsync({
+              optionId,
+              data: { traits } as any,
+            });
           }
         }
-      } catch (err) {
-        console.error('Error persisting questions:', err);
-        message.error((err as Error).message || t('validation.fixErrors'));
+      } catch (err: any) {
+        message.error(err?.message || t('validation.quizOperationError'));
         return;
       }
+
+      setStep((step + 1) as any);
+      return;
     }
 
     if (step === 3) {
-      const selectedCategoryId = Array.isArray(results.selectedCategoryIds)
-        ? results.selectedCategoryIds[0]
-        : undefined;
+      const selectedCategoryId = Array.isArray(results.selectedCategoryIds) ? results.selectedCategoryIds[0] : undefined;
 
-      if (typeof quizId === 'number' && typeof selectedCategoryId === 'number') {
+      if (typeof effectiveQuizId === 'number' && typeof selectedCategoryId === 'number') {
         try {
-          await actions.updateQuiz.mutateAsync({ id: quizId as any, data: { categoryId: selectedCategoryId } as any });
-        } catch (err) {
-          message.error((err as Error).message || t('validation.fixErrors'));
+          await actions.updateQuiz.mutateAsync({
+            id: effectiveQuizId as any,
+            data: { categoryId: selectedCategoryId } as any,
+          });
+        } catch (err: any) {
+          message.error(err?.message || t('validation.quizOperationError'));
           return;
         }
       }
+
+      setStep((step + 1) as any);
+      return;
     }
 
     setStep((step + 1) as any);
   };
 
-  if (propQuizId && quizLoading) {
+  if (
+    (propQuizId && quizLoading) ||
+    (typeof effectiveQuizId === 'number' && versionsLoading && !latestVersion && typeof quizVersionId !== 'number')
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spin size="large" />
@@ -322,7 +277,7 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
 
         <StepperHeader step={step} />
 
-        {step > 0 && !hasContext && !isEditing ? <Alert type="warning" title={t('needQuizContext')} /> : null}
+        {step > 0 && !hasContext ? <Alert type="warning" title={t('needQuizContext')} /> : null}
 
         <div className="flex flex-col gap-4 sm:gap-6">
           {step === 0 ? <StepInit errors={errors} submitAttempted={submitAttempted} /> : null}

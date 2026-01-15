@@ -3,8 +3,9 @@
 import { useAdminCreateQuiz } from '@/entities/quiz/api/useAdminCreateQuiz';
 import { useAdminUpdateQuiz } from '@/entities/quiz/api/useAdminUpdateQuiz';
 import { useAdminCopyLatestVersion } from '@/entities/quiz/api/useAdminCopyLatestVersion';
-import { useCreateQuizVersion } from '@/entities/quiz/api/useCreateQuizVersion';
 import { useAdminPublishQuiz } from '@/entities/quiz/api/useAdminPublishQuiz';
+import { useCreateQuizVersion } from '@/entities/quiz/api/useCreateQuizVersion';
+
 import { useAdminCreateTrait } from '@/entities/trait/api/useAdminCreateTrait';
 
 import { useAdminCreateQuestion } from '@/entities/question/api/useAdminCreateQuestion';
@@ -19,7 +20,7 @@ import { useAdminCreateProfession } from '@/entities/profession/api/useAdminCrea
 import { useSearchProfessions } from '@/entities/profession/api/useSearchProfessions';
 import { useQuizTraits } from '@/entities/quiz/api/useQuizTraits';
 
-export function useQuizBuilderActions(quizId: number, version: number) {
+export function useQuizBuilderActions(quizId: number, quizVersionId: number) {
     const createQuiz = useAdminCreateQuiz();
     const updateQuiz = useAdminUpdateQuiz();
     const copyLatestVersion = useAdminCopyLatestVersion();
@@ -27,14 +28,23 @@ export function useQuizBuilderActions(quizId: number, version: number) {
 
     const createTrait = useAdminCreateTrait();
 
-    const createQuestion = useAdminCreateQuestion(quizId, version);
-    const updateQuestion = useAdminUpdateQuestion(quizId, version);
+    const createQuestion = useAdminCreateQuestion(quizId, quizVersionId);
+    const updateQuestion = useAdminUpdateQuestion(quizId, quizVersionId);
 
     const createOption = useAdminCreateOption();
     const updateOption = useAdminUpdateOption();
     const assignOptionTraits = useAdminAssignOptionTraits();
 
     const createQuizVersion = useCreateQuizVersion();
+
+    const createQuizVersionWithContext = {
+        ...createQuizVersion,
+        mutateAsync: async (maybeQuizId?: number, ...rest: any[]) => {
+            const idToUse = Number.isFinite(Number(maybeQuizId)) ? Number(maybeQuizId) : Number(quizId);
+            if (!Number.isFinite(idToUse) || idToUse <= 0) throw new Error('Invalid quiz id');
+            return (createQuizVersion as any).mutateAsync(idToUse, ...rest);
+        },
+    } as typeof createQuizVersion;
 
     const createCategory = useAdminCreateCategory();
     const createProfession = useAdminCreateProfession();
@@ -45,11 +55,9 @@ export function useQuizBuilderActions(quizId: number, version: number) {
     const publishQuiz = {
         ...publish,
         mutateAsync: async (vars: any, ...rest: any[]) => {
-            const id = vars?.id;
-            if (!Number.isFinite(Number(id))) {
-                throw new Error('Invalid quiz id');
-            }
-            return publish.mutateAsync({ id: Number(id) }, ...rest);
+            const id = Number(vars?.id);
+            if (!Number.isFinite(id) || id <= 0) throw new Error('Invalid quiz id');
+            return publish.mutateAsync({ id }, ...rest);
         },
     } as typeof publish;
 
@@ -68,12 +76,12 @@ export function useQuizBuilderActions(quizId: number, version: number) {
         updateOption,
         assignOptionTraits,
 
-        createQuizVersion,
+        createQuizVersion: createQuizVersionWithContext,
 
         createCategory,
         createProfession,
-        quizTraits,
 
+        quizTraits,
         searchProfessionsHook,
     };
 }
