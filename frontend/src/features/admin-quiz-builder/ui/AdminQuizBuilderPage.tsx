@@ -172,34 +172,62 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
 
     if (step === 2) {
       // Persist questions, options and assign weights/traits
-      if (typeof quizId !== 'number') {
-        message.error(t('validation.fixErrors'));
+      // Only do this if quiz version already exists (either editing existing quiz or just created it)
+      if (typeof quizId !== 'number' || typeof quizVersionId !== 'number') {
+        // Skip persistence if no quiz version yet — just move to next step
+        // Questions will be created/persisted only when explicitly editing them
+        setStep(3);
         return;
       }
 
       try {
         for (const q of questions) {
-          // create question (quizVersionId will be auto-injected by useAdminCreateQuestion)
-          const qRes: any = await actions.createQuestion.mutateAsync({ data: { qtype: q.qtype, text: q.text, ord: q.ord } as any });
-          const createdQ = qRes?.data ?? qRes?.result ?? qRes;
-          const createdQId = (createdQ && typeof createdQ.id === 'number') ? createdQ.id : undefined;
-          if (!createdQId) throw new Error('Failed to create question');
+          // create or update question
+          let createdQId: number | undefined;
+          const isExistingQuestion = typeof q.questionId === 'number';
 
-          // create options
+          if (isExistingQuestion) {
+            // Update existing question
+            const qRes: any = await actions.updateQuestion.mutateAsync({ id: q.questionId, data: { qtype: q.qtype, text: q.text, ord: q.ord } as any });
+            const updatedQ = qRes?.data ?? qRes?.result ?? qRes;
+            createdQId = (updatedQ && typeof updatedQ.id === 'number') ? updatedQ.id : q.questionId;
+          } else {
+            // Create new question (quizVersionId will be auto-injected by useAdminCreateQuestion)
+            const qRes: any = await actions.createQuestion.mutateAsync({ data: { qtype: q.qtype, text: q.text, ord: q.ord } as any });
+            const createdQ = qRes?.data ?? qRes?.result ?? qRes;
+            createdQId = (createdQ && typeof createdQ.id === 'number') ? createdQ.id : undefined;
+          }
+
+          if (!createdQId) throw new Error('Failed to create or update question');
+
+          // create or update options
           for (const opt of q.options.slice().sort((a,b)=>a.ord - b.ord)) {
-            const optRes: any = await actions.createOption.mutateAsync({ data: { questionId: createdQId, label: opt.label, ord: opt.ord } as any });
-            const createdOpt = optRes?.data ?? optRes?.result ?? optRes;
-            const createdOptId = (createdOpt && typeof createdOpt.id === 'number') ? createdOpt.id : undefined;
-            if (!createdOptId) throw new Error('Failed to create option');
+            const isExistingOption = typeof opt.optionId === 'number';
+
+            if (isExistingOption) {
+              // Update existing option — only update label since ord doesn't change for existing options
+              await actions.updateOption.mutateAsync({ id: opt.optionId, data: { label: opt.label } as any });
+            } else {
+              // Create new option only if it doesn't have an ID
+              const optRes: any = await actions.createOption.mutateAsync({ data: { questionId: createdQId, label: opt.label, ord: opt.ord } as any });
+              const createdOpt = optRes?.data ?? optRes?.result ?? optRes;
+              const optId = (createdOpt && typeof createdOpt.id === 'number') ? createdOpt.id : undefined;
+              if (!optId) throw new Error('Failed to create option');
+              opt.optionId = optId;
+            }
+
+            const optId = opt.optionId;
+            if (!optId) throw new Error('Failed to update or create option');
 
             // assign traits weights for this option
             const weightPairs: Array<{ traitId: number; weight: number }> = Object.keys(opt.weightsByTraitId ?? {}).map((k) => ({ traitId: Number(k), weight: (opt.weightsByTraitId as any)[k] }));
             if (weightPairs.length > 0) {
-              await actions.assignOptionTraits.mutateAsync({ optionId: createdOptId, data: { traits: weightPairs } as any });
+              await actions.assignOptionTraits.mutateAsync({ optionId: optId, data: { traits: weightPairs } as any });
             }
           }
         }
       } catch (err) {
+        console.error('Error persisting questions:', err);
         message.error((err as Error).message || t('validation.fixErrors'));
         return;
       }
