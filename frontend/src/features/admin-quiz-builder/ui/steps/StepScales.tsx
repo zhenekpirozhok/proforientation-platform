@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { Button, Card, Input, Segmented, Tag, Typography } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
+import { Button, Card, Input, Segmented, Tag, Typography, Tooltip } from 'antd';
+import { LockOutlined } from '@ant-design/icons';
 import { useTranslations } from 'next-intl';
 
 import { SectionCard } from '../SectionCard';
@@ -76,7 +77,7 @@ export function StepScales({
   const removeScale = useAdminQuizBuilderStore((s) => s.removeScale);
   const removePair = useAdminQuizBuilderStore((s) => s.removePair);
 
-  const lockedMode: ScaleMode = scales.length > 0 ? (scales[0]?.polarity ?? null) : scaleMode;
+  const lockedMode: ScaleMode = scales.length > 0 ? scales[0]?.polarity ?? null : scaleMode;
   const canChooseMode = scales.length === 0;
 
   const isEditing = typeof editingScaleTempId === 'string' || typeof editingPairId === 'string';
@@ -107,36 +108,51 @@ export function StepScales({
     right: { name: '', code: '', codeTouched: false, description: '' },
   });
 
-  useMemo(() => {
+  useEffect(() => {
     if (editingScale && editingScale.polarity === 'single') {
       setSingleForm({
-        name: editingScale.name,
-        code: editingScale.code,
+        name: editingScale.name ?? '',
+        code: editingScale.code ?? '',
         codeTouched: true,
-        description: editingScale.description,
+        description: editingScale.description ?? '',
       });
     }
+  }, [editingScale]);
+
+  useEffect(() => {
     if (editingPair && editingPair.left && editingPair.right) {
       const pc = editingPair.left.bipolarPairCode || editingPair.right.bipolarPairCode || '';
       setBipolarForm({
         pairCode: pc,
         pairCodeTouched: true,
         left: {
-          name: editingPair.left.name,
-          code: editingPair.left.code,
+          name: editingPair.left.name ?? '',
+          code: editingPair.left.code ?? '',
           codeTouched: true,
-          description: editingPair.left.description,
+          description: editingPair.left.description ?? '',
         },
         right: {
-          name: editingPair.right.name,
-          code: editingPair.right.code,
+          name: editingPair.right.name ?? '',
+          code: editingPair.right.code ?? '',
           codeTouched: true,
-          description: editingPair.right.description,
+          description: editingPair.right.description ?? '',
         },
       });
     }
-    return null;
-  }, [editingScale, editingPair]);
+  }, [editingPair]);
+
+  useEffect(() => {
+    if (!editingScaleTempId && !editingPairId && !isEditing) return;
+    if (!editingScaleTempId && !editingPairId) {
+      setSingleForm({ name: '', code: '', codeTouched: false, description: '' });
+      setBipolarForm({
+        pairCode: '',
+        pairCodeTouched: false,
+        left: { name: '', code: '', codeTouched: false, description: '' },
+        right: { name: '', code: '', codeTouched: false, description: '' },
+      });
+    }
+  }, [editingScaleTempId, editingPairId, isEditing]);
 
   function resetForms() {
     setSingleForm({ name: '', code: '', codeTouched: false, description: '' });
@@ -178,7 +194,8 @@ export function StepScales({
       name: singleForm.name,
       code: singleForm.code,
       description: singleForm.description,
-    });
+      codeTouched: true,
+    } as any);
     resetForms();
   }
 
@@ -209,12 +226,14 @@ export function StepScales({
         name: bipolarForm.left.name,
         code: bipolarForm.left.code,
         description: bipolarForm.left.description,
-      },
+        codeTouched: true,
+      } as any,
       right: {
         name: bipolarForm.right.name,
         code: bipolarForm.right.code,
         description: bipolarForm.right.description,
-      },
+        codeTouched: true,
+      } as any,
     });
     resetForms();
   }
@@ -238,8 +257,7 @@ export function StepScales({
       if (sk) {
         const s = scales.find((x) => x.tempId === sk.tempId);
         const sName = s?.name?.trim() ? s.name : t('untitled');
-        const fld =
-          sk.field === 'name' ? t('name') : sk.field === 'code' ? t('code') : t('description');
+        const fld = sk.field === 'name' ? t('name') : sk.field === 'code' ? t('code') : t('description');
         items.push({ field, label: `${sName}: ${fld}` });
         continue;
       }
@@ -295,9 +313,7 @@ export function StepScales({
                     <div className="flex min-w-0 items-center justify-between gap-3">
                       <div className="min-w-0">
                         <div className="truncate font-semibold">{s.name || t('untitled')}</div>
-                        <div className="truncate text-xs text-slate-500 dark:text-slate-400">
-                          {s.code}
-                        </div>
+                        <div className="truncate text-xs text-slate-500 dark:text-slate-400">{s.code}</div>
                       </div>
                       <Tag>{t('mode.single')}</Tag>
                     </div>
@@ -366,9 +382,7 @@ export function StepScales({
                         <Card className="!rounded-2xl" size="small" title={t('left')}>
                           <div className="flex flex-col gap-2">
                             <div className="truncate font-semibold">{p.left?.name || t('untitled')}</div>
-                            <div className="truncate text-xs text-slate-500 dark:text-slate-400">
-                              {p.left?.code}
-                            </div>
+                            <div className="truncate text-xs text-slate-500 dark:text-slate-400">{p.left?.code}</div>
                             <Typography.Text type="secondary">{p.left?.description}</Typography.Text>
 
                             {p.left ? (
@@ -396,9 +410,7 @@ export function StepScales({
                         <Card className="!rounded-2xl" size="small" title={t('right')}>
                           <div className="flex flex-col gap-2">
                             <div className="truncate font-semibold">{p.right?.name || t('untitled')}</div>
-                            <div className="truncate text-xs text-slate-500 dark:text-slate-400">
-                              {p.right?.code}
-                            </div>
+                            <div className="truncate text-xs text-slate-500 dark:text-slate-400">{p.right?.code}</div>
                             <Typography.Text type="secondary">{p.right?.description}</Typography.Text>
 
                             {p.right ? (
@@ -458,10 +470,7 @@ export function StepScales({
                   <Typography.Text className="block">{t('pairCode')}</Typography.Text>
                   <Input
                     value={bipolarForm.pairCode}
-                    onChange={(e) => {
-                      const pairCode = e.target.value;
-                      setBipolarForm((p) => ({ ...p, pairCode, pairCodeTouched: true }));
-                    }}
+                    onChange={(e) => setBipolarForm((p) => ({ ...p, pairCode: e.target.value, pairCodeTouched: true }))}
                     size="large"
                     placeholder={t('pairCodePh')}
                   />
@@ -472,7 +481,10 @@ export function StepScales({
                     <Typography.Text className="block font-medium">{t('left')}</Typography.Text>
 
                     <div>
-                      <Typography.Text className="block">{t('name')}</Typography.Text>
+                      <Typography.Text className="block">
+                        {t('name')}
+                        <span className="ml-1 text-red-500">*</span>
+                      </Typography.Text>
                       <Input
                         value={bipolarForm.left.name}
                         onChange={(e) => {
@@ -487,6 +499,8 @@ export function StepScales({
                           });
                         }}
                         size="large"
+                        required
+                        aria-required="true"
                       />
                     </div>
 
@@ -494,29 +508,26 @@ export function StepScales({
                       <Typography.Text className="block">{t('code')}</Typography.Text>
                       <Input
                         value={bipolarForm.left.code}
-                        onChange={(e) => {
-                          const code = e.target.value;
-                          setBipolarForm((p) => ({
-                            ...p,
-                            left: { ...p.left, code, codeTouched: true },
-                          }));
-                        }}
+                        readOnly
                         size="large"
+                        suffix={<Tooltip title={t('codeReadOnlyTooltip')}><LockOutlined /></Tooltip>}
                       />
+                      <Typography.Text type="secondary" className="block">
+                        {t('codeAutoGenerated')}
+                      </Typography.Text>
                     </div>
 
                     <div>
-                      <Typography.Text className="block">{t('description')}</Typography.Text>
+                      <Typography.Text className="block">
+                        {t('description')}
+                        <span className="ml-1 text-red-500">*</span>
+                      </Typography.Text>
                       <Input.TextArea
                         value={bipolarForm.left.description}
-                        onChange={(e) => {
-                          const description = e.target.value;
-                          setBipolarForm((p) => ({
-                            ...p,
-                            left: { ...p.left, description },
-                          }));
-                        }}
+                        onChange={(e) => setBipolarForm((p) => ({ ...p, left: { ...p.left, description: e.target.value } }))}
                         autoSize={{ minRows: 2, maxRows: 6 }}
+                        required
+                        aria-required="true"
                       />
                     </div>
                   </div>
@@ -525,7 +536,10 @@ export function StepScales({
                     <Typography.Text className="block font-medium">{t('right')}</Typography.Text>
 
                     <div>
-                      <Typography.Text className="block">{t('name')}</Typography.Text>
+                      <Typography.Text className="block">
+                        {t('name')}
+                        <span className="ml-1 text-red-500">*</span>
+                      </Typography.Text>
                       <Input
                         value={bipolarForm.right.name}
                         onChange={(e) => {
@@ -540,6 +554,8 @@ export function StepScales({
                           });
                         }}
                         size="large"
+                        required
+                        aria-required="true"
                       />
                     </div>
 
@@ -547,36 +563,43 @@ export function StepScales({
                       <Typography.Text className="block">{t('code')}</Typography.Text>
                       <Input
                         value={bipolarForm.right.code}
-                        onChange={(e) => {
-                          const code = e.target.value;
-                          setBipolarForm((p) => ({
-                            ...p,
-                            right: { ...p.right, code, codeTouched: true },
-                          }));
-                        }}
+                        readOnly
                         size="large"
+                        suffix={<Tooltip title={t('codeReadOnlyTooltip')}><LockOutlined /></Tooltip>}
                       />
+                      <Typography.Text type="secondary" className="block">
+                        {t('codeAutoGenerated')}
+                      </Typography.Text>
                     </div>
 
                     <div>
-                      <Typography.Text className="block">{t('description')}</Typography.Text>
+                      <Typography.Text className="block">
+                        {t('description')}
+                        <span className="ml-1 text-red-500">*</span>
+                      </Typography.Text>
                       <Input.TextArea
                         value={bipolarForm.right.description}
-                        onChange={(e) => {
-                          const description = e.target.value;
-                          setBipolarForm((p) => ({
-                            ...p,
-                            right: { ...p.right, description },
-                          }));
-                        }}
+                        onChange={(e) => setBipolarForm((p) => ({ ...p, right: { ...p.right, description: e.target.value } }))}
                         autoSize={{ minRows: 2, maxRows: 6 }}
+                        required
+                        aria-required="true"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-end">
-                  <Button type="primary" size="large" onClick={onAddOrSavePair}>
+                  <Button
+                    type="primary"
+                    size="large"
+                    onClick={onAddOrSavePair}
+                    disabled={
+                      !bipolarForm.left.name.trim() ||
+                      !bipolarForm.left.description.trim() ||
+                      !bipolarForm.right.name.trim() ||
+                      !bipolarForm.right.description.trim()
+                    }
+                  >
                     {isEditing ? t('save') : t('add')}
                   </Button>
                 </div>
@@ -584,7 +607,10 @@ export function StepScales({
             ) : (
               <div className="flex flex-col gap-3">
                 <div>
-                  <Typography.Text className="block">{t('name')}</Typography.Text>
+                  <Typography.Text className="block">
+                    {t('name')}
+                    <span className="ml-1 text-red-500">*</span>
+                  </Typography.Text>
                   <Input
                     value={singleForm.name}
                     onChange={(e) => {
@@ -596,6 +622,8 @@ export function StepScales({
                       });
                     }}
                     size="large"
+                    required
+                    aria-required="true"
                   />
                 </div>
 
@@ -603,16 +631,20 @@ export function StepScales({
                   <Typography.Text className="block">{t('code')}</Typography.Text>
                   <Input
                     value={singleForm.code}
-                    onChange={(e) => {
-                      const code = e.target.value;
-                      setSingleForm((p) => ({ ...p, code, codeTouched: true }));
-                    }}
+                    readOnly
                     size="large"
+                    suffix={<Tooltip title={t('codeReadOnlyTooltip')}><LockOutlined /></Tooltip>}
                   />
+                  <Typography.Text type="secondary" className="block">
+                    {t('codeAutoGenerated')}
+                  </Typography.Text>
                 </div>
 
                 <div>
-                  <Typography.Text className="block">{t('description')}</Typography.Text>
+                  <Typography.Text className="block">
+                    {t('description')}
+                    <span className="ml-1 text-red-500">*</span>
+                  </Typography.Text>
                   <Input.TextArea
                     value={singleForm.description}
                     onChange={(e) => {
@@ -620,11 +652,18 @@ export function StepScales({
                       setSingleForm((p) => ({ ...p, description }));
                     }}
                     autoSize={{ minRows: 2, maxRows: 6 }}
+                    required
+                    aria-required="true"
                   />
                 </div>
 
                 <div className="flex items-center justify-end">
-                  <Button type="primary" size="large" onClick={onAddOrSaveSingle}>
+                  <Button
+                    type="primary"
+                    size="large"
+                    onClick={onAddOrSaveSingle}
+                    disabled={!singleForm.name.trim() || !singleForm.description.trim()}
+                  >
                     {isEditing ? t('save') : t('add')}
                   </Button>
                 </div>

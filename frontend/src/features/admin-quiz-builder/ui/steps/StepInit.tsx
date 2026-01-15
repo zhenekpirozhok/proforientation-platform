@@ -1,8 +1,9 @@
 'use client';
 
-import { Input, Typography } from 'antd';
+import { Input, Typography, Tooltip } from 'antd';
 import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
+import { LockOutlined } from '@ant-design/icons';
 
 import { SectionCard } from '../SectionCard';
 import { FieldError } from '../FieldError';
@@ -40,11 +41,13 @@ export function StepInit({
         <StepValidationSummary title={t('validation.fixErrors')} items={summaryItems} />
 
         <div data-field="title">
-          <Typography.Text className="block">{t('quizTitle')}</Typography.Text>
+          <Typography.Text className="block">{t('quizTitle')}<span className="text-red-500 ml-1">*</span></Typography.Text>
           <Input
             value={init.title}
             status={v.fieldStatus('title')}
             onBlur={() => v.markTouched('title')}
+            required
+            aria-required
             onChange={(e) => {
               const title = e.target.value;
               patchInit({ title });
@@ -64,10 +67,16 @@ export function StepInit({
             value={init.code}
             status={v.fieldStatus('code')}
             onBlur={() => v.markTouched('code')}
-            onChange={(e) => patchInit({ code: e.target.value, codeTouched: true })}
+            readOnly
             placeholder={t('quizCodePh')}
             size="large"
+            suffix={
+              <Tooltip title="Auto-generated from title">
+                <LockOutlined />
+              </Tooltip>
+            }
           />
+          <Typography.Text type="secondary" className="block mt-1">Code is auto-generated from the title and cannot be edited.</Typography.Text>
           {v.showError('code') ? <FieldError code={errors.code} /> : null}
         </div>
 
