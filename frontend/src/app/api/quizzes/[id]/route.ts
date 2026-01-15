@@ -50,3 +50,23 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
         },
     });
 }
+
+export async function DELETE(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+    const { id } = await ctx.params;
+
+    const upstreamRes = await bffAuthFetch(`/quizzes/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: {
+            accept: req.headers.get('accept') ?? 'application/json',
+        },
+    });
+
+    const body = await upstreamRes.text();
+
+    return new Response(body, {
+        status: upstreamRes.status,
+        headers: {
+            'content-type': upstreamRes.headers.get('content-type') ?? 'application/json',
+        },
+    });
+}
