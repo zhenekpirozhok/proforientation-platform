@@ -5,3 +5,4 @@
 *.json text eol=lf
 
 frontend/src/shared/api/generated/schema.d.ts text eol=lf
+frontend/src/shared/api/generated/api.ts merge=ours
