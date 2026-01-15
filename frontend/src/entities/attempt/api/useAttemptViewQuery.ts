@@ -1,4 +1,4 @@
-import { authFetch } from '@/shared/api/authFetch';
+import { orvalFetch } from '@/shared/api/orvalFetch';
 import { useQuery } from '@tanstack/react-query';
 import { AttemptViewDto } from '../model/types';
 
@@ -7,16 +7,7 @@ export function useAttemptViewQuery(attemptId: number | null) {
     enabled: typeof attemptId === 'number' && attemptId > 0,
     queryKey: ['attempt-view', attemptId],
     queryFn: async () => {
-      const res = await authFetch(`/api/attempts/${attemptId}/view`, {
-        method: 'GET',
-        cache: 'no-store',
-      });
-
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        throw new Error(text || `Failed to load attempt view (${res.status})`);
-      }
-      return (await res.json()) as AttemptViewDto;
+      return orvalFetch<AttemptViewDto>(`/attempts/${attemptId}/view`);
     },
   });
 }

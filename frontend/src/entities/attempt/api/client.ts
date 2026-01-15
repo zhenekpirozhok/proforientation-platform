@@ -1,6 +1,5 @@
-import { authFetch } from '@/shared/api/authFetch';
+import { orvalFetch } from '@/shared/api/orvalFetch';
 import { HttpError } from '@/shared/api/httpError';
-import { readErrorMessage } from '@/shared/api/readErrorMessage';
 import type {
   AttemptResultDto,
   AttemptSummaryDto,
@@ -8,37 +7,37 @@ import type {
 import type { AttemptViewDto } from '@/entities/attempt/model/types';
 
 export async function getMyAttemptsBff(params?: { locale?: string }) {
-  const res = await authFetch('/api/attempts', {
-    method: 'GET',
-    headers: params?.locale ? { 'x-locale': params.locale } : undefined,
-  });
-
-  if (!res.ok) throw new HttpError(res.status, await readErrorMessage(res));
-  return (await res.json()) as AttemptSummaryDto;
+  try {
+    return await orvalFetch<AttemptSummaryDto>('/attempts', {
+      headers: params?.locale ? { 'x-locale': params.locale } : undefined,
+    });
+  } catch (err) {
+    throw new HttpError(500, err instanceof Error ? err.message : 'Failed to load attempts');
+  }
 }
 
 export async function getAttemptResultBff(
   id: number,
   params?: { locale?: string },
 ) {
-  const res = await authFetch(`/api/attempts/${id}/result`, {
-    method: 'GET',
-    headers: params?.locale ? { 'x-locale': params.locale } : undefined,
-  });
-
-  if (!res.ok) throw new HttpError(res.status, await readErrorMessage(res));
-  return (await res.json()) as AttemptResultDto;
+  try {
+    return await orvalFetch<AttemptResultDto>(`/attempts/${id}/result`, {
+      headers: params?.locale ? { 'x-locale': params.locale } : undefined,
+    });
+  } catch (err) {
+    throw new HttpError(500, err instanceof Error ? err.message : 'Failed to load result');
+  }
 }
 
 export async function getAttemptViewBff(
   id: number,
   params?: { locale?: string },
 ) {
-  const res = await authFetch(`/api/attempts/${id}/view`, {
-    method: 'GET',
-    headers: params?.locale ? { 'x-locale': params.locale } : undefined,
-  });
-
-  if (!res.ok) throw new HttpError(res.status, await readErrorMessage(res));
-  return (await res.json()) as AttemptViewDto;
+  try {
+    return await orvalFetch<AttemptViewDto>(`/attempts/${id}/view`, {
+      headers: params?.locale ? { 'x-locale': params.locale } : undefined,
+    });
+  } catch (err) {
+    throw new HttpError(500, err instanceof Error ? err.message : 'Failed to load view');
+  }
 }
