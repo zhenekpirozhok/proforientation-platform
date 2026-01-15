@@ -5,11 +5,14 @@ import {
     getGetQuestionsForQuizVersionQueryKey,
     useCreate3,
 } from '@/shared/api/generated/api';
+import { useCurrentQuizVersion } from '@/entities/quiz/api/useCurrentQuizVersion';
+import type { CreateQuestionRequest } from '@/shared/api/generated/model';
 
 export function useAdminCreateQuestion(quizId: number, version: number) {
     const qc = useQueryClient();
+    const { data: currentVersion } = useCurrentQuizVersion(quizId);
 
-    return useCreate3({
+    const baseMutation = useCreate3({
         mutation: {
             onSuccess: () => {
                 qc.invalidateQueries({
@@ -18,4 +21,18 @@ export function useAdminCreateQuestion(quizId: number, version: number) {
             },
         },
     });
+
+    return {
+        ...baseMutation,
+        mutateAsync: async (variables: { data: CreateQuestionRequest }, ...args: any[]) => {
+            const quizVersionId = currentVersion?.id ?? (variables.data as any).quizVersionId;
+            const enhancedVariables = {
+                data: {
+                    ...variables.data,
+                    quizVersionId: quizVersionId || variables.data.quizVersionId,
+                },
+            };
+            return baseMutation.mutateAsync(enhancedVariables, ...args);
+        },
+    };
 }

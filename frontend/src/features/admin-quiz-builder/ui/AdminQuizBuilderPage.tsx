@@ -170,6 +170,56 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
       }
     }
 
+    if (step === 2) {
+      // Persist questions, options and assign weights/traits
+      if (typeof quizId !== 'number') {
+        message.error(t('validation.fixErrors'));
+        return;
+      }
+
+      try {
+        for (const q of questions) {
+          // create question (quizVersionId will be auto-injected by useAdminCreateQuestion)
+          const qRes: any = await actions.createQuestion.mutateAsync({ data: { qtype: q.qtype, text: q.text, ord: q.ord } as any });
+          const createdQ = qRes?.data ?? qRes?.result ?? qRes;
+          const createdQId = (createdQ && typeof createdQ.id === 'number') ? createdQ.id : undefined;
+          if (!createdQId) throw new Error('Failed to create question');
+
+          // create options
+          for (const opt of q.options.slice().sort((a,b)=>a.ord - b.ord)) {
+            const optRes: any = await actions.createOption.mutateAsync({ data: { questionId: createdQId, label: opt.label, ord: opt.ord } as any });
+            const createdOpt = optRes?.data ?? optRes?.result ?? optRes;
+            const createdOptId = (createdOpt && typeof createdOpt.id === 'number') ? createdOpt.id : undefined;
+            if (!createdOptId) throw new Error('Failed to create option');
+
+            // assign traits weights for this option
+            const weightPairs: Array<{ traitId: number; weight: number }> = Object.keys(opt.weightsByTraitId ?? {}).map((k) => ({ traitId: Number(k), weight: (opt.weightsByTraitId as any)[k] }));
+            if (weightPairs.length > 0) {
+              await actions.assignOptionTraits.mutateAsync({ optionId: createdOptId, data: { traits: weightPairs } as any });
+            }
+          }
+        }
+      } catch (err) {
+        message.error((err as Error).message || t('validation.fixErrors'));
+        return;
+      }
+    }
+
+    if (step === 3) {
+      const selectedCategoryId = Array.isArray(results.selectedCategoryIds)
+        ? results.selectedCategoryIds[0]
+        : undefined;
+
+      if (typeof quizId === 'number' && typeof selectedCategoryId === 'number') {
+        try {
+          await actions.updateQuiz.mutateAsync({ id: quizId as any, data: { categoryId: selectedCategoryId } as any });
+        } catch (err) {
+          message.error((err as Error).message || t('validation.fixErrors'));
+          return;
+        }
+      }
+    }
+
     setStep((step + 1) as any);
   };
 

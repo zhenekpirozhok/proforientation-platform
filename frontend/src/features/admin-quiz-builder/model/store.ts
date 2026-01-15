@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { CreateQuestionRequestQtype } from '@/shared/api/generated/model/createQuestionRequestQtype';
 
 export type BuilderStep = 0 | 1 | 2 | 3 | 4;
 export type ScaleMode = 'single' | 'bipolar' | null;
@@ -501,7 +502,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                 const backendQuestions = toArray<any>(q.questions ?? q.items ?? q.quizQuestions ?? []);
                 const questionDrafts: QuestionDraft[] = backendQuestions
                     .map((qq: any, idx: number) => {
-                        const qtype = qq.qtype ?? qq.type ?? 'SINGLE_CHOICE';
+                        const qtype = qq.qtype ?? qq.type ?? CreateQuestionRequestQtype.SINGLE_CHOICE;
                         const ord = toNumber(qq.ord ?? qq.order ?? qq.position) ?? idx + 1;
 
                         const linkedTraitIds = safeIds(

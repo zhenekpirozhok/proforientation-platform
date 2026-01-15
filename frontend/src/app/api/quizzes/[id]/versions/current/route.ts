@@ -7,6 +7,11 @@ export async function GET(
 ) {
   const { id } = await ctx.params;
 
+  const quizId = Number(id);
+  if (!Number.isFinite(quizId) || quizId <= 0 || id === 'new') {
+    return NextResponse.json(null, { status: 200 });
+  }
+
   const res = await bffFetch(`/quizzes/${id}/versions/current`, {
     method: 'GET',
   });
