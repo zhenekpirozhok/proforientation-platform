@@ -33,17 +33,14 @@ export function useCreateOrUpdateQuiz(actions: ReturnTypeUseQuizBuilderActions |
     const createQuizVersion = useCreateQuizVersion();
 
     return useCallback(
-        async (
-            payload: CreateQuizRequest | (UpdateQuizRequest & { quizId?: number }),
-            isUpdate: boolean = false,
-        ) => {
+        async (payload: CreateQuizRequest | (UpdateQuizRequest & { quizId?: number }), isUpdate = false) => {
             if (!actions) {
                 message.error(t('validation.quizOperationError'));
                 return false;
             }
 
             try {
-                if (isUpdate && 'quizId' in payload && payload.quizId) {
+                if (isUpdate && 'quizId' in payload && typeof payload.quizId === 'number') {
                     const { quizId, ...updateData } = payload;
                     await actions.updateQuiz.mutateAsync({
                         id: quizId,
@@ -56,21 +53,13 @@ export function useCreateOrUpdateQuiz(actions: ReturnTypeUseQuizBuilderActions |
                     data: payload as CreateQuizRequest,
                 });
 
-                const newQuizId = createdQuiz?.id as number | undefined;
-
+                const newQuizId = createdQuiz?.id;
                 if (typeof newQuizId !== 'number') {
                     message.error(t('validation.createQuizError'));
                     return false;
                 }
 
-                useAdminQuizBuilderStore.setState({
-                    quizId: newQuizId,
-                    version: undefined,
-                    quizVersionId: undefined,
-                });
-
-                const versionRes: any = await createQuizVersion.mutateAsync({ quizId: newQuizId } as any);
-
+                const versionRes: any = await createQuizVersion.mutateAsync(newQuizId);
                 const { quizVersionId, version } = pickVersionPayload(versionRes);
 
                 if (typeof quizVersionId !== 'number') {
@@ -80,7 +69,7 @@ export function useCreateOrUpdateQuiz(actions: ReturnTypeUseQuizBuilderActions |
 
                 useAdminQuizBuilderStore.setState({
                     quizId: newQuizId,
-                    quizVersionId: quizVersionId,
+                    quizVersionId,
                     version: typeof version === 'number' ? version : 1,
                 });
 

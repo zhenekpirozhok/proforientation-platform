@@ -1,30 +1,24 @@
 'use client';
 
 import { useMutation, type UseMutationResult } from '@tanstack/react-query';
+import { orvalFetch } from '@/shared/api/orvalFetch';
 
-/**
- * Creates a new draft quiz version via BFF.
- * POST /api/quizzes/{id}/versions proxies to backend POST /quizzes/{id}/versions
- */
-async function createQuizVersionApi(id: number) {
-    const res = await fetch(`/api/quizzes/${id}/versions`, { method: 'POST' });
-    const text = await res.text();
-    try {
-        const json = JSON.parse(text);
-        if (!res.ok) throw json;
-        return json;
-    } catch (e) {
-        if (!res.ok) throw new Error(text || 'Failed to create quiz version');
-        return text;
+export type CreateQuizVersionVars = { id: number } | number;
+
+function normalizeId(vars: CreateQuizVersionVars): number {
+    const id = typeof vars === 'number' ? vars : vars.id;
+    if (!Number.isFinite(Number(id)) || Number(id) <= 0) {
+        throw new Error(`Invalid quiz id: ${String(id)}`);
     }
+    return Number(id);
 }
 
-/**
- * Hook to create a new draft quiz version.
- * Returns a mutation that accepts { id: number }
- */
-export const useCreateQuizVersion = (): UseMutationResult<any, unknown, { id: number }, unknown> => {
+async function createQuizVersionApi(id: number): Promise<any> {
+    return orvalFetch(`/quizzes/${id}/versions`, { method: 'POST' });
+}
+
+export const useCreateQuizVersion = (): UseMutationResult<any, unknown, CreateQuizVersionVars, unknown> => {
     return useMutation({
-        mutationFn: (vars: { id: number }) => createQuizVersionApi(vars.id),
+        mutationFn: (vars) => createQuizVersionApi(normalizeId(vars)),
     });
 };
