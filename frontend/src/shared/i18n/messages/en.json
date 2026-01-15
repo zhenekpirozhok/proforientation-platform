@@ -499,6 +499,9 @@
   "AdminQuizBuilder": {
   "title": "Quiz builder",
   "subtitle": "Create a quiz in 3 steps and publish it",
+  "savingInBackground": "Saving in background…",
+  "savedInBackground": "Saved",
+  "toastCreated": "Quiz created",
   "needQuizContext": "Create the quiz first (Step 0).",
   "validation": {
     "required": "This field is required",
@@ -686,6 +689,10 @@
     "subtitle": "All your quizzes (drafts and published)",
     "create": "Create quiz",
     "empty": "No quizzes yet",
+    "delete": "Delete",
+    "deleteConfirmTitle": "Delete quiz",
+    "deleteConfirmBody": "Are you sure you want to permanently delete this quiz?",
+    "toastDeleted": "Quiz deleted",
     "published": "Published",
     "draft": "Draft",
     "created": "Created",
