@@ -57,6 +57,7 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
     typeof quizId === 'number' ? quizId : 0,
     typeof quizVersionId === 'number' ? quizVersionId : 0,
   );
+  const setQuizContext = useAdminQuizBuilderStore((s) => s.setQuizContext);
   const ensureTraits = useEnsureQuizTraits(actions);
   const createOrUpdateQuiz = useCreateOrUpdateQuiz(actions);
 
@@ -150,6 +151,22 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
     setSubmitAttempted(false);
 
     if (step === 0) {
+      // If updating an existing published quiz, create a draft version first
+      if (typeof quizId === 'number' && quizData && (quizData as any).status === 'PUBLISHED') {
+        try {
+          const res: any = await actions.createQuizVersion.mutateAsync();
+          const created = res?.data ?? res?.result ?? res;
+          const newQuizVersionId = created && typeof created.id === 'number' ? created.id : created?.quizVersionId;
+          if (typeof newQuizVersionId === 'number') {
+            setQuizContext({ quizId: Number(quizId), version: created.version ?? Number(created.version ?? 0), quizVersionId: Number(newQuizVersionId) });
+          }
+        } catch (err) {
+          console.error('Failed to pre-create draft version for published quiz:', err);
+          message.error((err as Error).message || t('validation.quizOperationError'));
+          return;
+        }
+      }
+
       const ok = await createOrUpdateQuiz(
         {
           quizId,
@@ -160,6 +177,21 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
         typeof quizId === 'number',
       );
       if (!ok) return;
+
+      // If this was a newly created quiz and backend didn't return a quizVersionId, create one explicitly
+      if (typeof quizId === 'number' && typeof quizVersionId !== 'number') {
+        try {
+          const res: any = await actions.createQuizVersion.mutateAsync();
+          const created = res?.data ?? res?.result ?? res;
+          const newQuizVersionId = created && typeof created.id === 'number' ? created.id : created?.quizVersionId;
+          if (typeof newQuizVersionId === 'number') {
+            setQuizContext({ quizId: Number(quizId), version: created.version ?? Number(created.version ?? 0), quizVersionId: Number(newQuizVersionId) });
+          }
+        } catch (err) {
+          console.error('Failed to create initial quiz version after create:', err);
+          // don't block the user on version creation failure here — they can create later
+        }
+      }
     }
 
     if (step === 1) {
@@ -173,24 +205,43 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
     if (step === 2) {
       // Persist questions, options and assign weights/traits
       // Only do this if quiz version already exists (either editing existing quiz or just created it)
-      if (typeof quizId !== 'number' || typeof quizVersionId !== 'number') {
-        // Skip persistence if no quiz version yet — just move to next step
-        // Questions will be created/persisted only when explicitly editing them
-        setStep(3);
+      if (typeof quizId !== 'number') {
+        message.error(t('validation.fixErrors'));
         return;
+      }
+
+      let effectiveQuizVersionId = quizVersionId;
+
+      if (typeof effectiveQuizVersionId !== 'number') {
+        // Try to create a draft version (copy latest) via builder actions
+        try {
+          const res: any = await actions.createQuizVersion.mutateAsync();
+          const created = res?.data ?? res?.result ?? res;
+          const newQuizVersionId = created && typeof created.id === 'number' ? created.id : created?.quizVersionId;
+          if (typeof newQuizVersionId === 'number') {
+            effectiveQuizVersionId = newQuizVersionId;
+            setQuizContext({ quizId: Number(quizId), version: created.version ?? Number(created.version ?? 0), quizVersionId: Number(newQuizVersionId) });
+          } else {
+            throw new Error('Failed to create quiz version');
+          }
+        } catch (err) {
+          console.error('Failed to create quiz version:', err);
+          message.error((err as Error).message || t('validation.fixErrors'));
+          return;
+        }
       }
 
       try {
         for (const q of questions) {
           // create or update question
           let createdQId: number | undefined;
-          const isExistingQuestion = typeof q.questionId === 'number';
+            const isExistingQuestion = typeof q.questionId === 'number';
 
           if (isExistingQuestion) {
             // Update existing question
-            const qRes: any = await actions.updateQuestion.mutateAsync({ id: q.questionId, data: { qtype: q.qtype, text: q.text, ord: q.ord } as any });
+            const qRes: any = await actions.updateQuestion.mutateAsync({ id: q.questionId as number, data: { qtype: q.qtype, text: q.text, ord: q.ord } as any });
             const updatedQ = qRes?.data ?? qRes?.result ?? qRes;
-            createdQId = (updatedQ && typeof updatedQ.id === 'number') ? updatedQ.id : q.questionId;
+            createdQId = (updatedQ && typeof updatedQ.id === 'number') ? updatedQ.id : q.questionId as number;
           } else {
             // Create new question (quizVersionId will be auto-injected by useAdminCreateQuestion)
             const qRes: any = await actions.createQuestion.mutateAsync({ data: { qtype: q.qtype, text: q.text, ord: q.ord } as any });
@@ -200,15 +251,12 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
 
           if (!createdQId) throw new Error('Failed to create or update question');
 
-          // create or update options
           for (const opt of q.options.slice().sort((a,b)=>a.ord - b.ord)) {
             const isExistingOption = typeof opt.optionId === 'number';
 
             if (isExistingOption) {
-              // Update existing option — only update label since ord doesn't change for existing options
-              await actions.updateOption.mutateAsync({ id: opt.optionId, data: { label: opt.label } as any });
+              await actions.updateOption.mutateAsync({ id: opt.optionId as number, data: { label: opt.label } as any });
             } else {
-              // Create new option only if it doesn't have an ID
               const optRes: any = await actions.createOption.mutateAsync({ data: { questionId: createdQId, label: opt.label, ord: opt.ord } as any });
               const createdOpt = optRes?.data ?? optRes?.result ?? optRes;
               const optId = (createdOpt && typeof createdOpt.id === 'number') ? createdOpt.id : undefined;
@@ -219,7 +267,6 @@ export function AdminQuizBuilderPage({ quizId: propQuizId }: { quizId?: number }
             const optId = opt.optionId;
             if (!optId) throw new Error('Failed to update or create option');
 
-            // assign traits weights for this option
             const weightPairs: Array<{ traitId: number; weight: number }> = Object.keys(opt.weightsByTraitId ?? {}).map((k) => ({ traitId: Number(k), weight: (opt.weightsByTraitId as any)[k] }));
             if (weightPairs.length > 0) {
               await actions.assignOptionTraits.mutateAsync({ optionId: optId, data: { traits: weightPairs } as any });
