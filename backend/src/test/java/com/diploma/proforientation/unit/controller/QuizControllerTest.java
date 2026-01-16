@@ -165,12 +165,12 @@ class QuizControllerTest {
         QuizVersionDto version =
                 new QuizVersionDto(5, 10, 2, true, Instant.now());
 
-        when(versionService.publishQuiz(10)).thenReturn(version);
+        when(versionService.publishQuizVersion(10)).thenReturn(version);
 
         QuizVersionDto result = controller.publish(10);
 
         assertThat(result.version()).isEqualTo(2);
-        verify(versionService).publishQuiz(10);
+        verify(versionService).publishQuizVersion(10);
     }
 
     @Test

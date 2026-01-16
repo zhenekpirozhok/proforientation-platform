@@ -118,7 +118,7 @@ class TraitServiceTest {
         t2.setDescription("desc2");
         t2.setBipolarPairCode("realistic");
 
-        when(repo.findTraitsForQuiz(10)).thenReturn(List.of(t1, t2));
+        when(repo.findTraitsForQuizVersion(10)).thenReturn(List.of(t1, t2));
 
         when(translationResolver.resolve(anyString(), eq(1), anyString(), eq("en"), eq("Realistic")))
                 .thenReturn("Realistic");
@@ -146,7 +146,7 @@ class TraitServiceTest {
         assertThat(result.get(1).description()).isEqualTo("desc2");
         assertThat(result.get(1).bipolarPairCode()).isEqualTo("realistic");
 
-        verify(repo).findTraitsForQuiz(10);
+        verify(repo).findTraitsForQuizVersion(10);
         verify(translationResolver, times(4)).resolve(anyString(), anyInt(), anyString(), anyString(), anyString());
     }
 }

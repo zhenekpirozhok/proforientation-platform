@@ -248,7 +248,7 @@ public class QuizController {
             )
     )
     public QuizVersionDto publish(@PathVariable Integer id) {
-        return versionService.publishQuiz(id);
+        return versionService.publishQuizVersion(id);
     }
 
     @PostMapping("/{id}/copy")
@@ -421,7 +421,7 @@ public class QuizController {
         return versionService.createDraftVersion(id);
     }
 
-    @GetMapping("/{quizId}/traits")
+    @GetMapping("/{quizVersionId}/traits")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Get traits for a quiz",
@@ -438,7 +438,7 @@ public class QuizController {
     )
     @ApiResponse(responseCode = "403", description = "Access forbidden")
     @ApiResponse(responseCode = "404", description = "Quiz or quiz version not found")
-    public List<TraitDto> getTraits(@PathVariable Integer quizId) {
-        return traitService.getTraitsForQuizVersion(quizId);
+    public List<TraitDto> getTraits(@PathVariable Integer quizVersionId) {
+        return traitService.getTraitsForQuizVersion(quizVersionId);
     }
 }

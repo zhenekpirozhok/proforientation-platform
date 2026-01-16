@@ -3,6 +3,7 @@ package com.diploma.proforientation.unit.service;
 import com.diploma.proforientation.dto.QuizVersionDto;
 import com.diploma.proforientation.model.*;
 import com.diploma.proforientation.model.enumeration.QuestionType;
+import com.diploma.proforientation.model.enumeration.QuizStatus;
 import com.diploma.proforientation.repository.*;
 import com.diploma.proforientation.service.impl.QuizVersionServiceImpl;
 import jakarta.persistence.EntityNotFoundException;
@@ -14,6 +15,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static com.diploma.proforientation.util.Constants.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -45,92 +47,105 @@ class QuizVersionServiceTest {
     }
 
     @Test
-    void publishQuiz_shouldCreateNewVersion() {
-        when(quizRepo.findById(10)).thenReturn(Optional.of(quiz));
-        when(versionRepo.findTopByQuizIdOrderByVersionDesc(10))
-                .thenReturn(Optional.of(version1));
+    void publishQuizVersion_shouldMarkGivenVersionAsCurrent_andPublishQuiz() {
+        Integer versionId = 100;
+        Integer quizId = 10;
 
-        QuizVersion newV = new QuizVersion();
-        newV.setId(200);
-        newV.setQuiz(quiz);
-        newV.setVersion(2);
-        newV.setCurrent(true);
-        newV.setPublishedAt(Instant.now());
+        quiz.setId(quizId);
+        version1.setId(versionId);
+        version1.setQuiz(quiz);
+        version1.setPublishedAt(null);
+        version1.setCurrent(false);
 
-        when(versionRepo.save(any())).thenReturn(newV);
-        when(questionRepo.findByQuizVersionId(any())).thenReturn(List.of());
+        when(versionRepo.findById(versionId)).thenReturn(Optional.of(version1));
+        when(versionRepo.save(any(QuizVersion.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(quizRepo.save(any(Quiz.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        QuizVersionDto dto = service.publishQuiz(10);
+        QuizVersionDto dto = service.publishQuizVersion(versionId);
 
-        assertThat(dto.version()).isEqualTo(2);
+        assertThat(dto.quizId()).isEqualTo(quizId);
+        assertThat(dto.version()).isEqualTo(version1.getVersion());
+        assertThat(dto.isCurrent()).isTrue();
+        assertThat(dto.publishedAt()).isNotNull();
 
-        verify(versionRepo, times(1)).save(argThat(v -> !v.isCurrent()));
-        verify(versionRepo, times(1)).save(argThat(QuizVersion::isCurrent));
-    }
+        verify(versionRepo).clearCurrentForQuiz(quizId);
+        verify(versionRepo).save(argThat(v ->
+                v == version1 &&
+                        v.isCurrent() &&
+                        v.getPublishedAt() != null
+        ));
 
-    @Test
-    void publishQuiz_shouldHandleNoPreviousVersion() {
-        when(quizRepo.findById(10)).thenReturn(Optional.of(quiz));
-        when(versionRepo.findTopByQuizIdOrderByVersionDesc(10)).thenReturn(Optional.empty());
+        verify(quizRepo).save(argThat(q ->
+                q == quiz &&
+                        q.getStatus() == QuizStatus.PUBLISHED &&
+                        q.getUpdatedAt() != null
+        ));
 
-        QuizVersion saved = new QuizVersion();
-        saved.setId(111);
-        saved.setQuiz(quiz);
-        saved.setVersion(1);
-        saved.setCurrent(true);
-        saved.setPublishedAt(Instant.now());
-
-        when(versionRepo.save(any())).thenReturn(saved);
-
-        QuizVersionDto dto = service.publishQuiz(10);
-
-        assertThat(dto.version()).isEqualTo(1);
         verify(questionRepo, never()).findByQuizVersionId(any());
+        verify(optionRepo, never()).findByQuestionId(any());
+        verify(questionRepo, never()).save(any());
+        verify(optionRepo, never()).save(any());
     }
 
     @Test
-    void publishQuiz_shouldCopyQuestions() {
-        when(quizRepo.findById(10)).thenReturn(Optional.of(quiz));
-        when(versionRepo.findTopByQuizIdOrderByVersionDesc(10))
-                .thenReturn(Optional.of(version1));
+    void publishQuizVersion_shouldNotOverwritePublishedAt_ifAlreadySet() {
+        Integer versionId = 100;
+        Integer quizId = 10;
 
-        Question q = new Question();
-        q.setId(500);
-        q.setOrd(1);
-        q.setQtype(QuestionType.SINGLE_CHOICE);
-        q.setTextDefault("Some text");
+        quiz.setId(quizId);
+        version1.setId(versionId);
+        version1.setQuiz(quiz);
 
-        QuestionOption op = new QuestionOption();
-        op.setId(600);
-        op.setOrd(1);
-        op.setLabelDefault("opt");
+        Instant alreadyPublished = Instant.parse("2025-01-01T00:00:00Z");
+        version1.setPublishedAt(alreadyPublished);
+        version1.setCurrent(false);
 
-        when(questionRepo.findByQuizVersionId(100)).thenReturn(List.of(q));
-        when(optionRepo.findByQuestionId(500)).thenReturn(List.of(op));
+        when(versionRepo.findById(versionId)).thenReturn(Optional.of(version1));
+        when(versionRepo.save(any(QuizVersion.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(quizRepo.save(any(Quiz.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        when(questionRepo.save(any())).thenReturn(new Question());
-        when(optionRepo.save(any())).thenReturn(new QuestionOption());
+        QuizVersionDto dto = service.publishQuizVersion(versionId);
 
-        QuizVersion newV = new QuizVersion();
-        newV.setId(222);
-        newV.setQuiz(quiz);
-        newV.setVersion(2);
+        assertThat(dto.publishedAt()).isEqualTo(alreadyPublished);
+        assertThat(dto.isCurrent()).isTrue();
 
-        when(versionRepo.save(any())).thenReturn(newV);
-
-        QuizVersionDto dto = service.publishQuiz(10);
-
-        assertThat(dto.version()).isEqualTo(2);
-        verify(questionRepo).save(any());
-        verify(optionRepo).save(any());
+        verify(versionRepo).clearCurrentForQuiz(quizId);
+        verify(versionRepo).save(argThat(v ->
+                v == version1 &&
+                        v.isCurrent() &&
+                        v.getPublishedAt().equals(alreadyPublished)
+        ));
     }
 
     @Test
-    void publishQuiz_shouldFailIfQuizNotFound() {
-        when(quizRepo.findById(999)).thenReturn(Optional.empty());
+    void publishQuizVersion_shouldFailIfVersionNotFound() {
+        Integer versionId = 999;
+        when(versionRepo.findById(versionId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.publishQuiz(999))
-                .isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> service.publishQuizVersion(versionId))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining(QUIZ_VERSION_NOT_FOUND);
+
+        verify(versionRepo, never()).clearCurrentForQuiz(anyInt());
+        verify(versionRepo, never()).save(any());
+        verify(quizRepo, never()).save(any());
+    }
+
+    @Test
+    void publishQuizVersion_shouldFailIfVersionHasNoQuiz_attached() {
+        Integer versionId = 100;
+
+        version1.setId(versionId);
+        version1.setQuiz(null);
+
+        when(versionRepo.findById(versionId)).thenReturn(Optional.of(version1));
+
+        assertThatThrownBy(() -> service.publishQuizVersion(versionId))
+                .isInstanceOf(RuntimeException.class);
+
+        verify(versionRepo, never()).clearCurrentForQuiz(anyInt());
+        verify(versionRepo, never()).save(any());
+        verify(quizRepo, never()).save(any());
     }
 
     @Test
