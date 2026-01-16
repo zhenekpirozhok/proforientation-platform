@@ -5,6 +5,7 @@ import com.diploma.proforientation.dto.UserDto;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.model.enumeration.UserRole;
 import com.diploma.proforientation.service.UserService;
+import com.diploma.proforientation.util.rate.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -74,6 +75,7 @@ public class UserController {
                     """)
             )
     )
+    @RateLimit(requests = 20, durationSeconds = 60)
     public ResponseEntity<UserDto> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();

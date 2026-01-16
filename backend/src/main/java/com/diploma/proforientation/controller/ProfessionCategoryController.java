@@ -3,6 +3,7 @@ package com.diploma.proforientation.controller;
 import com.diploma.proforientation.dto.ProfessionCategoryDto;
 import com.diploma.proforientation.dto.request.create.CreateCategoryRequest;
 import com.diploma.proforientation.service.ProfessionCategoryService;
+import com.diploma.proforientation.util.rate.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -33,6 +34,7 @@ public class ProfessionCategoryController {
             description = "List of profession categories",
             content = @Content(schema = @Schema(implementation = ProfessionCategoryDto.class))
     )
+    @RateLimit(requests = 30, durationSeconds = 60)
     public List<ProfessionCategoryDto> getAll() {
         return service.getAllLocalized();
     }

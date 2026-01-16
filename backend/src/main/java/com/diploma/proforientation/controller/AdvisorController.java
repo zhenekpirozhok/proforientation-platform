@@ -41,13 +41,11 @@ public class AdvisorController {
 
     /** Treat message as key only when it looks like a key; otherwise fallbackKey. */
     private String resolveMsgOrFallback(String msgOrKey, String fallbackKey, Object... args) {
-        // only treat as key if it looks like your keys
         boolean looksLikeKey = msgOrKey != null && (msgOrKey.startsWith("error.") || msgOrKey.startsWith("email."));
         String keyToUse = looksLikeKey ? msgOrKey : fallbackKey;
 
         String localized = i18n.msg(keyToUse, args);
 
-        // IMPORTANT: if MessageSource did not find translation, i18n.msg returns the key itself
         if (localized.equals(keyToUse)) {
             localized = i18n.msg(fallbackKey, args);
         }

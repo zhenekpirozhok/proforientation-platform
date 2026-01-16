@@ -1,5 +1,6 @@
 package com.diploma.proforientation.integration.security;
 
+import com.diploma.proforientation.config.GlobalRateLimitFilter;
 import com.diploma.proforientation.config.JwtAuthenticationFilter;
 import com.diploma.proforientation.controller.AdvisorController;
 import com.diploma.proforientation.controller.AttemptController;
@@ -24,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         excludeFilters = {
                 @ComponentScan.Filter(
                         type = FilterType.ASSIGNABLE_TYPE,
-                        classes = {AdvisorController.class, JwtAuthenticationFilter.class}
+                        classes = {AdvisorController.class, JwtAuthenticationFilter.class, GlobalRateLimitFilter.class}
                 )
         }
 )

@@ -10,6 +10,7 @@ import com.diploma.proforientation.dto.request.add.AddAnswersForQuestionRequest;
 import com.diploma.proforientation.dto.response.AttemptStartResponse;
 import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.util.AuthUtils;
+import com.diploma.proforientation.util.rate.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -53,6 +54,7 @@ public class AttemptController {
             description = "Invalid quiz version",
             content = @Content(schema = @Schema(implementation = ExceptionDto.class))
     )
+    @RateLimit(requests = 20, durationSeconds = 60)
     public AttemptStartResponse startAttempt(@RequestParam Integer quizVersionId) {
 
         Integer userId = authUtils.getAuthenticatedUserId();
@@ -71,6 +73,7 @@ public class AttemptController {
             description = "Attempt already submitted or invalid option",
             content = @Content(schema = @Schema(implementation = ExceptionDto.class))
     )
+    @RateLimit(requests = 10, durationSeconds = 30)
     public void addAnswer(@PathVariable Integer attemptId,
                           @RequestBody AddAnswerRequest req) {
         attemptService.addAnswer(attemptId, req.optionId());
@@ -87,6 +90,7 @@ public class AttemptController {
             description = "Invalid request or attempt state",
             content = @Content(schema = @Schema(implementation = ExceptionDto.class))
     )
+    @RateLimit(requests = 5, durationSeconds = 30)
     public void addAnswersBulk(
             @PathVariable Integer attemptId,
             @RequestBody AddAnswersBulkRequest request
@@ -115,6 +119,7 @@ public class AttemptController {
             description = "Attempt already submitted or incomplete",
             content = @Content(schema = @Schema(implementation = ExceptionDto.class))
     )
+    @RateLimit(requests = 5, durationSeconds = 10)
     public AttemptResultDto submit(@PathVariable Integer attemptId) {
         return attemptService.submitAttempt(attemptId);
     }
@@ -210,6 +215,7 @@ public class AttemptController {
             description = "Invalid attempt state or invalid option/question mapping",
             content = @Content(schema = @Schema(implementation = ExceptionDto.class))
     )
+    @RateLimit(requests = 5, durationSeconds = 30)
     public void addAnswersForQuestion(
             @PathVariable Integer attemptId,
             @Valid @RequestBody AddAnswersForQuestionRequest request
@@ -262,6 +268,7 @@ public class AttemptController {
                 """)
             )
     )
+    @RateLimit(requests = 3, durationSeconds = 60)
     public void deleteMyAttempts(
             @RequestParam(required = false) String guestToken,
             @Valid @RequestBody DeleteAttemptsRequest req

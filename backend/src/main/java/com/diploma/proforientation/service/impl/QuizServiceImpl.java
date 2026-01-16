@@ -60,7 +60,8 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public Page<QuizDto> getAllLocalized(Pageable pageable) {
         String locale = i18n.currentLanguage();
-        return quizRepo.findAll(pageable)
+
+        return quizRepo.findAllByStatus(QuizStatus.PUBLISHED, pageable)
                 .map(q -> toDtoLocalized(q, locale));
     }
 

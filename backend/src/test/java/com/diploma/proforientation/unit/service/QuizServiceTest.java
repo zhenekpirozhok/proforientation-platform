@@ -7,6 +7,7 @@ import com.diploma.proforientation.model.ProfessionCategory;
 import com.diploma.proforientation.model.Quiz;
 import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
+import com.diploma.proforientation.model.enumeration.QuizStatus;
 import com.diploma.proforientation.repository.ProfessionCategoryRepository;
 import com.diploma.proforientation.repository.view.QuizPublicMetricsRepository;
 import com.diploma.proforientation.repository.QuizRepository;
@@ -427,4 +428,253 @@ class QuizServiceTest {
         verify(quizPublicMetricsRepo).findQuizIdsByDuration(300, 900);
         verifyNoInteractions(quizRepo);
     }
+
+    @Test
+    void getAllLocalized_shouldFetchOnlyPublished_andLocalize() {
+        Quiz quiz = new Quiz();
+        quiz.setId(1);
+        quiz.setCode("Q1");
+        quiz.setTitleDefault("Default title");
+        quiz.setDescriptionDefault("Default desc");
+        quiz.setStatus(QuizStatus.PUBLISHED);
+        quiz.setProcessingMode(QuizProcessingMode.LLM);
+        quiz.setAuthor(author);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(localeProvider.currentLanguage()).thenReturn("en");
+        when(quizRepo.findAllByStatus(eq(QuizStatus.PUBLISHED), eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(quiz), pageable, 1));
+
+        when(translationResolver.resolve(anyString(), anyInt(), anyString(), eq("en"), anyString()))
+                .thenAnswer(inv -> inv.getArgument(4));
+
+        Page<QuizDto> result = service.getAllLocalized(pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().getFirst().title()).isEqualTo("Default title");
+
+        verify(localeProvider).currentLanguage();
+        verify(quizRepo).findAllByStatus(eq(QuizStatus.PUBLISHED), eq(pageable));
+        verify(translationResolver, times(2))
+                .resolve(anyString(), eq(1), anyString(), eq("en"), anyString());
+    }
+
+    @Test
+    void getByIdLocalized_shouldReturnLocalizedDto() {
+        Quiz quiz = new Quiz();
+        quiz.setId(10);
+        quiz.setCode("Q10");
+        quiz.setTitleDefault("T");
+        quiz.setDescriptionDefault("D");
+        quiz.setStatus(com.diploma.proforientation.model.enumeration.QuizStatus.PUBLISHED);
+        quiz.setProcessingMode(QuizProcessingMode.LLM);
+        quiz.setAuthor(author);
+
+        when(localeProvider.currentLanguage()).thenReturn("en");
+        when(quizRepo.findById(10)).thenReturn(Optional.of(quiz));
+
+        when(translationResolver.resolve(anyString(), anyInt(), anyString(), eq("en"), any()))
+                .thenAnswer(inv -> inv.getArgument(4));
+
+        QuizDto dto = service.getByIdLocalized(10);
+
+        assertThat(dto.id()).isEqualTo(10);
+        assertThat(dto.title()).isEqualTo("T");
+        assertThat(dto.descriptionDefault()).isEqualTo("D");
+
+        verify(localeProvider).currentLanguage();
+        verify(translationResolver, times(2)).resolve(anyString(), eq(10), anyString(), eq("en"), any());
+    }
+
+    @Test
+    void create_shouldThrowWhenAuthorNotFound() {
+        CreateQuizRequest req = new CreateQuizRequest("Q1", "Title", null, null, null);
+
+        when(userRepo.findById(999)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.create(req, 999))
+                .isInstanceOf(EntityNotFoundException.class);
+
+        verify(quizRepo, never()).save(any());
+    }
+
+    @Test
+    void create_whenCategoryIdNull_shouldNotCallCategoryRepo() {
+        CreateQuizRequest req = new CreateQuizRequest("Q1", "Title", "desc", 30, null);
+
+        when(userRepo.findById(1)).thenReturn(Optional.of(author));
+
+        Quiz saved = new Quiz();
+        saved.setId(1);
+        saved.setCode("Q1");
+        saved.setTitleDefault("Title");
+        saved.setDescriptionDefault("desc");
+        saved.setSecondsPerQuestionDefault(30);
+        saved.setAuthor(author);
+        saved.setStatus(com.diploma.proforientation.model.enumeration.QuizStatus.DRAFT);
+        saved.setProcessingMode(QuizProcessingMode.LLM);
+
+        when(quizRepo.save(any(Quiz.class))).thenReturn(saved);
+
+        QuizDto dto = service.create(req, 1);
+
+        assertThat(dto.id()).isEqualTo(1);
+        verifyNoInteractions(categoryRepo);
+    }
+
+    @Test
+    void update_whenAllFieldsNull_shouldOnlyUpdateUpdatedAt_andSave() {
+        Quiz quiz = new Quiz();
+        quiz.setId(5);
+        quiz.setCode("Q5");
+        quiz.setTitleDefault("Old");
+        quiz.setStatus(com.diploma.proforientation.model.enumeration.QuizStatus.DRAFT);
+        quiz.setProcessingMode(QuizProcessingMode.LLM);
+        quiz.setAuthor(author);
+
+        when(quizRepo.findById(5)).thenReturn(Optional.of(quiz));
+        when(quizRepo.save(any(Quiz.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UpdateQuizRequest req = new UpdateQuizRequest(null, null, null, null, null, null);
+
+        QuizDto dto = service.update(5, req);
+
+        assertThat(dto.title()).isEqualTo("Old");
+        verify(quizRepo).save(quiz);
+        verifyNoInteractions(categoryRepo);
+    }
+
+    @Test
+    void update_invalidProcessingMode_shouldThrowIllegalArgumentException() {
+        Quiz quiz = new Quiz();
+        quiz.setId(5);
+        quiz.setStatus(com.diploma.proforientation.model.enumeration.QuizStatus.DRAFT);
+        quiz.setProcessingMode(QuizProcessingMode.LLM);
+        quiz.setAuthor(author);
+
+        when(quizRepo.findById(5)).thenReturn(Optional.of(quiz));
+
+        UpdateQuizRequest req = new UpdateQuizRequest(null, "NOT_A_MODE", null, null, null, null);
+
+        assertThatThrownBy(() -> service.update(5, req))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(quizRepo, never()).save(any());
+    }
+
+    @Test
+    void update_invalidStatus_shouldThrowIllegalArgumentException() {
+        Quiz quiz = new Quiz();
+        quiz.setId(5);
+        quiz.setStatus(com.diploma.proforientation.model.enumeration.QuizStatus.DRAFT);
+        quiz.setProcessingMode(QuizProcessingMode.LLM);
+        quiz.setAuthor(author);
+
+        when(quizRepo.findById(5)).thenReturn(Optional.of(quiz));
+
+        UpdateQuizRequest req = new UpdateQuizRequest(null, null, "NOT_A_STATUS", null, null, null);
+
+        assertThatThrownBy(() -> service.update(5, req))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(quizRepo, never()).save(any());
+    }
+
+    @Test
+    void update_secondsPerQuestionInvalid_shouldThrowIllegalArgumentException() {
+        Quiz quiz = new Quiz();
+        quiz.setId(5);
+        quiz.setStatus(com.diploma.proforientation.model.enumeration.QuizStatus.DRAFT);
+        quiz.setProcessingMode(QuizProcessingMode.LLM);
+        quiz.setAuthor(author);
+
+        when(quizRepo.findById(5)).thenReturn(Optional.of(quiz));
+
+        UpdateQuizRequest req = new UpdateQuizRequest(null, null, null, null, 0, null);
+
+        assertThatThrownBy(() -> service.update(5, req))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(quizRepo, never()).save(any());
+    }
+
+    @Test
+    void delete_shouldDeleteQuiz() {
+        Quiz quiz = new Quiz();
+        quiz.setId(7);
+
+        when(quizRepo.findById(7)).thenReturn(Optional.of(quiz));
+
+        service.delete(7);
+
+        verify(quizRepo).delete(quiz);
+    }
+
+    @Test
+    void delete_shouldThrowWhenNotFound() {
+        when(quizRepo.findById(7)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.delete(7))
+                .isInstanceOf(EntityNotFoundException.class);
+
+        verify(quizRepo, never()).delete(any(Quiz.class));
+    }
+
+    @Test
+    void search_blankSearchString_shouldBehaveLikeNoSearch() {
+        Quiz quiz = new Quiz();
+        quiz.setId(1);
+        quiz.setCode("Q1");
+        quiz.setTitleDefault("Quiz One");
+        quiz.setDescriptionDefault("Desc");
+        quiz.setCategory(new ProfessionCategory() {{ setId(1); }});
+        quiz.setAuthor(new User() {{ setId(1); }});
+        quiz.setStatus(com.diploma.proforientation.model.enumeration.QuizStatus.PUBLISHED);
+        quiz.setProcessingMode(QuizProcessingMode.LLM);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        when(localeProvider.currentLanguage()).thenReturn("en");
+        when(translationResolver.resolve(anyString(), anyInt(), anyString(), eq("en"), anyString()))
+                .thenAnswer(inv -> inv.getArgument(4));
+
+        when(quizRepo.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(quiz), pageable, 1));
+
+        Page<QuizDto> result = service.search("   ", null, null, null, pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        verify(quizRepo).findAll(any(Specification.class), eq(pageable));
+        verifyNoInteractions(quizPublicMetricsRepo);
+    }
+
+    @Test
+    void search_durationFilterOnlyMin_callsMetricsRepo() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        when(quizPublicMetricsRepo.findQuizIdsByDuration(300, null)).thenReturn(List.of(1));
+        when(localeProvider.currentLanguage()).thenReturn("en");
+        when(translationResolver.resolve(anyString(), anyInt(), anyString(), eq("en"), anyString()))
+                .thenAnswer(inv -> inv.getArgument(4));
+
+        Quiz quiz = new Quiz();
+        quiz.setId(1);
+        quiz.setCode("Q1");
+        quiz.setTitleDefault("T");
+        quiz.setDescriptionDefault("D");
+        quiz.setCategory(new ProfessionCategory() {{ setId(1); }});
+        quiz.setAuthor(new User() {{ setId(1); }});
+        quiz.setStatus(com.diploma.proforientation.model.enumeration.QuizStatus.PUBLISHED);
+        quiz.setProcessingMode(QuizProcessingMode.LLM);
+
+        when(quizRepo.findAll(any(Specification.class), eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of(quiz), pageable, 1));
+
+        Page<QuizDto> result = service.search(null, null, 300, null, pageable);
+
+        assertThat(result.getContent()).hasSize(1);
+        verify(quizPublicMetricsRepo).findQuizIdsByDuration(300, null);
+        verify(quizRepo).findAll(any(Specification.class), eq(pageable));
+    }
+
 }

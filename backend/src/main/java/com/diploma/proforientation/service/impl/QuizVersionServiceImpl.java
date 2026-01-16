@@ -2,6 +2,7 @@ package com.diploma.proforientation.service.impl;
 
 import com.diploma.proforientation.dto.QuizVersionDto;
 import com.diploma.proforientation.model.*;
+import com.diploma.proforientation.model.enumeration.QuizStatus;
 import com.diploma.proforientation.repository.*;
 import com.diploma.proforientation.service.QuizVersionService;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,30 +26,26 @@ public class QuizVersionServiceImpl implements QuizVersionService {
 
     @Override
     @Transactional
-    public QuizVersionDto publishQuiz(Integer quizId) {
-        Quiz quiz = quizRepo.findById(quizId)
-                .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
+    public QuizVersionDto publishQuizVersion(Integer quizVersionId) {
 
-        QuizVersion latest = versionRepo.findTopByQuizIdOrderByVersionDesc(quizId).orElse(null);
-        int newVersionNumber = latest != null ? latest.getVersion() + 1 : 1;
+        QuizVersion v = versionRepo.findById(quizVersionId)
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_VERSION_NOT_FOUND));
 
-        if (latest != null) {
-            latest.setCurrent(false);
-            versionRepo.save(latest);
+        Quiz quiz = v.getQuiz();
+
+        versionRepo.clearCurrentForQuiz(quiz.getId());
+
+        v.setCurrent(true);
+        if (v.getPublishedAt() == null) {
+            v.setPublishedAt(Instant.now());
         }
+        v = versionRepo.save(v);
 
-        QuizVersion newVersion = new QuizVersion();
-        newVersion.setQuiz(quiz);
-        newVersion.setVersion(newVersionNumber);
-        newVersion.setCurrent(true);
-        newVersion.setPublishedAt(Instant.now());
-        newVersion = versionRepo.save(newVersion);
+        quiz.setStatus(QuizStatus.PUBLISHED);
+        quiz.setUpdatedAt(Instant.now());
+        quizRepo.save(quiz);
 
-        if (latest != null) {
-            copyQuestionsAndOptions(latest, newVersion);
-        }
-
-        return toDto(newVersion);
+        return toDto(v);
     }
 
     @Override

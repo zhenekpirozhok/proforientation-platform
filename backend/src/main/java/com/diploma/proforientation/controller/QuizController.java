@@ -9,6 +9,7 @@ import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.service.QuizService;
 import com.diploma.proforientation.service.QuizVersionService;
 import com.diploma.proforientation.service.TraitService;
+import com.diploma.proforientation.util.rate.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -60,6 +61,7 @@ public class QuizController {
                     schema = @Schema(implementation = QuizDto.class)
             )
     )
+    @RateLimit(requests = 30, durationSeconds = 60)
     public Page<QuizDto> getAll(
             @Parameter(description = "Page number", schema = @Schema(defaultValue = "1"))
             @RequestParam(required = false, defaultValue = "1") int page,
@@ -92,6 +94,7 @@ public class QuizController {
                     schema = @Schema(implementation = com.diploma.proforientation.dto.ExceptionDto.class)
             )
     )
+    @RateLimit(requests = 30, durationSeconds = 60)
     public QuizDto getById(@PathVariable Integer id) {
         return quizService.getByIdLocalized(id);
     }
@@ -116,6 +119,7 @@ public class QuizController {
                     schema = @Schema(implementation = com.diploma.proforientation.dto.ExceptionDto.class)
             )
     )
+    @RateLimit(requests = 30, durationSeconds = 60)
     public QuizDto getByCode(@PathVariable String code) {
         return quizService.getByCodeLocalized(code);
     }
@@ -244,7 +248,7 @@ public class QuizController {
             )
     )
     public QuizVersionDto publish(@PathVariable Integer id) {
-        return versionService.publishQuiz(id);
+        return versionService.publishQuizVersion(id);
     }
 
     @PostMapping("/{id}/copy")
@@ -417,7 +421,7 @@ public class QuizController {
         return versionService.createDraftVersion(id);
     }
 
-    @GetMapping("/{quizId}/traits")
+    @GetMapping("/{quizVersionId}/traits")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Get traits for a quiz",
@@ -434,7 +438,7 @@ public class QuizController {
     )
     @ApiResponse(responseCode = "403", description = "Access forbidden")
     @ApiResponse(responseCode = "404", description = "Quiz or quiz version not found")
-    public List<TraitDto> getTraits(@PathVariable Integer quizId) {
-        return traitService.getTraitsForQuizVersion(quizId);
+    public List<TraitDto> getTraits(@PathVariable Integer quizVersionId) {
+        return traitService.getTraitsForQuizVersion(quizVersionId);
     }
 }

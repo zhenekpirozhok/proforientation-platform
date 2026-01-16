@@ -98,10 +98,10 @@ public class TraitServiceImpl implements TraitService {
     }
 
     @Override
-    public List<TraitDto> getTraitsForQuizVersion(Integer quizId) {
+    public List<TraitDto> getTraitsForQuizVersion(Integer quizVersionId) {
         String locale = i18n.currentLanguage();
 
-        List<TraitProfile> traits = repo.findTraitsForQuiz(quizId);
+        List<TraitProfile> traits = repo.findTraitsForQuizVersion(quizVersionId);
 
         return traits.stream()
                 .map(t -> toDtoLocalized(t, locale))

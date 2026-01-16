@@ -3,6 +3,7 @@ package com.diploma.proforientation.controller;
 import com.diploma.proforientation.dto.ProfessionDto;
 import com.diploma.proforientation.dto.request.create.CreateProfessionRequest;
 import com.diploma.proforientation.service.ProfessionService;
+import com.diploma.proforientation.util.rate.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -45,6 +46,7 @@ public class ProfessionController {
             description = "Page of professions",
             content = @Content(schema = @Schema(implementation = ProfessionDto.class))
     )
+    @RateLimit(requests = 30, durationSeconds = 60)
     public Page<ProfessionDto> getAll(
             @Parameter(description = "Page number", schema = @Schema(defaultValue = "1"))
             @RequestParam(required = false, defaultValue = "1") int page,
@@ -68,6 +70,7 @@ public class ProfessionController {
             content = @Content(schema = @Schema(implementation = ProfessionDto.class))
     )
     @ApiResponse(responseCode = "404", description = "Profession not found")
+    @RateLimit(requests = 30, durationSeconds = 60)
     public ProfessionDto getById(@PathVariable Integer id) {
         return service.getByIdLocalized(id);
     }
@@ -141,6 +144,7 @@ public class ProfessionController {
             responseCode = "400",
             description = "Invalid search parameters"
     )
+    @RateLimit(requests = 20, durationSeconds = 60)
     public Page<ProfessionDto> search(
             @RequestParam(defaultValue = "") String q,
             @RequestParam(required = false) Integer categoryId,

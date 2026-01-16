@@ -12,6 +12,7 @@ import com.diploma.proforientation.dto.response.LoginResponse;
 import com.diploma.proforientation.service.AttemptService;
 import com.diploma.proforientation.service.AuthenticationService;
 import com.diploma.proforientation.service.JwtService;
+import com.diploma.proforientation.util.rate.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -61,6 +62,7 @@ public class AuthenticationController {
     )
     @ApiResponse(responseCode = "400", description = "Validation error",
             content = @Content(schema = @Schema(implementation = ExceptionDto.class)))
+    @RateLimit(requests = 5, durationSeconds = 60)
     public ResponseEntity<User> register(@Valid @RequestBody RegisterUserDto registerUserDto) {
         User registeredUser = authenticationService.signup(registerUserDto);
         return ResponseEntity.ok(registeredUser);
@@ -84,6 +86,7 @@ public class AuthenticationController {
     )
     @ApiResponse(responseCode = "401", description = "Invalid credentials",
             content = @Content(schema = @Schema(implementation = ExceptionDto.class)))
+    @RateLimit(requests = 5, durationSeconds = 60)
     public ResponseEntity<LoginResponse> authenticate(@Valid @RequestBody LoginUserDto loginUserDto){
         User user = authenticationService.authenticate(loginUserDto);
 
@@ -118,6 +121,7 @@ public class AuthenticationController {
             content = @Content(schema = @Schema(implementation = LoginResponse.class))
     )
     @ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
+    @RateLimit(requests = 20, durationSeconds = 60)
     public ResponseEntity<LoginResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -146,6 +150,7 @@ public class AuthenticationController {
             description = "Sends a password reset link to the user's email address if it exists."
     )
     @ApiResponse(responseCode = "200", description = "Reset link sent (if email exists)")
+    @RateLimit(requests = 3, durationSeconds = 300)
     public ResponseEntity<?> requestReset(@Valid @RequestBody RequestResetPasswordDto requestResetPasswordDto) {
         String email = requestResetPasswordDto.getEmail();
         authenticationService.sendResetToken(email);
@@ -166,6 +171,7 @@ public class AuthenticationController {
     @ApiResponse(responseCode = "200", description = "Password reset successful")
     @ApiResponse(responseCode = "400", description = "Invalid or expired token",
             content = @Content(schema = @Schema(implementation = ExceptionDto.class)))
+    @RateLimit(requests = 5, durationSeconds = 300)
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDto resetPasswordDto) {
         String token = resetPasswordDto.getToken();
         String newPassword = resetPasswordDto.getNewPassword();
@@ -184,6 +190,7 @@ public class AuthenticationController {
             content = @Content(schema = @Schema(implementation = LoginResponse.class))
     )
     @ApiResponse(responseCode = "401", description = "Invalid Google token")
+    @RateLimit(requests = 5, durationSeconds = 60)
     public ResponseEntity<?> handleGoogleOneTap(@Valid @RequestBody GoogleOneTapLoginRequest request) {
         try {
             User user = authenticationService.authenticateWithGoogleIdToken(request.getToken());

@@ -3,6 +3,7 @@ package com.diploma.proforientation.controller;
 import com.diploma.proforientation.dto.TraitDto;
 import com.diploma.proforientation.dto.request.create.CreateTraitRequest;
 import com.diploma.proforientation.service.TraitService;
+import com.diploma.proforientation.util.rate.RateLimit;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -35,6 +36,7 @@ public class TraitController {
                     schema = @Schema(implementation = TraitDto.class)
             )
     )
+    @RateLimit(requests = 20, durationSeconds = 60)
     public List<TraitDto> getAll() {
         return service.getAllLocalized();
     }
@@ -59,6 +61,7 @@ public class TraitController {
                     schema = @Schema(implementation = com.diploma.proforientation.dto.ExceptionDto.class)
             )
     )
+    @RateLimit(requests = 20, durationSeconds = 60)
     public TraitDto getById(@PathVariable Integer id) {
         return service.getByIdLocalized(id);
     }

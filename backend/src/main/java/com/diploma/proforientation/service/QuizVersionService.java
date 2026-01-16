@@ -8,7 +8,7 @@ public interface QuizVersionService {
     List<QuizVersionDto> getVersionsForQuiz(Integer quizId);
     QuizVersionDto getCurrentVersion(Integer quizId);
     QuizVersionDto getVersion(Integer quizId, Integer version);
-    QuizVersionDto publishQuiz(Integer quizId);
+    QuizVersionDto publishQuizVersion(Integer quizVersionId);
     QuizVersionDto copyLatestVersion(Integer quizId);
     QuizVersionDto createDraftVersion(Integer quizId);
 }
