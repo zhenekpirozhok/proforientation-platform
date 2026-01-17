@@ -60,7 +60,7 @@ export function DetailedPanel({
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 text-left text-slate-700 dark:text-slate-200">
                 <th className="py-2 pr-4">{i18n.qNumber}</th>
-                <th className="py-2 pr-4">{i18n.avgChoice}</th>
+                <th className="py-2 pr-4">{i18n.modeChoice}</th>
                 <th className="py-2 pr-4">{i18n.answers}</th>
                 <th className="py-2 pr-4">{i18n.discNorm}</th>
                 <th className="py-2 pr-4">{i18n.quality}</th>
@@ -78,8 +78,8 @@ export function DetailedPanel({
                     {r.questionOrd ?? i18n.notAvailable}
                   </td>
                   <td className="py-2 pr-4">
-                    {r.avgChoice ?? i18n.notAvailable}
-                  </td>
+                    {r.modeChoice ?? i18n.notAvailable}
+                    </td>
                   <td className="py-2 pr-4">
                     {r.answersCount ?? i18n.notAvailable}
                   </td>

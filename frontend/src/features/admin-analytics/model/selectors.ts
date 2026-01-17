@@ -4,14 +4,14 @@ export type QuestionMetricsRow = {
   questionId: number;
   questionOrd: number;
 
-  avgChoice?: number;
+  modeChoice?: number;
+  modeCount?: number;
   answersCount?: number;
 
   discNorm?: number | null;
   discQuality?: string;
   attemptsSubmitted?: number;
 
-  // distribution by optionOrd (not optionId)
   distribution: Array<{ optionOrd: number; count: number }>;
 };
 
@@ -37,10 +37,11 @@ export function buildQuestionMetricsRows(
     return row;
   };
 
-  for (const a of d.avgChoicePerQuestion ?? []) {
-    const row = ensure(a.questionId, a.questionOrd);
-    row.avgChoice = a.avgChoice;
-    row.answersCount = a.answersCount;
+  for (const m of d.modeChoicePerQuestion ?? []) {
+    const row = ensure(m.questionId, m.questionOrd);
+    row.modeChoice = m.modeChoice;
+    row.modeCount = m.modeCount;
+    row.answersCount = m.answersCount;
   }
 
   for (const od of d.optionDistribution ?? []) {

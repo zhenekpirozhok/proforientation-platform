@@ -26,10 +26,11 @@ export type QuizAnalyticsDetailedDto = {
   quizId: number;
   quizVersionId: number;
 
-  avgChoicePerQuestion: Array<{
+  modeChoicePerQuestion: Array<{
     questionId: number;
     questionOrd: number;
-    avgChoice: number; // number
+    modeChoice: number;   
+    modeCount: number;
     answersCount: number;
   }>;
 
