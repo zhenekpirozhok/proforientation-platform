@@ -52,7 +52,7 @@ public class LlmScoringEngineImpl implements LlmScoringEngine {
     public ScoringResult evaluate(Integer attemptId) {
 
         Attempt attempt = attemptRepo.findById(attemptId)
-                .orElseThrow(() -> new RuntimeException("Attempt not found"));
+                .orElseThrow(() -> new RuntimeException(ATTEMPT_NOT_FOUND));
 
         Map<TraitProfile, BigDecimal> traitScores = traitScoreCalculator.calculateScores(attemptId);
 

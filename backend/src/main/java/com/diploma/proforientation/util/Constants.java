@@ -61,7 +61,7 @@ public final class Constants {
     public static final String SHEET_ANALYTICS_ACTIVITY_DAILY = "overview_activity_daily";
     public static final String SHEET_ANALYTICS_TOP_PROFESSIONS = "overview_top_professions";
 
-    public static final String SHEET_ANALYTICS_AVG_CHOICE = "detailed_avg_choice";
+    public static final String SHEET_ANALYTICS_MODE_CHOICE = "mode_choice";
     public static final String SHEET_ANALYTICS_OPTION_DISTRIBUTION = "detailed_option_distribution";
     public static final String SHEET_ANALYTICS_DISCRIMINATION = "detailed_discrimination";
 
@@ -114,8 +114,12 @@ public final class Constants {
             "profession_id","profession_title","top1_count"
     };
 
-    public static final String[] HEADERS_ANALYTICS_AVG_CHOICE = {
-            "question_id","question_ord","avg_choice","answers_count"
+    public static final String[] HEADERS_ANALYTICS_MODE_CHOICE = {
+            "question_id",
+            "question_ord",
+            "mode_choice",
+            "mode_count",
+            "answers_count"
     };
 
     public static final String[] HEADERS_ANALYTICS_OPTION_DISTRIBUTION = {
@@ -187,8 +191,6 @@ public final class Constants {
     public static final String GOOGLE_TOKEN_VERIFICATION_FAILED = "error.google_token_verification_failed";
     public static final String INVALID_GOOGLE_ID_TOKEN = "error.invalid_google_id_token";
     public static final String INVALID_PASSWORD_RESET_TOKEN = "error.invalid_password_reset_token";
-    public static final String LLM_PARSING_FAILED = "error.llm_parsing_failed";
-    public static final String LLM_PROMPT_FAILED = "error.llm_prompt_failed";
     public static final String USER_NOT_FOUND_FOR_PASSWORD_RESET = "error.user_not_found_for_password_reset";
 
     public static final String ERROR_MALFORMED_JSON = "error.malformed_json";

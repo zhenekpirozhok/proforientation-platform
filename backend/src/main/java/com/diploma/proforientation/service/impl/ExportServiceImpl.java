@@ -43,7 +43,7 @@ public class ExportServiceImpl implements ExportService {
     private final QuizFunnelOverviewRepository funnelRepo;
     private final QuizActivityDailyRepository activityRepo;
     private final QuizTopProfessionRepository topProfRepo;
-    private final QuizQuestionAvgChoiceRepository avgChoiceRepo;
+    private final QuizQuestionModeChoiceRepository modeChoiceRepo;
     private final QuizQuestionOptionDistributionRepository distRepo;
     private final QuizQuestionDiscriminationRepository discRepo;
 
@@ -246,14 +246,18 @@ public class ExportServiceImpl implements ExportService {
                      ICSVWriter.DEFAULT_LINE_END
              )) {
 
-            // Avg choice per question
-            writer.writeNext(HEADERS_ANALYTICS_AVG_CHOICE);
-            var avg = avgChoiceRepo.findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId);
-            for (var r : avg) {
+            // Mode choice per question
+            writer.writeNext(HEADERS_ANALYTICS_MODE_CHOICE);
+
+            var modes = modeChoiceRepo
+                    .findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId);
+
+            for (var r : modes) {
                 writer.writeNext(new String[]{
                         stringValue(r.getId().getQuestionId()),
                         stringValue(r.getQuestionOrd()),
-                        stringValue(r.getAvgChoice()),
+                        stringValue(r.getModeChoice()),
+                        stringValue(r.getModeCount()),
                         stringValue(r.getAnswersCount())
                 });
             }
@@ -316,7 +320,7 @@ public class ExportServiceImpl implements ExportService {
     public byte[] exportQuizAnalyticsDetailedExcel(Integer quizId, Integer quizVersionId) {
         try (Workbook wb = new XSSFWorkbook()) {
 
-            writeAnalyticsAvgChoiceSheet(wb, quizId, quizVersionId);
+            writeAnalyticsModeChoiceSheet(wb, quizId, quizVersionId);
             writeAnalyticsOptionDistributionSheet(wb, quizId, quizVersionId);
             writeAnalyticsDiscriminationSheet(wb, quizId, quizVersionId);
 
@@ -628,18 +632,19 @@ public class ExportServiceImpl implements ExportService {
         }
     }
 
-    private void writeAnalyticsAvgChoiceSheet(Workbook wb, Integer quizId, Integer quizVersionId) {
-        Sheet s = wb.createSheet(SHEET_ANALYTICS_AVG_CHOICE);
-        row(s, 0, (Object[]) HEADERS_ANALYTICS_AVG_CHOICE);
+    private void writeAnalyticsModeChoiceSheet(Workbook wb, Integer quizId, Integer quizVersionId) {
+        Sheet s = wb.createSheet(SHEET_ANALYTICS_MODE_CHOICE);
+        row(s, 0, (Object[]) HEADERS_ANALYTICS_MODE_CHOICE);
 
         int r = 1;
-        var rows = avgChoiceRepo.findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId);
+        var rows = modeChoiceRepo.findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId);
 
         for (var x : rows) {
             row(s, r++,
                     x.getId().getQuestionId(),
                     x.getQuestionOrd(),
-                    x.getAvgChoice(),
+                    x.getModeChoice(),
+                    x.getModeCount(),
                     x.getAnswersCount()
             );
         }

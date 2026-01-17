@@ -6,7 +6,9 @@ import com.diploma.proforientation.service.QuizAnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -16,7 +18,7 @@ public class QuizAnalyticsServiceImpl implements QuizAnalyticsService {
     private final QuizActivityDailyRepository activityRepo;
     private final QuizTopProfessionRepository topProfRepo;
 
-    private final QuizQuestionAvgChoiceRepository avgChoiceRepo;
+    private final QuizQuestionModeChoiceRepository modeChoiceRepo;
     private final QuizQuestionOptionDistributionRepository distRepo;
     private final QuizQuestionDiscriminationRepository discRepo;
 
@@ -28,36 +30,45 @@ public class QuizAnalyticsServiceImpl implements QuizAnalyticsService {
     ) {
         var funnel = funnelRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
 
-        var activity = (from != null && to != null)
-                ? activityRepo.findByIdQuizIdAndIdQuizVersionIdAndIdDayBetween(
-                quizId, quizVersionId, from, to
-        )
-                : activityRepo.findByIdQuizIdAndIdQuizVersionId(
-                quizId, quizVersionId
-        );
+        var activity = activityRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
+
+        if (from != null && to != null) {
+            activity = activityRepo.findByIdQuizIdAndIdQuizVersionIdAndIdDayBetween(
+                    quizId, quizVersionId, from, to
+            );
+        } else if (from != null) {
+            activity = activityRepo.findByIdQuizIdAndIdQuizVersionIdAndIdDayGreaterThanEqual(
+                    quizId, quizVersionId, from
+            );
+        } else if (to != null) {
+            activity = activityRepo.findByIdQuizIdAndIdQuizVersionIdAndIdDayLessThanEqual(
+                    quizId, quizVersionId, to
+            );
+        }
 
         var top = topProfRepo
-                .findByIdQuizIdAndIdQuizVersionIdOrderByTop1CountDesc(
-                        quizId,
-                        quizVersionId
-                );
+                .findByIdQuizIdAndIdQuizVersionIdOrderByTop1CountDesc(quizId, quizVersionId);
+
+        var activityPoints = activity.stream()
+                .filter(Objects::nonNull)
+                .map(r -> new QuizAnalyticsOverviewDto.DailyPoint(
+                        r.getId().getDay(),
+                        r.getAttemptsStarted(),
+                        r.getAttemptsCompleted(),
+                        r.getAvgDurationSeconds()
+                ))
+                .toList();
 
         return new QuizAnalyticsOverviewDto(
                 quizId,
                 quizVersionId,
-                funnel.getAttemptsStarted(),
-                funnel.getAttemptsCompleted(),
-                funnel.getCompletionRate(),
-                funnel.getAvgDurationSeconds(),
-                activity.stream()
-                        .map(r -> new QuizAnalyticsOverviewDto.DailyPoint(
-                                r.getId().getDay(),
-                                r.getAttemptsStarted(),
-                                r.getAttemptsCompleted(),
-                                r.getAvgDurationSeconds()
-                        ))
-                        .toList(),
+                funnel != null ? funnel.getAttemptsStarted() : 0,
+                funnel != null ? funnel.getAttemptsCompleted() : 0,
+                funnel != null ? funnel.getCompletionRate() : BigDecimal.ZERO,
+                funnel != null ? funnel.getAvgDurationSeconds() : null,
+                activityPoints,
                 top.stream()
+                        .filter(Objects::nonNull)
                         .map(r -> new QuizAnalyticsOverviewDto.TopProfession(
                                 r.getId().getProfessionId(),
                                 r.getProfessionTitle(),
@@ -68,38 +79,42 @@ public class QuizAnalyticsServiceImpl implements QuizAnalyticsService {
     }
 
     public QuizAnalyticsDetailedDto getDetailed(Integer quizId, Integer quizVersionId) {
-        var avg = avgChoiceRepo.findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId);
+        var modes = modeChoiceRepo.findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId);
         var dist = distRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
         var disc = discRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
 
         return new QuizAnalyticsDetailedDto(
                 quizId,
                 quizVersionId,
-                avg.stream().map(r ->
-                        new QuizAnalyticsDetailedDto.QuestionAvgChoice(
+                modes.stream()
+                        .filter(Objects::nonNull)
+                        .map(r -> new QuizAnalyticsDetailedDto.QuestionModeChoice(
                                 r.getId().getQuestionId(),
                                 r.getQuestionOrd(),
-                                r.getAvgChoice(),
+                                r.getModeChoice(),
+                                r.getModeCount(),
                                 r.getAnswersCount()
-                        )
-                ).toList(),
-                dist.stream().map(r ->
-                        new QuizAnalyticsDetailedDto.OptionDistribution(
+                        ))
+                        .toList(),
+                dist.stream()
+                        .filter(Objects::nonNull)
+                        .map(r -> new QuizAnalyticsDetailedDto.OptionDistribution(
                                 r.getId().getQuestionId(),
                                 r.getQuestionOrd(),
                                 r.getId().getOptionId(),
                                 r.getOptionOrd(),
                                 r.getCount()
-                        )
-                ).toList(),
-                disc.stream().map(r ->
-                        new QuizAnalyticsDetailedDto.QuestionDiscrimination(
+                        ))
+                        .toList(),
+                disc.stream()
+                        .filter(Objects::nonNull)
+                        .map(r -> new QuizAnalyticsDetailedDto.QuestionDiscrimination(
                                 r.getId().getQuestionId(),
                                 r.getDiscNorm(),
                                 r.getDiscQuality(),
                                 r.getAttemptsSubmitted()
-                        )
-                ).toList()
+                        ))
+                        .toList()
         );
     }
 }

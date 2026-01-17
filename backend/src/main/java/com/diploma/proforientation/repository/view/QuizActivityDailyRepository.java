@@ -15,4 +15,11 @@ public interface QuizActivityDailyRepository
     );
     List<QuizActivityDailyEntity> findByIdQuizIdAndIdQuizVersionIdOrderByIdDayAsc(Integer quizId, Integer quizVersionId);
     List<QuizActivityDailyEntity> findByIdQuizIdAndIdQuizVersionId(Integer quizId, Integer quizVersionId);
+    List<QuizActivityDailyEntity> findByIdQuizIdAndIdQuizVersionIdAndIdDayGreaterThanEqual(
+            Integer quizId, Integer quizVersionId, LocalDate from
+    );
+
+    List<QuizActivityDailyEntity> findByIdQuizIdAndIdQuizVersionIdAndIdDayLessThanEqual(
+            Integer quizId, Integer quizVersionId, LocalDate to
+    );
 }
