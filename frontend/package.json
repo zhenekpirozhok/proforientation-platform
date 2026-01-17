@@ -25,7 +25,8 @@
     "next": "16.0.10",
     "next-intl": "^4.6.1",
     "react": "19.2.1",
-    "react-dom": "19.2.1"
+    "react-dom": "19.2.1",
+    "swr": "^2.3.8"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
@@ -41,15 +42,15 @@
     "autoprefixer": "^10.4.23",
     "eslint": "^9",
     "eslint-config-next": "16.0.10",
-    "jest": "^30.2.0",
+    "jest": "^26.5.3",
     "jest-environment-jsdom": "^30.2.0",
     "openapi-typescript": "7.10.1",
     "orval": "^7.13.2",
     "postcss": "^8.5.6",
     "prettier": "^3.7.4",
     "tailwindcss": "^4.1.18",
-    "ts-jest": "^29.4.6",
-    "ts-node": "^10.9.2",
+    "ts-jest": "^26.5.6",
+    "ts-node": "^1.7.1",
     "typescript": "^5",
     "undici": "^7.18.2",
     "web-streams-polyfill": "^4.2.0",

@@ -12,7 +12,7 @@ export default function GlobalError({
   return (
     <html lang="en">
       <body className="min-h-screen bg-slate-50 dark:bg-slate-950">
-        <div className="mx-auto max-w-[1200px] px-4">
+        <div className="mx-auto max-w-300 px-4">
           <ErrorState
             status="500"
             title="Something went wrong"
