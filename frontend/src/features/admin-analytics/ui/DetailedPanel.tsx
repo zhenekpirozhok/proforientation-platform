@@ -79,7 +79,7 @@ export function DetailedPanel({
                   </td>
                   <td className="py-2 pr-4">
                     {r.modeChoice ?? i18n.notAvailable}
-                    </td>
+                  </td>
                   <td className="py-2 pr-4">
                     {r.answersCount ?? i18n.notAvailable}
                   </td>

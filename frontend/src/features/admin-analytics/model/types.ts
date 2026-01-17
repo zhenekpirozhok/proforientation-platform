@@ -29,7 +29,7 @@ export type QuizAnalyticsDetailedDto = {
   modeChoicePerQuestion: Array<{
     questionId: number;
     questionOrd: number;
-    modeChoice: number;   
+    modeChoice: number;
     modeCount: number;
     answersCount: number;
   }>;
