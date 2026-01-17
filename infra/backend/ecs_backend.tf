@@ -37,7 +37,8 @@ resource "aws_ecs_task_definition" "backend" {
         { name = "JWT_SECRET_KEY", valueFrom = "${aws_secretsmanager_secret.backend.arn}:JWT_SECRET_KEY::" },
         { name = "GOOGLE_CLIENT_ID", valueFrom = "${aws_secretsmanager_secret.backend.arn}:GOOGLE_CLIENT_ID::" },
         { name = "GOOGLE_CLIENT_SECRET", valueFrom = "${aws_secretsmanager_secret.backend.arn}:GOOGLE_CLIENT_SECRET::" },
-        { name = "OPENAI_API_KEY", valueFrom = "${aws_secretsmanager_secret.backend.arn}:OPENAI_API_KEY::" }
+        { name = "OPENAI_API_KEY", valueFrom = "${aws_secretsmanager_secret.backend.arn}:OPENAI_API_KEY::" },
+        { name = "FRONTEND_BASE_URL", valueFrom = "${aws_secretsmanager_secret.backend.arn}:FRONTEND_BASE_URL::" }
       ]
 
       logConfiguration = {
