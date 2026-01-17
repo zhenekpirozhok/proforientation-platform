@@ -15,7 +15,7 @@ import { useSearchProfessions } from '@/entities/profession/api/useSearchProfess
 import type { ProfessionCategoryDto as Category } from '@/shared/api/generated/model/professionCategoryDto';
 import type { ProfessionDto as Profession } from '@/shared/api/generated/model/professionDto';
 
-// Local interfaces for typed views and raw data
+
 interface Init {
   title?: string;
   code?: string;
@@ -243,16 +243,16 @@ export function StepPreview(): JSX.Element {
     typeof quizVersionId === 'number' ? quizVersionId : 0,
   );
 
-  const canPublish = typeof quizId === 'number' && quizId > 0;
+  const canPublish = typeof quizVersionId === 'number' && quizVersionId > 0;
 
   async function onPublish() {
     if (!canPublish) {
-      message.error(t('validation.fixErrors') || 'Invalid quiz id');
+      message.error(t('validation.fixErrors') || 'Invalid quiz version id');
       return;
     }
 
     try {
-      await actions.publishQuiz.mutateAsync({ id: quizId } as any);
+      await actions.publishQuiz.mutateAsync({ id: quizVersionId } as any);
       message.success(t('published'));
     } catch (e) {
       message.error((e as Error).message);

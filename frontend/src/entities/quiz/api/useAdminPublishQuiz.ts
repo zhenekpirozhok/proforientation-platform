@@ -3,7 +3,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import {
     getGetAll1QueryKey,
-    getGetById1QueryKey,
     usePublish,
 } from '@/shared/api/generated/api';
 
@@ -12,9 +11,9 @@ export function useAdminPublishQuiz() {
 
     return usePublish({
         mutation: {
-            onSuccess: (_data, vars) => {
+            onSuccess: () => {
                 qc.invalidateQueries({ queryKey: getGetAll1QueryKey() });
-                qc.invalidateQueries({ queryKey: getGetById1QueryKey(vars.id) });
+                qc.invalidateQueries();
             },
         },
     });

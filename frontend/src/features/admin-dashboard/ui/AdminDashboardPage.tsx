@@ -12,6 +12,8 @@ import { useDeleteQuiz } from '@/entities/quiz/api/useDeleteQuiz';
 import { getGetAllQueryKey } from '@/shared/api/generated/api';
 import { QuizzesPagination } from '@/entities/quiz/ui/QuizzesPagination';
 
+import { pickLatestQuizVersion } from '@/features/admin-quiz-builder/lib/quizVersion';
+
 function toArray<T>(v: unknown): T[] {
   if (Array.isArray(v)) return v as T[];
   if (!v || typeof v !== 'object') return [];
@@ -93,6 +95,24 @@ const EDIT_ROUTE = (id: number) => `/admin/quizzes/${id}/edit`;
 const ANALYTICS_ROUTE = (id: number) => `/admin/quizzes/${id}/analytics`;
 const TRANSLATIONS_ROUTE = (id: number) => `/admin/quizzes/${id}/translations`;
 
+function toId(v: unknown): number | null {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+async function fetchQuizVersions(quizId: number) {
+  const res = await fetch(`/api/quizzes/${quizId}/versions`, { method: 'GET' });
+  if (!res.ok) {
+    let msg = `Failed to load versions (${res.status})`;
+    try {
+      const body = await res.json();
+      msg = body?.message ?? msg;
+    } catch {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
 export function AdminDashboardPage() {
   const t = useTranslations('AdminDashboard');
   const router = useRouter();
@@ -106,6 +126,7 @@ export function AdminDashboardPage() {
   const deleteQuiz = useDeleteQuiz();
 
   const [deletingQuizId, setDeletingQuizId] = useState<number | null>(null);
+  const [publishingQuizId, setPublishingQuizId] = useState<number | null>(null);
 
   const data = quizzesQuery.data as any;
   const items = useMemo(() => toArray<any>(data), [data]);
@@ -126,14 +147,31 @@ export function AdminDashboardPage() {
     return typeof s0 === 'number' ? s0 : size;
   }, [data, size]);
 
-  async function onPublish(id: number) {
+  async function onPublish(quizId: number) {
     try {
-      await publishQuiz.mutateAsync({ id } as any);
+      setPublishingQuizId(quizId);
+
+      const versionsRes = await qc.fetchQuery({
+        queryKey: ['quiz-versions', quizId],
+        queryFn: () => fetchQuizVersions(quizId),
+      });
+
+      const latest = pickLatestQuizVersion(versionsRes as any);
+      const quizVersionId = toId((latest as any)?.id);
+
+      if (!quizVersionId) {
+        throw new Error('Latest quiz version id not found');
+      }
+
+      await publishQuiz.mutateAsync({ id: quizVersionId } as any);
+
       await qc.invalidateQueries({ queryKey: getGetAllQueryKey() as any });
       await quizzesQuery.refetch();
       message.success(t('toastPublished'));
     } catch (e) {
       message.error((e as Error).message);
+    } finally {
+      setPublishingQuizId(null);
     }
   }
 
@@ -237,8 +275,8 @@ export function AdminDashboardPage() {
                           if (!Number.isFinite(id)) return;
                           onPublish(id);
                         }}
-                        loading={publishQuiz.isPending}
-                        disabled={!Number.isFinite(id) || published}
+                        loading={publishQuiz.isPending && publishingQuizId === id}
+                        disabled={!Number.isFinite(id) || published || (publishQuiz.isPending && publishingQuizId !== id)}
                       >
                         {t('publish')}
                       </Button>

@@ -76,12 +76,13 @@ export function useQuizBuilderActions(quizId: number, quizVersionId: number) {
         return {
             ...publishBase,
             mutateAsync: async (vars: any, ...rest: any[]) => {
-                const idToUse = toId(vars?.id) ?? toId(quizId);
-                if (!idToUse) throw new Error(`Invalid quiz id: ${String(vars?.id ?? quizId)}`);
+                const idToUse = toId(vars?.id) ?? toId(quizVersionId);
+                if (!idToUse) throw new Error(`Invalid quiz version id: ${String(vars?.id ?? quizVersionId)}`);
                 return publishBase.mutateAsync({ id: idToUse } as any, ...rest);
             },
         } as typeof publishBase;
-    }, [publishBase, quizId]);
+    }, [publishBase, quizVersionId]);
+
 
     return {
         createQuiz,
