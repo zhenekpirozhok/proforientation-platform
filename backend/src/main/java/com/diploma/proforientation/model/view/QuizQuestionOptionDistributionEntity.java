@@ -31,6 +31,7 @@ public class QuizQuestionOptionDistributionEntity {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @EqualsAndHashCode
     @Embeddable
     public static class Id implements Serializable {
         @Column(name = "quiz_id")
