@@ -237,7 +237,7 @@ public class QuizController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Publish quiz",
-            description = "Publishes a quiz and creates a new current quiz version (ADMIN only)"
+            description = "Enter quiz_version_id to publish it and corresponding quiz (ADMIN only)"
     )
     @ApiResponse(
             responseCode = "200",

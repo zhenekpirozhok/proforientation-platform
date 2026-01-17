@@ -5,7 +5,6 @@ import lombok.*;
 import org.hibernate.annotations.Immutable;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -13,8 +12,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Entity
 @Immutable
-@Table(name = "v_quiz_question_avg_choice")
-public class QuizQuestionAvgChoiceEntity {
+@Table(name = "v_quiz_question_mode_choice")
+public class QuizQuestionModeChoiceEntity {
 
     @EmbeddedId
     private Id id;
@@ -22,8 +21,11 @@ public class QuizQuestionAvgChoiceEntity {
     @Column(name = "question_ord")
     private Integer questionOrd;
 
-    @Column(name = "avg_choice")
-    private BigDecimal avgChoice;
+    @Column(name = "mode_choice")
+    private Integer modeChoice;
+
+    @Column(name = "mode_count")
+    private Integer modeCount;
 
     @Column(name = "answers_count")
     private Integer answersCount;
@@ -32,6 +34,7 @@ public class QuizQuestionAvgChoiceEntity {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @EqualsAndHashCode
     @Embeddable
     public static class Id implements Serializable {
         @Column(name = "quiz_id")

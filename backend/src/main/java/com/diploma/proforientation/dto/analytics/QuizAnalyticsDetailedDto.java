@@ -14,8 +14,8 @@ public record QuizAnalyticsDetailedDto(
         @Schema(description = "Quiz version identifier")
         Integer quizVersionId,
 
-        @Schema(description = "Average selected choice per question")
-        List<QuestionAvgChoice> avgChoicePerQuestion,
+        @Schema(description = "Most frequently selected choice per question")
+        List<QuestionModeChoice> modeChoicePerQuestion,
 
         @Schema(description = "Distribution of selected options per question")
         List<OptionDistribution> optionDistribution,
@@ -24,8 +24,8 @@ public record QuizAnalyticsDetailedDto(
         List<QuestionDiscrimination> discrimination
 ) {
 
-    @Schema(description = "Average choice statistics for a question")
-    public record QuestionAvgChoice(
+    @Schema(description = "Most frequent choice statistics for a question")
+    public record QuestionModeChoice(
 
             @Schema(description = "Question identifier")
             Integer questionId,
@@ -34,10 +34,13 @@ public record QuizAnalyticsDetailedDto(
             Integer questionOrd,
 
             @Schema(
-                    description = "Average selected option index for the question",
-                    example = "2.4"
+                    description = "Most frequently selected option index for the question",
+                    example = "3"
             )
-            BigDecimal avgChoice,
+            Integer modeChoice,
+
+            @Schema(description = "Number of times the mode option was selected")
+            Integer modeCount,
 
             @Schema(description = "Total number of answers submitted for the question")
             Integer answersCount

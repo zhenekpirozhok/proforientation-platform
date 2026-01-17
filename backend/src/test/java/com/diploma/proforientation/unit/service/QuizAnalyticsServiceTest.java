@@ -26,7 +26,7 @@ class QuizAnalyticsServiceTest {
     @Mock QuizActivityDailyRepository activityRepo;
     @Mock QuizTopProfessionRepository topProfRepo;
 
-    @Mock QuizQuestionAvgChoiceRepository avgChoiceRepo;
+    @Mock QuizQuestionModeChoiceRepository modeChoiceRepo;
     @Mock QuizQuestionOptionDistributionRepository distRepo;
     @Mock QuizQuestionDiscriminationRepository discRepo;
 
@@ -38,7 +38,7 @@ class QuizAnalyticsServiceTest {
                 funnelRepo,
                 activityRepo,
                 topProfRepo,
-                avgChoiceRepo,
+                modeChoiceRepo,
                 distRepo,
                 discRepo
         );
@@ -121,6 +121,9 @@ class QuizAnalyticsServiceTest {
         when(funnelRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId))
                 .thenReturn(funnel);
 
+        when(activityRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId))
+                .thenReturn(List.of());
+
         QuizActivityDailyEntity d = new QuizActivityDailyEntity();
         d.setId(new QuizActivityDailyEntity.Id(quizId, quizVersionId, LocalDate.of(2026, 1, 10)));
         d.setAttemptsStarted(5);
@@ -140,24 +143,28 @@ class QuizAnalyticsServiceTest {
         assertThat(dto.activityDaily()).hasSize(1);
         assertThat(dto.activityDaily().getFirst().day()).isEqualTo(LocalDate.of(2026, 1, 10));
 
+        verify(activityRepo).findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
         verify(activityRepo).findByIdQuizIdAndIdQuizVersionIdAndIdDayBetween(quizId, quizVersionId, from, to);
-        verify(activityRepo, never()).findByIdQuizIdAndIdQuizVersionId(any(), any());
+
+        verify(activityRepo, never()).findByIdQuizIdAndIdQuizVersionIdAndIdDayGreaterThanEqual(any(), any(), any());
+        verify(activityRepo, never()).findByIdQuizIdAndIdQuizVersionIdAndIdDayLessThanEqual(any(), any(), any());
     }
 
     @Test
-    void getDetailed_mapsAvgChoiceDistributionAndDiscrimination() {
+    void getDetailed_mapsModeChoiceDistributionAndDiscrimination() {
         Integer quizId = 3;
         Integer quizVersionId = 30;
 
-        // avg choice
-        QuizQuestionAvgChoiceEntity avg = new QuizQuestionAvgChoiceEntity();
-        avg.setId(new QuizQuestionAvgChoiceEntity.Id(quizId, quizVersionId, 100));
-        avg.setQuestionOrd(1);
-        avg.setAvgChoice(new BigDecimal("2.5000"));
-        avg.setAnswersCount(40);
+        // mode choice
+        QuizQuestionModeChoiceEntity mode = new QuizQuestionModeChoiceEntity();
+        mode.setId(new QuizQuestionModeChoiceEntity.Id(quizId, quizVersionId, 100));
+        mode.setQuestionOrd(1);
+        mode.setModeChoice(4);
+        mode.setModeCount(25);
+        mode.setAnswersCount(40);
 
-        when(avgChoiceRepo.findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId))
-                .thenReturn(List.of(avg));
+        when(modeChoiceRepo.findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId))
+                .thenReturn(List.of(mode));
 
         // distribution
         QuizQuestionOptionDistributionEntity dist = new QuizQuestionOptionDistributionEntity();
@@ -184,11 +191,12 @@ class QuizAnalyticsServiceTest {
         assertThat(dto.quizId()).isEqualTo(3);
         assertThat(dto.quizVersionId()).isEqualTo(30);
 
-        assertThat(dto.avgChoicePerQuestion()).hasSize(1);
-        assertThat(dto.avgChoicePerQuestion().getFirst().questionId()).isEqualTo(100);
-        assertThat(dto.avgChoicePerQuestion().getFirst().questionOrd()).isEqualTo(1);
-        assertThat(dto.avgChoicePerQuestion().getFirst().avgChoice()).isEqualByComparingTo("2.5000");
-        assertThat(dto.avgChoicePerQuestion().getFirst().answersCount()).isEqualTo(40);
+        assertThat(dto.modeChoicePerQuestion()).hasSize(1);
+        assertThat(dto.modeChoicePerQuestion().getFirst().questionId()).isEqualTo(100);
+        assertThat(dto.modeChoicePerQuestion().getFirst().questionOrd()).isEqualTo(1);
+        assertThat(dto.modeChoicePerQuestion().getFirst().modeChoice()).isEqualTo(4);
+        assertThat(dto.modeChoicePerQuestion().getFirst().modeCount()).isEqualTo(25);
+        assertThat(dto.modeChoicePerQuestion().getFirst().answersCount()).isEqualTo(40);
 
         assertThat(dto.optionDistribution()).hasSize(1);
         assertThat(dto.optionDistribution().getFirst().questionId()).isEqualTo(100);
@@ -202,10 +210,10 @@ class QuizAnalyticsServiceTest {
         assertThat(dto.discrimination().getFirst().discQuality()).isEqualTo("ok");
         assertThat(dto.discrimination().getFirst().attemptsSubmitted()).isEqualTo(80);
 
-        verify(avgChoiceRepo).findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId);
+        verify(modeChoiceRepo).findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId);
         verify(distRepo).findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
         verify(discRepo).findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId);
-        verifyNoMoreInteractions(avgChoiceRepo, distRepo, discRepo);
+        verifyNoMoreInteractions(modeChoiceRepo, distRepo, discRepo);
     }
 
     @Test
@@ -213,7 +221,7 @@ class QuizAnalyticsServiceTest {
         Integer quizId = 4;
         Integer quizVersionId = 40;
 
-        when(avgChoiceRepo.findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId))
+        when(modeChoiceRepo.findByIdQuizIdAndIdQuizVersionIdOrderByQuestionOrdAsc(quizId, quizVersionId))
                 .thenReturn(List.of());
         when(distRepo.findByIdQuizIdAndIdQuizVersionId(quizId, quizVersionId))
                 .thenReturn(List.of());
@@ -222,7 +230,7 @@ class QuizAnalyticsServiceTest {
 
         QuizAnalyticsDetailedDto dto = service.getDetailed(quizId, quizVersionId);
 
-        assertThat(dto.avgChoicePerQuestion()).isEmpty();
+        assertThat(dto.modeChoicePerQuestion()).isEmpty();
         assertThat(dto.optionDistribution()).isEmpty();
         assertThat(dto.discrimination()).isEmpty();
     }

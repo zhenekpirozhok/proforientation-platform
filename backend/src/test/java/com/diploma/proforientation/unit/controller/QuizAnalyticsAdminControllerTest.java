@@ -126,10 +126,11 @@ class QuizAnalyticsAdminControllerTest {
                         10,
                         2,
                         List.of(
-                                new QuizAnalyticsDetailedDto.QuestionAvgChoice(
+                                new QuizAnalyticsDetailedDto.QuestionModeChoice(
                                         1,
                                         1,
-                                        BigDecimal.valueOf(2.4),
+                                        2,
+                                        40,
                                         100
                                 )
                         ),
@@ -160,7 +161,7 @@ class QuizAnalyticsAdminControllerTest {
 
         assertThat(result.quizId()).isEqualTo(10);
         assertThat(result.quizVersionId()).isEqualTo(2);
-        assertThat(result.avgChoicePerQuestion()).hasSize(1);
+        assertThat(result.modeChoicePerQuestion()).hasSize(1);
         assertThat(result.optionDistribution()).hasSize(1);
         assertThat(result.discrimination()).hasSize(1);
 

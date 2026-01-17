@@ -28,6 +28,7 @@ public class QuizTopProfessionEntity {
     @Setter
     @NoArgsConstructor
     @AllArgsConstructor
+    @EqualsAndHashCode
     @Embeddable
     public static class Id implements Serializable {
 
