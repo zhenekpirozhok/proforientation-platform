@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo } from 'react';
+
 import type { QuizAnalyticsDetailedDto } from '../model/types';
 import { buildQuestionMetricsRows } from '../model/selectors';
 import { t } from '../i18n';
@@ -25,6 +27,13 @@ export function DetailedPanel({
 }: Props) {
   const i18n = t(locale);
 
+  // ✅ Hook must be called unconditionally (before any early return)
+  const optionCounts = useQuestionOptionCounts(locale, quizId, quizVersionId);
+
+  const rows = useMemo(() => {
+    return data ? buildQuestionMetricsRows(data) : [];
+  }, [data]);
+
   if (loading) {
     return (
       <div className="text-slate-500 dark:text-slate-400">
@@ -32,6 +41,7 @@ export function DetailedPanel({
       </div>
     );
   }
+
   if (error) {
     return (
       <div className="text-red-600 dark:text-red-400">
@@ -39,14 +49,12 @@ export function DetailedPanel({
       </div>
     );
   }
+
   if (!data) {
     return (
       <div className="text-slate-500 dark:text-slate-400">{i18n.noData}</div>
     );
   }
-
-  const rows = buildQuestionMetricsRows(data);
-  const optionCounts = useQuestionOptionCounts(locale, quizId, quizVersionId);
 
   return (
     <div className="space-y-4">
@@ -55,10 +63,10 @@ export function DetailedPanel({
           {i18n.detailedTitle}
         </div>
 
-        <div className="overflow-auto mt-3">
+        <div className="mt-3 overflow-auto">
           <table className="min-w-250 w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-200 dark:border-slate-800 text-left text-slate-700 dark:text-slate-200">
+              <tr className="border-b border-slate-200 text-left text-slate-700 dark:border-slate-800 dark:text-slate-200">
                 <th className="py-2 pr-4">{i18n.qNumber}</th>
                 <th className="py-2 pr-4">{i18n.modeChoice}</th>
                 <th className="py-2 pr-4">{i18n.answers}</th>
@@ -72,7 +80,7 @@ export function DetailedPanel({
               {rows.map((r) => (
                 <tr
                   key={r.questionId}
-                  className="border-b border-slate-200 dark:border-slate-800 align-top"
+                  className="border-b border-slate-200 align-top dark:border-slate-800"
                 >
                   <td className="py-2 pr-4">
                     {r.questionOrd ?? i18n.notAvailable}
@@ -115,7 +123,7 @@ export function DetailedPanel({
           </table>
 
           {optionCounts.error && (
-            <div className="text-xs text-amber-700 dark:text-amber-300 mt-2">
+            <div className="mt-2 text-xs text-amber-700 dark:text-amber-300">
               Could not load option counts: {String(optionCounts.error)}
             </div>
           )}
@@ -145,8 +153,9 @@ export function MiniOptionHistogram(props: {
   } = props;
 
   const n = Math.max(optionsCount, 0);
-  if (n === 0)
+  if (n === 0) {
     return <span className="text-slate-400 dark:text-slate-500">—</span>;
+  }
 
   const counts = Array.from({ length: n }, () => 0);
   for (const d of distribution) {
@@ -174,7 +183,7 @@ export function MiniOptionHistogram(props: {
             style={{ gap: 4 }}
           >
             <div
-              className="rounded bg-slate-200 dark:bg-slate-800 overflow-hidden flex items-end"
+              className="flex items-end overflow-hidden rounded bg-slate-200 dark:bg-slate-800"
               style={{ height: heightPx, width: barWidthPx }}
             >
               <div
