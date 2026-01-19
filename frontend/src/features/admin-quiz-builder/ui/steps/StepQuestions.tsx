@@ -78,6 +78,7 @@ function SortableQuestionCard(props: {
   title: string;
   typeLabel: string;
   optionsPreview: string[];
+  influenceLines?: string[];
   onEdit: () => void;
   onRemove: () => void;
   errors: Array<{ key: string; code: string }>;
@@ -124,6 +125,14 @@ function SortableQuestionCard(props: {
             </div>
           ))}
         </div>
+
+        {props.influenceLines && props.influenceLines.length > 0 ? (
+          <div className="pt-2 text-xs text-slate-500 dark:text-slate-400">
+            {props.influenceLines.map((ln, idx) => (
+              <div key={idx} className="truncate">{ln}</div>
+            ))}
+          </div>
+        ) : null}
 
         {props.errors.length > 0 ? (
           <div className="flex flex-col gap-1 pt-3">
@@ -556,6 +565,30 @@ export function StepQuestions({
             <div className="flex flex-col gap-3">
               {questions.map((q) => {
                 const errPairs = v.submitAttempted ? getQuestionErrorPairs(q.tempId) : [];
+
+                // Build influence summary lines: map trait ids to names and compute min/max across options
+                const traitIdsForQ: number[] = Array.isArray(q.linkedTraitIds) && q.linkedTraitIds.length > 0
+                  ? q.linkedTraitIds
+                  : // infer from options weights
+                    Array.from(
+                      q.options
+                        .flatMap((o: any) => Object.keys(o.weightsByTraitId ?? {}).map((k) => Number(k)))
+                        .filter((n: number) => Number.isFinite(n)),
+                    );
+
+                const influenceLines: string[] = [];
+                for (const tid of traitIdsForQ) {
+                  const trait = availableTraits.find((x) => x.traitId === tid);
+                  const label = trait ? trait.name : `trait ${tid}`;
+                  const vals = q.options
+                    .map((o: any) => (o.weightsByTraitId ? o.weightsByTraitId[tid] : undefined))
+                    .filter((v: any) => typeof v === 'number') as number[];
+                  if (vals.length === 0) continue;
+                  const min = Math.min(...vals);
+                  const max = Math.max(...vals);
+                  const range = min === max ? `${min}` : `${min}..${max}`;
+                  influenceLines.push(`${label}: ${range}`);
+                }
                 return (
                   <SortableQuestionCard
                     key={q.tempId}
@@ -564,6 +597,7 @@ export function StepQuestions({
                     title={q.text.trim() ? q.text : t('untitledQuestion')}
                     typeLabel={`${t('typeLabel')}: ${q.qtype}`}
                     optionsPreview={q.options.map((o) => (o.label.trim() ? o.label : t('emptyOption')))}
+                    influenceLines={influenceLines}
                     onEdit={() => startEditQuestion(q.tempId)}
                     onRemove={() => {
                       removeQuestion(q.tempId);

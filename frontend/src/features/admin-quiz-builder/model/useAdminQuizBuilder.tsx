@@ -406,30 +406,41 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
           const qtype = (qq?.qtype ?? qq?.type ?? 'SINGLE_CHOICE') as string;
           const ord = toNumber(qq?.ord ?? qq?.order ?? qq?.position) ?? idx + 1;
 
-          const opts = Array.isArray(qq?.options) ? qq.options : qq?.answers ?? qq?.variants ?? [];
-          const optionDrafts = opts.map((o: any, oidx: number) => ({
-            tempId: id('opt'),
-            ord: toNumber(o?.ord ?? o?.order ?? o?.position) ?? oidx + 1,
-            label: o?.label ?? o?.text ?? o?.title ?? '',
-            optionId: toNumber(o?.id ?? o?.optionId),
-            weightsByTraitId: normalizeWeights(o?.weightsByTraitId ?? o?.weights ?? o?.traitWeights ?? {}),
-          }));
+    const opts = Array.isArray(qq?.options) ? qq.options : qq?.answers ?? qq?.variants ?? [];
+const optionDrafts = opts.map((o: any, oidx: number) => ({
+  tempId: id('opt'),
+  ord: toNumber(o?.ord ?? o?.order ?? o?.position) ?? oidx + 1,
+  label: o?.label ?? o?.text ?? o?.title ?? '',
+  optionId: toNumber(o?.id ?? o?.optionId),
+  weightsByTraitId: normalizeWeights(o?.weightsByTraitId ?? o?.weights ?? o?.traitWeights ?? {}),
+}));
 
-          const linkedTraitIds = Array.isArray(qq?.linkedTraitIds)
-            ? qq.linkedTraitIds.filter((x: any) => typeof x === 'number')
-            : Array.isArray(qq?.traitIds)
-            ? qq.traitIds.filter((x: any) => typeof x === 'number')
-            : [];
+const linkedTraitIdsRaw = Array.isArray(qq?.linkedTraitIds)
+  ? qq.linkedTraitIds.filter((x: any) => typeof x === 'number')
+  : Array.isArray(qq?.traitIds)
+  ? qq.traitIds.filter((x: any) => typeof x === 'number')
+  : [];
 
-          return {
-            tempId: id('q'),
-            ord,
-            qtype,
-            text: qq?.text ?? qq?.title ?? qq?.question ?? '',
-            linkedTraitIds,
-            questionId: toNumber(qq?.id ?? qq?.questionId),
-            options: optionDrafts.length > 0 ? optionDrafts : [{ tempId: id('opt'), ord: 1, label: '', weightsByTraitId: {} }],
-          } as any;
+const derivedTraitIds = Array.from(
+  new Set(
+    optionDrafts
+      .flatMap((o: any) => Object.keys(o.weightsByTraitId ?? {}).map((k) => Number(k)))
+      .filter((x: any) => Number.isFinite(x)),
+  ),
+).slice(0, 2);
+
+const linkedTraitIds = (linkedTraitIdsRaw.length > 0 ? linkedTraitIdsRaw : derivedTraitIds).slice(0, 2);
+
+return {
+  tempId: id('q'),
+  ord,
+  qtype,
+  text: qq?.text ?? qq?.title ?? qq?.question ?? '',
+  linkedTraitIds,
+  questionId: toNumber(qq?.id ?? qq?.questionId),
+  options: optionDrafts.length > 0 ? optionDrafts : [{ tempId: id('opt'), ord: 1, label: '', weightsByTraitId: {} }],
+} as any;
+
         })
         .sort((a, b) => (a.ord ?? 0) - (b.ord ?? 0));
 

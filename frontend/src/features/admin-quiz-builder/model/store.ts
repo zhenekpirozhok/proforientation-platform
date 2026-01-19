@@ -154,6 +154,7 @@ function toArray<T>(v: unknown): T[] {
     if (o.data !== undefined) return toArray<T>(o.data);
     if (o.result !== undefined) return toArray<T>(o.result);
     if (o.payload !== undefined) return toArray<T>(o.payload);
+    if (o.content !== undefined) return toArray<T>(o.content);
     return [];
 }
 
@@ -172,6 +173,17 @@ export function normalizeWeights(weights: unknown): Record<number, number> {
         out[tid] = Number.isFinite(val) ? val : 0;
     }
     return out;
+}
+
+function uniqueFiniteNumbers(v: number[]) {
+    return Array.from(new Set(v.filter((x) => typeof x === 'number' && Number.isFinite(x))));
+}
+
+function deriveLinkedTraitIdsFromOptions(options: OptionDraft[]) {
+    const ids = options
+        .flatMap((o) => Object.keys(o.weightsByTraitId ?? {}).map((k) => Number(k)))
+        .filter((x) => Number.isFinite(x));
+    return uniqueFiniteNumbers(ids).slice(0, 2);
 }
 
 const initialState = {
@@ -367,10 +379,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                             ...q,
                             options: q.options.map((o) => ({
                                 ...o,
-                                weightsByTraitId: ensureWeights(
-                                    o.weightsByTraitId,
-                                    traitIds.filter((x) => allowSet.has(x)),
-                                ),
+                                weightsByTraitId: ensureWeights(o.weightsByTraitId, traitIds.filter((x) => allowSet.has(x))),
                             })),
                         };
                     }),
@@ -503,13 +512,6 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                         const qtype = (qq?.qtype ?? qq?.type ?? CreateQuestionRequestQtype.SINGLE_CHOICE) as string;
                         const ord = toNumber(qq?.ord ?? qq?.order ?? qq?.position) ?? idx + 1;
 
-                        const linkedTraitIds = safeIds(
-                            qq?.linkedTraitIds ??
-                            qq?.traitIds ??
-                            qq?.traits ??
-                            (Array.isArray(qq?.linkedTraits) ? qq.linkedTraits.map((x: any) => x?.id) : []),
-                        );
-
                         const opts = toArray<any>(qq?.options ?? qq?.answers ?? qq?.variants ?? []);
                         const optionDrafts: OptionDraft[] = opts.map((o: any, oidx: number) => ({
                             tempId: id('opt'),
@@ -518,6 +520,17 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                             optionId: toNumber(o?.id ?? o?.optionId),
                             weightsByTraitId: normalizeWeights(o?.weightsByTraitId ?? o?.weights ?? o?.traitWeights ?? {}),
                         }));
+
+                        const directLinkedTraitIds = safeIds(
+                            qq?.linkedTraitIds ??
+                            qq?.traitIds ??
+                            qq?.traits ??
+                            (Array.isArray(qq?.linkedTraits) ? qq.linkedTraits.map((x: any) => x?.id) : []),
+                        ).slice(0, 2);
+
+                        const derivedLinkedTraitIds = deriveLinkedTraitIdsFromOptions(optionDrafts);
+
+                        const linkedTraitIds = (directLinkedTraitIds.length > 0 ? directLinkedTraitIds : derivedLinkedTraitIds).slice(0, 2);
 
                         return {
                             tempId: id('q'),
@@ -533,7 +546,11 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
 
                 const backendResults = q.results ?? q.resultConfig ?? q.recommendations ?? q.outcome ?? {};
                 const selectedCategoryIds = safeIds(
-                    backendResults?.selectedCategoryIds ?? backendResults?.categoryIds ?? backendResults?.categories ?? q?.selectedCategoryIds ?? q?.categoryIds,
+                    backendResults?.selectedCategoryIds ??
+                    backendResults?.categoryIds ??
+                    backendResults?.categories ??
+                    q?.selectedCategoryIds ??
+                    q?.categoryIds,
                 );
                 const selectedProfessionIds = safeIds(
                     backendResults?.selectedProfessionIds ??
@@ -563,7 +580,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
         }),
         {
             name: 'admin-quiz-builder',
-            version: 8,
+            version: 9,
             partialize: (s) => ({
                 step: s.step,
                 quizId: s.quizId,
