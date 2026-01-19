@@ -70,7 +70,7 @@ export function useQuizBuilderActions(quizId: number, quizVersionId: number) {
     const createProfession = useAdminCreateProfession();
     const searchProfessionsHook = useSearchProfessions;
 
-    const quizTraits = useQuizTraits(quizId);
+    const quizTraits = useQuizTraits(quizVersionId);
 
     const publishQuiz = useMemo(() => {
         return {

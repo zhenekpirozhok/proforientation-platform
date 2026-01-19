@@ -310,16 +310,19 @@ export function AdminDashboardPage() {
           </div>
         )}
 
-        <QuizzesPagination
-          page={effectivePage}
-          pageSize={effectiveSize}
-          total={total}
-          loading={quizzesQuery.isFetching}
-          onChange={(p, ps) => {
-            setPage(p);
-            setSize(ps);
-          }}
-        />
+{total > effectiveSize ? (
+  <QuizzesPagination
+    page={effectivePage}
+    pageSize={effectiveSize}
+    total={total}
+    loading={quizzesQuery.isFetching}
+    onChange={(p, ps) => {
+      setPage(p);
+      setSize(ps);
+    }}
+  />
+) : null}
+
       </div>
 
       <Modal

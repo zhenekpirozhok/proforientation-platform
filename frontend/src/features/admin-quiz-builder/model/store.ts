@@ -367,7 +367,10 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                             ...q,
                             options: q.options.map((o) => ({
                                 ...o,
-                                weightsByTraitId: ensureWeights(o.weightsByTraitId, traitIds.filter((x) => allowSet.has(x))),
+                                weightsByTraitId: ensureWeights(
+                                    o.weightsByTraitId,
+                                    traitIds.filter((x) => allowSet.has(x)),
+                                ),
                             })),
                         };
                     }),
@@ -430,7 +433,8 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
 
                 const initTitle = typeof q.title === 'string' ? q.title : '';
                 const initCode = typeof q.code === 'string' ? q.code : '';
-                const initDescription = typeof (q.description ?? q.descriptionDefault) === 'string' ? (q.description ?? q.descriptionDefault) : '';
+                const initDescription =
+                    typeof (q.description ?? q.descriptionDefault) === 'string' ? (q.description ?? q.descriptionDefault) : '';
 
                 const backendTraits = toArray<any>(q.traits ?? q.scales ?? q.quizTraits ?? []);
                 const scaleDrafts: ScaleDraft[] = backendTraits
@@ -529,11 +533,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
 
                 const backendResults = q.results ?? q.resultConfig ?? q.recommendations ?? q.outcome ?? {};
                 const selectedCategoryIds = safeIds(
-                    backendResults?.selectedCategoryIds ??
-                    backendResults?.categoryIds ??
-                    backendResults?.categories ??
-                    q?.selectedCategoryIds ??
-                    q?.categoryIds,
+                    backendResults?.selectedCategoryIds ?? backendResults?.categoryIds ?? backendResults?.categories ?? q?.selectedCategoryIds ?? q?.categoryIds,
                 );
                 const selectedProfessionIds = safeIds(
                     backendResults?.selectedProfessionIds ??
@@ -563,7 +563,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
         }),
         {
             name: 'admin-quiz-builder',
-            version: 7,
+            version: 8,
             partialize: (s) => ({
                 step: s.step,
                 quizId: s.quizId,
