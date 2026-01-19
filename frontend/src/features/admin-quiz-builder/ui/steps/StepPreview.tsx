@@ -103,6 +103,7 @@ export function StepPreview(): JSX.Element {
 
   const quizId: number | undefined = useAdminQuizBuilderStore((s) => s.quizId);
   const quizVersionId: number | undefined = useAdminQuizBuilderStore((s) => s.quizVersionId);
+  const version: number | undefined = useAdminQuizBuilderStore((s) => s.version);
 
   const init: Init = useAdminQuizBuilderStore((s) => s.init);
   const scales: Scale[] | undefined = useAdminQuizBuilderStore((s) => s.scales);
@@ -241,6 +242,7 @@ export function StepPreview(): JSX.Element {
   const actions = useQuizBuilderActions(
     typeof quizId === 'number' ? quizId : 0,
     typeof quizVersionId === 'number' ? quizVersionId : 0,
+    typeof version === 'number' ? version : undefined,
   );
 
   const canPublish = typeof quizVersionId === 'number' && quizVersionId > 0;

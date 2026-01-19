@@ -5,7 +5,7 @@ import { message } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
-import { useAdminQuizBuilderStore } from './store';
+import { normalizeWeights, useAdminQuizBuilderStore } from './store';
 import { validateInit, validateScales, validateQuestions, validateResults } from './validators';
 
 import { useQuizBuilderActions } from '@/features/admin-quiz-builder/api/useQuizBuilderActions';
@@ -20,6 +20,22 @@ function n(v: unknown): number | undefined {
   const x = typeof v === 'number' ? v : Number(v);
   return Number.isFinite(x) ? x : undefined;
 }
+
+function toArray(v: unknown): any[] {
+  if (Array.isArray(v)) return v as any[];
+  if (!v || typeof v !== 'object') return [];
+  const o = v as any;
+  if (Array.isArray(o.items)) return o.items as any[];
+  if (Array.isArray(o.results)) return o.results as any[];
+  if (Array.isArray(o.rows)) return o.rows as any[];
+  if (Array.isArray(o.content)) return o.content as any[];
+  if (o.data !== undefined) return toArray(o.data);
+  if (o.result !== undefined) return toArray(o.result);
+  if (o.payload !== undefined) return toArray(o.payload);
+  return [];
+}
+
+      
 
 export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } = {}) {
   const t = useTranslations('AdminQuizBuilder');
@@ -76,10 +92,12 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
   const actions = useQuizBuilderActions(
     typeof effectiveQuizId === 'number' ? effectiveQuizId : 0,
     typeof quizVersionId === 'number' ? quizVersionId : 0,
+    typeof latestVersionNumber === 'number' ? latestVersionNumber : undefined,
   );
 
   const setScales = useAdminQuizBuilderStore((s) => s.setScales);
   const setScaleMode = useAdminQuizBuilderStore((s) => s.setScaleMode);
+  const setQuestions = useAdminQuizBuilderStore((s) => s.setQuestions);
 
   const ensureTraits = useEnsureQuizTraits(actions);
   const createOrUpdateQuiz = useCreateOrUpdateQuiz(actions);
@@ -282,9 +300,10 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
   useEffect(() => {
     try {
       const qt = (actions as any)?.quizTraits;
-      const data = qt?.data ?? qt?.result ?? qt?.items ?? qt?.rows ?? qt?.payload ?? qt ?? null;
-      if (!propQuizId || !data || !Array.isArray(data)) return;
-      if (scales.length > 0) return; 
+      const raw = qt ?? null;
+      const backendTraits: any[] = toArray(raw);
+      if (typeof effectiveQuizId !== 'number' || backendTraits.length === 0) return;
+      if (scales.length > 0) return;
 
       function id(prefix: string) {
         return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
@@ -295,7 +314,6 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
         return Number.isFinite(n) ? n : undefined;
       }
 
-      const backendTraits: any[] = data as any[];
       const scaleDrafts: any[] = backendTraits
         .flatMap((tr: any) => {
           const polarity = (tr?.polarity ?? tr?.mode ?? tr?.type ?? 'single') as 'single' | 'bipolar';
@@ -361,9 +379,65 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
         if (detectedMode) setScaleMode(detectedMode);
       }
     } catch (err) {
-      // swallow — this effect is best-effort
+
     }
-  }, [actions.quizTraits?.data, propQuizId, scales.length, setScales, setScaleMode]);
+  }, [actions.quizTraits?.data, effectiveQuizId, scales.length, setScales, setScaleMode]);
+
+  useEffect(() => {
+    try {
+      const qq = (actions as any)?.quizQuestions;
+      const rawQ = qq ?? null;
+      const backendQuestions: any[] = toArray(rawQ);
+      if (typeof effectiveQuizId !== 'number' || backendQuestions.length === 0) return;
+      // Don't overwrite local edits that already contain persisted question IDs.
+      if (questions.length > 0 && questions.some((q) => typeof (q as any).questionId === 'number')) return;
+
+      function id(prefix: string) {
+        return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
+      }
+
+      function toNumber(v: unknown): number | undefined {
+        const n = typeof v === 'number' ? v : Number(v);
+        return Number.isFinite(n) ? n : undefined;
+      }
+
+      const questionDrafts = backendQuestions
+        .map((qq: any, idx: number) => {
+          const qtype = (qq?.qtype ?? qq?.type ?? 'SINGLE_CHOICE') as string;
+          const ord = toNumber(qq?.ord ?? qq?.order ?? qq?.position) ?? idx + 1;
+
+          const opts = Array.isArray(qq?.options) ? qq.options : qq?.answers ?? qq?.variants ?? [];
+          const optionDrafts = opts.map((o: any, oidx: number) => ({
+            tempId: id('opt'),
+            ord: toNumber(o?.ord ?? o?.order ?? o?.position) ?? oidx + 1,
+            label: o?.label ?? o?.text ?? o?.title ?? '',
+            optionId: toNumber(o?.id ?? o?.optionId),
+            weightsByTraitId: normalizeWeights(o?.weightsByTraitId ?? o?.weights ?? o?.traitWeights ?? {}),
+          }));
+
+          const linkedTraitIds = Array.isArray(qq?.linkedTraitIds)
+            ? qq.linkedTraitIds.filter((x: any) => typeof x === 'number')
+            : Array.isArray(qq?.traitIds)
+            ? qq.traitIds.filter((x: any) => typeof x === 'number')
+            : [];
+
+          return {
+            tempId: id('q'),
+            ord,
+            qtype,
+            text: qq?.text ?? qq?.title ?? qq?.question ?? '',
+            linkedTraitIds,
+            questionId: toNumber(qq?.id ?? qq?.questionId),
+            options: optionDrafts.length > 0 ? optionDrafts : [{ tempId: id('opt'), ord: 1, label: '', weightsByTraitId: {} }],
+          } as any;
+        })
+        .sort((a, b) => (a.ord ?? 0) - (b.ord ?? 0));
+
+      if (questionDrafts.length > 0) setQuestions(questionDrafts as any);
+    } catch (err) {
+      // swallow
+    }
+  }, [actions.quizQuestions?.data, effectiveQuizId, questions.length, setQuestions]);
 
   return {
     t,

@@ -161,7 +161,7 @@ function safeIds(v: unknown): number[] {
     return Array.isArray(v) ? (v.filter((x) => typeof x === 'number' && Number.isFinite(x)) as number[]) : [];
 }
 
-function normalizeWeights(weights: unknown): Record<number, number> {
+export function normalizeWeights(weights: unknown): Record<number, number> {
     if (!weights || typeof weights !== 'object') return {};
     const o = weights as Record<string, unknown>;
     const out: Record<number, number> = {};

@@ -66,6 +66,7 @@ export function StepResults({
   const v = useStepValidation({ errors, submitAttempted });
 
   const quizId = useAdminQuizBuilderStore((s) => s.quizId);
+  const version = useAdminQuizBuilderStore((s) => s.version);
   const results = useAdminQuizBuilderStore((s) => s.results);
   const patchResults = useAdminQuizBuilderStore((s) => s.patchResults);
 
@@ -78,7 +79,7 @@ export function StepResults({
 
   const selectedCategoryId = toNumber(Array.isArray(results.selectedCategoryIds) ? results.selectedCategoryIds[0] : undefined);
 
-  const actions = useQuizBuilderActions((quizId as number) ?? 0, 0 as any);
+  const actions = useQuizBuilderActions((quizId as number) ?? 0, 0 as any, typeof version === 'number' ? version : undefined);
   const searchRes = actions.searchProfessionsHook({ categoryId: selectedCategoryId, page, size });
 
   const updateQuiz = actions.updateQuiz;

@@ -22,13 +22,14 @@ import { useAdminCreateProfession } from '@/entities/profession/api/useAdminCrea
 import { useSearchProfessions } from '@/entities/profession/api/useSearchProfessions';
 
 import { useQuizTraits } from '@/entities/quiz/api/useQuizTraits';
+import { useAdminQuestionsForQuizVersion } from '@/entities/question/api/useAdminQuestionsForQuizVersion';
 
 function toId(v: unknown): number | null {
     const n = typeof v === 'number' ? v : Number(v);
     return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-export function useQuizBuilderActions(quizId: number, quizVersionId: number) {
+export function useQuizBuilderActions(quizId: number, quizVersionId: number, version?: number) {
     const createQuiz = useAdminCreateQuiz();
     const updateQuiz = useAdminUpdateQuiz();
     const copyLatestVersion = useAdminCopyLatestVersion();
@@ -71,6 +72,7 @@ export function useQuizBuilderActions(quizId: number, quizVersionId: number) {
     const searchProfessionsHook = useSearchProfessions;
 
     const quizTraits = useQuizTraits(quizVersionId);
+    const quizQuestions = useAdminQuestionsForQuizVersion(quizId, version, { page: '1', size: '200', sort: 'ord' });
 
     const publishQuiz = useMemo(() => {
         return {
@@ -106,6 +108,7 @@ export function useQuizBuilderActions(quizId: number, quizVersionId: number) {
         createProfession,
 
         quizTraits,
+        quizQuestions,
         searchProfessionsHook,
     };
 }
