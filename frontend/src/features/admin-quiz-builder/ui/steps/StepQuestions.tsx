@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Button, Card, Input, Select, Typography, InputNumber } from 'antd';
+import { Button, Card, Input, Select, Typography, InputNumber, message, Modal } from 'antd';
 import { useTranslations, useLocale } from 'next-intl';
 
 import {
@@ -30,6 +30,7 @@ import { CreateQuestionRequestQtype } from '@/shared/api/generated/model/createQ
 import { useStepValidation } from '../../lib/validation/useStepValidation';
 import { StepValidationSummary } from '../../lib/validation/StepValidationSummary';
 import { parseOptionKey, parseQuestionKey } from '../../lib/validation/validationKeys';
+import { useQuizBuilderActions } from '@/features/admin-quiz-builder/api/useQuizBuilderActions';
 
 type DraftOption = {
   tempId: string;
@@ -212,6 +213,10 @@ export function StepQuestions({
   const addQuestion = useAdminQuizBuilderStore((s) => s.addQuestion);
   const patchQuestion = useAdminQuizBuilderStore((s) => s.patchQuestion);
   const removeQuestion = useAdminQuizBuilderStore((s) => s.removeQuestion);
+
+  const storeQuizId = useAdminQuizBuilderStore((s) => s.quizId);
+  const storeQuizVersionId = useAdminQuizBuilderStore((s) => s.quizVersionId);
+  const actions = useQuizBuilderActions(storeQuizId ?? 0, storeQuizVersionId ?? 0);
 
   const applyLinkedTraitsToQuestion = useAdminQuizBuilderStore((s) => s.applyLinkedTraitsToQuestion);
 
@@ -425,7 +430,7 @@ export function StepQuestions({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function applyDraftToExistingQuestion(qTempId: string) {
+  async function applyDraftToExistingQuestion(qTempId: string) {
     const e = validateDraft();
     setDraftErrors(e);
     if (Object.keys(e).length > 0) return;
@@ -453,7 +458,22 @@ export function StepQuestions({
 
     for (let i = desiredCount; i < idsNow.length; i++) {
       const optId = idsNow[i];
-      removeOption(qTempId, optId);
+        // If this option was persisted, delete on server first
+        const opt = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId)?.options.find((o) => o.tempId === optId);
+        if (opt && typeof opt.optionId === 'number' && Number.isFinite(opt.optionId)) {
+          try {
+            const key = 'delete-option';
+            message.loading({ content: 'Deleting option...', key, duration: 0 });
+            await actions.deleteOption.mutateAsync({ id: opt.optionId } as any);
+            message.success({ content: 'Option deleted', key, duration: 1 });
+            removeOption(qTempId, optId);
+          } catch (err: any) {
+            message.error({ content: err?.message ?? 'Failed to delete option', duration: 3 });
+            // keep the option locally so user can retry
+          }
+        } else {
+          removeOption(qTempId, optId);
+        }
     }
 
     const qFinal = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
@@ -472,16 +492,171 @@ export function StepQuestions({
       });
     }
 
+    // Persist edits immediately in background: update question and options, create missing options, assign traits
+    (async () => {
+      try {
+        const stNow = useAdminQuizBuilderStore.getState();
+        const qLocal = stNow.questions.find((x) => x.tempId === qTempId);
+        const qId = qLocal?.questionId;
+
+        if (typeof qId === 'number' && Number.isFinite(qId)) {
+          await actions.updateQuestion.mutateAsync({ id: qId, data: { text: draft.text, qtype: draft.qtype } } as any);
+        }
+
+        const qFinalNow = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+        const orderedNow = qFinalNow?.options.slice().sort((a, b) => a.ord - b.ord) ?? [];
+
+        const optionPromises = orderedNow.map(async (optLocal, idx) => {
+          const dopt = draft.options[idx];
+          if (!dopt) return;
+
+          if (typeof optLocal.optionId === 'number' && Number.isFinite(optLocal.optionId)) {
+            // update existing option
+            await actions.updateOption.mutateAsync({ id: optLocal.optionId, data: { label: dopt.label, ord: idx + 1 } } as any);
+
+            const weightsObj = dopt.weightsByTraitId ?? {};
+            const traits = Object.keys(weightsObj).map((k) => ({ traitId: Number(k), weight: (weightsObj as any)[k] })).filter((x) => Number.isFinite(x.traitId) && typeof x.weight === 'number');
+            if (traits.length > 0) {
+              await actions.assignOptionTraits.mutateAsync({ optionId: optLocal.optionId, data: { traits } as any });
+            }
+          } else {
+            // create option on server if question exists
+            if (typeof qId === 'number' && Number.isFinite(qId)) {
+              const oRes: any = await actions.createOption.mutateAsync({ data: { questionId: qId, label: dopt.label, ord: idx + 1 } as any });
+              const createdOpt = oRes?.data ?? oRes?.result ?? oRes;
+              const createdOptId = typeof createdOpt?.id === 'number' ? createdOpt.id : Number(createdOpt?.id);
+              if (Number.isFinite(createdOptId)) {
+                patchOption(qTempId, optLocal.tempId, { optionId: createdOptId });
+
+                const weightsObj = dopt.weightsByTraitId ?? {};
+                const traits = Object.keys(weightsObj).map((k) => ({ traitId: Number(k), weight: (weightsObj as any)[k] })).filter((x) => Number.isFinite(x.traitId) && typeof x.weight === 'number');
+                if (traits.length > 0) {
+                  await actions.assignOptionTraits.mutateAsync({ optionId: createdOptId, data: { traits } as any });
+                }
+              }
+            }
+          }
+        });
+
+        await Promise.all(optionPromises);
+        message.success({ content: 'Changes saved', duration: 2 });
+      } catch (err: any) {
+        message.error({ content: err?.message ?? 'Failed to save changes', duration: 4 });
+      }
+    })();
+
     resetDraft();
   }
 
-  function commitDraftToStore() {
+  async function commitDraftToStore() {
     const e = validateDraft();
     setDraftErrors(e);
     if (Object.keys(e).length > 0) return;
 
     const ord = (questions.at(-1)?.ord ?? 0) + 1;
 
+    // If we have quiz context, persist optimistically and in background using API actions
+    if (typeof storeQuizId === 'number' && typeof storeQuizVersionId === 'number') {
+      // Optimistic local add
+      addQuestion({ ord, qtype: draft.qtype, text: draft.text, linkedTraitIds: draft.linkedTraitIds }, allTraitIds);
+      const st = useAdminQuizBuilderStore.getState();
+      const qTempId = st.activeQuestionTempId;
+      if (!qTempId) {
+        message.error({ content: 'Failed to create local question', duration: 3 });
+        return;
+      }
+
+      // Ensure local options count and patch initial labels/weights immediately
+      const qNow = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+      if (qNow) {
+        for (let i = (qNow.options?.length ?? 0); i < draft.options.length; i++) {
+          addOption(qTempId, i + 1, allTraitIds);
+        }
+
+        // Patch local options with draft content
+        const ordered = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId)?.options.slice().sort((a, b) => a.ord - b.ord) ?? [];
+        for (let i = 0; i < draft.options.length; i++) {
+          const localOpt = ordered[i] ?? ordered.at(-1);
+          if (!localOpt) continue;
+          const dopt = draft.options[i];
+          patchOption(qTempId, localOpt.tempId, {
+            label: dopt.label ?? '',
+            weightsByTraitId: ensureWeights(dopt.weightsByTraitId ?? {}, draft.linkedTraitIds),
+          });
+        }
+      }
+
+      const savingKey = 'create-question';
+      message.loading({ content: 'Creating question...', key: savingKey, duration: 0 });
+
+      // Background persistence: create question -> create options (parallel) -> assign traits (parallel)
+      (async () => {
+        try {
+          const qRes: any = await actions.createQuestion.mutateAsync({ data: { qtype: draft.qtype, text: draft.text, ord } as any });
+          const created = qRes?.data ?? qRes?.result ?? qRes;
+          const createdId = typeof created?.id === 'number' ? created.id : Number(created?.id);
+          if (!Number.isFinite(createdId)) throw new Error('Failed to create question');
+
+          // Attach persisted question id
+          patchQuestion(qTempId, { questionId: createdId });
+
+          // Create all options in parallel
+          const qAfterAdd = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+          const orderedLocal = qAfterAdd?.options.slice().sort((a, b) => a.ord - b.ord) ?? [];
+
+          const createPromises = draft.options.map((dopt, i) =>
+            actions.createOption.mutateAsync({ data: { questionId: createdId, label: dopt.label, ord: i + 1 } as any })
+              .then((oRes: any) => {
+                const createdOpt = oRes?.data ?? oRes?.result ?? oRes;
+                const createdOptId = typeof createdOpt?.id === 'number' ? createdOpt.id : Number(createdOpt?.id);
+                return { index: i, createdOptId };
+              }),
+          );
+
+          const createdOpts = await Promise.all(createPromises);
+
+          // Patch local options with server ids and assign traits in parallel
+          const assignPromises: Promise<any>[] = [];
+          for (const { index, createdOptId } of createdOpts) {
+            const local = orderedLocal[index];
+            if (local) {
+              const dopt = draft.options[index];
+              patchOption(qTempId, local.tempId, { optionId: createdOptId, label: dopt.label, weightsByTraitId: ensureWeights(dopt.weightsByTraitId ?? {}, draft.linkedTraitIds) });
+
+              const weightsObj = dopt.weightsByTraitId ?? {};
+              const traits = Object.keys(weightsObj).map((k) => ({ traitId: Number(k), weight: (weightsObj as any)[k] })).filter((x) => Number.isFinite(x.traitId) && typeof x.weight === 'number');
+              if (traits.length > 0) {
+                assignPromises.push(actions.assignOptionTraits.mutateAsync({ optionId: createdOptId, data: { traits } as any }));
+              }
+            }
+          }
+
+          if (assignPromises.length > 0) await Promise.all(assignPromises);
+
+          message.success({ content: 'Question created', key: savingKey, duration: 2 });
+          resetDraft();
+        } catch (err: any) {
+          // Rollback on createQuestion failure; if options/assign failed, keep local optimistic item so user can retry
+          const msg = err?.message ?? 'Failed to create question';
+          message.error({ content: msg, key: savingKey, duration: 4 });
+          try {
+            // If question wasn't created on server, remove local optimistic question
+            const stateNow = useAdminQuizBuilderStore.getState();
+            const qLocal = stateNow.questions.find((x) => x.tempId === qTempId);
+            if (qLocal && !qLocal.questionId) {
+              removeQuestion(qTempId);
+              resetDraft();
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+      })();
+
+      return;
+    }
+
+    // Fallback: no quiz context — keep local behavior
     addQuestion(
       { ord, qtype: draft.qtype, text: draft.text, linkedTraitIds: draft.linkedTraitIds },
       allTraitIds,
@@ -600,9 +775,33 @@ export function StepQuestions({
                     influenceLines={influenceLines}
                     onEdit={() => startEditQuestion(q.tempId)}
                     onRemove={() => {
-                      removeQuestion(q.tempId);
-                      if (editingTempId === q.tempId) resetDraft();
-                    }}
+                          const qId = q.questionId;
+                          Modal.confirm({
+                            title: t('confirmDeleteQuestion.title'),
+                            content: t('confirmDeleteQuestion.content'),
+                            okText: t('confirm'),
+                            okType: 'danger',
+                            cancelText: t('cancel'),
+                            onOk: async () => {
+                              if (typeof qId === 'number' && Number.isFinite(qId)) {
+                                const key = 'delete-question';
+                                message.loading({ content: 'Deleting question...', key, duration: 0 });
+                                try {
+                                  await actions.deleteQuestion.mutateAsync({ id: qId } as any);
+                                  removeQuestion(q.tempId);
+                                  message.success({ content: 'Question deleted', key, duration: 2 });
+                                } catch (err: any) {
+                                  message.error({ content: err?.message ?? 'Failed to delete question', key, duration: 3 });
+                                }
+                              } else {
+                                // local-only question
+                                removeQuestion(q.tempId);
+                              }
+
+                              if (editingTempId === q.tempId) resetDraft();
+                            },
+                          });
+                        }}
                     errors={errPairs}
                     removeLabel={t('remove')}
                     editLabel={t('edit')}

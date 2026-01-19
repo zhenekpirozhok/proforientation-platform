@@ -175,94 +175,8 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
     }
 
     if (step === 2) {
-      const qid = n(useAdminQuizBuilderStore.getState().quizId) ?? effectiveQuizId;
-      const qvid = n(useAdminQuizBuilderStore.getState().quizVersionId) ?? latestQuizVersionId;
-
-      if (typeof qid !== 'number' || typeof qvid !== 'number') {
-        message.error(t('validation.quizOperationError'));
-        return;
-      }
-
-      const { patchQuestion, patchOption } = useAdminQuizBuilderStore.getState();
-
-      const savingKey = 'quiz-saving';
-      message.loading({ content: t('savingInBackground'), key: savingKey, duration: 0 });
-
-      (async () => {
-        try {
-          for (const q of questions) {
-            const questionTempId = q.tempId;
-
-            if (typeof q.questionId === 'number') {
-              const qRes: any = await actions.updateQuestion.mutateAsync({
-                id: q.questionId,
-                data: { qtype: q.qtype, text: q.text, ord: q.ord } as any,
-              });
-              const updated = qRes?.data ?? qRes?.result ?? qRes;
-              const updatedId = n(updated?.id) ?? q.questionId;
-              patchQuestion(questionTempId, { questionId: updatedId });
-            } else {
-              const qRes: any = await actions.createQuestion.mutateAsync({
-                data: { qtype: q.qtype, text: q.text, ord: q.ord } as any,
-              });
-              const created = qRes?.data ?? qRes?.result ?? qRes;
-              const createdId = n(created?.id);
-              if (typeof createdId !== 'number') throw new Error('Failed to create question');
-              patchQuestion(questionTempId, { questionId: createdId });
-            }
-
-            const persistedQuestionId = n(useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === questionTempId)?.questionId);
-            if (typeof persistedQuestionId !== 'number') throw new Error('Failed to persist question id');
-
-            const sortedOptions = q.options.slice().sort((a, b) => a.ord - b.ord);
-
-            for (const opt of sortedOptions) {
-              const optionTempId = opt.tempId;
-
-              if (typeof opt.optionId === 'number') {
-                await actions.updateOption.mutateAsync({
-                  id: opt.optionId,
-                  data: { label: opt.label, ord: opt.ord } as any,
-                });
-              } else {
-                const optRes: any = await actions.createOption.mutateAsync({
-                  data: { questionId: persistedQuestionId, label: opt.label, ord: opt.ord } as any,
-                });
-                const createdOpt = optRes?.data ?? optRes?.result ?? optRes;
-                const createdOptId = n(createdOpt?.id);
-                if (typeof createdOptId !== 'number') throw new Error('Failed to create option');
-                patchOption(questionTempId, optionTempId, { optionId: createdOptId });
-              }
-
-              const persistedOptionId = n(
-                useAdminQuizBuilderStore
-                  .getState()
-                  .questions.find((x) => x.tempId === questionTempId)
-                  ?.options.find((o) => o.tempId === optionTempId)?.optionId,
-              );
-
-              if (typeof persistedOptionId !== 'number') continue;
-
-              const weightsObj = opt.weightsByTraitId ?? {};
-              const traits = Object.keys(weightsObj)
-                .map((k) => ({ traitId: Number(k), weight: (weightsObj as any)[k] }))
-                .filter((x) => Number.isFinite(x.traitId) && typeof x.weight === 'number');
-
-              if (traits.length > 0) {
-                await actions.assignOptionTraits.mutateAsync({
-                  optionId: persistedOptionId,
-                  data: { traits } as any,
-                });
-              }
-            }
-          }
-
-          message.success({ content: t('savedInBackground'), key: savingKey, duration: 3 });
-        } catch (err: any) {
-          message.error({ content: err?.message || t('validation.quizOperationError'), key: savingKey, duration: 5 });
-        }
-      })();
-
+      // Questions and options are persisted immediately on add/edit/delete in the UI.
+      // Skip batch create/update here and just advance the step.
       setStep((step + 1) as any);
       return;
     }
@@ -389,7 +303,6 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
       const rawQ = qq ?? null;
       const backendQuestions: any[] = toArray(rawQ);
       if (typeof effectiveQuizId !== 'number' || backendQuestions.length === 0) return;
-      // Don't overwrite local edits that already contain persisted question IDs.
       if (questions.length > 0 && questions.some((q) => typeof (q as any).questionId === 'number')) return;
 
       function id(prefix: string) {

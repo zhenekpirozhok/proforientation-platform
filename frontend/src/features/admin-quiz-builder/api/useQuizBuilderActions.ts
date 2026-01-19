@@ -12,10 +12,12 @@ import { useAdminCreateTrait } from '@/entities/trait/api/useAdminCreateTrait';
 
 import { useAdminCreateQuestion } from '@/entities/question/api/useAdminCreateQuestion';
 import { useAdminUpdateQuestion } from '@/entities/question/api/useAdminUpdateQuestion';
+import { useDeleteQuestion } from '@/entities/question/api/useDeleteQuestion';
 
 import { useAdminCreateOption } from '@/entities/option/api/useAdminCreateOption';
 import { useAdminUpdateOption } from '@/entities/option/api/useAdminUpdateOption';
 import { useAdminAssignOptionTraits } from '@/entities/option/api/useAdminAssignOptionTraits';
+import { useAdminDeleteOption } from '@/entities/option/api/useAdminDeleteOption';
 
 import { useAdminCreateCategory } from '@/entities/category/api/useAdminCreateCategory';
 import { useAdminCreateProfession } from '@/entities/profession/api/useAdminCreateProfession';
@@ -40,10 +42,12 @@ export function useQuizBuilderActions(quizId: number, quizVersionId: number, ver
 
     const createQuestion = useAdminCreateQuestion(quizId, quizVersionId);
     const updateQuestion = useAdminUpdateQuestion(quizId, quizVersionId);
+    const deleteQuestion = useDeleteQuestion();
 
     const createOption = useAdminCreateOption();
     const updateOption = useAdminUpdateOption();
     const assignOptionTraits = useAdminAssignOptionTraits();
+    const deleteOption = useAdminDeleteOption();
 
     const createQuizVersionBase = useCreateQuizVersion();
 
@@ -97,10 +101,12 @@ export function useQuizBuilderActions(quizId: number, quizVersionId: number, ver
 
         createQuestion,
         updateQuestion,
+        deleteQuestion,
 
         createOption,
         updateOption,
         assignOptionTraits,
+        deleteOption,
 
         createQuizVersion,
 
