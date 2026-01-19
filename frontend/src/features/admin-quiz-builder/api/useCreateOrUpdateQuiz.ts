@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { message } from 'antd';
 
@@ -28,9 +28,24 @@ function pickVersionPayload(res: any) {
     return { quizVersionId, version };
 }
 
-export function useCreateOrUpdateQuiz(actions: ReturnTypeUseQuizBuilderActions | null) {
+function isVersionPublished(version: any): boolean {
+    const publishedAt = version?.publishedAt;
+    return Boolean(publishedAt);
+}
+
+export function useCreateOrUpdateQuiz(
+    actions: ReturnTypeUseQuizBuilderActions | null,
+    latestVersion?: any,
+) {
     const t = useTranslations('AdminQuizBuilder');
     const createQuizVersion = useCreateQuizVersion();
+    const newVersionCreatedRef = useRef(false);
+    const storeQuizVersionId = useAdminQuizBuilderStore((s) => s.quizVersionId);
+
+    // Reset the flag when quiz or version changes
+    useEffect(() => {
+        newVersionCreatedRef.current = false;
+    }, [storeQuizVersionId]);
 
     return useCallback(
         async (payload: CreateQuizRequest | (UpdateQuizRequest & { quizId?: number }), isUpdate = false) => {
@@ -42,6 +57,37 @@ export function useCreateOrUpdateQuiz(actions: ReturnTypeUseQuizBuilderActions |
             try {
                 if (isUpdate && 'quizId' in payload && typeof payload.quizId === 'number') {
                     const { quizId, ...updateData } = payload;
+
+                    // Check if current version is published and a new version hasn't been created yet
+                    const currentVersionPublished = isVersionPublished(latestVersion);
+                    const currentQuizVersionId = useAdminQuizBuilderStore.getState().quizVersionId;
+
+                    if (currentVersionPublished && !newVersionCreatedRef.current) {
+                        try {
+                            // Create new version from the published one
+                            const newVersionRes: any = await createQuizVersion.mutateAsync(quizId);
+                            const { quizVersionId: newVersionId, version: newVersion } = pickVersionPayload(newVersionRes);
+
+                            if (typeof newVersionId !== 'number') {
+                                message.error(t('validation.quizOperationError'));
+                                return false;
+                            }
+
+                            // Update store with new version
+                            useAdminQuizBuilderStore.setState({
+                                quizVersionId: newVersionId,
+                                version: typeof newVersion === 'number' ? newVersion : (latestVersion?.version ?? 1) + 1,
+                            });
+
+                            newVersionCreatedRef.current = true;
+
+                            message.info(t('toastNewVersionCreated') || 'New version created');
+                        } catch (err) {
+                            message.error(t('validation.quizOperationError'));
+                            return false;
+                        }
+                    }
+
                     await actions.updateQuiz.mutateAsync({
                         id: quizId,
                         data: updateData as UpdateQuizRequest,
@@ -80,6 +126,6 @@ export function useCreateOrUpdateQuiz(actions: ReturnTypeUseQuizBuilderActions |
                 return false;
             }
         },
-        [actions, t, createQuizVersion],
+        [actions, t, createQuizVersion, latestVersion],
     );
 }

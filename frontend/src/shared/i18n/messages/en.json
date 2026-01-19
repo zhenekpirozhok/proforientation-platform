@@ -502,6 +502,7 @@
   "savingInBackground": "Saving in background…",
   "savedInBackground": "Saved",
   "toastCreated": "Quiz created",
+  "toastNewVersionCreated": "New quiz version created",
   "needQuizContext": "Create the quiz first (Step 0).",
   "validation": {
     "required": "This field is required",
@@ -695,13 +696,15 @@
     "toastDeleted": "Quiz deleted",
     "published": "Published",
     "draft": "Draft",
+    "draftUpdate": "Update",
     "created": "Created",
     "updated": "Updated",
     "publishedAt": "Published",
     "edit": "Edit",
     "translations": "Translations",
     "publish": "Publish",
-    "analytics": "Analytics"
+    "analytics": "Analytics",
+    "toastAlreadyPublished": "This version is already published"
   }
 
 }

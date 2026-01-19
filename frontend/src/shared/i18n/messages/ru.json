@@ -502,6 +502,7 @@
   "savingInBackground": "Сохранение в фоне…",
   "savedInBackground": "Сохранено",
   "toastCreated": "Квиз создан",
+  "toastNewVersionCreated": "Создана новая версия квиза",
   "needQuizContext": "Сначала создайте квиз (Шаг 0).",
   "validation": {
     "required": "Это поле обязательно",
@@ -692,12 +693,14 @@
     "empty": "Пока нет квизов",
     "published": "Опубликован",
     "draft": "Черновик",
+    "draftUpdate": "Обновление",
     "created": "Создан",
     "updated": "Обновлён",
     "publishedAt": "Опубликован",
     "edit": "Редактировать",
     "translations": "Переводы",
     "publish": "Опубликовать",
-    "analytics": "Аналитика"
+    "analytics": "Аналитика",
+    "toastAlreadyPublished": "Эта версия уже опубликована"
   }
 } 

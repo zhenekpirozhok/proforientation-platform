@@ -11,6 +11,7 @@ import { validateInit, validateScales, validateQuestions, validateResults } from
 import { useQuizBuilderActions } from '@/features/admin-quiz-builder/api/useQuizBuilderActions';
 import { useEnsureQuizTraits } from '../api/useEnsureQuizTraits';
 import { useCreateOrUpdateQuiz } from '../api/useCreateOrUpdateQuiz';
+import { useEnsureUnpublishedVersion } from '../api/useEnsureUnpublishedVersion';
 
 import { useAdminQuiz } from '@/entities/quiz/api/useAdminQuiz';
 import { useGetQuizVersions } from '@/entities/quiz/api/useGetQuizVersions';
@@ -80,8 +81,10 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
   }, [propQuizId, resetStore]);
 
   useEffect(() => {
-    if (propQuizId && quizData && hydrated) hydrateFromServerQuiz(quizData as any);
-  }, [propQuizId, quizData, hydrateFromServerQuiz, hydrated]);
+    if (propQuizId && quizData && hydrated && step === 0) {
+      hydrateFromServerQuiz(quizData as any);
+    }
+  }, [propQuizId, quizData, hydrateFromServerQuiz, hydrated, step]);
 
   useEffect(() => {
     if (typeof effectiveQuizId !== 'number') return;
@@ -107,7 +110,8 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
   const setQuestions = useAdminQuizBuilderStore((s) => s.setQuestions);
 
   const ensureTraits = useEnsureQuizTraits(actions);
-  const createOrUpdateQuiz = useCreateOrUpdateQuiz(actions);
+  const createOrUpdateQuiz = useCreateOrUpdateQuiz(actions, latestVersion);
+  const ensureUnpublishedVersion = useEnsureUnpublishedVersion(actions, latestVersion);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -116,6 +120,26 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
   useEffect(() => {
     setSubmitAttempted(false);
   }, [step]);
+
+  // Ensure unpublished version when editing published quiz
+  useEffect(() => {
+    const ensureVersion = async () => {
+      if (
+        typeof effectiveQuizId !== 'number' ||
+        !latestVersion ||
+        !quizData
+      ) return;
+
+      // Check if this is an existing quiz (not new) and latest version is published
+      const isPublished = Boolean(latestVersion?.publishedAt);
+      if (isPublished) {
+        // This is an edit of a published quiz, ensure unpublished version
+        await ensureUnpublishedVersion(effectiveQuizId);
+      }
+    };
+
+    ensureVersion();
+  }, [effectiveQuizId, latestVersion?.id, latestVersion?.publishedAt, quizData]);
 
   const traitIds = useMemo(
     () => scales.map((s) => s.traitId).filter((x): x is number => typeof x === 'number'),
@@ -200,6 +224,10 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
 
       if (typeof effectiveQuizId === 'number' && typeof selectedCategoryId === 'number') {
         try {
+          // Ensure we have unpublished version if current version is published
+          const versionOk = await ensureUnpublishedVersion(effectiveQuizId);
+          if (!versionOk) return;
+
           await actions.updateQuiz.mutateAsync({
             id: effectiveQuizId as any,
             data: { categoryId: selectedCategoryId } as any,
