@@ -13,6 +13,7 @@ import { useAdminCreateTrait } from '@/entities/trait/api/useAdminCreateTrait';
 import { useAdminCreateQuestion } from '@/entities/question/api/useAdminCreateQuestion';
 import { useAdminUpdateQuestion } from '@/entities/question/api/useAdminUpdateQuestion';
 import { useDeleteQuestion } from '@/entities/question/api/useDeleteQuestion';
+import { useUpdateQuestionOrder } from '@/entities/question/api/useUpdateQuestionOrder';
 
 import { useAdminCreateOption } from '@/entities/option/api/useAdminCreateOption';
 import { useAdminUpdateOption } from '@/entities/option/api/useAdminUpdateOption';
@@ -43,6 +44,7 @@ export function useQuizBuilderActions(quizId: number, quizVersionId: number, ver
     const createQuestion = useAdminCreateQuestion(quizId, quizVersionId);
     const updateQuestion = useAdminUpdateQuestion(quizId, quizVersionId);
     const deleteQuestion = useDeleteQuestion();
+    const updateQuestionOrder = useUpdateQuestionOrder();
 
     const createOption = useAdminCreateOption();
     const updateOption = useAdminUpdateOption();
@@ -63,7 +65,6 @@ export function useQuizBuilderActions(quizId: number, quizVersionId: number, ver
                             : undefined;
 
                 const idToUse = toId(direct) ?? toId(quizId);
-
                 if (!idToUse) throw new Error(`Invalid quiz id: ${String(direct ?? quizId)}`);
 
                 return (createQuizVersionBase as any).mutateAsync(idToUse, ...rest);
@@ -89,7 +90,6 @@ export function useQuizBuilderActions(quizId: number, quizVersionId: number, ver
         } as typeof publishBase;
     }, [publishBase, quizVersionId]);
 
-
     return {
         createQuiz,
         updateQuiz,
@@ -102,6 +102,7 @@ export function useQuizBuilderActions(quizId: number, quizVersionId: number, ver
         createQuestion,
         updateQuestion,
         deleteQuestion,
+        updateQuestionOrder,
 
         createOption,
         updateOption,
