@@ -42,7 +42,7 @@ variable "desired_count" {
 
 variable "healthcheck_path" {
   type    = string
-  default = "/actuator/health/readiness"
+  default = "/api/v1.0/actuator/health/readiness"
 }
 
 # App secrets
