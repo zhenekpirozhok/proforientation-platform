@@ -71,6 +71,7 @@ export function useCreateOrUpdateQuiz(actions: ReturnTypeUseQuizBuilderActions |
                     quizId: newQuizId,
                     quizVersionId,
                     version: typeof version === 'number' ? version : 1,
+                    step: 0,
                 });
 
                 return true;

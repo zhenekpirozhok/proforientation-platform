@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { message } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -61,6 +61,8 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
   const setQuizContext = useAdminQuizBuilderStore((s) => s.setQuizContext);
   const hydrated = useAdminQuizBuilderStore((s) => s.hydrated);
 
+  const createdToastShownRef = useRef(false);
+
   const effectiveQuizId = useMemo(() => n(propQuizId ?? storeQuizId), [propQuizId, storeQuizId]);
 
   const { data: quizData, isLoading: quizLoading } = useAdminQuiz(propQuizId ?? 0, {
@@ -96,7 +98,7 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
 
   const actions = useQuizBuilderActions(
     typeof effectiveQuizId === 'number' ? effectiveQuizId : 0,
-    typeof quizVersionId === 'number' ? quizVersionId : 0,
+    typeof latestQuizVersionId === 'number' ? latestQuizVersionId : 0,
     typeof latestVersionNumber === 'number' ? latestVersionNumber : undefined,
   );
 
@@ -217,8 +219,16 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
 
   useEffect(() => {
     if (step > 4) {
-      message.success(t('toastCreated'));
-      router.push('/admin');
+      if (!createdToastShownRef.current) {
+        createdToastShownRef.current = true;
+        message.success(t('toastCreated'));
+        try {
+          resetStore();
+        } catch {}
+        router.push('/admin');
+      }
+    } else {
+      createdToastShownRef.current = false;
     }
   }, [step, router, t]);
 

@@ -128,22 +128,6 @@ export function StepResults({
 
   const canSave = typeof quizId === 'number' && typeof selectedCategoryId === 'number';
 
-  async function onSave() {
-    if (!canSave) {
-      message.error(t('validation.fixErrors'));
-      return;
-    }
-    try {
-      await updateQuiz.mutateAsync({
-        id: quizId as any,
-        data: { categoryId: selectedCategoryId } as any,
-      });
-      message.success(t('saved'));
-    } catch (e) {
-      message.error((e as Error).message);
-    }
-  }
-
   async function onCreateCategory() {
     const name = newCategoryName.trim();
     if (!name) {
@@ -261,15 +245,6 @@ export function StepResults({
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => setShowCreateCategory((vv) => !vv)} disabled={isCategoryBusy}>
                 {showCreateCategory ? t('close') : t('addCategory')}
-              </Button>
-
-              <Button
-                type="primary"
-                onClick={onSave}
-                disabled={!canSave || updateQuiz.isPending}
-                loading={updateQuiz.isPending}
-              >
-                {t('save')}
               </Button>
             </div>
 
