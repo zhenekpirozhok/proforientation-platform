@@ -484,12 +484,11 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
       if (opt && typeof opt.optionId === 'number' && Number.isFinite(opt.optionId)) {
         try {
           const key = 'delete-option';
-          message.loading({ content: 'Deleting option...', key, duration: 0 });
           await actions.deleteOption.mutateAsync({ id: opt.optionId } as any);
-          message.success({ content: 'Option deleted', key, duration: 1 });
+          message.success({ content: t('optionDeleted'), key, duration: 1 });
           removeOption(qTempId, optTempId);
         } catch (err: any) {
-          message.error({ content: err?.message ?? 'Failed to delete option', duration: 3 });
+          message.error({ content: err?.message ?? t('failedToDeleteOption'), duration: 3 });
         }
       } else {
         removeOption(qTempId, optTempId);
@@ -565,9 +564,8 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
         });
 
         await Promise.all(optionPromises);
-        message.success({ content: 'Changes saved', duration: 2 });
       } catch (err: any) {
-        message.error({ content: err?.message ?? 'Failed to save changes', duration: 4 });
+        message.error({ content: err?.message ?? t('failedToSaveChanges'), duration: 4 });
       }
     })();
 
@@ -588,7 +586,7 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
       const qTempId = st.activeQuestionTempId;
 
       if (!qTempId) {
-        message.error({ content: 'Failed to create local question', duration: 3 });
+        message.error({ content: t('failedToCreateLocalQuestion'), duration: 3 });
         return;
       }
 
@@ -617,14 +615,13 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
       }
 
       const savingKey = 'create-question';
-      message.loading({ content: 'Creating question...', key: savingKey, duration: 0 });
 
       (async () => {
         try {
           const qRes: any = await actions.createQuestion.mutateAsync({ data: { qtype: draft.qtype, text: draft.text, ord } as any });
           const created = qRes?.data ?? qRes?.result ?? qRes;
           const createdId = typeof created?.id === 'number' ? created.id : Number(created?.id);
-          if (!Number.isFinite(createdId)) throw new Error('Failed to create question');
+          if (!Number.isFinite(createdId)) throw new Error(t('failedToCreateQuestion'));
 
           patchQuestion(qTempId, { questionId: createdId });
 
@@ -667,10 +664,9 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
 
           if (assignPromises.length > 0) await Promise.all(assignPromises);
 
-          message.success({ content: 'Question created', key: savingKey, duration: 2 });
           resetDraft();
         } catch (err: any) {
-          const msg = err?.message ?? 'Failed to create question';
+          const msg = err?.message ?? t('failedToCreateQuestion');
           message.error({ content: msg, key: savingKey, duration: 4 });
 
           try {
@@ -770,12 +766,11 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
 
             const canPersist = prev.every((q) => toId(q.questionId));
             if (!canPersist) {
-              message.info('Порядок сохранится после того, как все вопросы будут созданы на сервере');
+              message.info(t('reorderNotSavedNotice'));
               return;
             }
 
             const key = 'reorder-questions';
-            message.loading({ content: 'Saving order...', key, duration: 0 });
 
             try {
               const run = async () => {
@@ -794,10 +789,9 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
               await p;
 
               if (reorderInFlightRef.current === p) reorderInFlightRef.current = null;
-              message.success({ content: 'Order saved', key, duration: 1 });
             } catch (err: any) {
               reorderInFlightRef.current = null;
-              message.error({ content: err?.message ?? 'Failed to save order', key, duration: 3 });
+              message.error({ content: err?.message ?? t('failedToSaveOrder'), key, duration: 3 });
             }
           }}
         >
@@ -850,13 +844,12 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
                         onOk: async () => {
                           if (typeof qId === 'number' && Number.isFinite(qId)) {
                             const key = 'delete-question';
-                            message.loading({ content: 'Deleting question...', key, duration: 0 });
                             try {
                               await actions.deleteQuestion.mutateAsync({ id: qId } as any);
                               removeQuestion(q.tempId);
-                              message.success({ content: 'Question deleted', key, duration: 2 });
+                              message.success({ content: t('questionDeleted'), key, duration: 2 });
                             } catch (err: any) {
-                              message.error({ content: err?.message ?? 'Failed to delete question', key, duration: 3 });
+                              message.error({ content: err?.message ?? t('failedToDeleteQuestion'), key, duration: 3 });
                             }
                           } else {
                             removeQuestion(q.tempId);

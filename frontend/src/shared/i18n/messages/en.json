@@ -544,6 +544,8 @@
     "createFailed": "Failed to create quiz",
     "quizDescription": "Description",
     "quizDescriptionPh": "Write what this quiz is about",
+    "codeReadOnlyTooltip": "Auto-generated from title",
+    "codeReadOnlyInfo": "Code is auto-generated from the title and cannot be edited.",
     "validation": {
       "fixErrors": "Please fix the errors below"
     }
@@ -612,6 +614,13 @@
       "saveChanges": "Save changes",
       "cancelEdit": "Cancel",
       "edit": "Edit",
+      "optionDeleted": "Option deleted",
+      "failedToDeleteOption": "Failed to delete option",
+      "failedToSaveChanges": "Failed to save changes",
+      "failedToCreateLocalQuestion": "Failed to create local question",
+      "failedToCreateQuestion": "Failed to create question",
+      "reorderNotSavedNotice": "Order changed locally; will be saved after creating questions on the server.",
+      "failedToSaveOrder": "Failed to save order",
       "validation": {
         "fixErrors": "Please fix the errors below"
       }
@@ -641,6 +650,8 @@
     "loading": "Loading…",
     "noProfessionsInCategory": "No professions in this category",
     "loadMore": "Load more",
+    "invalidQuizVersionId": "Invalid quiz version id",
+    "traitsCreated": "Traits created",
     "validation": {
       "fixErrors": "Fix validation errors to continue"
     },

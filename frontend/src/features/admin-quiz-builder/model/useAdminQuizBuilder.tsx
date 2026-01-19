@@ -121,7 +121,6 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
     setSubmitAttempted(false);
   }, [step]);
 
-  // Ensure unpublished version when editing published quiz
   useEffect(() => {
     const ensureVersion = async () => {
       if (
@@ -130,10 +129,8 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
         !quizData
       ) return;
 
-      // Check if this is an existing quiz (not new) and latest version is published
       const isPublished = Boolean(latestVersion?.publishedAt);
       if (isPublished) {
-        // This is an edit of a published quiz, ensure unpublished version
         await ensureUnpublishedVersion(effectiveQuizId);
       }
     };
@@ -224,7 +221,6 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
 
       if (typeof effectiveQuizId === 'number' && typeof selectedCategoryId === 'number') {
         try {
-          // Ensure we have unpublished version if current version is published
           const versionOk = await ensureUnpublishedVersion(effectiveQuizId);
           if (!versionOk) return;
 

@@ -71,12 +71,12 @@ export function StepInit({
             placeholder={t('quizCodePh')}
             size="large"
             suffix={
-              <Tooltip title="Auto-generated from title">
+              <Tooltip title={t('codeReadOnlyTooltip')}>
                 <LockOutlined />
               </Tooltip>
             }
           />
-          <Typography.Text type="secondary" className="block mt-1">Code is auto-generated from the title and cannot be edited.</Typography.Text>
+            <Typography.Text type="secondary" className="block mt-1">{t('codeReadOnlyInfo')}</Typography.Text>
           {v.showError('code') ? <FieldError code={errors.code} /> : null}
         </div>
 

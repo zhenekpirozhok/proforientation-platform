@@ -612,9 +612,18 @@
       "saveChanges": "Сохранить изменения",
       "cancelEdit": "Отменить",
       "edit": "Редактировать",
+      "optionDeleted": "Вариант удалён",
+      "failedToDeleteOption": "Не удалось удалить вариант",
+      "failedToSaveChanges": "Не удалось сохранить изменения",
+      "failedToCreateLocalQuestion": "Не удалось создать локальный вопрос",
+      "failedToCreateQuestion": "Не удалось создать вопрос",
+      "reorderNotSavedNotice": "Порядок изменён локально; будет сохранён после создания вопросов на сервере.",
+      "failedToSaveOrder": "Не удалось сохранить порядок",
       "validation": {
         "fixErrors": "Пожалуйста, исправьте ошибки ниже"
-      }
+      },
+          "codeReadOnlyTooltip": "Код формируется автоматически из названия",
+          "codeReadOnlyInfo": "Код формируется автоматически из названия и не может быть отредактирован"
     },
   "results": {
     "title": "Шаг 3 — Результаты",
@@ -641,6 +650,8 @@
     "loading": "Загрузка…",
     "noProfessionsInCategory": "В этой категории нет профессий",
     "loadMore": "Загрузить ещё",
+    "invalidQuizVersionId": "Неверный id версии квиза",
+    "traitsCreated": "Трейты созданы",
     "validation": {
       "fixErrors": "Исправьте ошибки валидации"
     },

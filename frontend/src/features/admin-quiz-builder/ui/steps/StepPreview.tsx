@@ -249,7 +249,7 @@ export function StepPreview(): JSX.Element {
 
   async function onPublish() {
     if (!canPublish) {
-      message.error(t('validation.fixErrors') || 'Invalid quiz version id');
+      message.error(t('validation.fixErrors') || t('invalidQuizVersionId'));
       return;
     }
 
