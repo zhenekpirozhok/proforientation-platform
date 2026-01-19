@@ -35,7 +35,10 @@ function toArray(v: unknown): any[] {
   return [];
 }
 
-      
+function toNumber(v: unknown): number | undefined {
+  const x = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(x) ? x : undefined;
+}
 
 export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } = {}) {
   const t = useTranslations('AdminQuizBuilder');
@@ -47,6 +50,8 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
   const quizVersionId = useAdminQuizBuilderStore((s) => s.quizVersionId);
 
   const init = useAdminQuizBuilderStore((s) => s.init);
+  const serverInit = useAdminQuizBuilderStore((s) => s.serverInit);
+
   const scales = useAdminQuizBuilderStore((s) => s.scales);
   const questions = useAdminQuizBuilderStore((s) => s.questions);
   const results = useAdminQuizBuilderStore((s) => s.results);
@@ -150,16 +155,25 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
     setSubmitAttempted(false);
 
     if (step === 0) {
-      const ok = await createOrUpdateQuiz(
-        {
-          quizId: effectiveQuizId,
-          title: init.title,
-          code: init.code,
-          descriptionDefault: init.description,
-        },
-        typeof effectiveQuizId === 'number',
-      );
-      if (!ok) return;
+      const unchanged =
+        typeof effectiveQuizId === 'number' &&
+        serverInit &&
+        serverInit.title === init.title &&
+        serverInit.code === init.code &&
+        serverInit.description === init.description;
+
+      if (!unchanged) {
+        const ok = await createOrUpdateQuiz(
+          {
+            quizId: effectiveQuizId,
+            title: init.title,
+            code: init.code,
+            descriptionDefault: init.description,
+          },
+          typeof effectiveQuizId === 'number',
+        );
+        if (!ok) return;
+      }
 
       setStep((step + 1) as any);
       return;
@@ -175,8 +189,6 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
     }
 
     if (step === 2) {
-      // Questions and options are persisted immediately on add/edit/delete in the UI.
-      // Skip batch create/update here and just advance the step.
       setStep((step + 1) as any);
       return;
     }
@@ -210,22 +222,17 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
     }
   }, [step, router, t]);
 
+  const traitsData = (actions as any)?.quizTraits?.data;
+  const questionsData = (actions as any)?.quizQuestions?.data;
 
   useEffect(() => {
     try {
-      const qt = (actions as any)?.quizTraits;
-      const raw = qt ?? null;
-      const backendTraits: any[] = toArray(raw);
+      const backendTraits: any[] = toArray(traitsData);
       if (typeof effectiveQuizId !== 'number' || backendTraits.length === 0) return;
       if (scales.length > 0) return;
 
-      function id(prefix: string) {
+      function lid(prefix: string) {
         return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
-      }
-
-      function toNumber(v: unknown): number | undefined {
-        const n = typeof v === 'number' ? v : Number(v);
-        return Number.isFinite(n) ? n : undefined;
       }
 
       const scaleDrafts: any[] = backendTraits
@@ -233,7 +240,7 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
           const polarity = (tr?.polarity ?? tr?.mode ?? tr?.type ?? 'single') as 'single' | 'bipolar';
 
           if (polarity === 'bipolar') {
-            const pairId = String(tr?.pairId ?? tr?.pairCode ?? tr?.bipolarPairCode ?? id('pair'));
+            const pairId = String(tr?.pairId ?? tr?.pairCode ?? tr?.bipolarPairCode ?? lid('pair'));
             const pairCode = tr?.pairCode ?? tr?.bipolarPairCode ?? '';
 
             const left = tr?.left ?? tr?.negative ?? tr?.a ?? {};
@@ -244,7 +251,7 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
 
             return [
               {
-                tempId: id('scale'),
+                tempId: lid('scale'),
                 traitId: leftTraitId,
                 polarity: 'bipolar',
                 side: 'LEFT',
@@ -256,7 +263,7 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
                 codeTouched: true,
               },
               {
-                tempId: id('scale'),
+                tempId: lid('scale'),
                 traitId: rightTraitId,
                 polarity: 'bipolar',
                 side: 'RIGHT',
@@ -273,7 +280,7 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
           const tid = toNumber(tr?.id ?? tr?.traitId);
           return [
             {
-              tempId: id('scale'),
+              tempId: lid('scale'),
               traitId: tid,
               polarity: 'single',
               name: tr?.name ?? tr?.title ?? '',
@@ -289,29 +296,20 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
         scaleDrafts.some((s) => s.polarity === 'bipolar') ? 'bipolar' : scaleDrafts.length > 0 ? 'single' : null;
 
       if (scaleDrafts.length > 0) {
-        setScales(scaleDrafts);
+        setScales(scaleDrafts as any);
         if (detectedMode) setScaleMode(detectedMode);
       }
-    } catch (err) {
-
-    }
-  }, [actions.quizTraits?.data, effectiveQuizId, scales.length, setScales, setScaleMode]);
+    } catch {}
+  }, [traitsData, effectiveQuizId, scales.length, setScales, setScaleMode]);
 
   useEffect(() => {
     try {
-      const qq = (actions as any)?.quizQuestions;
-      const rawQ = qq ?? null;
-      const backendQuestions: any[] = toArray(rawQ);
+      const backendQuestions: any[] = toArray(questionsData);
       if (typeof effectiveQuizId !== 'number' || backendQuestions.length === 0) return;
       if (questions.length > 0 && questions.some((q) => typeof (q as any).questionId === 'number')) return;
 
-      function id(prefix: string) {
+      function lid(prefix: string) {
         return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
-      }
-
-      function toNumber(v: unknown): number | undefined {
-        const n = typeof v === 'number' ? v : Number(v);
-        return Number.isFinite(n) ? n : undefined;
       }
 
       const questionDrafts = backendQuestions
@@ -319,49 +317,49 @@ export function useAdminQuizBuilder({ quizId: propQuizId }: { quizId?: number } 
           const qtype = (qq?.qtype ?? qq?.type ?? 'SINGLE_CHOICE') as string;
           const ord = toNumber(qq?.ord ?? qq?.order ?? qq?.position) ?? idx + 1;
 
-    const opts = Array.isArray(qq?.options) ? qq.options : qq?.answers ?? qq?.variants ?? [];
-const optionDrafts = opts.map((o: any, oidx: number) => ({
-  tempId: id('opt'),
-  ord: toNumber(o?.ord ?? o?.order ?? o?.position) ?? oidx + 1,
-  label: o?.label ?? o?.text ?? o?.title ?? '',
-  optionId: toNumber(o?.id ?? o?.optionId),
-  weightsByTraitId: normalizeWeights(o?.weightsByTraitId ?? o?.weights ?? o?.traitWeights ?? {}),
-}));
+          const opts = Array.isArray(qq?.options) ? qq.options : qq?.answers ?? qq?.variants ?? [];
+          const optionDrafts = opts.map((o: any, oidx: number) => ({
+            tempId: lid('opt'),
+            ord: toNumber(o?.ord ?? o?.order ?? o?.position) ?? oidx + 1,
+            label: o?.label ?? o?.text ?? o?.title ?? '',
+            optionId: toNumber(o?.id ?? o?.optionId),
+            weightsByTraitId: normalizeWeights(o?.weightsByTraitId ?? o?.weights ?? o?.traitWeights ?? {}),
+          }));
 
-const linkedTraitIdsRaw = Array.isArray(qq?.linkedTraitIds)
-  ? qq.linkedTraitIds.filter((x: any) => typeof x === 'number')
-  : Array.isArray(qq?.traitIds)
-  ? qq.traitIds.filter((x: any) => typeof x === 'number')
-  : [];
+          const linkedTraitIdsRaw = Array.isArray(qq?.linkedTraitIds)
+            ? qq.linkedTraitIds.filter((x: any) => typeof x === 'number')
+            : Array.isArray(qq?.traitIds)
+            ? qq.traitIds.filter((x: any) => typeof x === 'number')
+            : [];
 
-const derivedTraitIds = Array.from(
-  new Set(
-    optionDrafts
-      .flatMap((o: any) => Object.keys(o.weightsByTraitId ?? {}).map((k) => Number(k)))
-      .filter((x: any) => Number.isFinite(x)),
-  ),
-).slice(0, 2);
+          const derivedTraitIds = Array.from(
+            new Set(
+              optionDrafts
+                .flatMap((o: any) => Object.keys(o.weightsByTraitId ?? {}).map((k) => Number(k)))
+                .filter((x: any) => Number.isFinite(x)),
+            ),
+          ).slice(0, 2);
 
-const linkedTraitIds = (linkedTraitIdsRaw.length > 0 ? linkedTraitIdsRaw : derivedTraitIds).slice(0, 2);
+          const linkedTraitIds = (linkedTraitIdsRaw.length > 0 ? linkedTraitIdsRaw : derivedTraitIds).slice(0, 2);
 
-return {
-  tempId: id('q'),
-  ord,
-  qtype,
-  text: qq?.text ?? qq?.title ?? qq?.question ?? '',
-  linkedTraitIds,
-  questionId: toNumber(qq?.id ?? qq?.questionId),
-  options: optionDrafts.length > 0 ? optionDrafts : [{ tempId: id('opt'), ord: 1, label: '', weightsByTraitId: {} }],
-} as any;
-
+          return {
+            tempId: lid('q'),
+            ord,
+            qtype,
+            text: qq?.text ?? qq?.title ?? qq?.question ?? '',
+            linkedTraitIds,
+            questionId: toNumber(qq?.id ?? qq?.questionId),
+            options:
+              optionDrafts.length > 0
+                ? optionDrafts
+                : [{ tempId: lid('opt'), ord: 1, label: '', weightsByTraitId: {} }],
+          } as any;
         })
         .sort((a, b) => (a.ord ?? 0) - (b.ord ?? 0));
 
       if (questionDrafts.length > 0) setQuestions(questionDrafts as any);
-    } catch (err) {
-      // swallow
-    }
-  }, [actions.quizQuestions?.data, effectiveQuizId, questions.length, setQuestions]);
+    } catch {}
+  }, [questionsData, effectiveQuizId, questions.length, setQuestions]);
 
   return {
     t,

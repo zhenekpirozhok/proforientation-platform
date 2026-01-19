@@ -26,7 +26,6 @@ export function validateInit(v: { title: string; code: string; description?: str
 
 export function validateScales(scales: ScaleDraft[]): ValidationErrors {
     const out: ValidationErrors = {};
-    // If there are no scales defined, treat scales as optional and return no errors.
     if (scales.length === 0) return out;
 
     const hasSingle = scales.some((s) => s.polarity === 'single');
@@ -75,7 +74,6 @@ export function validateQuestions(questions: QuestionDraft[], traitIds: number[]
         for (const o of q.options) {
             if (!o.label.trim()) add(out, `o.${o.tempId}.label`, 'required');
 
-            // Prefer question-linked traits; if none linked, fall back to global traitIds
             const neededTraitIds = (q.linkedTraitIds && q.linkedTraitIds.length > 0) ? q.linkedTraitIds : traitIds;
             if (neededTraitIds.length > 0) {
                 const map = o.weightsByTraitId ?? {};

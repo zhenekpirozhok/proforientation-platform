@@ -1,3 +1,5 @@
+'use client';
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CreateQuestionRequestQtype } from '@/shared/api/generated/model/createQuestionRequestQtype';
@@ -55,6 +57,12 @@ type BuilderState = {
         code: string;
         description: string;
         codeTouched?: boolean;
+    };
+
+    serverInit?: {
+        title: string;
+        code: string;
+        description: string;
     };
 
     scales: ScaleDraft[];
@@ -199,6 +207,8 @@ const initialState = {
         code: '',
         description: '',
     },
+
+    serverInit: undefined as { title: string; code: string; description: string } | undefined,
 
     scales: [] as ScaleDraft[],
     scaleMode: 'single' as ScaleMode,
@@ -504,7 +514,11 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                     .filter(Boolean);
 
                 const detectedMode: ScaleMode =
-                    scaleDrafts.some((s) => s.polarity === 'bipolar') ? 'bipolar' : scaleDrafts.length > 0 ? 'single' : get().scaleMode;
+                    scaleDrafts.some((s) => s.polarity === 'bipolar')
+                        ? 'bipolar'
+                        : scaleDrafts.length > 0
+                            ? 'single'
+                            : get().scaleMode;
 
                 const backendQuestions = toArray<any>(q.questions ?? q.items ?? q.quizQuestions ?? []);
                 const questionDrafts: QuestionDraft[] = backendQuestions
@@ -529,8 +543,10 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                         ).slice(0, 2);
 
                         const derivedLinkedTraitIds = deriveLinkedTraitIdsFromOptions(optionDrafts);
-
-                        const linkedTraitIds = (directLinkedTraitIds.length > 0 ? directLinkedTraitIds : derivedLinkedTraitIds).slice(0, 2);
+                        const linkedTraitIds = (directLinkedTraitIds.length > 0 ? directLinkedTraitIds : derivedLinkedTraitIds).slice(
+                            0,
+                            2,
+                        );
 
                         return {
                             tempId: id('q'),
@@ -539,7 +555,10 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                             text: qq?.text ?? qq?.title ?? qq?.question ?? '',
                             linkedTraitIds,
                             questionId: toNumber(qq?.id ?? qq?.questionId),
-                            options: optionDrafts.length > 0 ? optionDrafts : [{ tempId: id('opt'), ord: 1, label: '', weightsByTraitId: {} }],
+                            options:
+                                optionDrafts.length > 0
+                                    ? optionDrafts
+                                    : [{ tempId: id('opt'), ord: 1, label: '', weightsByTraitId: {} }],
                         };
                     })
                     .sort((a, b) => (a.ord ?? 0) - (b.ord ?? 0));
@@ -566,6 +585,7 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                     version: ctxVersion ?? get().version,
                     quizVersionId: ctxQuizVersionId ?? get().quizVersionId,
                     init: { title: initTitle, code: initCode, description: initDescription, codeTouched: true },
+                    serverInit: { title: initTitle, code: initCode, description: initDescription },
                     scales: scaleDrafts,
                     scaleMode: detectedMode,
                     editingScaleTempId: undefined,
