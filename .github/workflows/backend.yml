@@ -178,7 +178,7 @@ jobs:
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::423161708569:role/GitHubActionsDeployRole-Backend
+          role-to-assume: ${{ secrets.AWS_ROLE_DEPLOY_BACKEND }}
           aws-region: eu-north-1
 
       - uses: aws-actions/amazon-ecr-login@v2
