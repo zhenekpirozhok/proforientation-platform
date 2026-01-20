@@ -313,7 +313,6 @@ export function AdminDashboardPage() {
                 formatDate(q?.updatedAt) ?? formatDate(q?.updated) ?? null;
               const publishedAt = formatDate(q?.publishedAt) ?? null;
 
-              // Get versions for this quiz
               const versions = versionsByQuizId[id] || [];
               const hasDraftAfterPublished = hasUnpublishedDraft(versions);
               const latestVersion =
@@ -325,6 +324,17 @@ export function AdminDashboardPage() {
                     )[0]
                   : null;
               const latestVersionPublished = isVersionPublished(latestVersion);
+              // Find the latest published version (could be not the highest version if unpublished latest exists)
+              const latestPublishedVersion =
+                versions.length > 0
+                  ? [...versions]
+                      .filter((v) => isVersionPublished(v))
+                      .sort(
+                        (a, b) =>
+                          (Number((b as Record<string, unknown>)?.version) ?? 0) -
+                          (Number((a as Record<string, unknown>)?.version) ?? 0),
+                      )[0] ?? null
+                  : null;
 
               return (
                 <Card
@@ -418,9 +428,14 @@ export function AdminDashboardPage() {
                       <Button
                         onClick={() => {
                           if (!Number.isFinite(id)) return;
-                          router.push(ANALYTICS_ROUTE(id));
+                          const publishedId = toId(
+                            (latestPublishedVersion as Record<string, unknown> | undefined)?.id,
+                          );
+                          if (!publishedId) return;
+                          const analyticsUrl = `${ANALYTICS_ROUTE(id)}?quizVersionId=${publishedId}`;
+                          router.push(analyticsUrl);
                         }}
-                        disabled={!Number.isFinite(id)}
+                        disabled={!Number.isFinite(id) || !latestPublishedVersion}
                       >
                         {t('analytics')}
                       </Button>

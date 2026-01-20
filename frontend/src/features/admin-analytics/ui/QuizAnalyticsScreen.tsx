@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useGetQuizVersions } from '@/entities/quiz/api/useGetQuizVersions';
 
 import { useDetailed, useOverview } from '../api/hooks';
 import { OverviewPanel } from './OverviewPanel';
@@ -53,21 +55,56 @@ export function QuizAnalyticsScreen(props: {
   const { locale, quizId, quizVersionId } = props;
   const i18n = t(locale);
 
+  const router = useRouter();
+
   const [tab, setTab] = useState<'overview' | 'detailed'>('overview');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
 
+  const [selectedVersionId, setSelectedVersionId] = useState<string>(
+    quizVersionId,
+  );
+
+  const versionsQuery = useGetQuizVersions(quizId);
+  const publishedVersions = useMemo(() => {
+    const raw = versionsQuery.data ?? [];
+    let arr: unknown[] = [];
+    if (Array.isArray(raw)) arr = raw as unknown[];
+    else if (raw && typeof raw === 'object') {
+      const o = raw as Record<string, unknown>;
+      if (Array.isArray(o.data)) arr = o.data as unknown[];
+      else if (Array.isArray(o.result)) arr = o.result as unknown[];
+      else if (Array.isArray(o.payload)) arr = o.payload as unknown[];
+      else arr = [];
+    }
+    const pubs = (arr as Array<Record<string, unknown>>).filter(
+      (v) => Boolean((v as Record<string, unknown>)?.publishedAt),
+    );
+    pubs.sort(
+      (a, b) =>
+        (Number((b as Record<string, unknown>)?.version) ?? 0) -
+        (Number((a as Record<string, unknown>)?.version) ?? 0),
+    );
+    return pubs as Record<string, unknown>[];
+  }, [versionsQuery.data]);
+
+  useEffect(() => {
+    if (!versionsQuery.isFetching && !Array.isArray(versionsQuery.data)) {
+      void versionsQuery.refetch();
+    }
+  }, [quizId, versionsQuery.data]);
+
   const overview = useOverview(
     locale,
     quizId,
-    quizVersionId,
+    selectedVersionId,
     from || undefined,
     to || undefined,
   );
-  const detailed = useDetailed(locale, quizId, quizVersionId);
+  const detailed = useDetailed(locale, quizId, selectedVersionId);
 
   const exportLinks = useMemo(() => {
-    const qs = new URLSearchParams({ quizVersionId });
+    const qs = new URLSearchParams({ quizVersionId: selectedVersionId });
     const base = `/${locale}/api/admin/quizzes/${quizId}/analytics/export`;
     return {
       overviewCsv: `${base}/overview.csv?${qs}`,
@@ -75,7 +112,7 @@ export function QuizAnalyticsScreen(props: {
       detailedCsv: `${base}/detailed.csv?${qs}`,
       detailedXlsx: `${base}/detailed.xlsx?${qs}`,
     };
-  }, [locale, quizId, quizVersionId]);
+  }, [locale, quizId, selectedVersionId]);
 
   return (
     <div className="p-6 space-y-4">
@@ -99,6 +136,39 @@ export function QuizAnalyticsScreen(props: {
         >
           {i18n.editQuiz}
         </Link>
+      </div>
+
+      <div className="mb-4">
+        <label className="text-sm text-slate-600 dark:text-slate-300 mr-2">
+          {i18n.version}
+        </label>
+        <select
+          value={selectedVersionId}
+          onChange={(e) => {
+            const v = e.target.value;
+            setSelectedVersionId(v);
+            const url = new URL(window.location.href);
+            if (v) url.searchParams.set('quizVersionId', v);
+            else url.searchParams.delete('quizVersionId');
+            router.replace(url.toString());
+          }}
+          className="border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+        >
+          {publishedVersions.length === 0 ? (
+            <option value="">{i18n.noPublishedVersions}</option>
+          ) : null}
+          {publishedVersions.map((v) => {
+            const id = String((v as Record<string, unknown>)?.id ?? '');
+            const ver = String((v as Record<string, unknown>)?.version ?? id);
+            const label =
+              (v as Record<string, unknown>)?.title || (v as Record<string, unknown>)?.name || `v${ver}`;
+            return (
+              <option key={id} value={id}>
+                {String(label)}
+              </option>
+            );
+          })}
+        </select>
       </div>
 
       {/* Filters */}
