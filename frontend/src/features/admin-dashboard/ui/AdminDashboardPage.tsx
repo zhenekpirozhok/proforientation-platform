@@ -17,7 +17,7 @@ import { pickLatestQuizVersion } from '@/features/admin-quiz-builder/lib/quizVer
 function toArray<T>(v: unknown): T[] {
   if (Array.isArray(v)) return v as T[];
   if (!v || typeof v !== 'object') return [];
-  const o = v as any;
+  const o = v as Record<string, unknown>;
 
   if (Array.isArray(o.items)) return o.items as T[];
   if (Array.isArray(o.results)) return o.results as T[];
@@ -33,9 +33,16 @@ function toArray<T>(v: unknown): T[] {
 
 function pickTotal(v: unknown): number | undefined {
   if (!v || typeof v !== 'object') return undefined;
-  const o = v as any;
+  const o = v as Record<string, unknown>;
 
-  const candidates = [o.total, o.totalElements, o.totalCount, o.count, o.meta?.total, o.page?.totalElements];
+  const candidates = [
+    o['total'],
+    o['totalElements'],
+    o['totalCount'],
+    o['count'],
+    (o['meta'] as Record<string, unknown> | undefined)?.total,
+    (o['page'] as Record<string, unknown> | undefined)?.totalElements,
+  ];
 
   for (const c of candidates) {
     if (typeof c === 'number' && Number.isFinite(c)) return c;
@@ -46,9 +53,15 @@ function pickTotal(v: unknown): number | undefined {
 
 function pickPage(v: unknown): number | undefined {
   if (!v || typeof v !== 'object') return undefined;
-  const o = v as any;
+  const o = v as Record<string, unknown>;
 
-  const candidates = [o.page, o.pageNumber, o.number, o.meta?.page, o.page?.number];
+  const candidates = [
+    o['page'] as Record<string, unknown> | undefined,
+    o['pageNumber'],
+    o['number'],
+    (o['meta'] as Record<string, unknown> | undefined)?.page,
+    (o['page'] as Record<string, unknown> | undefined)?.number,
+  ];
   for (const c of candidates) {
     if (typeof c === 'number' && Number.isFinite(c)) return c;
   }
@@ -57,9 +70,14 @@ function pickPage(v: unknown): number | undefined {
 
 function pickSize(v: unknown): number | undefined {
   if (!v || typeof v !== 'object') return undefined;
-  const o = v as any;
+  const o = v as Record<string, unknown>;
 
-  const candidates = [o.size, o.pageSize, o.meta?.size, o.page?.size];
+  const candidates = [
+    o['size'],
+    o['pageSize'],
+    (o['meta'] as Record<string, unknown> | undefined)?.size,
+    (o['page'] as Record<string, unknown> | undefined)?.size,
+  ];
   for (const c of candidates) {
     if (typeof c === 'number' && Number.isFinite(c)) return c;
   }
@@ -72,30 +90,32 @@ function safeStr(v: unknown): string {
   return '';
 }
 
-function isVersionPublished(version: any): boolean {
-  const publishedAt = version?.publishedAt;
-  return Boolean(publishedAt);
+function isVersionPublished(version: unknown): boolean {
+  if (!version || typeof version !== 'object') return false;
+  return Boolean((version as Record<string, unknown>).publishedAt);
 }
 
-function hasUnpublishedDraft(versions: any[]): boolean {
+function hasUnpublishedDraft(versions: unknown[] | undefined): boolean {
   if (!Array.isArray(versions) || versions.length === 0) return false;
-  
-  // Sort by version descending to get latest first
-  const sorted = [...versions].sort((a, b) => (b?.version ?? 0) - (a?.version ?? 0));
-  
-  // Check if there's a published version
-  const hasPublished = sorted.some(v => isVersionPublished(v));
+
+  const arr = versions as Record<string, unknown>[];
+  const sorted = [...arr].sort(
+    (a, b) =>
+      (Number((b as Record<string, unknown>).version) ?? 0) -
+      (Number((a as Record<string, unknown>).version) ?? 0),
+  );
+
+  const hasPublished = sorted.some((v) => isVersionPublished(v));
   if (!hasPublished) return false;
-  
-  // Check if latest version is not published
+
   const latest = sorted[0];
   return !isVersionPublished(latest);
 }
 
-function formatDate(v: any): string | null {
+function formatDate(v: unknown): string | null {
   if (!v) return null;
   try {
-    const d = v instanceof Date ? v : new Date(v);
+    const d = v instanceof Date ? v : new Date(String(v));
     if (Number.isNaN(d.getTime())) return null;
     return d.toLocaleString();
   } catch {
@@ -133,21 +153,31 @@ export function AdminDashboardPage() {
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(12);
 
-  const quizzesQuery = useAdminQuizzes({ page, size } as any);
+  const quizzesQuery = useAdminQuizzes({
+    page: String(page),
+    size: String(size),
+  });
   const publishQuiz = useAdminPublishQuiz();
   const deleteQuiz = useDeleteQuiz();
 
   const [deletingQuizId, setDeletingQuizId] = useState<number | null>(null);
   const [publishingQuizId, setPublishingQuizId] = useState<number | null>(null);
-  const [versionsByQuizId, setVersionsByQuizId] = useState<Record<number, any[]>>({});
+  const [versionsByQuizId, setVersionsByQuizId] = useState<
+    Record<number, Record<string, unknown>[]>
+  >({});
 
-  const data = quizzesQuery.data as any;
-  const items = useMemo(() => toArray<any>(data), [data]);
+  const data = quizzesQuery.data as unknown;
+  const items = useMemo(() => toArray<Record<string, unknown>>(data), [data]);
 
   useEffect(() => {
     const loadMissingVersions = async () => {
       const missingIds = items
-        .map((q: any) => Number(q?.id))
+        .map((q: unknown) => {
+          const id = (q as Record<string, unknown>)?.id;
+          return typeof id === 'number' && Number.isFinite(id)
+            ? id
+            : Number(id as unknown);
+        })
         .filter((id: number) => Number.isFinite(id) && !versionsByQuizId[id]);
 
       if (missingIds.length === 0) return;
@@ -157,9 +187,9 @@ export function AdminDashboardPage() {
           const versionsRes = await qc.fetchQuery({
             queryKey: ['quiz-versions', id],
             queryFn: () => fetchQuizVersions(id),
-            staleTime: 60000, 
+            staleTime: 60000,
           });
-          const loaded = toArray(versionsRes);
+          const loaded = toArray<Record<string, unknown>>(versionsRes);
           setVersionsByQuizId((prev) => ({ ...prev, [id]: loaded }));
         } catch (err) {
           console.error(`Failed to load versions for quiz ${id}:`, err);
@@ -195,32 +225,39 @@ export function AdminDashboardPage() {
         queryFn: () => fetchQuizVersions(quizId),
       });
 
-      const versions = toArray(versionsRes);
+      const versions = toArray<Record<string, unknown>>(versionsRes);
       setVersionsByQuizId((prev) => ({ ...prev, [quizId]: versions }));
 
-      const latest = pickLatestQuizVersion(versionsRes as any);
-      const quizVersionId = toId((latest as any)?.id);
+      const latest = pickLatestQuizVersion(
+        versionsRes as unknown as Record<string, unknown>[],
+      );
+      const quizVersionId = toId(
+        (latest as Record<string, unknown> | undefined)?.id,
+      );
 
       if (!quizVersionId) {
         throw new Error('Latest quiz version id not found');
       }
 
       if (isVersionPublished(latest)) {
-        message.info(t('toastAlreadyPublished') || 'This version is already published');
+        message.info(
+          t('toastAlreadyPublished') || 'This version is already published',
+        );
         return;
       }
 
-      await publishQuiz.mutateAsync({ id: quizVersionId } as any);
+      await publishQuiz.mutateAsync({ id: quizVersionId });
 
       const updatedVersionsRes = await qc.fetchQuery({
         queryKey: ['quiz-versions', quizId],
         queryFn: () => fetchQuizVersions(quizId),
         staleTime: 0,
       });
-      const updatedVersions = toArray(updatedVersionsRes);
+      const updatedVersions =
+        toArray<Record<string, unknown>>(updatedVersionsRes);
       setVersionsByQuizId((prev) => ({ ...prev, [quizId]: updatedVersions }));
 
-      await qc.invalidateQueries({ queryKey: getGetAllQueryKey() as any });
+      await qc.invalidateQueries({ queryKey: getGetAllQueryKey() });
       await quizzesQuery.refetch();
       message.success(t('toastPublished'));
     } catch (e) {
@@ -242,7 +279,10 @@ export function AdminDashboardPage() {
           </Typography.Text>
         </div>
 
-        <Button type="primary" onClick={() => router.push('/admin/quizzes/new')}>
+        <Button
+          type="primary"
+          onClick={() => router.push('/admin/quizzes/new')}
+        >
           {t('create')}
         </Button>
       </div>
@@ -262,21 +302,33 @@ export function AdminDashboardPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((q) => {
               const id = Number(q?.id);
-              const title = safeStr(q?.title) || safeStr(q?.name) || `Quiz #${safeStr(q?.id)}`;
+              const title =
+                safeStr(q?.title) ||
+                safeStr(q?.name) ||
+                `Quiz #${safeStr(q?.id)}`;
               const code = safeStr(q?.code);
-              const createdAt = formatDate(q?.createdAt) ?? formatDate(q?.created) ?? null;
-              const updatedAt = formatDate(q?.updatedAt) ?? formatDate(q?.updated) ?? null;
+              const createdAt =
+                formatDate(q?.createdAt) ?? formatDate(q?.created) ?? null;
+              const updatedAt =
+                formatDate(q?.updatedAt) ?? formatDate(q?.updated) ?? null;
               const publishedAt = formatDate(q?.publishedAt) ?? null;
-              
+
               // Get versions for this quiz
               const versions = versionsByQuizId[id] || [];
               const hasDraftAfterPublished = hasUnpublishedDraft(versions);
-              const latestVersion = versions.length > 0 ? [...versions].sort((a, b) => (b?.version ?? 0) - (a?.version ?? 0))[0] : null;
+              const latestVersion =
+                versions.length > 0
+                  ? [...versions].sort(
+                      (a, b) =>
+                        (Number((b as Record<string, unknown>)?.version) ?? 0) -
+                        (Number((a as Record<string, unknown>)?.version) ?? 0),
+                    )[0]
+                  : null;
               const latestVersionPublished = isVersionPublished(latestVersion);
 
               return (
                 <Card
-                  key={q?.id ?? title}
+                  key={String(q?.id ?? title)}
                   className="!rounded-2xl"
                   title={
                     <div className="flex min-w-0 items-start justify-between gap-3">
@@ -284,12 +336,19 @@ export function AdminDashboardPage() {
                         <div className="flex items-center gap-2 min-w-0">
                           <div className="truncate font-semibold">{title}</div>
                           {hasDraftAfterPublished && (
-                            <Tag color="orange" className="whitespace-nowrap flex-shrink-0">
+                            <Tag
+                              color="orange"
+                              className="whitespace-nowrap flex-shrink-0"
+                            >
                               {t('draftUpdate') || 'Update'}
                             </Tag>
                           )}
                         </div>
-                        {code ? <div className="truncate text-xs text-slate-500 dark:text-slate-400">{code}</div> : null}
+                        {code ? (
+                          <div className="truncate text-xs text-slate-500 dark:text-slate-400">
+                            {code}
+                          </div>
+                        ) : null}
                       </div>
 
                       <Tag color={latestVersionPublished ? 'green' : 'gold'}>
@@ -344,8 +403,14 @@ export function AdminDashboardPage() {
                           if (!Number.isFinite(id)) return;
                           onPublish(id);
                         }}
-                        loading={publishQuiz.isPending && publishingQuizId === id}
-                        disabled={!Number.isFinite(id) || latestVersionPublished || (publishQuiz.isPending && publishingQuizId !== id)}
+                        loading={
+                          publishQuiz.isPending && publishingQuizId === id
+                        }
+                        disabled={
+                          !Number.isFinite(id) ||
+                          latestVersionPublished ||
+                          (publishQuiz.isPending && publishingQuizId !== id)
+                        }
                       >
                         {t('publish')}
                       </Button>
@@ -379,19 +444,18 @@ export function AdminDashboardPage() {
           </div>
         )}
 
-{total > effectiveSize ? (
-  <QuizzesPagination
-    page={effectivePage}
-    pageSize={effectiveSize}
-    total={total}
-    loading={quizzesQuery.isFetching}
-    onChange={(p, ps) => {
-      setPage(p);
-      setSize(ps);
-    }}
-  />
-) : null}
-
+        {total > effectiveSize ? (
+          <QuizzesPagination
+            page={effectivePage}
+            pageSize={effectiveSize}
+            total={total}
+            loading={quizzesQuery.isFetching}
+            onChange={(p, ps) => {
+              setPage(p);
+              setSize(ps);
+            }}
+          />
+        ) : null}
       </div>
 
       <Modal
@@ -401,8 +465,9 @@ export function AdminDashboardPage() {
           const id = deletingQuizId;
           if (id === null) return;
           try {
-            await deleteQuiz.mutateAsync({ id } as any);
-            await qc.invalidateQueries({ queryKey: getGetAllQueryKey() as any });
+            await deleteQuiz.mutateAsync({ id });
+            const qk = getGetAllQueryKey();
+            await qc.invalidateQueries({ queryKey: qk });
             await quizzesQuery.refetch();
             message.success(t('toastDeleted'));
           } catch (e) {

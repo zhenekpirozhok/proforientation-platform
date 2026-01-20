@@ -2,7 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, JSX, ReactNode } from 'react';
-import { Button, Card, Input, Select, Typography, InputNumber, message, Modal } from 'antd';
+import {
+  Button,
+  Card,
+  Input,
+  Select,
+  Typography,
+  InputNumber,
+  message,
+  Modal,
+} from 'antd';
 import { useTranslations, useLocale } from 'next-intl';
 
 import {
@@ -27,10 +36,14 @@ import { SectionCard } from '../SectionCard';
 import { FieldError } from '../FieldError';
 import { useAdminQuizBuilderStore } from '../../model/store';
 import { CreateQuestionRequestQtype } from '@/shared/api/generated/model/createQuestionRequestQtype';
+import { UpdateQuestionRequestQtype } from '@/shared/api/generated/model/updateQuestionRequestQtype';
 
 import { useStepValidation } from '../../lib/validation/useStepValidation';
 import { StepValidationSummary } from '../../lib/validation/StepValidationSummary';
-import { parseOptionKey, parseQuestionKey } from '../../lib/validation/validationKeys';
+import {
+  parseOptionKey,
+  parseQuestionKey,
+} from '../../lib/validation/validationKeys';
 import { useQuizBuilderActions } from '@/features/admin-quiz-builder/api/useQuizBuilderActions';
 import { persistQuestionOrderMove } from '@/features/admin-quiz-builder/lib/persistQuestionOrder';
 
@@ -42,7 +55,7 @@ type DraftOption = {
 
 type DraftQuestion = {
   text: string;
-  qtype: string;
+  qtype: CreateQuestionRequestQtype | string;
   linkedTraitIds: number[];
   options: DraftOption[];
 };
@@ -68,11 +81,16 @@ function id(prefix: string): string {
 
 function buildWeights(traitIds: number[]): Record<number, number> {
   const obj: Record<number, number> = {};
-  for (const tid of traitIds) obj[tid] = 0;
+  for (const t of traitIds) {
+    obj[t] = 0;
+  }
   return obj;
 }
 
-function ensureWeights(current: Record<number, number> | undefined, traitIds: number[]): Record<number, number> {
+function ensureWeights(
+  current: Record<number, number> | undefined,
+  traitIds: number[],
+): Record<number, number> {
   const next = { ...(current ?? {}) } as Record<number, number>;
   for (const tid of traitIds) if (!(tid in next)) next[tid] = 0;
   for (const k of Object.keys(next)) {
@@ -110,7 +128,14 @@ interface SortableQuestionCardProps {
 }
 
 function SortableQuestionCard(props: SortableQuestionCardProps): JSX.Element {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: props.id,
   });
 
@@ -122,7 +147,9 @@ function SortableQuestionCard(props: SortableQuestionCardProps): JSX.Element {
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card className={`!rounded-2xl ${props.active ? 'border-indigo-300 dark:border-indigo-700' : ''}`}>
+      <Card
+        className={`!rounded-2xl ${props.active ? 'border-indigo-300 dark:border-indigo-700' : ''}`}
+      >
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-1 items-start">
             <div {...attributes} {...listeners}>
@@ -131,7 +158,9 @@ function SortableQuestionCard(props: SortableQuestionCardProps): JSX.Element {
 
             <div className="min-w-0 flex-1">
               <div className="truncate font-semibold">{props.title}</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">{props.typeLabel}</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                {props.typeLabel}
+              </div>
             </div>
           </div>
 
@@ -188,7 +217,14 @@ interface SortableOptionRowProps {
 }
 
 function SortableOptionRow(props: SortableOptionRowProps): JSX.Element {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: props.id,
   });
 
@@ -207,11 +243,19 @@ function SortableOptionRow(props: SortableOptionRowProps): JSX.Element {
           </div>
 
           <div className="flex-1">
-            <Input value={props.label} onChange={(e) => props.onChange(e.target.value)} placeholder={props.placeholder} />
+            <Input
+              value={props.label}
+              onChange={(e) => props.onChange(e.target.value)}
+              placeholder={props.placeholder}
+            />
             {props.error ? <FieldError code={props.error} /> : null}
           </div>
 
-          <Button danger onClick={props.onRemove} disabled={props.disableRemove}>
+          <Button
+            danger
+            onClick={props.onRemove}
+            disabled={props.disableRemove}
+          >
             {props.removeLabel}
           </Button>
         </div>
@@ -222,10 +266,15 @@ function SortableOptionRow(props: SortableOptionRowProps): JSX.Element {
   );
 }
 
-export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): JSX.Element {
+export function StepQuestions({
+  errors,
+  submitAttempted,
+}: StepQuestionsProps): JSX.Element {
   const t = useTranslations('AdminQuizBuilder.questions');
   const localeRaw = useLocale();
-  const locale = (localeRaw?.toString().startsWith('ru') ? 'ru' : 'en') as 'ru' | 'en';
+  const locale = (localeRaw?.toString().startsWith('ru') ? 'ru' : 'en') as
+    | 'ru'
+    | 'en';
 
   const v = useStepValidation({ errors, submitAttempted });
 
@@ -236,19 +285,26 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
   const patchQuestion = useAdminQuizBuilderStore((s) => s.patchQuestion);
   const removeQuestion = useAdminQuizBuilderStore((s) => s.removeQuestion);
 
-  const applyLinkedTraitsToQuestion = useAdminQuizBuilderStore((s) => s.applyLinkedTraitsToQuestion);
+  const applyLinkedTraitsToQuestion = useAdminQuizBuilderStore(
+    (s) => s.applyLinkedTraitsToQuestion,
+  );
 
   const addOption = useAdminQuizBuilderStore((s) => s.addOption);
   const patchOption = useAdminQuizBuilderStore((s) => s.patchOption);
   const removeOption = useAdminQuizBuilderStore((s) => s.removeOption);
 
-  const syncOptionWeightsWithTraits = useAdminQuizBuilderStore((s) => s.syncOptionWeightsWithTraits);
+  const syncOptionWeightsWithTraits = useAdminQuizBuilderStore(
+    (s) => s.syncOptionWeightsWithTraits,
+  );
 
   const reorderQuestions = useAdminQuizBuilderStore((s) => s.reorderQuestions);
 
   const storeQuizId = useAdminQuizBuilderStore((s) => s.quizId);
   const storeQuizVersionId = useAdminQuizBuilderStore((s) => s.quizVersionId);
-  const actions = useQuizBuilderActions(storeQuizId ?? 0, storeQuizVersionId ?? 0);
+  const actions = useQuizBuilderActions(
+    storeQuizId ?? 0,
+    storeQuizVersionId ?? 0,
+  );
 
   const availableTraits: Trait[] = useMemo(
     () =>
@@ -258,16 +314,31 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
     [scales],
   );
 
-  const allTraitIds: number[] = useMemo(() => availableTraits.map((x) => x.traitId), [availableTraits]);
+  const allTraitIds: number[] = useMemo(
+    () => availableTraits.map((x) => x.traitId),
+    [availableTraits],
+  );
 
+  const traitIdsKey = allTraitIds.join('|');
   useEffect(() => {
-    syncOptionWeightsWithTraits(allTraitIds);
-  }, [allTraitIds.join('|')]);
+    const ids =
+      traitIdsKey === ''
+        ? []
+        : traitIdsKey
+            .split('|')
+            .map((s) => Number(s))
+            .filter((n) => Number.isFinite(n));
+    syncOptionWeightsWithTraits(ids);
+  }, [traitIdsKey, syncOptionWeightsWithTraits]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 220, tolerance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 220, tolerance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   const likertLabels = useMemo(
@@ -288,7 +359,9 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
   const [draftErrors, setDraftErrors] = useState<Record<string, string>>({});
   const [editingTempId, setEditingTempId] = useState<string | null>(null);
 
-  const reorderInFlightRef = useRef<Promise<any> | null>(null);
+  const reorderInFlightRef = useRef<Promise<unknown> | null>(null);
+
+  // draftLinkedIdsKey and draftLinkedTraits computed below (defined once)
 
   useEffect(() => {
     setDraft((d) => ({
@@ -298,7 +371,7 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
         weightsByTraitId: ensureWeights(o.weightsByTraitId, d.linkedTraitIds),
       })),
     }));
-  }, [draft.linkedTraitIds.join('|')]);
+  }, [draft.linkedTraitIds]);
 
   function resetDraft() {
     setDraft({
@@ -318,25 +391,38 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
     if (draft.linkedTraitIds.length < 1) e.draftTraits = 'min1';
     if (draft.linkedTraitIds.length > 2) e.draftTraits = 'max2';
     if (draft.options.length < 2) e.draftOptions = 'min2';
-    for (const o of draft.options) if (!o.label.trim()) e[`draftOpt.${o.tempId}.label`] = 'required';
+    for (const o of draft.options)
+      if (!o.label.trim()) e[`draftOpt.${o.tempId}.label`] = 'required';
     return e;
   }
 
   function addDraftOption() {
     setDraft((d) => ({
       ...d,
-      options: [...d.options, { tempId: id('dopt'), label: '', weightsByTraitId: buildWeights(d.linkedTraitIds) }],
+      options: [
+        ...d.options,
+        {
+          tempId: id('dopt'),
+          label: '',
+          weightsByTraitId: buildWeights(d.linkedTraitIds),
+        },
+      ],
     }));
   }
 
   function removeDraftOption(optTempId: string) {
-    setDraft((d) => ({ ...d, options: d.options.filter((o) => o.tempId !== optTempId) }));
+    setDraft((d) => ({
+      ...d,
+      options: d.options.filter((o) => o.tempId !== optTempId),
+    }));
   }
 
   function patchDraftOption(optTempId: string, vv: Partial<DraftOption>) {
     setDraft((d) => ({
       ...d,
-      options: d.options.map((o) => (o.tempId === optTempId ? { ...o, ...vv } : o)),
+      options: d.options.map((o) =>
+        o.tempId === optTempId ? { ...o, ...vv } : o,
+      ),
     }));
   }
 
@@ -353,8 +439,20 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
 
       const hasAny = d.options.length > 0;
       const nextOptions = hasAny
-        ? d.options.map((o) => ({ ...o, weightsByTraitId: ensureWeights(o.weightsByTraitId, d.linkedTraitIds) }))
-        : [{ tempId: id('dopt'), label: '', weightsByTraitId: buildWeights(d.linkedTraitIds) }];
+        ? d.options.map((o) => ({
+            ...o,
+            weightsByTraitId: ensureWeights(
+              o.weightsByTraitId,
+              d.linkedTraitIds,
+            ),
+          }))
+        : [
+            {
+              tempId: id('dopt'),
+              label: '',
+              weightsByTraitId: buildWeights(d.linkedTraitIds),
+            },
+          ];
 
       return { ...d, qtype: vv, options: nextOptions };
     });
@@ -365,7 +463,10 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
     setDraft((d) => ({
       ...d,
       linkedTraitIds: trimmed,
-      options: d.options.map((o) => ({ ...o, weightsByTraitId: ensureWeights(o.weightsByTraitId, trimmed) })),
+      options: d.options.map((o) => ({
+        ...o,
+        weightsByTraitId: ensureWeights(o.weightsByTraitId, trimmed),
+      })),
     }));
   }
 
@@ -390,7 +491,9 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
     if (linkedTraits.length === 0) {
       return (
         <div className="mt-3">
-          <Typography.Text type="secondary">{t('selectTraitsHint')}</Typography.Text>
+          <Typography.Text type="secondary">
+            {t('selectTraitsHint')}
+          </Typography.Text>
         </div>
       );
     }
@@ -425,10 +528,17 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
     );
   }
 
-  const draftLinkedTraits: Trait[] = useMemo(
-    () => availableTraits.filter((x) => draft.linkedTraitIds.includes(x.traitId)),
-    [availableTraits, draft.linkedTraitIds.join('|')],
-  );
+  const draftLinkedIdsKey = draft.linkedTraitIds.join('|');
+  const draftLinkedTraits: Trait[] = useMemo(() => {
+    const draftLinkedIds =
+      draftLinkedIdsKey === ''
+        ? []
+        : draftLinkedIdsKey
+            .split('|')
+            .map((s) => Number(s))
+            .filter((n) => Number.isFinite(n));
+    return availableTraits.filter((x) => draftLinkedIds.includes(x.traitId));
+  }, [availableTraits, draftLinkedIdsKey]);
 
   function startEditQuestion(qTempId: string): void {
     const q = questions.find((x) => x.tempId === qTempId);
@@ -444,7 +554,10 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
       options: (q.options ?? []).map((o) => ({
         tempId: id('dopt'),
         label: o.label ?? '',
-        weightsByTraitId: ensureWeights(o.weightsByTraitId ?? {}, linkedTraitIds),
+        weightsByTraitId: ensureWeights(
+          o.weightsByTraitId ?? {},
+          linkedTraitIds,
+        ),
       })),
     });
     setDraftErrors({});
@@ -456,7 +569,9 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
     setDraftErrors(e);
     if (Object.keys(e).length > 0) return;
 
-    const q = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+    const q = useAdminQuizBuilderStore
+      .getState()
+      .questions.find((x) => x.tempId === qTempId);
     if (!q) return;
 
     patchQuestion(qTempId, { text: draft.text, qtype: draft.qtype });
@@ -469,7 +584,9 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
       addOption(qTempId, i + 1, allTraitIds);
     }
 
-    const qAfterAdd = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+    const qAfterAdd = useAdminQuizBuilderStore
+      .getState()
+      .questions.find((x) => x.tempId === qTempId);
     if (!qAfterAdd) return;
 
     const idsNow = qAfterAdd.options
@@ -479,23 +596,36 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
 
     for (let i = desiredCount; i < idsNow.length; i++) {
       const optTempId = idsNow[i];
-      const opt = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId)?.options.find((o) => o.tempId === optTempId);
+      const opt = useAdminQuizBuilderStore
+        .getState()
+        .questions.find((x) => x.tempId === qTempId)
+        ?.options.find((o) => o.tempId === optTempId);
 
-      if (opt && typeof opt.optionId === 'number' && Number.isFinite(opt.optionId)) {
+      if (
+        opt &&
+        typeof opt.optionId === 'number' &&
+        Number.isFinite(opt.optionId)
+      ) {
         try {
           const key = 'delete-option';
-          await actions.deleteOption.mutateAsync({ id: opt.optionId } as any);
+          await actions.deleteOption.mutateAsync({ id: opt.optionId });
           message.success({ content: t('optionDeleted'), key, duration: 1 });
           removeOption(qTempId, optTempId);
-        } catch (err: any) {
-          message.error({ content: err?.message ?? t('failedToDeleteOption'), duration: 3 });
+        } catch (err: unknown) {
+          const e = err as { message?: string };
+          message.error({
+            content: e?.message ?? t('failedToDeleteOption'),
+            duration: 3,
+          });
         }
       } else {
         removeOption(qTempId, optTempId);
       }
     }
 
-    const qFinal = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+    const qFinal = useAdminQuizBuilderStore
+      .getState()
+      .questions.find((x) => x.tempId === qTempId);
     if (!qFinal) return;
 
     const orderedFinal = qFinal.options.slice().sort((a, b) => a.ord - b.ord);
@@ -507,7 +637,10 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
       const dopt = draft.options[i];
       patchOption(qTempId, opt.tempId, {
         label: dopt?.label ?? '',
-        weightsByTraitId: ensureWeights(dopt?.weightsByTraitId ?? {}, draft.linkedTraitIds),
+        weightsByTraitId: ensureWeights(
+          dopt?.weightsByTraitId ?? {},
+          draft.linkedTraitIds,
+        ),
       });
     }
 
@@ -518,45 +651,91 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
         const qId = qLocal?.questionId;
 
         if (typeof qId === 'number' && Number.isFinite(qId)) {
-          await actions.updateQuestion.mutateAsync({ id: qId, data: { text: draft.text, qtype: draft.qtype } } as any);
+          await actions.updateQuestion.mutateAsync({
+            id: qId,
+            data: {
+              text: draft.text,
+              qtype: draft.qtype as unknown as UpdateQuestionRequestQtype,
+            },
+          });
         }
 
-        const qFinalNow = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
-        const orderedNow = qFinalNow?.options.slice().sort((a, b) => a.ord - b.ord) ?? [];
+        const qFinalNow = useAdminQuizBuilderStore
+          .getState()
+          .questions.find((x) => x.tempId === qTempId);
+        const orderedNow =
+          qFinalNow?.options.slice().sort((a, b) => a.ord - b.ord) ?? [];
 
         const optionPromises = orderedNow.map(async (optLocal, idx) => {
           const dopt = draft.options[idx];
           if (!dopt) return;
 
-          if (typeof optLocal.optionId === 'number' && Number.isFinite(optLocal.optionId)) {
-            await actions.updateOption.mutateAsync({ id: optLocal.optionId, data: { label: dopt.label, ord: idx + 1 } } as any);
+          if (
+            typeof optLocal.optionId === 'number' &&
+            Number.isFinite(optLocal.optionId)
+          ) {
+            await actions.updateOption.mutateAsync({
+              id: optLocal.optionId,
+              data: { label: dopt.label, ord: idx + 1 },
+            });
 
             const weightsObj = dopt.weightsByTraitId ?? {};
             const traits = Object.keys(weightsObj)
-              .map((k) => ({ traitId: Number(k), weight: (weightsObj as any)[k] }))
-              .filter((x) => Number.isFinite(x.traitId) && typeof x.weight === 'number');
+              .map((k) => ({
+                traitId: Number(k),
+                weight: weightsObj[Number(k)],
+              }))
+              .filter(
+                (x) =>
+                  Number.isFinite(x.traitId) && typeof x.weight === 'number',
+              );
 
             if (traits.length > 0) {
-              await actions.assignOptionTraits.mutateAsync({ optionId: optLocal.optionId, data: { traits } as any });
+              await actions.assignOptionTraits.mutateAsync({
+                optionId: optLocal.optionId,
+                data: { traits },
+              });
             }
           } else {
             if (typeof qId === 'number' && Number.isFinite(qId)) {
-              const oRes: any = await actions.createOption.mutateAsync({
-                data: { questionId: qId, label: dopt.label, ord: idx + 1 } as any,
+              const oRes = await actions.createOption.mutateAsync({
+                data: { questionId: qId, label: dopt.label, ord: idx + 1 },
               });
-              const createdOpt = oRes?.data ?? oRes?.result ?? oRes;
-              const createdOptId = typeof createdOpt?.id === 'number' ? createdOpt.id : Number(createdOpt?.id);
+              const oRec = oRes as Record<string, unknown>;
+              const createdOpt =
+                (oRec.data as Record<string, unknown>) ??
+                (oRec.result as Record<string, unknown>) ??
+                oRec;
+              const createdOptRec = createdOpt as Record<string, unknown>;
+              const rawCreatedOptId =
+                createdOptRec.id ?? createdOptRec['Id'] ?? createdOptRec['ID'];
+              const createdOptId =
+                typeof rawCreatedOptId === 'number'
+                  ? rawCreatedOptId
+                  : Number(rawCreatedOptId);
 
               if (Number.isFinite(createdOptId)) {
-                patchOption(qTempId, optLocal.tempId, { optionId: createdOptId });
+                patchOption(qTempId, optLocal.tempId, {
+                  optionId: createdOptId,
+                });
 
                 const weightsObj = dopt.weightsByTraitId ?? {};
                 const traits = Object.keys(weightsObj)
-                  .map((k) => ({ traitId: Number(k), weight: (weightsObj as any)[k] }))
-                  .filter((x) => Number.isFinite(x.traitId) && typeof x.weight === 'number');
+                  .map((k) => ({
+                    traitId: Number(k),
+                    weight: weightsObj[Number(k)],
+                  }))
+                  .filter(
+                    (x) =>
+                      Number.isFinite(x.traitId) &&
+                      typeof x.weight === 'number',
+                  );
 
                 if (traits.length > 0) {
-                  await actions.assignOptionTraits.mutateAsync({ optionId: createdOptId, data: { traits } as any });
+                  await actions.assignOptionTraits.mutateAsync({
+                    optionId: createdOptId,
+                    data: { traits },
+                  });
                 }
               }
             }
@@ -564,8 +743,12 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
         });
 
         await Promise.all(optionPromises);
-      } catch (err: any) {
-        message.error({ content: err?.message ?? t('failedToSaveChanges'), duration: 4 });
+      } catch (err) {
+        const e = err as { message?: string };
+        message.error({
+          content: e?.message ?? t('failedToSaveChanges'),
+          duration: 4,
+        });
       }
     })();
 
@@ -579,20 +762,36 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
 
     const ord = (questions.at(-1)?.ord ?? 0) + 1;
 
-    if (typeof storeQuizId === 'number' && typeof storeQuizVersionId === 'number') {
-      addQuestion({ ord, qtype: draft.qtype, text: draft.text, linkedTraitIds: draft.linkedTraitIds }, allTraitIds);
+    if (
+      typeof storeQuizId === 'number' &&
+      typeof storeQuizVersionId === 'number'
+    ) {
+      addQuestion(
+        {
+          ord,
+          qtype: draft.qtype,
+          text: draft.text,
+          linkedTraitIds: draft.linkedTraitIds,
+        },
+        allTraitIds,
+      );
 
       const st = useAdminQuizBuilderStore.getState();
       const qTempId = st.activeQuestionTempId;
 
       if (!qTempId) {
-        message.error({ content: t('failedToCreateLocalQuestion'), duration: 3 });
+        message.error({
+          content: t('failedToCreateLocalQuestion'),
+          duration: 3,
+        });
         return;
       }
 
-      const qNow = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+      const qNow = useAdminQuizBuilderStore
+        .getState()
+        .questions.find((x) => x.tempId === qTempId);
       if (qNow) {
-        for (let i = (qNow.options?.length ?? 0); i < draft.options.length; i++) {
+        for (let i = qNow.options?.length ?? 0; i < draft.options.length; i++) {
           addOption(qTempId, i + 1, allTraitIds);
         }
 
@@ -609,7 +808,10 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
           const dopt = draft.options[i];
           patchOption(qTempId, localOpt.tempId, {
             label: dopt.label ?? '',
-            weightsByTraitId: ensureWeights(dopt.weightsByTraitId ?? {}, draft.linkedTraitIds),
+            weightsByTraitId: ensureWeights(
+              dopt.weightsByTraitId ?? {},
+              draft.linkedTraitIds,
+            ),
           });
         }
       }
@@ -618,29 +820,66 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
 
       (async () => {
         try {
-          const qRes: any = await actions.createQuestion.mutateAsync({ data: { qtype: draft.qtype, text: draft.text, ord } as any });
-          const created = qRes?.data ?? qRes?.result ?? qRes;
-          const createdId = typeof created?.id === 'number' ? created.id : Number(created?.id);
-          if (!Number.isFinite(createdId)) throw new Error(t('failedToCreateQuestion'));
+          const qRes = await actions.createQuestion.mutateAsync({
+            data: {
+              qtype: draft.qtype as unknown as CreateQuestionRequestQtype,
+              text: draft.text,
+              ord,
+            },
+          });
+          const qRec = qRes as Record<string, unknown>;
+          const created =
+            (qRec.data as Record<string, unknown>) ??
+            (qRec.result as Record<string, unknown>) ??
+            qRec;
+          const createdRec = created as Record<string, unknown>;
+          const rawCreatedId =
+            createdRec.id ?? createdRec['Id'] ?? createdRec['ID'];
+          const createdId =
+            typeof rawCreatedId === 'number'
+              ? rawCreatedId
+              : Number(rawCreatedId);
+          if (!Number.isFinite(createdId))
+            throw new Error(t('failedToCreateQuestion'));
 
           patchQuestion(qTempId, { questionId: createdId });
 
-          const qAfterAdd = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
-          const orderedLocal = qAfterAdd?.options.slice().sort((a, b) => a.ord - b.ord) ?? [];
+          const qAfterAdd = useAdminQuizBuilderStore
+            .getState()
+            .questions.find((x) => x.tempId === qTempId);
+          const orderedLocal =
+            qAfterAdd?.options.slice().sort((a, b) => a.ord - b.ord) ?? [];
 
           const createPromises = draft.options.map((dopt, i) =>
             actions.createOption
-              .mutateAsync({ data: { questionId: createdId, label: dopt.label, ord: i + 1 } as any })
-              .then((oRes: any) => {
-                const createdOpt = oRes?.data ?? oRes?.result ?? oRes;
-                const createdOptId = typeof createdOpt?.id === 'number' ? createdOpt.id : Number(createdOpt?.id);
-                return { index: i, createdOptId };
+              .mutateAsync({
+                data: { questionId: createdId, label: dopt.label, ord: i + 1 },
+              })
+              .then((oRes) => {
+                const oRec = oRes as Record<string, unknown>;
+                const createdOpt =
+                  (oRec.data as Record<string, unknown>) ??
+                  (oRec.result as Record<string, unknown>) ??
+                  oRec;
+                const createdOptRec = createdOpt as Record<string, unknown>;
+                const rawCreatedOptId =
+                  createdOptRec.id ??
+                  createdOptRec['Id'] ??
+                  createdOptRec['ID'];
+                const createdOptId =
+                  typeof rawCreatedOptId === 'number'
+                    ? rawCreatedOptId
+                    : Number(rawCreatedOptId);
+                return { index: i, createdOptId } as {
+                  index: number;
+                  createdOptId: number;
+                };
               }),
           );
 
           const createdOpts = await Promise.all(createPromises);
 
-          const assignPromises: Promise<any>[] = [];
+          const assignPromises: Promise<unknown>[] = [];
           for (const { index, createdOptId } of createdOpts) {
             const local = orderedLocal[index];
             if (!local) continue;
@@ -649,24 +888,39 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
             patchOption(qTempId, local.tempId, {
               optionId: createdOptId,
               label: dopt.label,
-              weightsByTraitId: ensureWeights(dopt.weightsByTraitId ?? {}, draft.linkedTraitIds),
+              weightsByTraitId: ensureWeights(
+                dopt.weightsByTraitId ?? {},
+                draft.linkedTraitIds,
+              ),
             });
 
             const weightsObj = dopt.weightsByTraitId ?? {};
             const traits = Object.keys(weightsObj)
-              .map((k) => ({ traitId: Number(k), weight: (weightsObj as any)[k] }))
-              .filter((x) => Number.isFinite(x.traitId) && typeof x.weight === 'number');
+              .map((k) => ({
+                traitId: Number(k),
+                weight: weightsObj[Number(k)],
+              }))
+              .filter(
+                (x) =>
+                  Number.isFinite(x.traitId) && typeof x.weight === 'number',
+              );
 
             if (traits.length > 0) {
-              assignPromises.push(actions.assignOptionTraits.mutateAsync({ optionId: createdOptId, data: { traits } as any }));
+              assignPromises.push(
+                actions.assignOptionTraits.mutateAsync({
+                  optionId: createdOptId,
+                  data: { traits },
+                }),
+              );
             }
           }
 
           if (assignPromises.length > 0) await Promise.all(assignPromises);
 
           resetDraft();
-        } catch (err: any) {
-          const msg = err?.message ?? t('failedToCreateQuestion');
+        } catch (err: unknown) {
+          const msg =
+            err instanceof Error ? err.message : t('failedToCreateQuestion');
           message.error({ content: msg, key: savingKey, duration: 4 });
 
           try {
@@ -683,7 +937,15 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
       return;
     }
 
-    addQuestion({ ord, qtype: draft.qtype, text: draft.text, linkedTraitIds: draft.linkedTraitIds }, allTraitIds);
+    addQuestion(
+      {
+        ord,
+        qtype: draft.qtype,
+        text: draft.text,
+        linkedTraitIds: draft.linkedTraitIds,
+      },
+      allTraitIds,
+    );
 
     const st = useAdminQuizBuilderStore.getState();
     const qTempId = st.activeQuestionTempId;
@@ -692,14 +954,19 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
     applyLinkedTraitsToQuestion(qTempId, draft.linkedTraitIds);
     patchQuestion(qTempId, { text: draft.text, qtype: draft.qtype });
 
-    const q = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
+    const q = useAdminQuizBuilderStore
+      .getState()
+      .questions.find((x) => x.tempId === qTempId);
     if (!q) return;
 
     const first = q.options[0];
     if (first) {
       patchOption(qTempId, first.tempId, {
         label: draft.options[0]?.label ?? '',
-        weightsByTraitId: ensureWeights(draft.options[0]?.weightsByTraitId ?? {}, draft.linkedTraitIds),
+        weightsByTraitId: ensureWeights(
+          draft.options[0]?.weightsByTraitId ?? {},
+          draft.linkedTraitIds,
+        ),
       });
     }
 
@@ -707,13 +974,19 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
       const ordOpt = i + 1;
       addOption(qTempId, ordOpt, allTraitIds);
 
-      const q2 = useAdminQuizBuilderStore.getState().questions.find((x) => x.tempId === qTempId);
-      const created = q2?.options.find((x) => x.ord === ordOpt) ?? q2?.options.at(-1);
+      const q2 = useAdminQuizBuilderStore
+        .getState()
+        .questions.find((x) => x.tempId === qTempId);
+      const created =
+        q2?.options.find((x) => x.ord === ordOpt) ?? q2?.options.at(-1);
       if (!created) continue;
 
       patchOption(qTempId, created.tempId, {
         label: draft.options[i]?.label ?? '',
-        weightsByTraitId: ensureWeights(draft.options[i]?.weightsByTraitId ?? {}, draft.linkedTraitIds),
+        weightsByTraitId: ensureWeights(
+          draft.options[i]?.weightsByTraitId ?? {},
+          draft.linkedTraitIds,
+        ),
       });
     }
 
@@ -747,7 +1020,10 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6">
-      <StepValidationSummary title={t('validation.fixErrors')} items={summaryItems} />
+      <StepValidationSummary
+        title={t('validation.fixErrors')}
+        items={summaryItems}
+      />
 
       {questions.length > 0 ? (
         <DndContext
@@ -760,7 +1036,8 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
             const prev = useAdminQuizBuilderStore.getState().questions;
             const fromIndex = prev.findIndex((q) => q.tempId === String(a.id));
             const toIndex = prev.findIndex((q) => q.tempId === String(over.id));
-            if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+            if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex)
+              return;
 
             reorderQuestions(String(a.id), String(over.id));
 
@@ -775,10 +1052,14 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
             try {
               const run = async () => {
                 await persistQuestionOrderMove({
-                  questions: prev.map((q) => ({ questionId: q.questionId, ord: q.ord })),
+                  questions: prev.map((q) => ({
+                    questionId: q.questionId,
+                    ord: q.ord,
+                  })),
                   fromIndex,
                   toIndex,
-                  updateOrder: async (qid, ord) => actions.updateQuestionOrder.mutateAsync({ id: qid, ord } as any),
+                  updateOrder: async (qid, ord) =>
+                    actions.updateQuestionOrder.mutateAsync({ id: qid, ord }),
                 });
               };
 
@@ -788,24 +1069,42 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
 
               await p;
 
-              if (reorderInFlightRef.current === p) reorderInFlightRef.current = null;
-            } catch (err: any) {
+              if (reorderInFlightRef.current === p)
+                reorderInFlightRef.current = null;
+            } catch (err) {
               reorderInFlightRef.current = null;
-              message.error({ content: err?.message ?? t('failedToSaveOrder'), key, duration: 3 });
+              const e = err as { message?: string };
+              message.error({
+                content: e?.message ?? t('failedToSaveOrder'),
+                key,
+                duration: 3,
+              });
             }
           }}
         >
-          <SortableContext items={questions.map((q) => q.tempId)} strategy={verticalListSortingStrategy}>
+          <SortableContext
+            items={questions.map((q) => q.tempId)}
+            strategy={verticalListSortingStrategy}
+          >
             <div className="flex flex-col gap-3">
               {questions.map((q) => {
-                const errPairs = v.submitAttempted ? getQuestionErrorPairs(q.tempId) : [];
+                const errPairs = v.submitAttempted
+                  ? getQuestionErrorPairs(q.tempId)
+                  : [];
 
                 const traitIdsForQ: number[] =
                   Array.isArray(q.linkedTraitIds) && q.linkedTraitIds.length > 0
                     ? q.linkedTraitIds
                     : Array.from(
                         q.options
-                          .flatMap((o: any) => Object.keys(o.weightsByTraitId ?? {}).map((k) => Number(k)))
+                          .flatMap((o: unknown) => {
+                            const oRec = o as
+                              | { weightsByTraitId?: Record<string, unknown> }
+                              | undefined;
+                            return Object.keys(
+                              oRec?.weightsByTraitId ?? {},
+                            ).map((k) => Number(k));
+                          })
                           .filter((n: number) => Number.isFinite(n)),
                       );
 
@@ -814,8 +1113,15 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
                   const trait = availableTraits.find((x) => x.traitId === tid);
                   const label = trait ? trait.name : `trait ${tid}`;
                   const vals = q.options
-                    .map((o: any) => (o.weightsByTraitId ? o.weightsByTraitId[tid] : undefined))
-                    .filter((vv: any) => typeof vv === 'number') as number[];
+                    .map((o: unknown) => {
+                      const oRec = o as
+                        | { weightsByTraitId?: Record<number, number> }
+                        | undefined;
+                      return oRec?.weightsByTraitId
+                        ? oRec.weightsByTraitId[tid]
+                        : undefined;
+                    })
+                    .filter((vv) => typeof vv === 'number') as number[];
                   if (vals.length === 0) continue;
                   const min = Math.min(...vals);
                   const max = Math.max(...vals);
@@ -830,7 +1136,9 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
                     active={editingTempId === q.tempId}
                     title={q.text.trim() ? q.text : t('untitledQuestion')}
                     typeLabel={`${t('typeLabel')}: ${q.qtype}`}
-                    optionsPreview={q.options.map((o) => (o.label.trim() ? o.label : t('emptyOption')))}
+                    optionsPreview={q.options.map((o) =>
+                      o.label.trim() ? o.label : t('emptyOption'),
+                    )}
                     influenceLines={influenceLines}
                     onEdit={() => startEditQuestion(q.tempId)}
                     onRemove={() => {
@@ -845,11 +1153,21 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
                           if (typeof qId === 'number' && Number.isFinite(qId)) {
                             const key = 'delete-question';
                             try {
-                              await actions.deleteQuestion.mutateAsync({ id: qId } as any);
+                              await actions.deleteQuestion.mutateAsync({
+                                id: qId,
+                              });
                               removeQuestion(q.tempId);
-                              message.success({ content: t('questionDeleted'), key, duration: 2 });
-                            } catch (err: any) {
-                              message.error({ content: err?.message ?? t('failedToDeleteQuestion'), key, duration: 3 });
+                              message.success({
+                                content: t('questionDeleted'),
+                                key,
+                                duration: 2,
+                              });
+                            } catch (err) {
+                              const e = err as unknown;
+                              const msg =
+                                (e as { message?: string })?.message ??
+                                t('failedToDeleteQuestion');
+                              message.error({ content: msg, key, duration: 3 });
                             }
                           } else {
                             removeQuestion(q.tempId);
@@ -870,37 +1188,60 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
         </DndContext>
       ) : null}
 
-      <SectionCard title={editingTempId ? t('editorTitleEdit') : t('editorTitleNew')}>
+      <SectionCard
+        title={editingTempId ? t('editorTitleEdit') : t('editorTitleNew')}
+      >
         <div className="flex flex-col gap-4">
           <div>
-            <Typography.Text className="block">{t('questionText')}</Typography.Text>
+            <Typography.Text className="block">
+              {t('questionText')}
+            </Typography.Text>
             <Input
               value={draft.text}
-              onChange={(e) => setDraft((d) => ({ ...d, text: e.target.value }))}
+              onChange={(e) =>
+                setDraft((d) => ({ ...d, text: e.target.value }))
+              }
               size="large"
               placeholder={t('questionTextPh')}
             />
-            {draftErrors.draftText ? <FieldError code={draftErrors.draftText} /> : null}
+            {draftErrors.draftText ? (
+              <FieldError code={draftErrors.draftText} />
+            ) : null}
           </div>
 
           <div>
-            <Typography.Text className="block">{t('questionType')}</Typography.Text>
+            <Typography.Text className="block">
+              {t('questionType')}
+            </Typography.Text>
             <Select
               value={draft.qtype}
               onChange={(vv) => onDraftTypeChange(String(vv))}
               className="w-full"
               size="large"
               options={[
-                { value: CreateQuestionRequestQtype.SINGLE_CHOICE, label: t('types.single') },
-                { value: CreateQuestionRequestQtype.MULTI_CHOICE, label: t('types.multi') },
-                { value: CreateQuestionRequestQtype.LIKER_SCALE_5, label: t('types.likert5') },
+                {
+                  value: CreateQuestionRequestQtype.SINGLE_CHOICE,
+                  label: t('types.single'),
+                },
+                {
+                  value: CreateQuestionRequestQtype.MULTI_CHOICE,
+                  label: t('types.multi'),
+                },
+                {
+                  value: CreateQuestionRequestQtype.LIKER_SCALE_5,
+                  label: t('types.likert5'),
+                },
               ]}
             />
-            {draftErrors.draftType ? <FieldError code={draftErrors.draftType} /> : null}
+            {draftErrors.draftType ? (
+              <FieldError code={draftErrors.draftType} />
+            ) : null}
           </div>
 
           <div>
-            <Typography.Text className="block">{t('selectTraits')}</Typography.Text>
+            <Typography.Text className="block">
+              {t('selectTraits')}
+            </Typography.Text>
             <Select
               value={draft.linkedTraitIds}
               onChange={(vv) => onDraftTraitsChange(vv as number[])}
@@ -908,14 +1249,21 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
               className="w-full"
               size="large"
               optionFilterProp="label"
-              options={availableTraits.map((x) => ({ value: x.traitId, label: x.name }))}
+              options={availableTraits.map((x) => ({
+                value: x.traitId,
+                label: x.name,
+              }))}
               placeholder={t('selectTraitsPh')}
             />
-            {draftErrors.draftTraits ? <FieldError code={draftErrors.draftTraits} /> : null}
+            {draftErrors.draftTraits ? (
+              <FieldError code={draftErrors.draftTraits} />
+            ) : null}
           </div>
 
           <div className="flex flex-col gap-3">
-            <Typography.Text className="block font-medium">{t('options')}</Typography.Text>
+            <Typography.Text className="block font-medium">
+              {t('options')}
+            </Typography.Text>
 
             <DndContext
               sensors={sensors}
@@ -933,7 +1281,10 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
                 });
               }}
             >
-              <SortableContext items={draft.options.map((o) => o.tempId)} strategy={verticalListSortingStrategy}>
+              <SortableContext
+                items={draft.options.map((o) => o.tempId)}
+                strategy={verticalListSortingStrategy}
+              >
                 <div className="flex flex-col gap-3">
                   {draft.options.map((o) => (
                     <SortableOptionRow
@@ -941,13 +1292,23 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
                       id={o.tempId}
                       label={o.label}
                       placeholder={t('optionPh')}
-                      disableRemove={draft.options.length <= 1 || draft.qtype === CreateQuestionRequestQtype.LIKER_SCALE_5}
-                      onChange={(vv) => patchDraftOption(o.tempId, { label: vv })}
+                      disableRemove={
+                        draft.options.length <= 1 ||
+                        draft.qtype === CreateQuestionRequestQtype.LIKER_SCALE_5
+                      }
+                      onChange={(vv) =>
+                        patchDraftOption(o.tempId, { label: vv })
+                      }
                       onRemove={() => removeDraftOption(o.tempId)}
                       error={draftErrors[`draftOpt.${o.tempId}.label`]}
                       renderWeights={() =>
-                        renderWeightsBlock(draftLinkedTraits, o.weightsByTraitId ?? {}, (next) =>
-                          patchDraftOption(o.tempId, { weightsByTraitId: next }),
+                        renderWeightsBlock(
+                          draftLinkedTraits,
+                          o.weightsByTraitId ?? {},
+                          (next) =>
+                            patchDraftOption(o.tempId, {
+                              weightsByTraitId: next,
+                            }),
                         )
                       }
                       removeLabel={t('remove')}
@@ -958,10 +1319,17 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
             </DndContext>
 
             <div className="flex items-center justify-between gap-3">
-              <Button onClick={addDraftOption} disabled={draft.qtype === CreateQuestionRequestQtype.LIKER_SCALE_5}>
+              <Button
+                onClick={addDraftOption}
+                disabled={
+                  draft.qtype === CreateQuestionRequestQtype.LIKER_SCALE_5
+                }
+              >
                 {t('addOption')}
               </Button>
-              {draftErrors.draftOptions ? <FieldError code={draftErrors.draftOptions} /> : null}
+              {draftErrors.draftOptions ? (
+                <FieldError code={draftErrors.draftOptions} />
+              ) : null}
             </div>
           </div>
 
@@ -969,7 +1337,11 @@ export function StepQuestions({ errors, submitAttempted }: StepQuestionsProps): 
             {editingTempId ? (
               <>
                 <Button onClick={resetDraft}>{t('cancelEdit')}</Button>
-                <Button type="primary" size="large" onClick={() => applyDraftToExistingQuestion(editingTempId)}>
+                <Button
+                  type="primary"
+                  size="large"
+                  onClick={() => applyDraftToExistingQuestion(editingTempId)}
+                >
                   {t('saveChanges')}
                 </Button>
               </>

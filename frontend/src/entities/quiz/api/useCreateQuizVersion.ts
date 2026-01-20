@@ -6,19 +6,24 @@ import { orvalFetch } from '@/shared/api/orvalFetch';
 export type CreateQuizVersionVars = { id: number } | number;
 
 function normalizeId(vars: CreateQuizVersionVars): number {
-    const id = typeof vars === 'number' ? vars : vars.id;
-    if (!Number.isFinite(Number(id)) || Number(id) <= 0) {
-        throw new Error(`Invalid quiz id: ${String(id)}`);
-    }
-    return Number(id);
+  const id = typeof vars === 'number' ? vars : vars.id;
+  if (!Number.isFinite(Number(id)) || Number(id) <= 0) {
+    throw new Error(`Invalid quiz id: ${String(id)}`);
+  }
+  return Number(id);
 }
 
-async function createQuizVersionApi(id: number): Promise<any> {
-    return orvalFetch(`/quizzes/${id}/versions`, { method: 'POST' });
+async function createQuizVersionApi(id: number): Promise<unknown> {
+  return orvalFetch(`/quizzes/${id}/versions`, { method: 'POST' });
 }
 
-export const useCreateQuizVersion = (): UseMutationResult<any, unknown, CreateQuizVersionVars, unknown> => {
-    return useMutation({
-        mutationFn: (vars) => createQuizVersionApi(normalizeId(vars)),
-    });
+export const useCreateQuizVersion = (): UseMutationResult<
+  unknown,
+  unknown,
+  CreateQuizVersionVars,
+  unknown
+> => {
+  return useMutation({
+    mutationFn: (vars) => createQuizVersionApi(normalizeId(vars)),
+  });
 };

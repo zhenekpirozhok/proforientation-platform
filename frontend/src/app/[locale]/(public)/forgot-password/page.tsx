@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import { ForgotPasswordForm } from '@/features/auth/forgot-password/ui/ForgotPasswordForm';
 
 export const metadata: Metadata = {

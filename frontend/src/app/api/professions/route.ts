@@ -1,34 +1,34 @@
 import { bffAuthFetch } from '@/shared/api/bffAuthFetch';
 
 export async function GET(req: Request) {
-    const url = new URL(req.url);
-    const upstream = await bffAuthFetch(`/professions${url.search}`, {
-        method: 'GET',
-        headers: {
-            accept: req.headers.get('accept') ?? 'application/json',
-        },
-    });
+  const url = new URL(req.url);
+  const upstream = await bffAuthFetch(`/professions${url.search}`, {
+    method: 'GET',
+    headers: {
+      accept: req.headers.get('accept') ?? 'application/json',
+    },
+  });
 
-    return new Response(upstream.body, {
-        status: upstream.status,
-        headers: upstream.headers,
-    });
+  return new Response(upstream.body, {
+    status: upstream.status,
+    headers: upstream.headers,
+  });
 }
 
 export async function POST(req: Request) {
-    const body = await req.text();
+  const body = await req.text();
 
-    const upstream = await bffAuthFetch('/professions', {
-        method: 'POST',
-        headers: {
-            'content-type': req.headers.get('content-type') ?? 'application/json',
-            accept: req.headers.get('accept') ?? 'application/json',
-        },
-        body,
-    });
+  const upstream = await bffAuthFetch('/professions', {
+    method: 'POST',
+    headers: {
+      'content-type': req.headers.get('content-type') ?? 'application/json',
+      accept: req.headers.get('accept') ?? 'application/json',
+    },
+    body,
+  });
 
-    return new Response(upstream.body, {
-        status: upstream.status,
-        headers: upstream.headers,
-    });
+  return new Response(upstream.body, {
+    status: upstream.status,
+    headers: upstream.headers,
+  });
 }

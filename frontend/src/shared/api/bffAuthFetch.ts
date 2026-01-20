@@ -32,7 +32,9 @@ export async function bffAuthFetch(path: string, init: RequestInit = {}) {
     const proto = h.get('x-forwarded-proto') ?? 'http';
     const origin = host ? `${proto}://${host}` : undefined;
 
-    const refreshUrl = origin ? new URL('/api/auth/refresh', origin).toString() : '/api/auth/refresh';
+    const refreshUrl = origin
+      ? new URL('/api/auth/refresh', origin).toString()
+      : '/api/auth/refresh';
 
     refreshRes = await fetch(refreshUrl, {
       method: 'POST',

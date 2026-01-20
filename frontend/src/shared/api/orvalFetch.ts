@@ -81,12 +81,12 @@ export async function orvalFetch<T>(
   const text = await res.text().catch(() => '');
   const data: unknown = text
     ? (() => {
-      try {
-        return JSON.parse(text) as unknown;
-      } catch {
-        return text;
-      }
-    })()
+        try {
+          return JSON.parse(text) as unknown;
+        } catch {
+          return text;
+        }
+      })()
     : null;
 
   if (!res.ok) {
@@ -95,22 +95,28 @@ export async function orvalFetch<T>(
       const refreshed = await refreshAccessToken();
       if (refreshed) {
         // Retry the original request with refreshed token
-        const retryRes = await fetch(toBffUrl(url), { ...init, credentials: 'include' });
+        const retryRes = await fetch(toBffUrl(url), {
+          ...init,
+          credentials: 'include',
+        });
         const retryText = await retryRes.text().catch(() => '');
         const retryData: unknown = retryText
           ? (() => {
-            try {
-              return JSON.parse(retryText) as unknown;
-            } catch {
-              return retryText;
-            }
-          })()
+              try {
+                return JSON.parse(retryText) as unknown;
+              } catch {
+                return retryText;
+              }
+            })()
           : null;
 
         if (!retryRes.ok) {
           const msg = tryGetMessage(retryData);
           const message =
-            msg ?? (typeof retryData === 'string' ? retryData : `API error ${retryRes.status}`);
+            msg ??
+            (typeof retryData === 'string'
+              ? retryData
+              : `API error ${retryRes.status}`);
           throw new Error(message);
         }
 

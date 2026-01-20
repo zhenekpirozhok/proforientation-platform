@@ -15,7 +15,6 @@ import { useSearchProfessions } from '@/entities/profession/api/useSearchProfess
 import type { ProfessionCategoryDto as Category } from '@/shared/api/generated/model/professionCategoryDto';
 import type { ProfessionDto as Profession } from '@/shared/api/generated/model/professionDto';
 
-
 interface Init {
   title?: string;
   code?: string;
@@ -68,7 +67,7 @@ interface SelectedView {
 interface Results {
   selectedCategoryIds?: unknown;
   selectedProfessionIds?: unknown;
-  [k: string]: any;
+  [k: string]: unknown;
 }
 
 function toNumber(v: unknown): number | undefined {
@@ -80,38 +79,56 @@ function toArray<T>(v: unknown): T[] {
   if (Array.isArray(v)) return v as T[];
   if (!v || typeof v !== 'object') return [];
 
-  const o = v as any;
+  const o = v as Record<string, unknown>;
 
-  if (Array.isArray(o.items)) return o.items as T[];
-  if (Array.isArray(o.results)) return o.results as T[];
-  if (Array.isArray(o.rows)) return o.rows as T[];
-  if (Array.isArray(o.content)) return o.content as T[];
+  if (Array.isArray(o.items as unknown)) return o.items as T[];
+  if (Array.isArray(o.results as unknown)) return o.results as T[];
+  if (Array.isArray(o.rows as unknown)) return o.rows as T[];
+  if (Array.isArray(o.content as unknown)) return o.content as T[];
 
-  if (o.data !== undefined) return toArray<T>(o.data);
-  if (o.result !== undefined) return toArray<T>(o.result);
-  if (o.payload !== undefined) return toArray<T>(o.payload);
+  if ((o.data as unknown) !== undefined) return toArray<T>(o.data as unknown);
+  if ((o.result as unknown) !== undefined)
+    return toArray<T>(o.result as unknown);
+  if ((o.payload as unknown) !== undefined)
+    return toArray<T>(o.payload as unknown);
 
   return [];
 }
 
 function safeIds(v: unknown): number[] {
-  return Array.isArray(v) ? (v.filter((x) => typeof x === 'number' && Number.isFinite(x)) as number[]) : [];
+  return Array.isArray(v)
+    ? (v.filter((x) => typeof x === 'number' && Number.isFinite(x)) as number[])
+    : [];
 }
 
 export function StepPreview(): JSX.Element {
   const t = useTranslations('AdminQuizBuilder.preview');
 
   const quizId: number | undefined = useAdminQuizBuilderStore((s) => s.quizId);
-  const quizVersionId: number | undefined = useAdminQuizBuilderStore((s) => s.quizVersionId);
-  const version: number | undefined = useAdminQuizBuilderStore((s) => s.version);
+  const quizVersionId: number | undefined = useAdminQuizBuilderStore(
+    (s) => s.quizVersionId,
+  );
+  const version: number | undefined = useAdminQuizBuilderStore(
+    (s) => s.version,
+  );
 
   const init: Init = useAdminQuizBuilderStore((s) => s.init);
   const scales: Scale[] | undefined = useAdminQuizBuilderStore((s) => s.scales);
-  const questions: RawQuestion[] | undefined = useAdminQuizBuilderStore((s) => s.questions);
-  const results: Results = useAdminQuizBuilderStore((s) => s.results as any);
+  const questions: RawQuestion[] | undefined = useAdminQuizBuilderStore(
+    (s) => s.questions,
+  );
+  const results: Results = useAdminQuizBuilderStore(
+    (s) => s.results as Results,
+  );
 
   const categoriesQuery = useAdminCategories();
   const professionsAllQuery = useAdminProfessions();
+
+  const categoriesData: unknown =
+    (categoriesQuery as unknown as { data?: unknown }).data ?? categoriesQuery;
+  const professionsData: unknown =
+    (professionsAllQuery as unknown as { data?: unknown }).data ??
+    professionsAllQuery;
 
   const selectedCategoryIds = safeIds(results?.selectedCategoryIds);
   const selectedProfessionIds = safeIds(results?.selectedProfessionIds);
@@ -129,48 +146,65 @@ export function StepPreview(): JSX.Element {
       : undefined,
   );
 
+  // Reset pagination and loaded state when category changes
   useEffect(() => {
-    setPage(1);
-    setAllProfessions([]);
-    setAllLoaded(false);
+    Promise.resolve().then(() => {
+      setPage(1);
+      setAllProfessions([]);
+      setAllLoaded(false);
+    });
   }, [selectedCategoryId]);
 
+  // Update professions loaded for current category/page
   useEffect(() => {
     const items = toArray<Profession>(searchRes.data ?? []) as Profession[];
 
-    setAllProfessions((prev) => {
-      if (page === 1) return items;
-      const ids = new Set(prev.map((p: any) => p.id));
-      const next = [...prev];
-      for (const it of items as any[]) {
-        if (!ids.has(it.id)) next.push(it);
-      }
-      return next;
-    });
+    Promise.resolve().then(() => {
+      setAllProfessions((prev) => {
+        if (page === 1) return items;
+        const ids = new Set(prev.map((p) => p.id));
+        const next = [...prev];
+        for (const it of items) {
+          if (!ids.has(it.id)) next.push(it);
+        }
+        return next;
+      });
 
-    setAllLoaded(items.length < size);
+      setAllLoaded(items.length < size);
+    });
   }, [searchRes.data, page, size]);
 
   const categoryById = useMemo(() => {
-    const arr = toArray<Category>((categoriesQuery as any).data ?? categoriesQuery) as any[];
-    const m = new Map<number, any>();
+    const arr = toArray<Category>(categoriesData) as Category[];
+    const m = new Map<number, Category>();
     for (const c of arr) if (typeof c?.id === 'number') m.set(c.id, c);
     return m;
-  }, [(categoriesQuery as any).data, categoriesQuery]);
+  }, [categoriesData]);
 
   const professionById = useMemo(() => {
-    const arr = toArray<Profession>((professionsAllQuery as any).data ?? professionsAllQuery) as any[];
-    const m = new Map<number, any>();
+    const arr = toArray<Profession>(professionsData) as Profession[];
+    const m = new Map<number, Profession>();
     for (const p of arr) if (typeof p?.id === 'number') m.set(p.id, p);
     return m;
-  }, [(professionsAllQuery as any).data, professionsAllQuery]);
+  }, [professionsData]);
+
+  function safeLabelFromRec(r: unknown) {
+    const rec = r as Record<string, unknown> | undefined;
+    return (
+      (rec?.title as string) ??
+      (rec?.name as string) ??
+      (rec?.code as string) ??
+      rec?.id ??
+      ''
+    );
+  }
 
   const selectedCategoriesView: SelectedView[] = useMemo(() => {
     return selectedCategoryIds.map((id) => {
-      const c: any = categoryById.get(id);
+      const c = categoryById.get(id) as Category | undefined;
       return {
         id,
-        label: c ? (c.title ?? c.name ?? c.code ?? c.id) : id,
+        label: c ? safeLabelFromRec(c) : id,
       };
     });
   }, [selectedCategoryIds, categoryById]);
@@ -178,9 +212,9 @@ export function StepPreview(): JSX.Element {
   const selectedProfessionsView: SelectedView[] = useMemo(() => {
     const resolved = selectedProfessionIds
       .map((id) => {
-        const p: any = professionById.get(id);
+        const p = professionById.get(id) as Profession | undefined;
         if (!p) return null;
-        return { id, label: p.title ?? p.name ?? p.code ?? p.id };
+        return { id, label: safeLabelFromRec(p) } as SelectedView | null;
       })
       .filter(Boolean) as SelectedView[];
 
@@ -190,12 +224,12 @@ export function StepPreview(): JSX.Element {
   const scaleLabelByTraitId = useMemo(() => {
     const m = new Map<number, string>();
     for (const s of scales ?? []) {
-      const tid = toNumber((s as any).traitId);
+      const tid = toNumber(s.traitId);
       if (typeof tid !== 'number') continue;
-      const name = (s as any).name ?? (s as any).code ?? (s as any).tempId;
+      const name = s.name ?? s.code ?? s.tempId;
       const extra =
-        (s as any).polarity === 'bipolar' && (s as any).side
-          ? ` (${String((s as any).side).toLowerCase()})`
+        s.polarity === 'bipolar' && s.side
+          ? ` (${String(s.side).toLowerCase()})`
           : '';
       m.set(tid, `${name}${extra}`);
     }
@@ -203,13 +237,20 @@ export function StepPreview(): JSX.Element {
   }, [scales]);
 
   const questionsView: QuestionView[] = useMemo(() => {
-    const qs = (questions ?? []).slice().sort((a: any, b: any) => (a.ord ?? 0) - (b.ord ?? 0));
+    const qs = (questions ?? [])
+      .slice()
+      .sort((a: RawQuestion, b: RawQuestion) => (a.ord ?? 0) - (b.ord ?? 0));
 
-    const effectText = (weightsByTraitId: Record<number, number> | undefined) => {
+    const effectText = (
+      weightsByTraitId: Record<number, number> | undefined,
+    ) => {
       const w = weightsByTraitId ?? {};
       const entries = Object.entries(w)
         .map(([k, v]) => [Number(k), v] as const)
-        .filter(([tid, val]) => Number.isFinite(tid) && typeof val === 'number' && val !== 0);
+        .filter(
+          ([tid, val]) =>
+            Number.isFinite(tid) && typeof val === 'number' && val !== 0,
+        );
 
       if (entries.length === 0) return t('noEffect');
 
@@ -222,21 +263,26 @@ export function StepPreview(): JSX.Element {
         .join(', ');
     };
 
-    return qs.map((q: RawQuestion) => ({
-      id: q.tempId,
-      ord: q.ord,
-      qtype: q.qtype,
-      text: q.text,
-      options: (q.options ?? [])
-        .slice()
-        .sort((a: RawOption, b: RawOption) => (a.ord ?? 0) - (b.ord ?? 0))
-        .map((o: RawOption) => ({
-          id: o.tempId,
-          ord: o.ord,
-          label: o.label,
-          effect: effectText((o as any).weightsByTraitId),
-        })),
-    } as QuestionView));
+    return qs.map(
+      (q: RawQuestion) =>
+        ({
+          id: q.tempId,
+          ord: q.ord,
+          qtype: q.qtype,
+          text: q.text,
+          options: (q.options ?? [])
+            .slice()
+            .sort((a: RawOption, b: RawOption) => (a.ord ?? 0) - (b.ord ?? 0))
+            .map((o: RawOption) => ({
+              id: o.tempId,
+              ord: o.ord,
+              label: o.label,
+              effect: effectText(
+                o.weightsByTraitId as Record<number, number> | undefined,
+              ),
+            })),
+        }) as QuestionView,
+    );
   }, [questions, scaleLabelByTraitId, t]);
 
   const actions = useQuizBuilderActions(
@@ -254,7 +300,7 @@ export function StepPreview(): JSX.Element {
     }
 
     try {
-      await actions.publishQuiz.mutateAsync({ id: quizVersionId } as any);
+      await actions.publishQuiz.mutateAsync({ id: quizVersionId });
       message.success(t('published'));
     } catch (e) {
       message.error((e as Error).message);
@@ -272,17 +318,24 @@ export function StepPreview(): JSX.Element {
         <Divider className="!my-3" />
 
         <Typography.Text className="font-medium">{t('scales')}</Typography.Text>
-        <Typography.Text type="secondary">{scales.map((s) => s.name).join(', ') || t('none')}</Typography.Text>
+        <Typography.Text type="secondary">
+          {scales.map((s) => s.name).join(', ') || t('none')}
+        </Typography.Text>
 
         <Divider className="!my-3" />
 
-        <Typography.Text className="font-medium">{t('questions')}</Typography.Text>
+        <Typography.Text className="font-medium">
+          {t('questions')}
+        </Typography.Text>
         {questionsView.length === 0 ? (
           <Typography.Text type="secondary">{t('none')}</Typography.Text>
         ) : (
           <div className="flex flex-col gap-3">
             {questionsView.map((q) => (
-              <div key={q.id} className="rounded-md border border-neutral-200 p-3 dark:border-neutral-800">
+              <div
+                key={q.id}
+                className="rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
+              >
                 <Typography.Text className="block font-medium">
                   {q.ord}. {q.text}
                 </Typography.Text>
@@ -297,7 +350,7 @@ export function StepPreview(): JSX.Element {
                   <ul className="mt-2 list-disc pl-6">
                     {q.options.map((o) => (
                       <li key={o.id}>
-                        {(o.label || t('none'))} — {o.effect || t('noEffect')}
+                        {o.label || t('none')} — {o.effect || t('noEffect')}
                       </li>
                     ))}
                   </ul>
@@ -309,10 +362,14 @@ export function StepPreview(): JSX.Element {
 
         <Divider className="!my-3" />
 
-        <Typography.Text className="font-medium">{t('results')}</Typography.Text>
+        <Typography.Text className="font-medium">
+          {t('results')}
+        </Typography.Text>
 
         <div className="mt-2 flex flex-col gap-2">
-          <Typography.Text className="font-medium">{t('categories')}</Typography.Text>
+          <Typography.Text className="font-medium">
+            {t('categories')}
+          </Typography.Text>
           {selectedCategoriesView.length === 0 ? (
             <Typography.Text type="secondary">{t('none')}</Typography.Text>
           ) : (
@@ -325,7 +382,9 @@ export function StepPreview(): JSX.Element {
         </div>
 
         <div className="mt-2 flex flex-col gap-2">
-          <Typography.Text className="font-medium">{t('professions')}</Typography.Text>
+          <Typography.Text className="font-medium">
+            {t('professions')}
+          </Typography.Text>
 
           {selectedProfessionsView.length > 0 ? (
             <ul className="list-disc pl-6">
@@ -336,18 +395,23 @@ export function StepPreview(): JSX.Element {
           ) : typeof selectedCategoryId === 'number' ? (
             allProfessions.length === 0 ? (
               <Typography.Text type="secondary">
-                {searchRes.isFetching ? t('loading') : t('noProfessionsInCategory')}
+                {searchRes.isFetching
+                  ? t('loading')
+                  : t('noProfessionsInCategory')}
               </Typography.Text>
             ) : (
               <div>
                 <ul className="mt-2 list-disc pl-6">
-                  {allProfessions.map((p: any) => (
-                    <li key={p.id}>{p.title ?? p.name ?? p.code ?? p.id}</li>
+                  {allProfessions.map((p: Profession) => (
+                    <li key={p.id}>{safeLabelFromRec(p)}</li>
                   ))}
                 </ul>
                 {!allLoaded ? (
                   <div className="mt-2">
-                    <Button onClick={() => setPage((s) => s + 1)} loading={searchRes.isFetching}>
+                    <Button
+                      onClick={() => setPage((s) => s + 1)}
+                      loading={searchRes.isFetching}
+                    >
                       {t('loadMore')}
                     </Button>
                   </div>
@@ -355,7 +419,9 @@ export function StepPreview(): JSX.Element {
               </div>
             )
           ) : (
-            <Typography.Text type="secondary">{t('chooseCategoryToSeeProfessions')}</Typography.Text>
+            <Typography.Text type="secondary">
+              {t('chooseCategoryToSeeProfessions')}
+            </Typography.Text>
           )}
         </div>
 

@@ -8,8 +8,17 @@ export const dynamicParams = true;
 
 export default function Page() {
   const params = useParams();
-  const raw = (params as any)?.id;
-  const quizId = typeof raw === 'string' ? Number.parseInt(raw, 10) : Array.isArray(raw) ? Number.parseInt(raw[0], 10) : NaN;
+  const rawId = (params as Record<string, unknown> | undefined)?.id;
+  const quizId =
+    typeof rawId === 'string'
+      ? Number.parseInt(rawId, 10)
+      : Array.isArray(rawId) && typeof rawId[0] === 'string'
+        ? Number.parseInt(rawId[0], 10)
+        : NaN;
 
-  return <AdminQuizBuilderPage quizId={Number.isFinite(quizId) ? quizId : undefined} />;
+  return (
+    <AdminQuizBuilderPage
+      quizId={Number.isFinite(quizId) ? quizId : undefined}
+    />
+  );
 }

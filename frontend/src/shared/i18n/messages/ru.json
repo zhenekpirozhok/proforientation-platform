@@ -497,58 +497,58 @@
     }
   },
   "AdminQuizBuilder": {
-  "title": "Конструктор квиза",
-  "subtitle": "Создайте квиз в 3 шага и опубликуйте",
-  "savingInBackground": "Сохранение в фоне…",
-  "savedInBackground": "Сохранено",
-  "toastCreated": "Квиз создан",
-  "toastNewVersionCreated": "Создана новая версия квиза",
-  "needQuizContext": "Сначала создайте квиз (Шаг 0).",
-  "validation": {
-    "required": "Это поле обязательно",
-    "min3": "Минимум 3 символа",
-    "min1": "Требуется хотя бы один элемент",
-    "min2": "Требуется минимум 2 элемента",
-    "map1": "Свяжите хотя бы с одним трейтом",
-    "invalid": "Некорректное значение",
-    "fixErrors": "Пожалуйста, исправьте ошибки ниже",
-    "mixedPolarity": "Нельзя смешивать одиночные и биполярные шкалы",
-    "pairRequired": "Обе стороны пары обязательны",
-    "pairIncomplete": "Биполярная пара должна иметь обе стороны (левую и правую)",
-    "pairCodeRequired": "Код пары обязателен",
-    "pairCodeMismatch": "Левая и правая стороны должны иметь одинаковый код пары",
-    "weightsMissing": "Все черты должны иметь значения весов",
-    "quizOperationError": "Не удалось сохранить квиз",
-    "createQuizError": "Не удалось создать квиз"
-  },
-  "steps": {
-    "init": "Старт",
-    "scales": "Шкалы",
-    "questions": "Вопросы",
-    "results": "Результаты",
-    "preview": "Превью"
-  },
-  "actions": {
-    "back": "Назад",
-    "next": "Далее",
-    "done": "Готово"
-  },
-  "init": {
-    "title": "Инициализация",
-    "quizTitle": "Название квиза",
-    "quizTitlePh": "Например: Профориентационный квиз",
-    "quizCode": "Системный код",
-    "quizCodePh": "авто из названия",
-    "continue": "Создать и продолжить",
-    "created": "Квиз создан",
-    "createFailed": "Не удалось создать квиз",
-    "quizDescription": "Описание",
-    "quizDescriptionPh": "Кратко опишите цель квиза",
+    "title": "Конструктор квиза",
+    "subtitle": "Создайте квиз в 3 шага и опубликуйте",
+    "savingInBackground": "Сохранение в фоне…",
+    "savedInBackground": "Сохранено",
+    "toastCreated": "Квиз создан",
+    "toastNewVersionCreated": "Создана новая версия квиза",
+    "needQuizContext": "Сначала создайте квиз (Шаг 0).",
     "validation": {
-      "fixErrors": "Пожалуйста, исправьте ошибки ниже"
-    }
-  },
-   "scales": {
+      "required": "Это поле обязательно",
+      "min3": "Минимум 3 символа",
+      "min1": "Требуется хотя бы один элемент",
+      "min2": "Требуется минимум 2 элемента",
+      "map1": "Свяжите хотя бы с одним трейтом",
+      "invalid": "Некорректное значение",
+      "fixErrors": "Пожалуйста, исправьте ошибки ниже",
+      "mixedPolarity": "Нельзя смешивать одиночные и биполярные шкалы",
+      "pairRequired": "Обе стороны пары обязательны",
+      "pairIncomplete": "Биполярная пара должна иметь обе стороны (левую и правую)",
+      "pairCodeRequired": "Код пары обязателен",
+      "pairCodeMismatch": "Левая и правая стороны должны иметь одинаковый код пары",
+      "weightsMissing": "Все черты должны иметь значения весов",
+      "quizOperationError": "Не удалось сохранить квиз",
+      "createQuizError": "Не удалось создать квиз"
+    },
+    "steps": {
+      "init": "Старт",
+      "scales": "Шкалы",
+      "questions": "Вопросы",
+      "results": "Результаты",
+      "preview": "Превью"
+    },
+    "actions": {
+      "back": "Назад",
+      "next": "Далее",
+      "done": "Готово"
+    },
+    "init": {
+      "title": "Инициализация",
+      "quizTitle": "Название квиза",
+      "quizTitlePh": "Например: Профориентационный квиз",
+      "quizCode": "Системный код",
+      "quizCodePh": "авто из названия",
+      "continue": "Создать и продолжить",
+      "created": "Квиз создан",
+      "createFailed": "Не удалось создать квиз",
+      "quizDescription": "Описание",
+      "quizDescriptionPh": "Кратко опишите цель квиза",
+      "validation": {
+        "fixErrors": "Пожалуйста, исправьте ошибки ниже"
+      }
+    },
+    "scales": {
       "title": "Шкалы",
       "modeTitle": "Тип шкал",
       "modeHint": "Выберите один тип для всего квиза. Нельзя смешивать одиночные и биполярные шкалы.",
@@ -604,8 +604,8 @@
       "emptyOption": "Пустой вариант",
       "weightsTitle": "Веса для шкал",
       "noTraitsYet": "Пока нет шкал/traits. Вернитесь назад и добавьте шкалы.",
-      "noQuestionsYet": "Пока нет вопросов. Нажмите «Добавить вопрос»."
-      ,"selectTraits": "Выберите трейты",
+      "noQuestionsYet": "Пока нет вопросов. Нажмите «Добавить вопрос».",
+      "selectTraits": "Выберите трейты",
       "selectTraitsPh": "Выберите трейты",
       "selectTraitsHint": "Выберите трейты, чтобы назначать веса вариантам.",
       "addThisQuestion": "Добавить вопрос",
@@ -622,60 +622,60 @@
       "validation": {
         "fixErrors": "Пожалуйста, исправьте ошибки ниже"
       },
-          "codeReadOnlyTooltip": "Код формируется автоматически из названия",
-          "codeReadOnlyInfo": "Код формируется автоматически из названия и не может быть отредактирован"
+      "codeReadOnlyTooltip": "Код формируется автоматически из названия",
+      "codeReadOnlyInfo": "Код формируется автоматически из названия и не может быть отредактирован"
     },
-  "results": {
-    "title": "Шаг 3 — Результаты",
-    "categories": "Категории",
-    "categoriesPh": "Выберите категории",
-    "newCategoryPh": "Название новой категории",
-    "newCategoryNamePh": "Название новой категории",
-    "newCategoryColorPh": "Выберите цвет",
-    "professions": "Профессии",
-    "professionsPh": "Выберите профессии",
-    "newProfessionPh": "Название новой профессии",
-    "newProfessionTitlePh": "Название новой профессии",
-    "newProfessionDescriptionPh": "Описание новой профессии",
-    "add": "Добавить",
-    "addCategory": "Добавить категорию",
-    "addProfession": "Добавить профессию",
-    "close": "Закрыть",
-    "save": "Сохранить",
-    "saved": "Сохранено",
-    "invalidColor": "Неверный цвет",
-    "categoryCreated": "Категория создана",
-    "professionCreated": "Профессия создана",
-    "chooseCategoryToSeeProfessions": "Выберите категорию, чтобы увидеть профессии",
-    "loading": "Загрузка…",
-    "noProfessionsInCategory": "В этой категории нет профессий",
-    "loadMore": "Загрузить ещё",
-    "invalidQuizVersionId": "Неверный id версии квиза",
-    "traitsCreated": "Трейты созданы",
-    "validation": {
-      "fixErrors": "Исправьте ошибки валидации"
+    "results": {
+      "title": "Шаг 3 — Результаты",
+      "categories": "Категории",
+      "categoriesPh": "Выберите категории",
+      "newCategoryPh": "Название новой категории",
+      "newCategoryNamePh": "Название новой категории",
+      "newCategoryColorPh": "Выберите цвет",
+      "professions": "Профессии",
+      "professionsPh": "Выберите профессии",
+      "newProfessionPh": "Название новой профессии",
+      "newProfessionTitlePh": "Название новой профессии",
+      "newProfessionDescriptionPh": "Описание новой профессии",
+      "add": "Добавить",
+      "addCategory": "Добавить категорию",
+      "addProfession": "Добавить профессию",
+      "close": "Закрыть",
+      "save": "Сохранить",
+      "saved": "Сохранено",
+      "invalidColor": "Неверный цвет",
+      "categoryCreated": "Категория создана",
+      "professionCreated": "Профессия создана",
+      "chooseCategoryToSeeProfessions": "Выберите категорию, чтобы увидеть профессии",
+      "loading": "Загрузка…",
+      "noProfessionsInCategory": "В этой категории нет профессий",
+      "loadMore": "Загрузить ещё",
+      "invalidQuizVersionId": "Неверный id версии квиза",
+      "traitsCreated": "Трейты созданы",
+      "validation": {
+        "fixErrors": "Исправьте ошибки валидации"
+      },
+      "note": "Выбор сохраняется локально до подключения эндпоинта привязки результатов к квизу."
     },
-    "note": "Выбор сохраняется локально до подключения эндпоинта привязки результатов к квизу."
-  },
-  "preview": {
-    "title": "Превью",
-    "scales": "Шкалы",
-    "questions": "Вопросы",
-    "results": "Результаты",
-    "none": "Нет",
-    "noEffect": "Нет эффекта",
-    "loading": "Загрузка…",
-    "noProfessionsInCategory": "В этой категории нет профессий",
-    "loadMore": "Загрузить ещё",
-    "chooseCategoryToSeeProfessions": "Выберите категорию, чтобы увидеть профессии",
-    "categories": "Категории",
-    "professions": "Профессии",
-    "questionsCount": "Вопросов: {count}",
-    "categoriesCount": "Категорий: {count}",
-    "professionsCount": "Профессий: {count}",
-    "publish": "Опубликовать",
-    "published": "Квиз опубликован"
-  }
+    "preview": {
+      "title": "Превью",
+      "scales": "Шкалы",
+      "questions": "Вопросы",
+      "results": "Результаты",
+      "none": "Нет",
+      "noEffect": "Нет эффекта",
+      "loading": "Загрузка…",
+      "noProfessionsInCategory": "В этой категории нет профессий",
+      "loadMore": "Загрузить ещё",
+      "chooseCategoryToSeeProfessions": "Выберите категорию, чтобы увидеть профессии",
+      "categories": "Категории",
+      "professions": "Профессии",
+      "questionsCount": "Вопросов: {count}",
+      "categoriesCount": "Категорий: {count}",
+      "professionsCount": "Профессий: {count}",
+      "publish": "Опубликовать",
+      "published": "Квиз опубликован"
+    }
   },
   "AdminQuizTranslations": {
     "title": "Переводы квиза",
@@ -694,10 +694,9 @@
     "saveSuccessRu": "RU перевод сохранён",
     "saveSuccessEn": "EN перевод сохранён",
     "titleRequired": "Title обязателен"
-  }
+  },
 
-
-  ,"AdminDashboard": {
+  "AdminDashboard": {
     "title": "Панель администратора",
     "subtitle": "Все ваши квизы (черновики и опубликованные)",
     "create": "Создать квиз",
@@ -714,4 +713,4 @@
     "analytics": "Аналитика",
     "toastAlreadyPublished": "Эта версия уже опубликована"
   }
-} 
+}

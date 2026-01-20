@@ -12,7 +12,10 @@ export async function getMyAttemptsBff(params?: { locale?: string }) {
       headers: params?.locale ? { 'x-locale': params.locale } : undefined,
     });
   } catch (err) {
-    throw new HttpError(500, err instanceof Error ? err.message : 'Failed to load attempts');
+    throw new HttpError(
+      500,
+      err instanceof Error ? err.message : 'Failed to load attempts',
+    );
   }
 }
 
@@ -25,7 +28,10 @@ export async function getAttemptResultBff(
       headers: params?.locale ? { 'x-locale': params.locale } : undefined,
     });
   } catch (err) {
-    throw new HttpError(500, err instanceof Error ? err.message : 'Failed to load result');
+    throw new HttpError(
+      500,
+      err instanceof Error ? err.message : 'Failed to load result',
+    );
   }
 }
 
@@ -38,6 +44,9 @@ export async function getAttemptViewBff(
       headers: params?.locale ? { 'x-locale': params.locale } : undefined,
     });
   } catch (err) {
-    throw new HttpError(500, err instanceof Error ? err.message : 'Failed to load view');
+    throw new HttpError(
+      500,
+      err instanceof Error ? err.message : 'Failed to load view',
+    );
   }
 }

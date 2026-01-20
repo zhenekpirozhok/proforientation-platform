@@ -29,19 +29,28 @@ export function StepInit({
 
   const summaryItems = useMemo(() => {
     const items: Array<{ field: string; label: string }> = [];
-    if (v.showError('title')) items.push({ field: 'title', label: t('quizTitle') });
-    if (v.showError('code')) items.push({ field: 'code', label: t('quizCode') });
-    if (v.showError('description')) items.push({ field: 'description', label: t('quizDescription') });
+    if (v.showError('title'))
+      items.push({ field: 'title', label: t('quizTitle') });
+    if (v.showError('code'))
+      items.push({ field: 'code', label: t('quizCode') });
+    if (v.showError('description'))
+      items.push({ field: 'description', label: t('quizDescription') });
     return items;
   }, [v, t]);
 
   return (
     <SectionCard title={t('title')}>
       <div className="flex flex-col gap-4">
-        <StepValidationSummary title={t('validation.fixErrors')} items={summaryItems} />
+        <StepValidationSummary
+          title={t('validation.fixErrors')}
+          items={summaryItems}
+        />
 
         <div data-field="title">
-          <Typography.Text className="block">{t('quizTitle')}<span className="text-red-500 ml-1">*</span></Typography.Text>
+          <Typography.Text className="block">
+            {t('quizTitle')}
+            <span className="text-red-500 ml-1">*</span>
+          </Typography.Text>
           <Input
             value={init.title}
             status={v.fieldStatus('title')}
@@ -76,12 +85,16 @@ export function StepInit({
               </Tooltip>
             }
           />
-            <Typography.Text type="secondary" className="block mt-1">{t('codeReadOnlyInfo')}</Typography.Text>
+          <Typography.Text type="secondary" className="block mt-1">
+            {t('codeReadOnlyInfo')}
+          </Typography.Text>
           {v.showError('code') ? <FieldError code={errors.code} /> : null}
         </div>
 
         <div data-field="description">
-          <Typography.Text className="block">{t('quizDescription')}</Typography.Text>
+          <Typography.Text className="block">
+            {t('quizDescription')}
+          </Typography.Text>
           <Input.TextArea
             value={init.description}
             status={v.fieldStatus('description')}
@@ -90,7 +103,9 @@ export function StepInit({
             placeholder={t('quizDescriptionPh')}
             autoSize={{ minRows: 3, maxRows: 8 }}
           />
-          {v.showError('description') ? <FieldError code={errors.description} /> : null}
+          {v.showError('description') ? (
+            <FieldError code={errors.description} />
+          ) : null}
         </div>
       </div>
     </SectionCard>

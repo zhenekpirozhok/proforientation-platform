@@ -2,20 +2,20 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import {
-    getGetQuestionsForQuizVersionQueryKey,
-    useUpdate3,
+  getGetQuestionsForQuizVersionQueryKey,
+  useUpdate3,
 } from '@/shared/api/generated/api';
 
 export function useAdminUpdateQuestion(quizId: number, version: number) {
-    const qc = useQueryClient();
+  const qc = useQueryClient();
 
-    return useUpdate3({
-        mutation: {
-            onSuccess: () => {
-                qc.invalidateQueries({
-                    queryKey: getGetQuestionsForQuizVersionQueryKey(quizId, version),
-                });
-            },
-        },
-    });
+  return useUpdate3({
+    mutation: {
+      onSuccess: () => {
+        qc.invalidateQueries({
+          queryKey: getGetQuestionsForQuizVersionQueryKey(quizId, version),
+        });
+      },
+    },
+  });
 }

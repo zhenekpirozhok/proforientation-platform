@@ -497,59 +497,59 @@
     }
   },
   "AdminQuizBuilder": {
-  "title": "Quiz builder",
-  "subtitle": "Create a quiz in 3 steps and publish it",
-  "savingInBackground": "Saving in background…",
-  "savedInBackground": "Saved",
-  "toastCreated": "Quiz created",
-  "toastNewVersionCreated": "New quiz version created",
-  "needQuizContext": "Create the quiz first (Step 0).",
-  "validation": {
-    "required": "This field is required",
-    "min3": "Must be at least 3 characters",
-    "min1": "At least one item is required",
-    "min2": "At least 2 items are required",
-    "map1": "Map at least one trait",
-    "invalid": "Invalid value",
-    "fixErrors": "Please fix the errors below",
-    "mixedPolarity": "Cannot mix single and bipolar scales",
-    "pairRequired": "Both left and right sides are required",
-    "pairIncomplete": "Bipolar pair must have both left and right sides",
-    "pairCodeRequired": "Pair code is required",
-    "pairCodeMismatch": "Left and right sides must have the same pair code",
-    "weightsMissing": "All traits must have weight values",
-    "quizOperationError": "Failed to save quiz",
-    "createQuizError": "Failed to create quiz"
-  },
-  "steps": {
-    "init": "Init",
-    "scales": "Scales",
-    "questions": "Questions",
-    "results": "Results",
-    "preview": "Preview"
-  },
-  "actions": {
-    "back": "Back",
-    "next": "Next",
-    "done": "Done"
-  },
-  "init": {
-    "title": "Initialization",
-    "quizTitle": "Quiz title",
-    "quizTitlePh": "e.g. Career orientation quiz",
-    "quizCode": "System code",
-    "quizCodePh": "auto-generated from title",
-    "continue": "Create and continue",
-    "created": "Quiz created",
-    "createFailed": "Failed to create quiz",
-    "quizDescription": "Description",
-    "quizDescriptionPh": "Write what this quiz is about",
-    "codeReadOnlyTooltip": "Auto-generated from title",
-    "codeReadOnlyInfo": "Code is auto-generated from the title and cannot be edited.",
+    "title": "Quiz builder",
+    "subtitle": "Create a quiz in 3 steps and publish it",
+    "savingInBackground": "Saving in background…",
+    "savedInBackground": "Saved",
+    "toastCreated": "Quiz created",
+    "toastNewVersionCreated": "New quiz version created",
+    "needQuizContext": "Create the quiz first (Step 0).",
     "validation": {
-      "fixErrors": "Please fix the errors below"
-    }
-  },
+      "required": "This field is required",
+      "min3": "Must be at least 3 characters",
+      "min1": "At least one item is required",
+      "min2": "At least 2 items are required",
+      "map1": "Map at least one trait",
+      "invalid": "Invalid value",
+      "fixErrors": "Please fix the errors below",
+      "mixedPolarity": "Cannot mix single and bipolar scales",
+      "pairRequired": "Both left and right sides are required",
+      "pairIncomplete": "Bipolar pair must have both left and right sides",
+      "pairCodeRequired": "Pair code is required",
+      "pairCodeMismatch": "Left and right sides must have the same pair code",
+      "weightsMissing": "All traits must have weight values",
+      "quizOperationError": "Failed to save quiz",
+      "createQuizError": "Failed to create quiz"
+    },
+    "steps": {
+      "init": "Init",
+      "scales": "Scales",
+      "questions": "Questions",
+      "results": "Results",
+      "preview": "Preview"
+    },
+    "actions": {
+      "back": "Back",
+      "next": "Next",
+      "done": "Done"
+    },
+    "init": {
+      "title": "Initialization",
+      "quizTitle": "Quiz title",
+      "quizTitlePh": "e.g. Career orientation quiz",
+      "quizCode": "System code",
+      "quizCodePh": "auto-generated from title",
+      "continue": "Create and continue",
+      "created": "Quiz created",
+      "createFailed": "Failed to create quiz",
+      "quizDescription": "Description",
+      "quizDescriptionPh": "Write what this quiz is about",
+      "codeReadOnlyTooltip": "Auto-generated from title",
+      "codeReadOnlyInfo": "Code is auto-generated from the title and cannot be edited.",
+      "validation": {
+        "fixErrors": "Please fix the errors below"
+      }
+    },
     "scales": {
       "title": "Scales",
       "modeTitle": "Scale type",
@@ -606,8 +606,8 @@
       "emptyOption": "Empty option",
       "weightsTitle": "Weights for scales",
       "noTraitsYet": "No scales/traits yet. Go back and add scales first.",
-      "noQuestionsYet": "No questions yet. Click “Add question”."
-      ,"selectTraits": "Select traits",
+      "noQuestionsYet": "No questions yet. Click “Add question”.",
+      "selectTraits": "Select traits",
       "selectTraitsPh": "Select traits",
       "selectTraitsHint": "Select traits to enable weights for options.",
       "addThisQuestion": "Add question",
@@ -625,58 +625,58 @@
         "fixErrors": "Please fix the errors below"
       }
     },
-  "results": {
-    "title": "Step 3 — Results",
-    "categories": "Categories",
-    "categoriesPh": "Select categories",
-    "newCategoryPh": "New category name",
-    "newCategoryNamePh": "New category name",
-    "newCategoryColorPh": "Pick a color",
-    "professions": "Professions",
-    "professionsPh": "Select professions",
-    "newProfessionPh": "New profession name",
-    "newProfessionTitlePh": "New profession name",
-    "newProfessionDescriptionPh": "New profession description",
-    "add": "Add",
-    "addCategory": "Add category",
-    "addProfession": "Add profession",
-    "close": "Close",
-    "save": "Save",
-    "saved": "Saved",
-    "invalidColor": "Invalid color",
-    "categoryCreated": "Category created",
-    "professionCreated": "Profession created",
-    "chooseCategoryToSeeProfessions": "Choose a category to see professions",
-    "loading": "Loading…",
-    "noProfessionsInCategory": "No professions in this category",
-    "loadMore": "Load more",
-    "invalidQuizVersionId": "Invalid quiz version id",
-    "traitsCreated": "Traits created",
-    "validation": {
-      "fixErrors": "Fix validation errors to continue"
+    "results": {
+      "title": "Step 3 — Results",
+      "categories": "Categories",
+      "categoriesPh": "Select categories",
+      "newCategoryPh": "New category name",
+      "newCategoryNamePh": "New category name",
+      "newCategoryColorPh": "Pick a color",
+      "professions": "Professions",
+      "professionsPh": "Select professions",
+      "newProfessionPh": "New profession name",
+      "newProfessionTitlePh": "New profession name",
+      "newProfessionDescriptionPh": "New profession description",
+      "add": "Add",
+      "addCategory": "Add category",
+      "addProfession": "Add profession",
+      "close": "Close",
+      "save": "Save",
+      "saved": "Saved",
+      "invalidColor": "Invalid color",
+      "categoryCreated": "Category created",
+      "professionCreated": "Profession created",
+      "chooseCategoryToSeeProfessions": "Choose a category to see professions",
+      "loading": "Loading…",
+      "noProfessionsInCategory": "No professions in this category",
+      "loadMore": "Load more",
+      "invalidQuizVersionId": "Invalid quiz version id",
+      "traitsCreated": "Traits created",
+      "validation": {
+        "fixErrors": "Fix validation errors to continue"
+      },
+      "note": "Selections are stored locally until quiz-results mapping endpoint is connected."
     },
-    "note": "Selections are stored locally until quiz-results mapping endpoint is connected."
+    "preview": {
+      "title": "Preview",
+      "scales": "Scales",
+      "questions": "Questions",
+      "results": "Results",
+      "none": "None",
+      "noEffect": "No effect",
+      "loading": "Loading…",
+      "noProfessionsInCategory": "No professions in this category",
+      "loadMore": "Load more",
+      "chooseCategoryToSeeProfessions": "Choose a category to see professions",
+      "categories": "Categories",
+      "professions": "Professions",
+      "questionsCount": "{count} questions",
+      "categoriesCount": "{count} categories",
+      "professionsCount": "{count} professions",
+      "publish": "Publish",
+      "published": "Quiz published"
+    }
   },
-  "preview": {
-    "title": "Preview",
-    "scales": "Scales",
-    "questions": "Questions",
-    "results": "Results",
-    "none": "None",
-    "noEffect": "No effect",
-    "loading": "Loading…",
-    "noProfessionsInCategory": "No professions in this category",
-    "loadMore": "Load more",
-    "chooseCategoryToSeeProfessions": "Choose a category to see professions",
-    "categories": "Categories",
-    "professions": "Professions",
-    "questionsCount": "{count} questions",
-    "categoriesCount": "{count} categories",
-    "professionsCount": "{count} professions",
-    "publish": "Publish",
-    "published": "Quiz published"
-  }
-},
   "AdminQuizTranslations": {
     "title": "Quiz translations",
     "quizId": "quizId: {id}",
@@ -694,9 +694,9 @@
     "saveSuccessRu": "RU translation saved",
     "saveSuccessEn": "EN translation saved",
     "titleRequired": "Title is required"
-  }
+  },
 
-  ,"AdminDashboard": {
+  "AdminDashboard": {
     "title": "Admin Dashboard",
     "subtitle": "All your quizzes (drafts and published)",
     "create": "Create quiz",
@@ -717,5 +717,4 @@
     "analytics": "Analytics",
     "toastAlreadyPublished": "This version is already published"
   }
-
 }
