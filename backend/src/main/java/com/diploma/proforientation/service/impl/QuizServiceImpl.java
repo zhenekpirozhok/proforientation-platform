@@ -147,7 +147,11 @@ public class QuizServiceImpl implements QuizService {
     public void delete(Integer id) {
         Quiz quiz = quizRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
-        quizRepo.delete(quiz);
+
+        quiz.setStatus(QuizStatus.ARCHIVED);
+        quiz.setUpdatedAt(Instant.now());
+
+        quizRepo.save(quiz);
     }
 
     @Transactional(readOnly = true)

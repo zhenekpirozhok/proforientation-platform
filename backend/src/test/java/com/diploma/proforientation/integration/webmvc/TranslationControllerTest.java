@@ -111,11 +111,11 @@ class TranslationControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void deleteTranslationReturnsOk() throws Exception {
+    void deleteTranslationReturnsNoContent() throws Exception {
         Mockito.doNothing().when(translationService).delete(1);
 
         mockMvc.perform(delete("/translations/{id}", 1))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
     }
 
     @Test

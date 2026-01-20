@@ -225,7 +225,7 @@ class AttemptControllerTest {
     }
 
     @Test
-    void deleteMyAttempts_validRequest_callsService_returns200() throws Exception {
+    void deleteMyAttempts_validRequest_callsService_returns204() throws Exception {
         when(authUtils.getAuthenticatedUserId()).thenReturn(33);
 
         String body = """
@@ -239,7 +239,7 @@ class AttemptControllerTest {
                         .param("guestToken", "guest-abc")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(attemptService).deleteSelectedAttempts(
                 33, "guest-abc", List.of(10, 11, 12), true
@@ -248,7 +248,7 @@ class AttemptControllerTest {
     }
 
     @Test
-    void deleteMyAttempts_onlyUserId_callsService_returns200() throws Exception {
+    void deleteMyAttempts_onlyUserId_callsService_returns204() throws Exception {
         when(authUtils.getAuthenticatedUserId()).thenReturn(10);
 
         String body = """
@@ -261,7 +261,7 @@ class AttemptControllerTest {
         mockMvc.perform(delete("/attempts/delete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(attemptService).deleteSelectedAttempts(
                 10, null, List.of(1), true
@@ -270,7 +270,7 @@ class AttemptControllerTest {
     }
 
     @Test
-    void deleteMyAttempts_onlyGuestToken_callsService_returns200() throws Exception {
+    void deleteMyAttempts_onlyGuestToken_callsService_returns204() throws Exception {
         when(authUtils.getAuthenticatedUserId()).thenReturn(null);
 
         String body = """
@@ -284,7 +284,7 @@ class AttemptControllerTest {
                         .param("guestToken", "guest-xyz")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(attemptService).deleteSelectedAttempts(
                 isNull(), eq("guest-xyz"), eq(List.of(5, 6)), eq(true)
