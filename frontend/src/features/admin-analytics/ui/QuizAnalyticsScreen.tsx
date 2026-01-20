@@ -92,7 +92,7 @@ export function QuizAnalyticsScreen(props: {
     if (!versionsQuery.isFetching && !Array.isArray(versionsQuery.data)) {
       void versionsQuery.refetch();
     }
-  }, [quizId, versionsQuery.data]);
+  }, [quizId]);
 
   const overview = useOverview(
     locale,
@@ -240,7 +240,7 @@ export function QuizAnalyticsScreen(props: {
         <DetailedPanel
           locale={locale}
           quizId={quizId}
-          quizVersionId={quizVersionId}
+          quizVersionId={selectedVersionId}
           data={detailed.data}
           loading={detailed.isLoading}
           error={detailed.error?.message}
