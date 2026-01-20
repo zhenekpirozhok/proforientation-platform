@@ -11,4 +11,5 @@ public interface QuizVersionService {
     QuizVersionDto publishQuizVersion(Integer quizVersionId);
     QuizVersionDto copyLatestVersion(Integer quizId);
     QuizVersionDto createDraftVersion(Integer quizId);
+    QuizVersionDto getVersionById(Integer quizVersionId);
 }

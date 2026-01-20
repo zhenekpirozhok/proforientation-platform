@@ -441,4 +441,25 @@ public class QuizController {
     public List<TraitDto> getTraits(@PathVariable Integer quizVersionId) {
         return traitService.getTraitsForQuizVersion(quizVersionId);
     }
+
+    @GetMapping("/version/{quizVersionId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Get quiz version by id",
+            description = "Returns detailed information about a specific quiz version using its unique identifier. " +
+                    "This endpoint is typically used to resolve a quiz version id to its version number."
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Quiz version returned successfully",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = QuizVersionDto.class)
+            )
+    )
+    @ApiResponse(responseCode = "403", description = "Access forbidden")
+    @ApiResponse(responseCode = "404", description = "Quiz version not found")
+    public QuizVersionDto getVersionById(@PathVariable Integer quizVersionId) {
+        return versionService.getVersionById(quizVersionId);
+    }
 }
