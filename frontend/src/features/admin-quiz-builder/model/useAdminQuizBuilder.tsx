@@ -83,6 +83,7 @@ export function useAdminQuizBuilder({
   const hydrated = useAdminQuizBuilderStore((s) => s.hydrated);
 
   const createdToastShownRef = useRef(false);
+  const ensuredUnpublishedVersionRef = useRef<number | null>(null);
 
   const effectiveQuizId = useMemo(
     () => n(propQuizId ?? storeQuizId),
@@ -171,16 +172,21 @@ export function useAdminQuizBuilder({
     const ensureVersion = async () => {
       if (typeof effectiveQuizId !== 'number' || !latestVersion || !quizData)
         return;
+      
+      // If we already ensured unpublished version for this quiz, don't do it again
+      if (ensuredUnpublishedVersionRef.current === effectiveQuizId) return;
+      
       const isPublished = Boolean(
         (latestVersion as unknown as Record<string, unknown>)?.publishedAt,
       );
       if (isPublished) {
+        ensuredUnpublishedVersionRef.current = effectiveQuizId;
         await ensureUnpublishedVersion(effectiveQuizId);
       }
     };
 
     ensureVersion();
-  }, [effectiveQuizId, latestVersion, quizData, ensureUnpublishedVersion]);
+  }, [effectiveQuizId, quizData, ensureUnpublishedVersion]);
 
   const traitIds = useMemo(
     () =>

@@ -715,6 +715,7 @@
     "translations": "Translations",
     "publish": "Publish",
     "analytics": "Analytics",
-    "toastAlreadyPublished": "This version is already published"
+    "toastAlreadyPublished": "This version is already published",
+    "toastPublished": "Quiz published"
   }
 }
