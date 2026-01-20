@@ -18,12 +18,58 @@ function toBffUrl(url: string) {
 
 type MessageEnvelope = { message?: unknown };
 
+let isRefreshing = false;
+let refreshPromise: Promise<void> | null = null;
+
 function tryGetMessage(v: unknown): string | null {
   if (typeof v !== 'object' || v === null) return null;
   if (!('message' in v)) return null;
 
   const msg = (v as MessageEnvelope).message;
   return typeof msg === 'string' ? msg : null;
+}
+
+async function refreshAccessToken(): Promise<boolean> {
+  if (isRefreshing) {
+    // If already refreshing, wait for the refresh to complete
+    if (refreshPromise) {
+      await refreshPromise;
+      return true;
+    }
+    return false;
+  }
+
+  isRefreshing = true;
+
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+      });
+
+      if (res.ok) {
+        return;
+      } else {
+        // Redirect to login on refresh failure
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/login';
+        }
+      }
+    } catch (err) {
+      console.error('Token refresh failed:', err);
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth/login';
+      }
+    } finally {
+      isRefreshing = false;
+      refreshPromise = null;
+    }
+  })();
+
+  await refreshPromise;
+  return true;
 }
 
 export async function orvalFetch<T>(
@@ -44,6 +90,40 @@ export async function orvalFetch<T>(
     : null;
 
   if (!res.ok) {
+    // If 401 Unauthorized, try to refresh the token and retry the request
+    if (res.status === 401) {
+      const refreshed = await refreshAccessToken();
+      if (refreshed) {
+        // Retry the original request with refreshed token
+        const retryRes = await fetch(toBffUrl(url), {
+          ...init,
+          credentials: 'include',
+        });
+        const retryText = await retryRes.text().catch(() => '');
+        const retryData: unknown = retryText
+          ? (() => {
+              try {
+                return JSON.parse(retryText) as unknown;
+              } catch {
+                return retryText;
+              }
+            })()
+          : null;
+
+        if (!retryRes.ok) {
+          const msg = tryGetMessage(retryData);
+          const message =
+            msg ??
+            (typeof retryData === 'string'
+              ? retryData
+              : `API error ${retryRes.status}`);
+          throw new Error(message);
+        }
+
+        return retryData as T;
+      }
+    }
+
     const msg = tryGetMessage(data);
     const message =
       msg ?? (typeof data === 'string' ? data : `API error ${res.status}`);

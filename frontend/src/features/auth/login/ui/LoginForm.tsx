@@ -14,9 +14,10 @@ import {
   useSessionStore,
   type SessionUser,
 } from '@/entities/session/model/store';
+import { hasRole } from '@/entities/session/model/roles';
 import { useGoogleOneTapLogin } from '@/features/auth/login/model/useGoogleOneTapLogin';
 import { GoogleOneTapInit } from '@/features/auth/login/ui/GoogleOneTapInit';
-import { authFetch } from '@/shared/api/authFetch';
+import { orvalFetch } from '@/shared/api/orvalFetch';
 import type { User, GrantedAuthority } from '@/shared/api/generated/model';
 
 const { Title, Text } = Typography;
@@ -60,24 +61,15 @@ export function LoginForm() {
   const user = useSessionStore((s) => s.user);
 
   async function loadMeAndGo() {
-    const meRes = await authFetch('/api/users/me', {
-      method: 'GET',
-      cache: 'no-store',
-    }).catch(() => null);
-
-    if (!meRes || !meRes.ok) {
-      useSessionStore.getState().setUser(null);
-      message.error(t('Errors.Generic'));
-      return;
-    }
-
-    const meJson: unknown = await meRes.json().catch(() => null);
-    const me = meJson && typeof meJson === 'object' ? (meJson as User) : null;
+    const me = await orvalFetch<User>('/users/me').catch(() => null);
 
     useSessionStore.getState().setUser(me ? toSessionUser(me) : null);
 
     message.success(t('Success'));
-    router.replace('/me/results');
+    const sessionUser = me ? toSessionUser(me) : null;
+    const isAdmin = hasRole(sessionUser, 'ADMIN');
+
+    router.replace(isAdmin ? '/admin' : '/me/results');
   }
 
   return (

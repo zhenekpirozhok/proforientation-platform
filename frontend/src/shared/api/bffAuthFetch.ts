@@ -1,5 +1,5 @@
 import { bffFetch } from '@/shared/api/bff/proxy';
-import { cookies } from 'next/headers';
+import { cookies, headers as nextHeaders } from 'next/headers';
 
 function decode(v: string) {
   try {
@@ -25,7 +25,24 @@ export async function bffAuthFetch(path: string, init: RequestInit = {}) {
 
   if (first.status !== 401 && first.status !== 403) return first;
 
-  const refreshRes = await fetch('/api/auth/refresh', { method: 'POST' });
+  let refreshRes: Response;
+  if (typeof nextHeaders === 'function') {
+    const h = await nextHeaders();
+    const host = h.get('host');
+    const proto = h.get('x-forwarded-proto') ?? 'http';
+    const origin = host ? `${proto}://${host}` : undefined;
+
+    const refreshUrl = origin
+      ? new URL('/api/auth/refresh', origin).toString()
+      : '/api/auth/refresh';
+
+    refreshRes = await fetch(refreshUrl, {
+      method: 'POST',
+      headers: { cookie: h.get('cookie') ?? '' },
+    });
+  } else {
+    refreshRes = await fetch('/api/auth/refresh', { method: 'POST' });
+  }
   if (!refreshRes.ok) return first;
 
   const access2 = await getAccessFromCookies();

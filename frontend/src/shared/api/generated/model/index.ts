@@ -31,6 +31,7 @@ export * from './exceptionDtoMessage';
 export * from './exportQuizMetricsCsvParams';
 export * from './exportQuizMetricsExcelParams';
 export * from './filterMetricsParams';
+export * from './getAdminQuizzesParams';
 export * from './getAll1Params';
 export * from './getAll2Params';
 export * from './getQuestionsForQuizParams';
