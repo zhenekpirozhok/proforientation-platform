@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useTranslations } from 'next-intl';
 import { message } from 'antd';
 
 import { useAdminQuizBuilderStore } from '../model/store';
@@ -29,7 +28,6 @@ function groupBipolar(scales: ScaleDraft[]) {
 export function useEnsureQuizTraits(
   actions: ReturnTypeUseQuizBuilderActions | null,
 ) {
-  const t = useTranslations('AdminQuizBuilder.scales');
   const scales = useAdminQuizBuilderStore((s) => s.scales);
   const patchScale = useAdminQuizBuilderStore((s) => s.patchScale);
 
@@ -105,5 +103,5 @@ export function useEnsureQuizTraits(
       message.error((e as Error).message);
       return false;
     }
-  }, [actions, scales, patchScale, t]);
+  }, [actions, scales, patchScale]);
 }
