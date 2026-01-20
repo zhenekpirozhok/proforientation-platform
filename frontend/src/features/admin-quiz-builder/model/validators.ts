@@ -88,10 +88,9 @@ export function validateQuestions(
     for (const o of q.options) {
       if (!o.label.trim()) add(out, `o.${o.tempId}.label`, 'required');
 
+      // Only require weights if question explicitly linked traits
       const neededTraitIds =
-        q.linkedTraitIds && q.linkedTraitIds.length > 0
-          ? q.linkedTraitIds
-          : traitIds;
+        q.linkedTraitIds && q.linkedTraitIds.length > 0 ? q.linkedTraitIds : [];
       if (neededTraitIds.length > 0) {
         const map = o.weightsByTraitId ?? {};
         for (const tid of neededTraitIds) {
