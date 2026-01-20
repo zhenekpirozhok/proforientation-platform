@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 class QuizServiceTest {
@@ -600,15 +601,18 @@ class QuizServiceTest {
     }
 
     @Test
-    void delete_shouldDeleteQuiz() {
+    void delete_shouldArchiveQuiz() {
         Quiz quiz = new Quiz();
         quiz.setId(7);
+        quiz.setStatus(QuizStatus.DRAFT);
 
         when(quizRepo.findById(7)).thenReturn(Optional.of(quiz));
 
         service.delete(7);
 
-        verify(quizRepo).delete(quiz);
+        assertEquals(QuizStatus.ARCHIVED, quiz.getStatus());
+        verify(quizRepo).save(quiz);
+        verify(quizRepo, never()).delete(org.mockito.Mockito.any(Quiz.class));
     }
 
     @Test
