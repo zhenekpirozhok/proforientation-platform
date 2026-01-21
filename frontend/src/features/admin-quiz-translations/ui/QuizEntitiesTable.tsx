@@ -1,17 +1,12 @@
 'use client';
 
-import { Button, Card, Input, List, Space, Table, Tag, Typography, Grid } from 'antd';
+import { Button, Card, Grid, Input, List, Space, Table, Typography } from 'antd';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import type { QuizTranslatableRow, TranslationStatus } from '../model/types';
+import type { EntityType, FieldKey, QuizTranslatableRow } from '../model/types';
+import { TranslationStatusCell } from './TranslationStatusCell';
 
 const { useBreakpoint } = Grid;
-
-function statusTag(status: TranslationStatus, label: string) {
-  if (status === 'ok') return <Tag color="green">{label}</Tag>;
-  if (status === 'partial') return <Tag color="gold">{label}</Tag>;
-  return <Tag color="red">{label}</Tag>;
-}
 
 function norm(s: string) {
   return s.trim().toLowerCase();
@@ -21,9 +16,11 @@ export function QuizEntitiesTable(props: {
   title: string;
   rows: QuizTranslatableRow[];
   isLoading?: boolean;
+  entityType: EntityType;
+  requiredFields: FieldKey[];
   t: (key: string, values?: Record<string, any>) => string;
 }) {
-  const { title, rows, isLoading, t } = props;
+  const { title, rows, isLoading, entityType, requiredFields, t } = props;
 
   const screens = useBreakpoint();
   const isMobile = !screens.sm;
@@ -61,17 +58,31 @@ export function QuizEntitiesTable(props: {
       },
       {
         title: 'RU',
-        dataIndex: 'ru',
         key: 'ru',
         width: 120,
-        render: (v: TranslationStatus) => statusTag(v, t(`status_${v}`)),
+        render: (_: unknown, r: QuizTranslatableRow) => (
+          <TranslationStatusCell
+            entityType={entityType}
+            entityId={r.id}
+            locale="ru"
+            requiredFields={requiredFields}
+            t={(k) => t(k)}
+          />
+        ),
       },
       {
         title: 'EN',
-        dataIndex: 'en',
         key: 'en',
         width: 120,
-        render: (v: TranslationStatus) => statusTag(v, t(`status_${v}`)),
+        render: (_: unknown, r: QuizTranslatableRow) => (
+          <TranslationStatusCell
+            entityType={entityType}
+            entityId={r.id}
+            locale="en"
+            requiredFields={requiredFields}
+            t={(k) => t(k)}
+          />
+        ),
       },
       {
         title: t('colActions'),
@@ -84,7 +95,7 @@ export function QuizEntitiesTable(props: {
         ),
       },
     ],
-    [t],
+    [t, entityType, requiredFields],
   );
 
   return (
@@ -134,8 +145,20 @@ export function QuizEntitiesTable(props: {
                         </div>
                       ) : null}
                       <Space size={8} wrap>
-                        {statusTag(r.ru, `RU ${t(`status_${r.ru}`)}`)}
-                        {statusTag(r.en, `EN ${t(`status_${r.en}`)}`)}
+                        <TranslationStatusCell
+                          entityType={entityType}
+                          entityId={r.id}
+                          locale="ru"
+                          requiredFields={requiredFields}
+                          t={(k) => t(k)}
+                        />
+                        <TranslationStatusCell
+                          entityType={entityType}
+                          entityId={r.id}
+                          locale="en"
+                          requiredFields={requiredFields}
+                          t={(k) => t(k)}
+                        />
                       </Space>
                     </div>
                   }

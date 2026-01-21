@@ -29,7 +29,7 @@ import { useEnsureUnpublishedVersion } from '../api/useEnsureUnpublishedVersion'
 
 import { useAdminQuiz } from '@/entities/quiz/api/useAdminQuiz';
 import { useGetQuizVersions } from '@/entities/quiz/api/useGetQuizVersions';
-import { pickLatestQuizVersion } from '@/features/admin-quiz-builder/lib/quizVersion';
+import { pickLatestQuizVersion } from '@/shared/lib/quizVersion';
 
 function n(v: unknown): number | undefined {
   const x = typeof v === 'number' ? v : Number(v);

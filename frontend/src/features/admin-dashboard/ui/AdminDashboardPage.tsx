@@ -12,7 +12,7 @@ import { useDeleteQuiz } from '@/entities/quiz/api/useDeleteQuiz';
 import { getGetAllQueryKey } from '@/shared/api/generated/api';
 import { QuizzesPagination } from '@/entities/quiz/ui/QuizzesPagination';
 
-import { pickLatestQuizVersion } from '@/features/admin-quiz-builder/lib/quizVersion';
+import { pickLatestQuizVersion } from '@/shared/lib/quizVersion';
 
 function toArray<T>(v: unknown): T[] {
   if (Array.isArray(v)) return v as T[];

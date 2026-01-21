@@ -748,7 +748,10 @@
     "placeholderText": "Введите текст…",
     "field_title": "Заголовок",
     "field_description": "Описание",
-    "field_text": "Текст"
+    "field_text": "Текст",
+    "defaultsTitle": "Дефолт",
+  "effectiveRu": "Итог (RU)",
+  "effectiveEn": "Итог (EN)"
   },
   "AdminQuizTranslationsHub": {
     "title": "Переводы квиза (#{id})",

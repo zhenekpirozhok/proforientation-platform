@@ -6,7 +6,6 @@ import { useTranslations } from 'next-intl';
 
 import { AdminEntityTranslationsPage } from './AdminEntityTranslationsPage';
 import { QUIZ_TRANSLATIONS_CONFIG } from '../model/entityConfigs';
-
 import type { QuizTranslatableRow } from '../model/types';
 import { QuizEntitiesTable } from './QuizEntitiesTable';
 
@@ -14,12 +13,13 @@ export type HubTab = 'quiz' | 'questions' | 'options';
 
 export function AdminQuizTranslationsHubPage(props: {
   quizId: number;
+  quizDefaults?: { title?: string; description?: string };
   questionsRows: QuizTranslatableRow[];
   optionsRows: QuizTranslatableRow[];
   isLoadingQuestions?: boolean;
   isLoadingOptions?: boolean;
 }) {
-  const { quizId, questionsRows, optionsRows, isLoadingQuestions, isLoadingOptions } = props;
+  const { quizId, quizDefaults, questionsRows, optionsRows, isLoadingQuestions, isLoadingOptions } = props;
 
   const t = useTranslations('AdminQuizTranslationsHub');
   const [tab, setTab] = useState<HubTab>('quiz');
@@ -58,6 +58,10 @@ export function AdminQuizTranslationsHubPage(props: {
                 config={QUIZ_TRANSLATIONS_CONFIG}
                 backHref={`/admin/quizzes/${quizId}`}
                 titleKey="pageTitleQuiz"
+                defaults={{
+                  title: quizDefaults?.title ?? '',
+                  description: quizDefaults?.description ?? '',
+                }}
               />
             </div>
           </Card>
@@ -68,6 +72,8 @@ export function AdminQuizTranslationsHubPage(props: {
             title={t('questionsTitle')}
             rows={questionsRows}
             isLoading={isLoadingQuestions}
+            entityType="question"
+            requiredFields={['text']}
             t={t}
           />
         ) : null}
@@ -77,6 +83,8 @@ export function AdminQuizTranslationsHubPage(props: {
             title={t('optionsTitle')}
             rows={optionsRows}
             isLoading={isLoadingOptions}
+            entityType="question_option"
+            requiredFields={['text']}
             t={t}
           />
         ) : null}

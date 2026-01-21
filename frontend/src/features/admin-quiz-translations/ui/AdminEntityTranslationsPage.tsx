@@ -1,17 +1,6 @@
 'use client';
 
-import {
-  Button,
-  Card,
-  Divider,
-  Modal,
-  Segmented,
-  Skeleton,
-  Switch,
-  Tag,
-  Typography,
-  message,
-} from 'antd';
+import { Button, Card, Divider, Modal, Segmented, Skeleton, Switch, Tag, Typography, message } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
@@ -38,16 +27,13 @@ function toArray<T>(v: unknown): T[] {
   if (Array.isArray(v)) return v as T[];
   if (!v || typeof v !== 'object') return [];
   const o = v as Record<string, unknown>;
-
   if (Array.isArray(o.items)) return o.items as T[];
   if (Array.isArray(o.results)) return o.results as T[];
   if (Array.isArray(o.rows)) return o.rows as T[];
   if (Array.isArray(o.content)) return o.content as T[];
-
   if (o.data !== undefined) return toArray<T>(o.data);
   if (o.result !== undefined) return toArray<T>(o.result);
   if (o.payload !== undefined) return toArray<T>(o.payload);
-
   return [];
 }
 
@@ -56,16 +42,13 @@ function setArrayBack(original: unknown, nextArr: unknown[]): unknown {
 
   if (original && typeof original === 'object') {
     const o = original as Record<string, unknown>;
-
     if (Array.isArray(o.items)) return { ...o, items: nextArr };
     if (Array.isArray(o.results)) return { ...o, results: nextArr };
     if (Array.isArray(o.rows)) return { ...o, rows: nextArr };
     if (Array.isArray(o.content)) return { ...o, content: nextArr };
-
     if (o.data !== undefined) return { ...o, data: setArrayBack(o.data, nextArr) };
     if (o.result !== undefined) return { ...o, result: setArrayBack(o.result, nextArr) };
     if (o.payload !== undefined) return { ...o, payload: setArrayBack(o.payload, nextArr) };
-
     return { ...o, items: nextArr };
   }
 
@@ -115,8 +98,9 @@ export function AdminEntityTranslationsPage(props: {
   config: EntityConfig;
   backHref?: string;
   titleKey?: string;
+  defaults?: Partial<FormState>;
 }) {
-  const { entityId, config, backHref, titleKey } = props;
+  const { entityId, config, backHref, titleKey, defaults } = props;
 
   const t = useTranslations('AdminTranslations');
   const router = useRouter();
@@ -126,6 +110,17 @@ export function AdminEntityTranslationsPage(props: {
   const updateTranslation = useUpdateTranslation();
 
   const canLoad = Number.isFinite(entityId) && entityId > 0;
+
+  const fields = useMemo(() => config.fields.map((x) => x.key), [config.fields]);
+
+  const defaultsNorm = useMemo<FormState>(() => {
+    const d = defaults ?? {};
+    return normalizeForm({
+      title: (d as any).title ?? '',
+      text: (d as any).text ?? '',
+      description: (d as any).description ?? '',
+    });
+  }, [defaults]);
 
   const ruParams = useMemo<SearchParams | undefined>(() => {
     if (!canLoad) return undefined;
@@ -164,19 +159,23 @@ export function AdminEntityTranslationsPage(props: {
     return m;
   }, [enItems]);
 
-  const fields = useMemo(() => config.fields.map((x) => x.key), [config.fields]);
-
   const ruInitial = useMemo<FormState>(() => {
     const s = emptyForm();
-    for (const f of fields) s[f] = pickText(ruByField.get(f));
+    for (const f of fields) {
+      const tr = pickText(ruByField.get(f));
+      s[f] = tr ? tr : (defaultsNorm[f] ?? '');
+    }
     return normalizeForm(s);
-  }, [fields, ruByField]);
+  }, [fields, ruByField, defaultsNorm]);
 
   const enInitial = useMemo<FormState>(() => {
     const s = emptyForm();
-    for (const f of fields) s[f] = pickText(enByField.get(f));
+    for (const f of fields) {
+      const tr = pickText(enByField.get(f));
+      s[f] = tr ? tr : (defaultsNorm[f] ?? '');
+    }
     return normalizeForm(s);
-  }, [fields, enByField]);
+  }, [fields, enByField, defaultsNorm]);
 
   const [activeLocale, setActiveLocale] = useState<LocaleKey>('ru');
   const [splitView, setSplitView] = useState(false);
@@ -346,10 +345,7 @@ export function AdminEntityTranslationsPage(props: {
     try {
       savingLocaleRef.current = 'all';
       setSavingLocale('all');
-
-      for (const loc of toSave) {
-        await saveLocale(loc);
-      }
+      for (const loc of toSave) await saveLocale(loc);
     } finally {
       savingLocaleRef.current = null;
       setSavingLocale(null);
@@ -372,6 +368,24 @@ export function AdminEntityTranslationsPage(props: {
   }
 
   const headerTitle = titleKey ? t(titleKey) : t('pageTitle', { entityType: config.entityType });
+
+  const ruEffective = useMemo<FormState>(() => {
+    const out = emptyForm();
+    for (const f of fields) {
+      const tr = (ruSaved[f] ?? '').trim();
+      out[f] = tr ? tr : (defaultsNorm[f] ?? '');
+    }
+    return normalizeForm(out);
+  }, [ruSaved, fields, defaultsNorm]);
+
+  const enEffective = useMemo<FormState>(() => {
+    const out = emptyForm();
+    for (const f of fields) {
+      const tr = (enSaved[f] ?? '').trim();
+      out[f] = tr ? tr : (defaultsNorm[f] ?? '');
+    }
+    return normalizeForm(out);
+  }, [enSaved, fields, defaultsNorm]);
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-4 sm:py-8">
@@ -469,24 +483,35 @@ export function AdminEntityTranslationsPage(props: {
           />
         )}
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Card className="!rounded-2xl" bodyStyle={{ padding: 16 }} title={t('currentBackendRu')}>
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+          <Card className="!rounded-2xl" bodyStyle={{ padding: 16 }} title={t('defaultsTitle')}>
             <div className="flex flex-col gap-2 text-sm">
               {fields.map((f) => (
-                <div key={`ru-${f}`}>
+                <div key={`def-${f}`}>
                   <div className="text-xs text-slate-500 dark:text-slate-400">{t(`field_${f}`)}</div>
-                  <div className="whitespace-pre-wrap">{(ruSaved[f] ?? '') || '—'}</div>
+                  <div className="whitespace-pre-wrap">{(defaultsNorm[f] ?? '') || '—'}</div>
                 </div>
               ))}
             </div>
           </Card>
 
-          <Card className="!rounded-2xl" bodyStyle={{ padding: 16 }} title={t('currentBackendEn')}>
+          <Card className="!rounded-2xl" bodyStyle={{ padding: 16 }} title={t('effectiveRu')}>
             <div className="flex flex-col gap-2 text-sm">
               {fields.map((f) => (
-                <div key={`en-${f}`}>
+                <div key={`eru-${f}`}>
                   <div className="text-xs text-slate-500 dark:text-slate-400">{t(`field_${f}`)}</div>
-                  <div className="whitespace-pre-wrap">{(enSaved[f] ?? '') || '—'}</div>
+                  <div className="whitespace-pre-wrap">{(ruEffective[f] ?? '') || '—'}</div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="!rounded-2xl" bodyStyle={{ padding: 16 }} title={t('effectiveEn')}>
+            <div className="flex flex-col gap-2 text-sm">
+              {fields.map((f) => (
+                <div key={`een-${f}`}>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{t(`field_${f}`)}</div>
+                  <div className="whitespace-pre-wrap">{(enEffective[f] ?? '') || '—'}</div>
                 </div>
               ))}
             </div>

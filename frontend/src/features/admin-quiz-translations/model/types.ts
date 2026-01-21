@@ -4,8 +4,6 @@ export type QuizTranslatableRow = {
     id: number;
     title: string;
     subtitle?: string;
-    ru: TranslationStatus;
-    en: TranslationStatus;
     href: string;
 };
 
