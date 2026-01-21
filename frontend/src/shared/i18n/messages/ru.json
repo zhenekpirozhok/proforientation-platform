@@ -712,7 +712,11 @@
     "publish": "Опубликовать",
     "analytics": "Аналитика",
     "toastAlreadyPublished": "Эта версия уже опубликована",
-    "toastPublished": "Тест опубликован"
+    "toastPublished": "Тест опубликован",
+    "delete": "Удалить",
+    "deleteConfirmTitle": "Удалить тест?",
+    "deleteConfirmBody": "Это действие необратимо. Все данные теста будут потеряны.",
+    "deleteConfirmCancel": "Отмена"
   },
   "AdminTranslations": {
     "pageTitle": "Переводы: {entityType}",
