@@ -2,13 +2,24 @@
 
 import { useMemo } from 'react';
 import { AdminQuizTranslationsHubPage } from '@/features/admin-quiz-translations/ui/AdminQuizTranslationsHubPage';
-import { useSearchTranslations } from '@/entities/translation/api/useSearchTranslations';
 import type { QuizTranslatableRow, TranslationStatus } from '@/features/admin-quiz-translations/model/types';
+import { useAdminQuiz } from '@/entities/quiz/api/useAdminQuiz';
 import { useGetQuizVersions } from '@/entities/quiz/api/useGetQuizVersions';
-import type { QuizVersionDto } from '@/shared/api/generated/model';
 import { pickLatestQuizVersion } from '@/shared/lib/quizVersion';
 import { useAdminQuestionsForQuizVersion } from '@/entities/question/api/useAdminQuestionsForQuizVersion';
-import { useAdminQuiz } from '@/entities/quiz/api/useAdminQuiz';
+import { useSearchTranslations } from '@/entities/translation/api/useSearchTranslations';
+import { useQuizTraits } from '@/entities/quiz/api/useQuizTraits';
+import { useSearchProfessions } from '@/entities/profession/api/useSearchProfessions';
+import { useCategories } from '@/entities/category/api/useCategories';
+
+function toNumber(v: unknown): number | undefined {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+function safeString(v: unknown): string {
+  return typeof v === 'string' ? v : '';
+}
 
 function toArray<T>(v: unknown): T[] {
   if (Array.isArray(v)) return v as T[];
@@ -25,123 +36,159 @@ function toArray<T>(v: unknown): T[] {
   return [];
 }
 
-function safeString(v: unknown): string {
-  return typeof v === 'string' ? v : '';
-}
+type QuestionDto = { id?: number; ord?: number; text?: string; options?: Array<{ id?: number; ord?: number; label?: string }> };
+type TraitDtoLike = { id?: number; name?: string; code?: string };
+type ProfessionDtoLike = { id?: number; titleDefault?: string; categoryId?: number };
+type CategoryDtoLike = { id?: number; name?: string };
 
-function toNumber(v: unknown): number | undefined {
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : undefined;
-}
-
-type TranslationDto = { field?: string; locale?: string; text?: string };
-
-function statusFromTranslations(items: TranslationDto[], requiredFields: string[]) {
-  const byLocale = new Map<string, Map<string, string>>();
-  for (const it of items) {
-    const loc = safeString(it.locale);
-    const field = safeString(it.field);
-    const text = safeString(it.text).trim();
-    if (!loc || !field) continue;
-    if (!byLocale.has(loc)) byLocale.set(loc, new Map());
-    byLocale.get(loc)!.set(field, text);
-  }
-
-  function one(locale: 'ru' | 'en'): TranslationStatus {
-    const m = byLocale.get(locale) ?? new Map();
-    let filled = 0;
-    for (const f of requiredFields) if ((m.get(f) ?? '').trim()) filled += 1;
-    if (filled === 0) return 'missing';
-    if (filled < requiredFields.length) return 'partial';
-    return 'ok';
-  }
-
-  return { ru: one('ru'), en: one('en') };
-}
-
-type QuestionDto = {
-  id?: number;
-  ord?: number;
-  text?: string;
-  options?: Array<{ id?: number; ord?: number; label?: string }>;
-};
+const MISSING: TranslationStatus = 'missing';
 
 export default function AdminQuizTranslationsHubClient({ quizId }: { quizId: number }) {
   const canLoad = Number.isFinite(quizId) && quizId > 0;
 
   const quizQ = useAdminQuiz(quizId);
-  const quiz = (quizQ as unknown as { data?: unknown })?.data as Record<string, unknown> | undefined;
+  const quiz = (quizQ as any)?.data;
 
   const quizDefaults = useMemo(() => {
-    const title = safeString((quiz as Record<string, unknown> | undefined)?.titleDefault) || safeString((quiz as Record<string, unknown> | undefined)?.title_default) || safeString((quiz as Record<string, unknown> | undefined)?.title);
-
-    const description = safeString((quiz as Record<string, unknown> | undefined)?.descriptionDefault) || safeString((quiz as Record<string, unknown> | undefined)?.description_default) || safeString((quiz as Record<string, unknown> | undefined)?.description);
-
+    const title = safeString(quiz?.titleDefault ?? quiz?.title_default ?? quiz?.title);
+    const description = safeString(quiz?.descriptionDefault ?? quiz?.description_default ?? quiz?.description);
     return { title, description };
   }, [quiz]);
 
   const versionsQ = useGetQuizVersions(quizId);
-  const versions = (versionsQ as unknown as { data?: QuizVersionDto[] | undefined })?.data;
-  const latest = pickLatestQuizVersion(versions);
-  const version = toNumber((latest as Record<string, unknown> | undefined)?.version);
+  const versions = (versionsQ as any)?.data as any[] | undefined;
+  const latest = pickLatestQuizVersion(versions as any);
+  const quizVersionId = toNumber((latest as any)?.id);
+  const version = toNumber((latest as any)?.version);
+
   const questionsQ = useAdminQuestionsForQuizVersion(quizId, version);
+  const questions = useMemo(() => toArray<QuestionDto>((questionsQ as any)?.data), [questionsQ]);
 
-  const questions = useMemo(() => toArray<QuestionDto>((questionsQ as unknown as { data?: unknown })?.data), [questionsQ]);
-
-  const questionsTrQ = useSearchTranslations(canLoad ? { entityType: 'question', entityId: quizId, locale: 'all' } : undefined);
-  const optionsTrQ = useSearchTranslations(canLoad ? { entityType: 'question_option', entityId: quizId, locale: 'all' } : undefined);
-
-  const questionsTranslations = useMemo(() => toArray<TranslationDto>((questionsTrQ as unknown as { data?: unknown })?.data), [questionsTrQ]);
-  const optionsTranslations = useMemo(() => toArray<TranslationDto>((optionsTrQ as unknown as { data?: unknown })?.data), [optionsTrQ]);
+  const questionsTrQ = useSearchTranslations(
+    canLoad ? { entityType: 'question', entityId: quizId, locale: 'all' } : undefined,
+  );
+  const optionsTrQ = useSearchTranslations(
+    canLoad ? { entityType: 'question_option', entityId: quizId, locale: 'all' } : undefined,
+  );
 
   const questionsRows = useMemo<QuizTranslatableRow[]>(() => {
     return questions
       .map((q) => {
         const id = toNumber(q.id);
         if (!id) return null;
-
-        const st = statusFromTranslations(questionsTranslations, ['text']);
-
         return {
           id,
           title: safeString(q.text) || `#${id}`,
           subtitle: q.ord ? `#${q.ord}` : undefined,
-          ru: st.ru,
-          en: st.en,
+          ru: MISSING,
+          en: MISSING,
           href: `/admin/quizzes/${quizId}/translations/questions/${id}`,
         };
       })
       .filter(Boolean) as QuizTranslatableRow[];
-  }, [questions, questionsTranslations, quizId]);
+  }, [questions, quizId]);
 
   const optionsRows = useMemo<QuizTranslatableRow[]>(() => {
-    const rows: QuizTranslatableRow[] = [];
+    const out: QuizTranslatableRow[] = [];
     for (const q of questions) {
-      const opts = toArray<{ id?: number; ord?: number; label?: string }>((q as Record<string, unknown> | undefined)?.options);
+      const opts = toArray<{ id?: number; ord?: number; label?: string }>((q as any)?.options);
       for (const o of opts) {
         const id = toNumber(o.id);
         if (!id) continue;
-
-        const st = statusFromTranslations(optionsTranslations, ['text']);
-
-        rows.push({
+        out.push({
           id,
           title: safeString(o.label) || `#${id}`,
           subtitle: q.ord && o.ord ? `Q#${q.ord} • Opt#${o.ord}` : undefined,
-          ru: st.ru,
-          en: st.en,
+          ru: MISSING,
+          en: MISSING,
           href: `/admin/quizzes/${quizId}/translations/options/${id}`,
         });
       }
     }
-    return rows;
-  }, [questions, optionsTranslations, quizId]);
+    return out;
+  }, [questions, quizId]);
 
-  const isLoadingQuiz = (quizQ as unknown as { isLoading?: boolean })?.isLoading ?? false;
-  const isLoadingVersions = (versionsQ as unknown as { isLoading?: boolean })?.isLoading ?? false;
-  const isLoadingQuestions = (questionsQ as unknown as { isLoading?: boolean })?.isLoading ?? false;
-  const isLoadingQuestionsTr = (questionsTrQ as unknown as { isLoading?: boolean })?.isLoading ?? false;
-  const isLoadingOptionsTr = (optionsTrQ as unknown as { isLoading?: boolean })?.isLoading ?? false;
+  const traitsQ = useQuizTraits(quizVersionId);
+  const traits = useMemo(() => toArray<TraitDtoLike>((traitsQ as any)?.data), [traitsQ]);
+
+  const traitsRows = useMemo<QuizTranslatableRow[]>(() => {
+    return traits
+      .map((tr) => {
+        const id = toNumber(tr.id);
+        if (!id) return null;
+        return {
+          id,
+          title: safeString(tr.name) || safeString(tr.code) || `#${id}`,
+          subtitle: safeString(tr.code) ? `#${safeString(tr.code)}` : undefined,
+          ru: MISSING,
+          en: MISSING,
+          href: `/admin/quizzes/${quizId}/translations/traits/${id}`,
+        };
+      })
+      .filter(Boolean) as QuizTranslatableRow[];
+  }, [traits, quizId]);
+
+  const professionsQ = useSearchProfessions({ page: 1, size: 200, sort: 'id' });
+
+const professionsRows = useMemo<QuizTranslatableRow[]>(() => {
+  const raw = (professionsQ as any)?.data;
+  const items = toArray<Record<string, unknown>>(raw);
+
+  return items
+    .map((p) => {
+      const id = toNumber(p.id);
+      if (!id) return null;
+
+      const title =
+        safeString(p.title) ||
+        safeString(p.titleDefault) ||
+        safeString(p.title_default) ||
+        safeString(p.name) ||
+        safeString(p.code);
+
+      const categoryId = toNumber(p.categoryId);
+      const subtitle = categoryId ? `Category ${categoryId}` : undefined;
+
+      return {
+        id,
+        title: title || '—',
+        subtitle,
+        ru: 'missing',
+        en: 'missing',
+        href: `/admin/quizzes/${quizId}/translations/professions/${id}`,
+      };
+    })
+    .filter(Boolean) as QuizTranslatableRow[];
+}, [professionsQ, quizId]);
+
+
+
+  const categoriesQ = useCategories('en');
+  const categories = (categoriesQ as any)?.data as CategoryDtoLike[] | undefined;
+
+  const categoriesRows = useMemo<QuizTranslatableRow[]>(() => {
+    return (categories ?? [])
+      .map((c) => {
+        const id = toNumber(c.id);
+        if (!id) return null;
+        return {
+          id,
+          title: safeString(c.name) || `#${id}`,
+          subtitle: undefined,
+          ru: MISSING,
+          en: MISSING,
+          href: `/admin/quizzes/${quizId}/translations/categories/${id}`,
+        };
+      })
+      .filter(Boolean) as QuizTranslatableRow[];
+  }, [categories, quizId]);
+
+  const isLoadingQuiz = (quizQ as any)?.isLoading ?? false;
+  const isLoadingVersions = (versionsQ as any)?.isLoading ?? false;
+  const isLoadingQuestions = (questionsQ as any)?.isLoading ?? false;
+  const isLoadingTraits = (traitsQ as any)?.isLoading ?? false;
+  const isLoadingProfessions = (professionsQ as any)?.isLoading ?? false;
+  const isLoadingCategories = (categoriesQ as any)?.isLoading ?? false;
 
   return (
     <AdminQuizTranslationsHubPage
@@ -149,8 +196,14 @@ export default function AdminQuizTranslationsHubClient({ quizId }: { quizId: num
       quizDefaults={quizDefaults}
       questionsRows={questionsRows}
       optionsRows={optionsRows}
-      isLoadingQuestions={isLoadingQuiz || isLoadingVersions || isLoadingQuestions || isLoadingQuestionsTr}
-      isLoadingOptions={isLoadingQuiz || isLoadingVersions || isLoadingQuestions || isLoadingOptionsTr}
+      traitsRows={traitsRows}
+      professionsRows={professionsRows}
+      categoriesRows={categoriesRows}
+      isLoadingQuestions={isLoadingQuiz || isLoadingVersions || isLoadingQuestions || ((questionsTrQ as any)?.isLoading ?? false)}
+      isLoadingOptions={isLoadingQuiz || isLoadingVersions || isLoadingQuestions || ((optionsTrQ as any)?.isLoading ?? false)}
+      isLoadingTraits={isLoadingQuiz || isLoadingVersions || isLoadingTraits}
+      isLoadingProfessions={isLoadingQuiz || isLoadingProfessions}
+      isLoadingCategories={isLoadingQuiz || isLoadingCategories}
     />
   );
 }

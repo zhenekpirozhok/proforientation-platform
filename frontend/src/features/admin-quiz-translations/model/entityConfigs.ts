@@ -48,8 +48,19 @@ export const OPTION_TRANSLATIONS_CONFIG: EntityConfig = {
 export const PROFESSION_TRANSLATIONS_CONFIG: EntityConfig = {
     entityType: 'profession',
     fields: [
-        { key: 'title', labelKey: 'titleLabel', placeholderKey: 'placeholderTitle', input: 'input', required: true },
-        { key: 'description', labelKey: 'descriptionLabel', placeholderKey: 'placeholderDescription', input: 'textarea' },
+        {
+            key: 'title',
+            labelKey: 'titleLabel',
+            placeholderKey: 'placeholderTitle',
+            input: 'input',
+            required: true,
+        },
+        {
+            key: 'description',
+            labelKey: 'descriptionLabel',
+            placeholderKey: 'placeholderDescription',
+            input: 'textarea',
+        },
     ],
 };
 

@@ -760,6 +760,9 @@
     "tabQuiz": "Квиз",
     "tabQuestions": "Вопросы",
     "tabOptions": "Варианты",
+    "tabTraits": "Черты",
+    "tabProfessions": "Профессии",
+    "tabCategories": "Категории",
     "questionsTitle": "Вопросы",
     "optionsTitle": "Варианты ответов",
     "questionSubtitle": "Вопрос #{id}",
@@ -771,6 +774,8 @@
     "open": "Открыть",
     "status_ok": "ОК",
     "status_partial": "Частично",
-    "status_missing": "Нет"
+    "status_missing": "Нет",
+    "toastAlreadyPublished": "Эта версия уже опубликована",
+    "toastPublished": "Квиз опубликован"
   }
 }

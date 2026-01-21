@@ -9,17 +9,42 @@ import { QUIZ_TRANSLATIONS_CONFIG } from '../model/entityConfigs';
 import type { QuizTranslatableRow } from '../model/types';
 import { QuizEntitiesTable } from './QuizEntitiesTable';
 
-export type HubTab = 'quiz' | 'questions' | 'options';
+export type HubTab =
+  | 'quiz'
+  | 'questions'
+  | 'options'
+  | 'traits'
+  | 'professions'
+  | 'categories';
 
 export function AdminQuizTranslationsHubPage(props: {
   quizId: number;
   quizDefaults?: { title?: string; description?: string };
   questionsRows: QuizTranslatableRow[];
   optionsRows: QuizTranslatableRow[];
+  traitsRows: QuizTranslatableRow[];
+  professionsRows: QuizTranslatableRow[];
+  categoriesRows: QuizTranslatableRow[];
   isLoadingQuestions?: boolean;
   isLoadingOptions?: boolean;
+  isLoadingTraits?: boolean;
+  isLoadingProfessions?: boolean;
+  isLoadingCategories?: boolean;
 }) {
-  const { quizId, quizDefaults, questionsRows, optionsRows, isLoadingQuestions, isLoadingOptions } = props;
+  const {
+    quizId,
+    quizDefaults,
+    questionsRows,
+    optionsRows,
+    traitsRows,
+    professionsRows,
+    categoriesRows,
+    isLoadingQuestions,
+    isLoadingOptions,
+    isLoadingTraits,
+    isLoadingProfessions,
+    isLoadingCategories,
+  } = props;
 
   const t = useTranslations('AdminQuizTranslationsHub');
   const [tab, setTab] = useState<HubTab>('quiz');
@@ -46,6 +71,9 @@ export function AdminQuizTranslationsHubPage(props: {
               { value: 'quiz', label: t('tabQuiz') },
               { value: 'questions', label: t('tabQuestions') },
               { value: 'options', label: t('tabOptions') },
+              { value: 'traits', label: t('tabTraits') },
+              { value: 'professions', label: t('tabProfessions') },
+              { value: 'categories', label: t('tabCategories') },
             ]}
           />
         </div>
@@ -67,14 +95,14 @@ export function AdminQuizTranslationsHubPage(props: {
           </Card>
         ) : null}
 
-{tab === 'questions' ? (
+ {tab === 'questions' ? (
   <QuizEntitiesTable
     title={t('questionsTitle')}
     rows={questionsRows}
     isLoading={isLoadingQuestions}
     entityType="question"
     requiredFields={['text']}
-    t={t}
+    t={t as unknown as (key: string, values?: Record<string, any>) => string}
   />
 ) : null}
 
@@ -85,7 +113,40 @@ export function AdminQuizTranslationsHubPage(props: {
     isLoading={isLoadingOptions}
     entityType="question_option"
     requiredFields={['text']}
-    t={t}
+    t={t as unknown as (key: string, values?: Record<string, any>) => string}
+  />
+) : null}
+
+{tab === 'traits' ? (
+  <QuizEntitiesTable
+    title={t('traitsTitle')}
+    rows={traitsRows}
+    isLoading={isLoadingTraits}
+    entityType="trait"
+    requiredFields={['title']}
+    t={t as unknown as (key: string, values?: Record<string, any>) => string}
+  />
+) : null}
+
+{tab === 'professions' ? (
+  <QuizEntitiesTable
+    title={t('professionsTitle')}
+    rows={professionsRows}
+    isLoading={isLoadingProfessions}
+    entityType="profession"
+    requiredFields={['title']}
+    t={t as unknown as (key: string, values?: Record<string, any>) => string}
+  />
+) : null}
+
+{tab === 'categories' ? (
+  <QuizEntitiesTable
+    title={t('categoriesTitle')}
+    rows={categoriesRows}
+    isLoading={isLoadingCategories}
+    entityType="profession_category"
+    requiredFields={['title']}
+    t={t as unknown as (key: string, values?: Record<string, any>) => string}
   />
 ) : null}
 
