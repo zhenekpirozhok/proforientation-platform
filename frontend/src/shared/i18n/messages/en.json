@@ -772,7 +772,7 @@
     "open": "Open",
     "status_ok": "OK",
     "status_partial": "Partial",
-    "status_missing": "Missing"
+    "status_missing": "Missing",
     "toastAlreadyPublished": "This version is already published",
     "toastPublished": "Quiz published"
   }
