@@ -23,7 +23,7 @@ export function useQuestionOptionCounts(
   quizVersionId: string,
 ) {
   // 1) Resolve quizVersionId -> version number
-  const versionRes = useQuizVersionNumber(locale, quizVersionId);
+  const versionRes = useQuizVersionNumber(locale, quizId, quizVersionId);
   const versionNum = versionRes.data?.version;
 
   // 2) Use version number in the existing backend route

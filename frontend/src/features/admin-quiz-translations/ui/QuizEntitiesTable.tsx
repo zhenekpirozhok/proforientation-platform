@@ -2,6 +2,7 @@
 
 import { Button, Card, Grid, Input, List, Space, Table, Typography } from 'antd';
 import { useMemo, useState } from 'react';
+import type { ColumnsType } from 'antd/es/table';
 import Link from 'next/link';
 import type { EntityType, FieldKey, QuizTranslatableRow } from '../model/types';
 import { TranslationStatusCell } from './TranslationStatusCell';
@@ -18,7 +19,7 @@ export function QuizEntitiesTable(props: {
   isLoading?: boolean;
   entityType: EntityType;
   requiredFields: FieldKey[];
-  t: (key: string, values?: Record<string, any>) => string;
+  t: (key: string, values?: Record<string, string | number | Date> | undefined) => string;
 }) {
   const { title, rows, isLoading, entityType, requiredFields, t } = props;
 
@@ -169,10 +170,10 @@ export function QuizEntitiesTable(props: {
         </Card>
       ) : (
         <Card className="!rounded-2xl" bodyStyle={{ padding: 0 }}>
-          <Table
+            <Table
             loading={!!isLoading}
             rowKey="id"
-            columns={columns as any}
+            columns={columns as ColumnsType<QuizTranslatableRow>}
             dataSource={filtered}
             pagination={{ pageSize: 20, showSizeChanger: true }}
           />

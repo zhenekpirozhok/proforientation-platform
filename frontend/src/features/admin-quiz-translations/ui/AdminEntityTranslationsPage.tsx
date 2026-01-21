@@ -115,10 +115,11 @@ export function AdminEntityTranslationsPage(props: {
 
   const defaultsNorm = useMemo<FormState>(() => {
     const d = defaults ?? {};
+    const dr = d as Record<string, unknown> | undefined;
     return normalizeForm({
-      title: (d as any).title ?? '',
-      text: (d as any).text ?? '',
-      description: (d as any).description ?? '',
+      title: dr?.title as string | undefined ?? '',
+      text: dr?.text as string | undefined ?? '',
+      description: dr?.description as string | undefined ?? '',
     });
   }, [defaults]);
 
@@ -236,13 +237,13 @@ export function AdminEntityTranslationsPage(props: {
     qc.setQueryData(qk, (prev: unknown) => {
       const arr = toArray<Record<string, unknown>>(prev);
       const nextArr = [...arr];
-      const idx = nextArr.findIndex((x) => safeString((x as any)?.field) === field);
+      const idx = nextArr.findIndex((x) => safeString((x as Record<string, unknown> | undefined)?.field) === field);
 
       if (idx >= 0) {
         const cur = nextArr[idx] ?? {};
         nextArr[idx] = {
           ...cur,
-          id: typeof idMaybe === 'number' ? idMaybe : (cur as any)?.id,
+          id: typeof idMaybe === 'number' ? idMaybe : (cur as Record<string, unknown> | undefined)?.id,
           entityType: config.entityType,
           entityId,
           locale,

@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { AdminEntityTranslationsPage } from '@/features/admin-quiz-translations/ui/AdminEntityTranslationsPage';
 import { QUESTION_TRANSLATIONS_CONFIG } from '@/features/admin-quiz-translations/model/entityConfigs';
 import { useGetQuizVersions } from '@/entities/quiz/api/useGetQuizVersions';
+import type { QuizVersionDto } from '@/shared/api/generated/model';
 import { pickLatestQuizVersion } from '@/shared/lib/quizVersion';
 import { useAdminQuestionsForQuizVersion } from '@/entities/question/api/useAdminQuestionsForQuizVersion';
 
@@ -33,17 +34,17 @@ export default function QuestionTranslationsClient(props: { quizId: number; ques
   const { quizId, questionId } = props;
 
   const versionsQ = useGetQuizVersions(quizId);
-  const versions = (versionsQ as any)?.data as any[] | undefined;
-  const latest = pickLatestQuizVersion(versions as any);
-  const version = Number((latest as any)?.version);
+  const versions = (versionsQ as unknown as { data?: QuizVersionDto[] | undefined })?.data;
+  const latest = pickLatestQuizVersion(versions);
+  const version = Number((latest as Record<string, unknown> | undefined)?.version);
   const versionNum = Number.isFinite(version) ? version : undefined;
 
   const questionsQ = useAdminQuestionsForQuizVersion(quizId, versionNum);
-  const questions = toArray<QuestionDto>((questionsQ as any)?.data);
+  const questions = toArray<QuestionDto>((questionsQ as unknown as { data?: unknown })?.data);
 
   const textDefault = useMemo(() => {
-    const found = questions.find((q) => Number((q as any)?.id) === questionId);
-    return safeString((found as any)?.text);
+    const found = questions.find((q) => Number((q as Record<string, unknown> | undefined)?.id) === questionId);
+    return safeString((found as Record<string, unknown> | undefined)?.text);
   }, [questions, questionId]);
 
   return (

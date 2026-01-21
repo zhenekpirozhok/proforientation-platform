@@ -17,7 +17,8 @@ export type EntityType =
     | 'question'
     | 'question_option'
     | 'profession'
-    | 'trait_profile';
+    | 'trait'
+    | 'profession_category';
 
 export type FieldKey = 'title' | 'text' | 'description';
 

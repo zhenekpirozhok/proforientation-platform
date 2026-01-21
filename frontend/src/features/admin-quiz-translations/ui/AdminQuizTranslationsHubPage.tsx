@@ -67,27 +67,28 @@ export function AdminQuizTranslationsHubPage(props: {
           </Card>
         ) : null}
 
-        {tab === 'questions' ? (
-          <QuizEntitiesTable
-            title={t('questionsTitle')}
-            rows={questionsRows}
-            isLoading={isLoadingQuestions}
-            entityType="question"
-            requiredFields={['text']}
-            t={t}
-          />
-        ) : null}
+{tab === 'questions' ? (
+  <QuizEntitiesTable
+    title={t('questionsTitle')}
+    rows={questionsRows}
+    isLoading={isLoadingQuestions}
+    entityType="question"
+    requiredFields={['text']}
+    t={t}
+  />
+) : null}
 
-        {tab === 'options' ? (
-          <QuizEntitiesTable
-            title={t('optionsTitle')}
-            rows={optionsRows}
-            isLoading={isLoadingOptions}
-            entityType="question_option"
-            requiredFields={['text']}
-            t={t}
-          />
-        ) : null}
+{tab === 'options' ? (
+  <QuizEntitiesTable
+    title={t('optionsTitle')}
+    rows={optionsRows}
+    isLoading={isLoadingOptions}
+    entityType="question_option"
+    requiredFields={['text']}
+    t={t}
+  />
+) : null}
+
       </div>
     </div>
   );

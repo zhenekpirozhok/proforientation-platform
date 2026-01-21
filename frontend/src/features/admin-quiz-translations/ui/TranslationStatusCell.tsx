@@ -40,15 +40,15 @@ export function TranslationStatusCell(props: {
 }) {
   const { entityType, entityId, locale, requiredFields, t } = props;
 
-  const q = useSearchTranslations({ entityType, entityId, locale } as any);
-  const data = (q as any)?.data;
+  const q = useSearchTranslations({ entityType, entityId, locale });
+  const data = (q as unknown as { data?: unknown })?.data;
 
   const status = useMemo<TranslationStatus>(() => {
     const items = toArray<TranslationDto>(data);
     const byField = new Map<string, string>();
     for (const it of items) {
-      const f = safeString((it as any)?.field);
-      const tx = safeString((it as any)?.text);
+      const f = safeString(it.field);
+      const tx = safeString(it.text);
       if (f) byField.set(f, tx);
     }
 

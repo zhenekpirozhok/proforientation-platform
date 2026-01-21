@@ -34,7 +34,7 @@ export function TranslationEditorForm(props: {
   saving: boolean;
   onChange: (next: FormState) => void;
   onSave: () => Promise<void> | void;
-  t: (key: string, values?: Record<string, any>) => string;
+  t: (key: string, values?: Record<string, string | number | Date> | undefined) => string;
 }) {
   const { locale, title, config, form, saved, disabled, saving, onChange, onSave, t } = props;
 
@@ -55,7 +55,9 @@ export function TranslationEditorForm(props: {
   const refs = useRef<Partial<Record<FieldKey, HTMLInputElement | HTMLTextAreaElement | null>>>({});
 
   useEffect(() => {
-    setTouched({});
+    // reset touched when locale changes; avoid sync state update inside effect
+    const id = setTimeout(() => setTouched({}), 0);
+    return () => clearTimeout(id);
   }, [locale]);
 
   const canSave = !disabled && dirty && Object.keys(errors).length === 0;
@@ -114,7 +116,7 @@ export function TranslationEditorForm(props: {
           const value = form[f.key] ?? '';
           const showError = !!errors[f.key] && !!touched[f.key];
           const help = showError ? t('fieldRequiredHelp') : ' ';
-          const status = showError ? 'error' : '';
+          const status: 'error' | undefined = showError ? 'error' : undefined;
 
           return (
             <div key={f.key} className="flex flex-col gap-1">
@@ -136,9 +138,9 @@ export function TranslationEditorForm(props: {
                   size="large"
                   placeholder={t(f.placeholderKey)}
                   disabled={disabled}
-                  status={status as any}
+                  status={status}
                   ref={(node) => {
-                    refs.current[f.key] = (node?.input as any) ?? null;
+                    refs.current[f.key] = (node?.input ?? null) as HTMLInputElement | null;
                   }}
                 />
               ) : (
@@ -149,9 +151,9 @@ export function TranslationEditorForm(props: {
                   placeholder={t(f.placeholderKey)}
                   autoSize={{ minRows: 4, maxRows: 12 }}
                   disabled={disabled}
-                  status={status as any}
+                  status={status}
                   ref={(node) => {
-                    refs.current[f.key] = (node?.resizableTextArea?.textArea as any) ?? null;
+                    refs.current[f.key] = (node?.resizableTextArea?.textArea ?? null) as HTMLTextAreaElement | null;
                   }}
                 />
               )}
