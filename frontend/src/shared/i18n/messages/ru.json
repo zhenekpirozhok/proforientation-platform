@@ -539,6 +539,8 @@
       "quizTitlePh": "Например: Профориентационный квиз",
       "quizCode": "Системный код",
       "quizCodePh": "авто из названия",
+      "codeReadOnlyTooltip": "Код генерируется автоматически из названия",
+      "codeReadOnlyInfo": "Код формируется автоматически из названия и не может быть отредактирован",
       "continue": "Создать и продолжить",
       "created": "Квиз создан",
       "createFailed": "Не удалось создать квиз",
@@ -711,6 +713,10 @@
     "translations": "Переводы",
     "publish": "Опубликовать",
     "analytics": "Аналитика",
+    "delete": "Удалить",
+    "deleteConfirmTitle": "Удалить квиз",
+    "deleteConfirmBody": "Вы уверены, что хотите безвозвратно удалить этот квиз?",
+    "toastDeleted": "Квиз удалён",
     "toastAlreadyPublished": "Эта версия уже опубликована",
     "toastPublished": "Тест опубликован"
   },
@@ -765,6 +771,9 @@
     "tabCategories": "Категории",
     "questionsTitle": "Вопросы",
     "optionsTitle": "Варианты ответов",
+    "traitsTitle": "Черты",
+    "professionsTitle": "Профессии",
+    "categoriesTitle": "Категории",
     "questionSubtitle": "Вопрос #{id}",
     "optionSubtitle": "Вариант #{id}",
     "searchPlaceholder": "Поиск по ID или тексту…",
@@ -776,6 +785,7 @@
     "status_partial": "Частично",
     "status_missing": "Нет",
     "toastAlreadyPublished": "Эта версия уже опубликована",
-    "toastPublished": "Квиз опубликован"
+    "toastPublished": "Квиз опубликован",
+    "loadMore": "Показать ещё"
   }
 }

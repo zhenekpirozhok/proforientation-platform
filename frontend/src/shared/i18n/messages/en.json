@@ -769,6 +769,9 @@
     "tabCategories": "Categories",
     "questionsTitle": "Questions",
     "optionsTitle": "Options",
+    "traitsTitle": "Traits",
+    "professionsTitle": "Professions",
+    "categoriesTitle": "Categories",
     "questionSubtitle": "Question #{id}",
     "optionSubtitle": "Option #{id}",
     "searchPlaceholder": "Search by ID or text…",
@@ -780,6 +783,7 @@
     "status_partial": "Partial",
     "status_missing": "Missing",
     "toastAlreadyPublished": "This version is already published",
-    "toastPublished": "Quiz published"
+    "toastPublished": "Quiz published",
+    "loadMore": "Load more"
   }
 }

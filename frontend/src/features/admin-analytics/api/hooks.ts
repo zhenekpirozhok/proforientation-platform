@@ -6,15 +6,18 @@ import type {
   QuizAnalyticsOverviewDto,
 } from '../model/types';
 
-const fetcher = async (url: string) => {
-  const res = await fetch(url, { credentials: 'include' });
+const fetcher = async (url: string, locale?: string) => {
+  const headers: Record<string, string> = {};
+  if (locale) {
+    headers['x-locale'] = locale;
+  }
+  const res = await fetch(url, { credentials: 'include', headers });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 };
 
 function apiBase(locale: string) {
-  const l = (locale || 'en').trim();
-  return `/${l}/api`;
+  return `/api`;
 }
 
 export function useOverview(
@@ -33,7 +36,7 @@ export function useOverview(
       ? `${apiBase(locale)}/admin/quizzes/${quizId}/analytics/overview?${qs.toString()}`
       : null;
 
-  return useSWR<QuizAnalyticsOverviewDto>(key, fetcher);
+  return useSWR<QuizAnalyticsOverviewDto>(key, (url: string) => fetcher(url, locale));
 }
 
 export function useDetailed(
@@ -48,5 +51,5 @@ export function useDetailed(
       ? `${apiBase(locale)}/admin/quizzes/${quizId}/analytics/detailed?${qs.toString()}`
       : null;
 
-  return useSWR<QuizAnalyticsDetailedDto>(key, fetcher);
+  return useSWR<QuizAnalyticsDetailedDto>(key, (url: string) => fetcher(url, locale));
 }

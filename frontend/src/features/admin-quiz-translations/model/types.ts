@@ -9,7 +9,6 @@ export type QuizTranslatableRow = {
     href: string;
 };
 
-
 export type LocaleKey = 'ru' | 'en';
 
 export type EntityType =

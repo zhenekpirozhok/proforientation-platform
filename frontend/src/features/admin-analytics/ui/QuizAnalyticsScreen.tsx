@@ -20,8 +20,10 @@ function TabButton(props: {
       onClick={props.onClick}
       type="button"
       className={[
+        // на мобилке табы не должны сжиматься в кашу
         'px-3 py-2 rounded-lg border transition-colors',
         'border-slate-200 dark:border-slate-800',
+        'flex-1 sm:flex-none',
         props.active
           ? 'bg-slate-900 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:border-slate-100'
           : 'bg-white hover:bg-slate-50 text-slate-900 dark:bg-slate-950 dark:hover:bg-slate-900 dark:text-slate-100',
@@ -40,6 +42,10 @@ function ActionLink(props: { href: string; children: React.ReactNode }) {
         'px-3 py-2 rounded-lg border transition-colors',
         'border-slate-200 bg-white hover:bg-slate-50 text-slate-900',
         'dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900 dark:text-slate-100',
+        // мобильная адаптация
+        'inline-flex items-center justify-center',
+        'w-full sm:w-auto',
+        'text-sm',
       ].join(' ')}
     >
       {props.children}
@@ -105,7 +111,7 @@ export function QuizAnalyticsScreen(props: {
 
   const exportLinks = useMemo(() => {
     const qs = new URLSearchParams({ quizVersionId: selectedVersionId });
-    const base = `/${locale}/api/admin/quizzes/${quizId}/analytics/export`;
+    const base = `/api/admin/quizzes/${quizId}/analytics/export`;
     return {
       overviewCsv: `${base}/overview.csv?${qs}`,
       overviewXlsx: `${base}/overview.xlsx?${qs}`,
@@ -115,13 +121,14 @@ export function QuizAnalyticsScreen(props: {
   }, [locale, quizId, selectedVersionId]);
 
   return (
-    <div className="p-6 space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
+    <div className="p-4 sm:p-6 space-y-4">
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0">
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
             {i18n.title}
           </h1>
-          <div className="text-sm text-slate-500 dark:text-slate-400">
+          <div className="text-sm text-slate-500 dark:text-slate-400 break-words">
             Quiz ID: {quizId} • Version: {quizVersionId}
           </div>
         </div>
@@ -131,6 +138,9 @@ export function QuizAnalyticsScreen(props: {
             'px-3 py-2 rounded-lg border transition-colors',
             'border-slate-200 bg-white hover:bg-slate-50 text-slate-900',
             'dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900 dark:text-slate-100',
+            // мобилка: кнопка на всю ширину
+            'inline-flex items-center justify-center',
+            'w-full sm:w-auto',
           ].join(' ')}
           href={`/admin/quizzes/${quizId}/edit`}
         >
@@ -138,8 +148,9 @@ export function QuizAnalyticsScreen(props: {
         </Link>
       </div>
 
-      <div className="mb-4">
-        <label className="text-sm text-slate-600 dark:text-slate-300 mr-2">
+      {/* Version select */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <label className="text-sm text-slate-600 dark:text-slate-300">
           {i18n.version}
         </label>
         <select
@@ -152,7 +163,7 @@ export function QuizAnalyticsScreen(props: {
             else url.searchParams.delete('quizVersionId');
             router.replace(url.toString());
           }}
-          className="border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+          className="w-full sm:w-[360px] border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
         >
           {publishedVersions.length === 0 ? (
             <option value="">{i18n.noPublishedVersions}</option>
@@ -161,7 +172,9 @@ export function QuizAnalyticsScreen(props: {
             const id = String((v as Record<string, unknown>)?.id ?? '');
             const ver = String((v as Record<string, unknown>)?.version ?? id);
             const label =
-              (v as Record<string, unknown>)?.title || (v as Record<string, unknown>)?.name || `v${ver}`;
+              (v as Record<string, unknown>)?.title ||
+              (v as Record<string, unknown>)?.name ||
+              `v${ver}`;
             return (
               <option key={id} value={id}>
                 {String(label)}
@@ -172,32 +185,34 @@ export function QuizAnalyticsScreen(props: {
       </div>
 
       {/* Filters */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950 flex flex-wrap items-end gap-3">
-        <div className="flex flex-col gap-1">
-          <label className="text-sm text-slate-600 dark:text-slate-300">
-            {i18n.from}
-          </label>
-          <input
-            type="date"
-            className="border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-          />
+      <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-sm text-slate-600 dark:text-slate-300">
+              {i18n.from}
+            </label>
+            <input
+              type="date"
+              className="w-full border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-sm text-slate-600 dark:text-slate-300">
+              {i18n.to}
+            </label>
+            <input
+              type="date"
+              className="w-full border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+            />
+          </div>
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label className="text-sm text-slate-600 dark:text-slate-300">
-            {i18n.to}
-          </label>
-          <input
-            type="date"
-            className="border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-          />
-        </div>
-
-        <div className="ml-auto flex flex-wrap gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
           <ActionLink href={exportLinks.overviewCsv}>
             {i18n.exportOverviewCsv}
           </ActionLink>
@@ -215,16 +230,10 @@ export function QuizAnalyticsScreen(props: {
 
       {/* Tabs */}
       <div className="flex gap-2">
-        <TabButton
-          active={tab === 'overview'}
-          onClick={() => setTab('overview')}
-        >
+        <TabButton active={tab === 'overview'} onClick={() => setTab('overview')}>
           {i18n.overview}
         </TabButton>
-        <TabButton
-          active={tab === 'detailed'}
-          onClick={() => setTab('detailed')}
-        >
+        <TabButton active={tab === 'detailed'} onClick={() => setTab('detailed')}>
           {i18n.detailed}
         </TabButton>
       </div>
