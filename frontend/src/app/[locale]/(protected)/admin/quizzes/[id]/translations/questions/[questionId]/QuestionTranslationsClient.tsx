@@ -15,6 +15,8 @@ function toArray<T>(v: unknown): T[] {
   if (Array.isArray(o.results)) return o.results as T[];
   if (Array.isArray(o.rows)) return o.rows as T[];
   if (Array.isArray(o.content)) return o.content as T[];
+  if (Array.isArray(o.content)) return o.content as T[];
+  if (o.content !== undefined) return toArray<T>(o.content);
   if (o.data !== undefined) return toArray<T>(o.data);
   if (o.result !== undefined) return toArray<T>(o.result);
   if (o.payload !== undefined) return toArray<T>(o.payload);
@@ -25,7 +27,7 @@ function safeString(v: unknown) {
   return typeof v === 'string' ? v : '';
 }
 
-type QuestionDto = { id?: number; textDefault?: string; text_default?: string };
+type QuestionDto = { id?: number; text?: string };
 
 export default function QuestionTranslationsClient(props: { quizId: number; questionId: number }) {
   const { quizId, questionId } = props;
@@ -41,7 +43,7 @@ export default function QuestionTranslationsClient(props: { quizId: number; ques
 
   const textDefault = useMemo(() => {
     const found = questions.find((q) => Number((q as any)?.id) === questionId);
-    return safeString((found as any)?.textDefault ?? (found as any)?.text_default);
+    return safeString((found as any)?.text);
   }, [questions, questionId]);
 
   return (

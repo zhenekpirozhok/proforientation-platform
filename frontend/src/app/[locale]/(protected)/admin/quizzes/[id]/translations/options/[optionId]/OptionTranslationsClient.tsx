@@ -15,6 +15,7 @@ function toArray<T>(v: unknown): T[] {
   if (Array.isArray(o.results)) return o.results as T[];
   if (Array.isArray(o.rows)) return o.rows as T[];
   if (Array.isArray(o.content)) return o.content as T[];
+  if (o.content !== undefined) return toArray<T>(o.content);
   if (o.data !== undefined) return toArray<T>(o.data);
   if (o.result !== undefined) return toArray<T>(o.result);
   if (o.payload !== undefined) return toArray<T>(o.payload);
@@ -25,13 +26,8 @@ function safeString(v: unknown) {
   return typeof v === 'string' ? v : '';
 }
 
-type QuestionOptionDto = { id?: number; labelDefault?: string; label_default?: string };
-
-type QuestionDto = {
-  options?: QuestionOptionDto[];
-  questionOptions?: QuestionOptionDto[];
-  question_options?: QuestionOptionDto[];
-};
+type OptionDto = { id?: number; label?: string };
+type QuestionDto = { options?: OptionDto[] };
 
 export default function OptionTranslationsClient(props: { quizId: number; optionId: number }) {
   const { quizId, optionId } = props;
@@ -47,10 +43,9 @@ export default function OptionTranslationsClient(props: { quizId: number; option
 
   const labelDefault = useMemo(() => {
     for (const q of questions) {
-      const opts = (q as any)?.options ?? (q as any)?.questionOptions ?? (q as any)?.question_options ?? [];
-      const arr = toArray<QuestionOptionDto>(opts);
-      const found = arr.find((o) => Number((o as any)?.id) === optionId);
-      if (found) return safeString((found as any)?.labelDefault ?? (found as any)?.label_default);
+      const opts = toArray<OptionDto>((q as any)?.options);
+      const found = opts.find((o) => Number((o as any)?.id) === optionId);
+      if (found) return safeString((found as any)?.label);
     }
     return '';
   }, [questions, optionId]);
