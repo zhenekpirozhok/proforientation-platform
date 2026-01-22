@@ -154,10 +154,11 @@ export default function AdminQuizTranslationsHubClient({
     );
     return traits
       .map((tr) => {
-        const id = safeNumber(tr?.id);
+        const t = tr as Record<string, unknown> | undefined;
+        const id = safeNumber(t?.id);
         if (!id) return null;
-        const title = safeString(tr?.name ?? tr?.title ?? tr?.code);
-        const subtitle = safeString(tr?.code) || undefined;
+        const title = safeString(t?.name ?? t?.title ?? t?.code);
+        const subtitle = safeString(t?.code) || undefined;
 
         const row: QuizTranslatableRow = {
           id,
@@ -185,11 +186,13 @@ export default function AdminQuizTranslationsHubClient({
 
     return professions
       .map((p) => {
-        const id = safeNumber(p?.id);
+        const id = safeNumber((p as Record<string, unknown>)?.id);
         if (!id) return null;
 
-        const title = safeString(p?.title);
-        const categoryId = safeNumber(p?.categoryId);
+        const title = safeString((p as Record<string, unknown>)?.title);
+        const categoryId = safeNumber(
+          (p as Record<string, unknown>)?.categoryId,
+        );
         const subtitle = categoryId ? `Category ${categoryId}` : undefined;
 
         const row: QuizTranslatableRow = {
@@ -211,11 +214,12 @@ export default function AdminQuizTranslationsHubClient({
     );
     return categories
       .map((c) => {
-        const id = safeNumber(c?.id);
+        const cat = c as Record<string, unknown>;
+        const id = safeNumber(cat.id);
         if (!id) return null;
 
-        const title = safeString(c?.name ?? c?.title ?? c?.code);
-        const subtitle = safeString(c?.code) || undefined;
+        const title = safeString(cat.name ?? cat.title ?? cat.code);
+        const subtitle = safeString(cat.code) || undefined;
 
         const row: QuizTranslatableRow = {
           id,
@@ -241,17 +245,22 @@ export default function AdminQuizTranslationsHubClient({
     };
   }, [quizQ]);
 
-  const isLoadingQuiz =
-    (quizQ as unknown as Record<string, unknown>)?.isLoading ?? false;
-  const isLoadingQuestions =
-    (questionsQ as unknown as Record<string, unknown>)?.isLoading ?? false;
+  const isLoadingQuiz = Boolean(
+    (quizQ as unknown as Record<string, unknown>)?.isLoading,
+  );
+  const isLoadingQuestions = Boolean(
+    (questionsQ as unknown as Record<string, unknown>)?.isLoading,
+  );
   const isLoadingOptions = isLoadingQuestions;
-  const isLoadingTraits =
-    (traitsQ as unknown as Record<string, unknown>)?.isLoading ?? false;
-  const isLoadingProfessions =
-    (professionsQ as unknown as Record<string, unknown>)?.isLoading ?? false;
-  const isLoadingCategories =
-    (categoriesQ as unknown as Record<string, unknown>)?.isLoading ?? false;
+  const isLoadingTraits = Boolean(
+    (traitsQ as unknown as Record<string, unknown>)?.isLoading,
+  );
+  const isLoadingProfessions = Boolean(
+    (professionsQ as unknown as Record<string, unknown>)?.isLoading,
+  );
+  const isLoadingCategories = Boolean(
+    (categoriesQ as unknown as Record<string, unknown>)?.isLoading,
+  );
 
   return (
     <AdminQuizTranslationsHubPage
@@ -262,7 +271,7 @@ export default function AdminQuizTranslationsHubClient({
       traitsRows={traitsRows}
       professionsRows={professionsRows}
       categoriesRows={categoriesRows}
-      isLoadingQuestions={isLoadingQuestions}
+      isLoadingQuestions={!!isLoadingQuestions}
       isLoadingOptions={isLoadingOptions}
       isLoadingTraits={isLoadingTraits}
       isLoadingProfessions={isLoadingProfessions}
