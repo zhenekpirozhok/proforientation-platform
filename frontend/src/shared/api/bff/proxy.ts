@@ -12,8 +12,11 @@ const FORWARD_HEADERS = new Set([
 
 function getBackendUrl(): string {
   const url = process.env.BACKEND_URL;
-  if (!url) throw new Error('BACKEND_URL is not defined');
-  return url;
+  if (url && url.length > 0) return url;
+  // During local builds or CI the BACKEND_URL may be unset —
+  // fall back to localhost backend used in development.
+  // This prevents build-time failures when server URL isn't provided.
+  return 'http://localhost:8082';
 }
 
 function normalizePath(path: string) {

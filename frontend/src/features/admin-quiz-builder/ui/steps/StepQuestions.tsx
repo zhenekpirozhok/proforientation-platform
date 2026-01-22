@@ -388,8 +388,10 @@ export function StepQuestions({
     const e: Record<string, string> = {};
     if (!draft.text.trim()) e.draftText = 'required';
     if (!draft.qtype.trim()) e.draftType = 'required';
-    if (draft.linkedTraitIds.length < 1) e.draftTraits = 'min1';
-    if (draft.linkedTraitIds.length > 2) e.draftTraits = 'max2';
+    if (allTraitIds.length > 0) {
+      if (draft.linkedTraitIds.length < 1) e.draftTraits = 'min1';
+      if (draft.linkedTraitIds.length > 2) e.draftTraits = 'max2';
+    }
     if (draft.options.length < 2) e.draftOptions = 'min2';
     for (const o of draft.options)
       if (!o.label.trim()) e[`draftOpt.${o.tempId}.label`] = 'required';

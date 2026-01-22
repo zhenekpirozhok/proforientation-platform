@@ -120,6 +120,15 @@ public class QuizVersionServiceImpl implements QuizVersionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public QuizVersionDto getVersionById(Integer quizVersionId) {
+        QuizVersion v = versionRepo.findById(quizVersionId)
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_VERSION_NOT_FOUND));
+
+        return toDto(v);
+    }
+
+    @Override
     @Transactional
     public QuizVersionDto createDraftVersion(Integer quizId) {
         Quiz quiz = quizRepo.findById(quizId)

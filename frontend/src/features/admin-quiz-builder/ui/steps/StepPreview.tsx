@@ -291,22 +291,6 @@ export function StepPreview(): JSX.Element {
     typeof version === 'number' ? version : undefined,
   );
 
-  const canPublish = typeof quizVersionId === 'number' && quizVersionId > 0;
-
-  async function onPublish() {
-    if (!canPublish) {
-      message.error(t('validation.fixErrors') || t('invalidQuizVersionId'));
-      return;
-    }
-
-    try {
-      await actions.publishQuiz.mutateAsync({ id: quizVersionId });
-      message.success(t('published'));
-    } catch (e) {
-      message.error((e as Error).message);
-    }
-  }
-
   return (
     <SectionCard title={t('title')}>
       <div className="flex flex-col gap-3">
@@ -423,18 +407,6 @@ export function StepPreview(): JSX.Element {
               {t('chooseCategoryToSeeProfessions')}
             </Typography.Text>
           )}
-        </div>
-
-        <div className="mt-4 flex justify-end">
-          <Button
-            type="primary"
-            size="large"
-            onClick={onPublish}
-            loading={actions.publishQuiz.isPending}
-            disabled={!canPublish}
-          >
-            {t('publish')}
-          </Button>
         </div>
       </div>
     </SectionCard>

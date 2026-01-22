@@ -29,7 +29,7 @@ import { useEnsureUnpublishedVersion } from '../api/useEnsureUnpublishedVersion'
 
 import { useAdminQuiz } from '@/entities/quiz/api/useAdminQuiz';
 import { useGetQuizVersions } from '@/entities/quiz/api/useGetQuizVersions';
-import { pickLatestQuizVersion } from '@/features/admin-quiz-builder/lib/quizVersion';
+import { pickLatestQuizVersion } from '@/shared/lib/quizVersion';
 
 function n(v: unknown): number | undefined {
   const x = typeof v === 'number' ? v : Number(v);
@@ -83,6 +83,7 @@ export function useAdminQuizBuilder({
   const hydrated = useAdminQuizBuilderStore((s) => s.hydrated);
 
   const createdToastShownRef = useRef(false);
+  const ensuredUnpublishedVersionRef = useRef<number | null>(null);
 
   const effectiveQuizId = useMemo(
     () => n(propQuizId ?? storeQuizId),
@@ -171,16 +172,21 @@ export function useAdminQuizBuilder({
     const ensureVersion = async () => {
       if (typeof effectiveQuizId !== 'number' || !latestVersion || !quizData)
         return;
+
+      // If we already ensured unpublished version for this quiz, don't do it again
+      if (ensuredUnpublishedVersionRef.current === effectiveQuizId) return;
+
       const isPublished = Boolean(
         (latestVersion as unknown as Record<string, unknown>)?.publishedAt,
       );
       if (isPublished) {
+        ensuredUnpublishedVersionRef.current = effectiveQuizId;
         await ensureUnpublishedVersion(effectiveQuizId);
       }
     };
 
     ensureVersion();
-  }, [effectiveQuizId, latestVersion, quizData, ensureUnpublishedVersion]);
+  }, [effectiveQuizId, quizData, ensureUnpublishedVersion]);
 
   const traitIds = useMemo(
     () =>

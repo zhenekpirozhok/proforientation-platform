@@ -392,4 +392,26 @@ class QuizControllerTest {
         assertThat(result.get(1).bipolarPairCode()).isEqualTo("realistic");
         verify(traitService).getTraitsForQuizVersion(10);
     }
+
+    @Test
+    void getVersionById_asAdmin_shouldReturnQuizVersion() {
+        setAdmin();
+
+        Integer quizVersionId = 229;
+
+        QuizVersionDto dto =
+                new QuizVersionDto(229, 10, 3, false, Instant.parse("2026-01-20T12:00:00Z"));
+
+        when(versionService.getVersionById(quizVersionId))
+                .thenReturn(dto);
+
+        QuizVersionDto result = controller.getVersionById(quizVersionId);
+
+        assertThat(result.id()).isEqualTo(229);
+        assertThat(result.version()).isEqualTo(3);
+        assertThat(result.quizId()).isEqualTo(10);
+
+        verify(versionService).getVersionById(quizVersionId);
+        verifyNoMoreInteractions(versionService);
+    }
 }
