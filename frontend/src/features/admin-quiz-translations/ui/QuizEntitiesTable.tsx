@@ -18,7 +18,7 @@ export function QuizEntitiesTable(props: {
   isLoading?: boolean;
   entityType: EntityType;
   requiredFields: FieldKey[];
-  t: (key: string, values?: Record<string, any>) => string;
+  t: (key: string, values?: Record<string, unknown>) => string;
 }) {
   const { title, rows, isLoading, entityType, requiredFields, t } = props;
 
@@ -41,7 +41,8 @@ export function QuizEntitiesTable(props: {
 
   useEffect(() => {
     // reset visible count when filter or viewport changes
-    setVisibleCount(10);
+    // Avoid calling setState directly in effect body to prevent cascading renders
+    setTimeout(() => setVisibleCount(10), 0);
   }, [q, isMobile]);
 
   const columns = useMemo(
@@ -183,7 +184,7 @@ export function QuizEntitiesTable(props: {
             <Table
               loading={!!isLoading}
               rowKey="id"
-              columns={columns as any}
+              columns={columns}
               dataSource={filtered}
               pagination={{ pageSize: 10 }}
             />

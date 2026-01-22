@@ -37,18 +37,18 @@ export default function TraitTranslationsClient(props: { quizId: number; traitId
   const { quizId, traitId } = props;
 
   const versionsQ = useGetQuizVersions(quizId);
-  const versions = (versionsQ as any)?.data as any[] | undefined;
-  const latest = pickLatestQuizVersion(versions as any);
-  const quizVersionId = toNumber((latest as any)?.id);
+  const versions = (versionsQ as { data?: { id?: number }[] })?.data;
+  const latest = pickLatestQuizVersion(versions);
+  const quizVersionId = toNumber(latest?.id);
 
   const traitsQ = useQuizTraits(quizVersionId);
-  const traits = useMemo(() => toArray<TraitDtoLike>((traitsQ as any)?.data), [traitsQ]);
+  const traits = useMemo(() => toArray<TraitDtoLike>((traitsQ as { data?: unknown })?.data), [traitsQ]);
 
   const defaults = useMemo(() => {
-    const found = traits.find((x) => toNumber((x as any)?.id) === traitId);
+    const found = traits.find((x) => toNumber(x?.id) === traitId);
     return {
-      title: safeString((found as any)?.name),
-      description: safeString((found as any)?.description),
+      title: safeString(found?.name),
+      description: safeString(found?.description),
     };
   }, [traits, traitId]);
 

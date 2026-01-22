@@ -20,7 +20,7 @@ export default function CategoryTranslationsClient(props: { quizId: number; cate
   const { quizId, categoryId } = props;
 
   const categoriesQ = useCategories('en');
-  const categories = (categoriesQ as any)?.data as CategoryDtoLike[] | undefined;
+  const categories = (categoriesQ as { data?: CategoryDtoLike[] })?.data;
 
   const defaults = useMemo(() => {
     const found = (categories ?? []).find((x) => toNumber(x.id) === categoryId);

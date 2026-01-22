@@ -27,14 +27,14 @@ function safeNumber(v: unknown): number | null {
 function toArray<T>(v: unknown): T[] {
   if (Array.isArray(v)) return v as T[];
   if (!v || typeof v !== 'object') return [];
-  const o = v as any;
-  if (Array.isArray(o.items)) return o.items as T[];
-  if (Array.isArray(o.results)) return o.results as T[];
-  if (Array.isArray(o.rows)) return o.rows as T[];
-  if (Array.isArray(o.content)) return o.content as T[];
-  if (o.data !== undefined) return toArray<T>(o.data);
-  if (o.result !== undefined) return toArray<T>(o.result);
-  if (o.payload !== undefined) return toArray<T>(o.payload);
+  const o = v as Record<string, unknown> | undefined;
+  if (Array.isArray(o?.items)) return o!.items as unknown as T[];
+  if (Array.isArray(o?.results)) return o!.results as unknown as T[];
+  if (Array.isArray(o?.rows)) return o!.rows as unknown as T[];
+  if (Array.isArray(o?.content)) return o!.content as unknown as T[];
+  if (o?.data !== undefined) return toArray<T>(o.data as unknown);
+  if (o?.result !== undefined) return toArray<T>(o.result as unknown);
+  if (o?.payload !== undefined) return toArray<T>(o.payload as unknown);
   return [];
 }
 
@@ -43,12 +43,12 @@ const MISSING: TranslationStatus = 'missing';
 export default function AdminQuizTranslationsHubClient({ quizId }: { quizId: number }) {
   const canLoad = Number.isFinite(quizId) && quizId > 0;
 
-  const quizQ = useAdminQuiz(canLoad ? quizId : 0, { query: { enabled: canLoad } } as any);
+  const quizQ = useAdminQuiz(canLoad ? quizId : 0, { query: { enabled: canLoad } });
   const versionsQ = useGetQuizVersions(canLoad ? quizId : 0);
 
   const latest = useMemo(() => pickLatestQuizVersion(versionsQ.data), [versionsQ.data]);
-  const quizVersionId = safeNumber((latest as any)?.id);
-  const version = safeNumber((latest as any)?.version);
+  const quizVersionId = safeNumber((latest as unknown as Record<string, unknown>)?.id);
+  const version = safeNumber((latest as unknown as Record<string, unknown>)?.version);
 
   const questionsQ = useAdminQuestionsForQuizVersion(
     canLoad ? quizId : undefined,
@@ -62,19 +62,19 @@ export default function AdminQuizTranslationsHubClient({ quizId }: { quizId: num
   const categoriesQ = useCategories('en');
 
   const questions = useMemo(() => {
-    const data = (questionsQ as any)?.data;
-    const content = (data as any)?.content ?? (data as any)?.items ?? (data as any)?.results ?? (data as any)?.rows ?? (data as any)?.data ?? data;
-    return toArray<any>(content);
+    const data = (questionsQ as unknown as Record<string, unknown>)?.data;
+    const content = (data as unknown as Record<string, unknown>)?.content ?? (data as unknown as Record<string, unknown>)?.items ?? (data as unknown as Record<string, unknown>)?.results ?? (data as unknown as Record<string, unknown>)?.rows ?? (data as unknown as Record<string, unknown>)?.data ?? data;
+    return toArray<unknown>(content);
   }, [questionsQ]);
 
   const questionsRows = useMemo<QuizTranslatableRow[]>(() => {
     return questions
-      .map((q: any) => {
-        const id = safeNumber(q?.id);
+      .map((q: unknown) => {
+        const id = safeNumber((q as Record<string, unknown>)?.id);
         if (!id) return null;
 
-        const ord = safeNumber(q?.ord) ?? undefined;
-        const title = safeString(q?.text);
+        const ord = safeNumber((q as Record<string, unknown>)?.ord) ?? undefined;
+        const title = safeString((q as Record<string, unknown>)?.text);
         const subtitle = ord ? `#${ord}` : undefined;
 
         const row: QuizTranslatableRow = {
@@ -94,16 +94,16 @@ export default function AdminQuizTranslationsHubClient({ quizId }: { quizId: num
     const out: QuizTranslatableRow[] = [];
 
     for (const q of questions) {
-      const qId = safeNumber((q as any)?.id);
-      const qOrd = safeNumber((q as any)?.ord);
-      const opts = toArray<any>((q as any)?.options ?? []);
+      const qId = safeNumber((q as Record<string, unknown>)?.id);
+      const qOrd = safeNumber((q as Record<string, unknown>)?.ord);
+      const opts = toArray<unknown>((q as Record<string, unknown>)?.options ?? []);
 
       for (const o of opts) {
-        const id = safeNumber((o as any)?.id);
+        const id = safeNumber((o as Record<string, unknown>)?.id);
         if (!id) continue;
 
-        const oOrd = safeNumber((o as any)?.ord);
-        const title = safeString((o as any)?.label);
+        const oOrd = safeNumber((o as Record<string, unknown>)?.ord);
+        const title = safeString((o as Record<string, unknown>)?.label);
 
         const parts: string[] = [];
         if (qOrd) parts.push(`Q#${qOrd}`);
@@ -124,7 +124,7 @@ export default function AdminQuizTranslationsHubClient({ quizId }: { quizId: num
   }, [questions, quizId]);
 
   const traitsRows = useMemo<QuizTranslatableRow[]>(() => {
-    const traits = toArray<any>((traitsQ as any)?.data);
+    const traits = toArray<unknown>((traitsQ as unknown as Record<string, unknown>)?.data);
     return traits
       .map((tr) => {
         const id = safeNumber(tr?.id);
@@ -146,9 +146,9 @@ export default function AdminQuizTranslationsHubClient({ quizId }: { quizId: num
   }, [traitsQ, quizId]);
 
   const professionsRows = useMemo<QuizTranslatableRow[]>(() => {
-    const data = (professionsQ as any)?.data;
-    const content = (data as any)?.content ?? (data as any)?.items ?? (data as any)?.results ?? (data as any)?.rows ?? (data as any)?.data ?? data;
-    const professions = toArray<any>(content);
+    const data = (professionsQ as unknown as Record<string, unknown>)?.data;
+    const content = (data as unknown as Record<string, unknown>)?.content ?? (data as unknown as Record<string, unknown>)?.items ?? (data as unknown as Record<string, unknown>)?.results ?? (data as unknown as Record<string, unknown>)?.rows ?? (data as unknown as Record<string, unknown>)?.data ?? data;
+    const professions = toArray<unknown>(content);
 
     return professions
       .map((p) => {
@@ -173,7 +173,7 @@ export default function AdminQuizTranslationsHubClient({ quizId }: { quizId: num
   }, [professionsQ, quizId]);
 
   const categoriesRows = useMemo<QuizTranslatableRow[]>(() => {
-    const categories = toArray<any>((categoriesQ as any)?.data);
+    const categories = toArray<unknown>((categoriesQ as unknown as Record<string, unknown>)?.data);
     return categories
       .map((c) => {
         const id = safeNumber(c?.id);
@@ -196,7 +196,7 @@ export default function AdminQuizTranslationsHubClient({ quizId }: { quizId: num
   }, [categoriesQ, quizId]);
 
   const quizDefaults = useMemo(() => {
-    const q = (quizQ as any)?.data as any;
+    const q = (quizQ as unknown as Record<string, unknown>)?.data as Record<string, unknown> | undefined;
     if (!q) return undefined;
     return {
       title: safeString(q?.titleDefault ?? q?.title),
@@ -204,12 +204,12 @@ export default function AdminQuizTranslationsHubClient({ quizId }: { quizId: num
     };
   }, [quizQ]);
 
-  const isLoadingQuiz = (quizQ as any)?.isLoading ?? false;
-  const isLoadingQuestions = (questionsQ as any)?.isLoading ?? false;
+  const isLoadingQuiz = (quizQ as unknown as Record<string, unknown>)?.isLoading ?? false;
+  const isLoadingQuestions = (questionsQ as unknown as Record<string, unknown>)?.isLoading ?? false;
   const isLoadingOptions = isLoadingQuestions;
-  const isLoadingTraits = (traitsQ as any)?.isLoading ?? false;
-  const isLoadingProfessions = (professionsQ as any)?.isLoading ?? false;
-  const isLoadingCategories = (categoriesQ as any)?.isLoading ?? false;
+  const isLoadingTraits = (traitsQ as unknown as Record<string, unknown>)?.isLoading ?? false;
+  const isLoadingProfessions = (professionsQ as unknown as Record<string, unknown>)?.isLoading ?? false;
+  const isLoadingCategories = (categoriesQ as unknown as Record<string, unknown>)?.isLoading ?? false;
 
   return (
     <AdminQuizTranslationsHubPage

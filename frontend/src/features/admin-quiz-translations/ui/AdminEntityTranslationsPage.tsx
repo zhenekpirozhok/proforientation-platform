@@ -237,13 +237,13 @@ const enInitial = useMemo<FormState>(() => {
     qc.setQueryData(qk, (prev: unknown) => {
       const arr = toArray<Record<string, unknown>>(prev);
       const nextArr = [...arr];
-      const idx = nextArr.findIndex((x) => safeString((x as any)?.field) === field);
+      const idx = nextArr.findIndex((x) => safeString((x as Record<string, unknown>)?.field) === field);
 
       if (idx >= 0) {
         const cur = nextArr[idx] ?? {};
         nextArr[idx] = {
           ...cur,
-          id: typeof idMaybe === 'number' ? idMaybe : (cur as any)?.id,
+          id: typeof idMaybe === 'number' ? idMaybe : (cur as Record<string, unknown>)?.id,
           entityType: config.entityType,
           entityId,
           locale,

@@ -8,7 +8,7 @@ import type { EntityType, FieldKey, TranslationStatus } from '../model/types';
 function toArray<T>(v: unknown): T[] {
   if (Array.isArray(v)) return v as T[];
   if (!v || typeof v !== 'object') return [];
-  const o = v as any;
+  const o = v as Record<string, unknown>;
   if (Array.isArray(o.items)) return o.items as T[];
   if (Array.isArray(o.results)) return o.results as T[];
   if (Array.isArray(o.rows)) return o.rows as T[];
@@ -29,12 +29,12 @@ function statusTag(status: TranslationStatus, label: string) {
   return <Tag color="red">{label}</Tag>;
 }
 
-function computeStatus(items: any[], requiredFields: FieldKey[]): TranslationStatus {
+function computeStatus(items: Record<string, unknown>[], requiredFields: FieldKey[]): TranslationStatus {
   if (!items || items.length === 0) return 'missing';
   const byField = new Map<string, string>();
   for (const it of items) {
-    const field = safeString(it?.field);
-    const text = safeString(it?.text);
+    const field = safeString((it as Record<string, unknown>)?.field);
+    const text = safeString((it as Record<string, unknown>)?.text);
     if (field) byField.set(field, text);
   }
   let okCount = 0;
@@ -55,9 +55,10 @@ export function RowStatusCell(props: {
 }) {
   const { entityType, entityId, locale, requiredFields, t } = props;
 
-  const q = useSearchTranslations({ entityType, entityId, locale } as any);
-  const data = (q as any)?.data;
-  const items = useMemo(() => toArray<any>(data), [data]);
+  // useSearchTranslations returns unknown, so we type it properly
+  const q = useSearchTranslations({ entityType, entityId, locale });
+  const data = (q as { data?: unknown })?.data;
+  const items = useMemo(() => toArray<Record<string, unknown>>(data), [data]);
 
   const status = useMemo(() => computeStatus(items, requiredFields), [items, requiredFields]);
 

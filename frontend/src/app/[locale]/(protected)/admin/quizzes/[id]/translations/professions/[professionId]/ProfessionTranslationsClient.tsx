@@ -16,7 +16,7 @@ export default function ProfessionTranslationsClient(props: {
   const { quizId, professionId } = props;
 
   const professionQ = useProfession(professionId);
-  const profession = (professionQ as any)?.data as any | undefined;
+  const profession = (professionQ as { data?: { titleDefault?: string; description?: string } })?.data;
 
   const defaults = useMemo(
     () => ({
