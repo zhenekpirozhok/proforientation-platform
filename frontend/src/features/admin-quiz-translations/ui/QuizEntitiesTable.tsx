@@ -108,7 +108,10 @@ export function QuizEntitiesTable(props: {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
-        <Typography.Title level={3} className="!m-0 text-xl leading-tight break-words sm:!text-2xl">
+        <Typography.Title
+          level={3}
+          className="!m-0 text-xl leading-tight break-words sm:!text-2xl"
+        >
           {title}
         </Typography.Title>
 
@@ -136,7 +139,9 @@ export function QuizEntitiesTable(props: {
 
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
                       <span>ID: {r.id}</span>
-                      {r.subtitle ? <span className="truncate">{r.subtitle}</span> : null}
+                      {r.subtitle ? (
+                        <span className="truncate">{r.subtitle}</span>
+                      ) : null}
                     </div>
 
                     <div className="mt-2 flex flex-wrap gap-2">
@@ -159,7 +164,11 @@ export function QuizEntitiesTable(props: {
 
                   <div className="shrink-0">
                     <Link href={r.href}>
-                      <Button type="primary" size="small" className="min-w-[64px]">
+                      <Button
+                        type="primary"
+                        size="small"
+                        className="min-w-[64px]"
+                      >
                         {t('open')}
                       </Button>
                     </Link>

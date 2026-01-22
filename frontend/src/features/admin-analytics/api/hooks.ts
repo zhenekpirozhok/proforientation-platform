@@ -36,7 +36,9 @@ export function useOverview(
       ? `${apiBase(locale)}/admin/quizzes/${quizId}/analytics/overview?${qs.toString()}`
       : null;
 
-  return useSWR<QuizAnalyticsOverviewDto>(key, (url: string) => fetcher(url, locale));
+  return useSWR<QuizAnalyticsOverviewDto>(key, (url: string) =>
+    fetcher(url, locale),
+  );
 }
 
 export function useDetailed(
@@ -51,5 +53,7 @@ export function useDetailed(
       ? `${apiBase(locale)}/admin/quizzes/${quizId}/analytics/detailed?${qs.toString()}`
       : null;
 
-  return useSWR<QuizAnalyticsDetailedDto>(key, (url: string) => fetcher(url, locale));
+  return useSWR<QuizAnalyticsDetailedDto>(key, (url: string) =>
+    fetcher(url, locale),
+  );
 }

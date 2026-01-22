@@ -34,11 +34,28 @@ export function TranslationEditorForm(props: {
   saving: boolean;
   onChange: (next: FormState) => void;
   onSave: () => Promise<void> | void;
-  t: (key: string, values?: Record<string, string | number | Date> | undefined) => string;
+  t: (
+    key: string,
+    values?: Record<string, string | number | Date> | undefined,
+  ) => string;
 }) {
-  const { locale, title, config, form, saved, disabled, saving, onChange, onSave, t } = props;
+  const {
+    locale,
+    title,
+    config,
+    form,
+    saved,
+    disabled,
+    saving,
+    onChange,
+    onSave,
+    t,
+  } = props;
 
-  const fields = useMemo(() => config.fields.map((x) => x.key), [config.fields]);
+  const fields = useMemo(
+    () => config.fields.map((x) => x.key),
+    [config.fields],
+  );
 
   const dirty = useMemo(() => {
     const a = normalizeForm(form);
@@ -49,10 +66,14 @@ export function TranslationEditorForm(props: {
     return false;
   }, [form, saved, fields]);
 
-  const [touched, setTouched] = useState<Partial<Record<FieldKey, boolean>>>({});
+  const [touched, setTouched] = useState<Partial<Record<FieldKey, boolean>>>(
+    {},
+  );
   const errors = useMemo(() => computeErrors(form, config), [form, config]);
 
-  const refs = useRef<Partial<Record<FieldKey, HTMLInputElement | HTMLTextAreaElement | null>>>({});
+  const refs = useRef<
+    Partial<Record<FieldKey, HTMLInputElement | HTMLTextAreaElement | null>>
+  >({});
 
   useEffect(() => {
     // reset touched when locale changes; avoid sync state update inside effect
@@ -96,7 +117,11 @@ export function TranslationEditorForm(props: {
           <Typography.Title level={4} className="!m-0 truncate">
             {title}
           </Typography.Title>
-          {dirty ? <Tag color="gold" className="m-0">{t('unsaved')}</Tag> : null}
+          {dirty ? (
+            <Tag color="gold" className="m-0">
+              {t('unsaved')}
+            </Tag>
+          ) : null}
         </div>
 
         <Button
@@ -125,7 +150,11 @@ export function TranslationEditorForm(props: {
                 {f.required ? (
                   <Badge
                     status="error"
-                    text={<Typography.Text type="secondary">{t('required')}</Typography.Text>}
+                    text={
+                      <Typography.Text type="secondary">
+                        {t('required')}
+                      </Typography.Text>
+                    }
                   />
                 ) : null}
               </div>
@@ -140,7 +169,8 @@ export function TranslationEditorForm(props: {
                   disabled={disabled}
                   status={status}
                   ref={(node) => {
-                    refs.current[f.key] = (node?.input ?? null) as HTMLInputElement | null;
+                    refs.current[f.key] = (node?.input ??
+                      null) as HTMLInputElement | null;
                   }}
                 />
               ) : (
@@ -153,12 +183,16 @@ export function TranslationEditorForm(props: {
                   disabled={disabled}
                   status={status}
                   ref={(node) => {
-                    refs.current[f.key] = (node?.resizableTextArea?.textArea ?? null) as HTMLTextAreaElement | null;
+                    refs.current[f.key] = (node?.resizableTextArea?.textArea ??
+                      null) as HTMLTextAreaElement | null;
                   }}
                 />
               )}
 
-              <Typography.Text type={showError ? 'danger' : 'secondary'} className="text-xs">
+              <Typography.Text
+                type={showError ? 'danger' : 'secondary'}
+                className="text-xs"
+              >
                 {help}
               </Typography.Text>
             </div>

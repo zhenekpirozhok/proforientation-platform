@@ -95,7 +95,9 @@ export function AdminQuizTranslationsHubPage(props: {
 
           {isMobile ? (
             <>
-              <Button onClick={() => setDrawerOpen(true)}>{activeTabLabel}</Button>
+              <Button onClick={() => setDrawerOpen(true)}>
+                {activeTabLabel}
+              </Button>
               <Drawer
                 open={drawerOpen}
                 onClose={() => setDrawerOpen(false)}
@@ -150,7 +152,12 @@ export function AdminQuizTranslationsHubPage(props: {
             isLoading={isLoadingQuestions}
             entityType="question"
             requiredFields={['text']}
-            t={t as unknown as (key: string, values?: Record<string, unknown>) => string}
+            t={
+              t as unknown as (
+                key: string,
+                values?: Record<string, unknown>,
+              ) => string
+            }
           />
         ) : null}
 
@@ -161,7 +168,12 @@ export function AdminQuizTranslationsHubPage(props: {
             isLoading={isLoadingOptions}
             entityType="question_option"
             requiredFields={['text']}
-            t={t as unknown as (key: string, values?: Record<string, unknown>) => string}
+            t={
+              t as unknown as (
+                key: string,
+                values?: Record<string, unknown>,
+              ) => string
+            }
           />
         ) : null}
 
@@ -172,7 +184,12 @@ export function AdminQuizTranslationsHubPage(props: {
             isLoading={isLoadingTraits}
             entityType="trait"
             requiredFields={['title']}
-            t={t as unknown as (key: string, values?: Record<string, unknown>) => string}
+            t={
+              t as unknown as (
+                key: string,
+                values?: Record<string, unknown>,
+              ) => string
+            }
           />
         ) : null}
 
@@ -183,7 +200,12 @@ export function AdminQuizTranslationsHubPage(props: {
             isLoading={isLoadingProfessions}
             entityType="profession"
             requiredFields={['title']}
-            t={t as unknown as (key: string, values?: Record<string, unknown>) => string}
+            t={
+              t as unknown as (
+                key: string,
+                values?: Record<string, unknown>,
+              ) => string
+            }
           />
         ) : null}
 
@@ -194,7 +216,12 @@ export function AdminQuizTranslationsHubPage(props: {
             isLoading={isLoadingCategories}
             entityType="profession_category"
             requiredFields={['title']}
-            t={t as unknown as (key: string, values?: Record<string, unknown>) => string}
+            t={
+              t as unknown as (
+                key: string,
+                values?: Record<string, unknown>,
+              ) => string
+            }
           />
         ) : null}
       </div>

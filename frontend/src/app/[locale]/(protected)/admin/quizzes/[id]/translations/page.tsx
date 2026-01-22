@@ -1,6 +1,10 @@
 import AdminQuizTranslationsHubClient from './AdminQuizTranslationsHubClient';
 
-export default async function Page({ params }: { params: Promise<{ id?: string }> }) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id?: string }>;
+}) {
   const resolvedParams = await params;
   const idRaw = resolvedParams?.id;
   if (!idRaw) return <div />;

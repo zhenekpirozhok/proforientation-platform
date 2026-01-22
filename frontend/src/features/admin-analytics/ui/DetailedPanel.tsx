@@ -284,7 +284,9 @@ export function MiniOptionHistogram(props: {
               style={{ height: heightPx, width: barWidthPx }}
             >
               <div
-                className={c > 0 ? 'w-full bg-[#4E51DE]' : 'w-full bg-transparent'}
+                className={
+                  c > 0 ? 'w-full bg-[#4E51DE]' : 'w-full bg-transparent'
+                }
                 style={{ height: `${pct}%` }}
               />
             </div>

@@ -30,20 +30,32 @@ function safeString(v: unknown) {
 
 type QuestionDto = { id?: number; text?: string };
 
-export default function QuestionTranslationsClient(props: { quizId: number; questionId: number }) {
+export default function QuestionTranslationsClient(props: {
+  quizId: number;
+  questionId: number;
+}) {
   const { quizId, questionId } = props;
 
   const versionsQ = useGetQuizVersions(quizId);
-  const versions = (versionsQ as unknown as { data?: QuizVersionDto[] | undefined })?.data;
+  const versions = (
+    versionsQ as unknown as { data?: QuizVersionDto[] | undefined }
+  )?.data;
   const latest = pickLatestQuizVersion(versions);
-  const version = Number((latest as Record<string, unknown> | undefined)?.version);
+  const version = Number(
+    (latest as Record<string, unknown> | undefined)?.version,
+  );
   const versionNum = Number.isFinite(version) ? version : undefined;
 
   const questionsQ = useAdminQuestionsForQuizVersion(quizId, versionNum);
-  const questions = toArray<QuestionDto>((questionsQ as unknown as { data?: unknown })?.data);
+  const questions = toArray<QuestionDto>(
+    (questionsQ as unknown as { data?: unknown })?.data,
+  );
 
   const textDefault = useMemo(() => {
-    const found = questions.find((q) => Number((q as Record<string, unknown> | undefined)?.id) === questionId);
+    const found = questions.find(
+      (q) =>
+        Number((q as Record<string, unknown> | undefined)?.id) === questionId,
+    );
     return safeString((found as Record<string, unknown> | undefined)?.text);
   }, [questions, questionId]);
 

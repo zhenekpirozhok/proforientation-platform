@@ -16,7 +16,10 @@ function safeString(v: unknown): string {
 
 type CategoryDtoLike = { id?: number; name?: string };
 
-export default function CategoryTranslationsClient(props: { quizId: number; categoryId: number }) {
+export default function CategoryTranslationsClient(props: {
+  quizId: number;
+  categoryId: number;
+}) {
   const { quizId, categoryId } = props;
 
   const categoriesQ = useCategories('en');

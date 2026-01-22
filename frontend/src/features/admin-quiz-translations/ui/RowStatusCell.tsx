@@ -29,7 +29,10 @@ function statusTag(status: TranslationStatus, label: string) {
   return <Tag color="red">{label}</Tag>;
 }
 
-function computeStatus(items: Record<string, unknown>[], requiredFields: FieldKey[]): TranslationStatus {
+function computeStatus(
+  items: Record<string, unknown>[],
+  requiredFields: FieldKey[],
+): TranslationStatus {
   if (!items || items.length === 0) return 'missing';
   const byField = new Map<string, string>();
   for (const it of items) {
@@ -60,7 +63,10 @@ export function RowStatusCell(props: {
   const data = (q as { data?: unknown })?.data;
   const items = useMemo(() => toArray<Record<string, unknown>>(data), [data]);
 
-  const status = useMemo(() => computeStatus(items, requiredFields), [items, requiredFields]);
+  const status = useMemo(
+    () => computeStatus(items, requiredFields),
+    [items, requiredFields],
+  );
 
   return statusTag(status, t(`status_${status}`));
 }

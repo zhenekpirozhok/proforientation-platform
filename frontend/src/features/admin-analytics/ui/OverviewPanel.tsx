@@ -63,7 +63,9 @@ export function OverviewPanel({ locale, data, loading, error }: Props) {
               <tr className="border-b border-slate-200 dark:border-slate-800 text-left text-slate-700 dark:text-slate-200">
                 <th className="py-2 pr-4 whitespace-nowrap">{i18n.day}</th>
                 <th className="py-2 pr-4 whitespace-nowrap">{i18n.started}</th>
-                <th className="py-2 pr-4 whitespace-nowrap">{i18n.completed}</th>
+                <th className="py-2 pr-4 whitespace-nowrap">
+                  {i18n.completed}
+                </th>
                 <th className="py-2 pr-4 whitespace-nowrap">
                   {i18n.avgDuration}
                 </th>

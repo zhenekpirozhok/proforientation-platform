@@ -3,7 +3,12 @@
 import { Tag } from 'antd';
 import { useMemo } from 'react';
 import { useSearchTranslations } from '@/entities/translation/api/useSearchTranslations';
-import type { EntityType, FieldKey, LocaleKey, TranslationStatus } from '../model/types';
+import type {
+  EntityType,
+  FieldKey,
+  LocaleKey,
+  TranslationStatus,
+} from '../model/types';
 
 type TranslationDto = { field?: string; text?: string };
 
@@ -52,7 +57,9 @@ export function TranslationStatusCell(props: {
       if (f) byField.set(f, tx);
     }
 
-    const present = requiredFields.filter((f) => (byField.get(f) ?? '').trim().length > 0).length;
+    const present = requiredFields.filter(
+      (f) => (byField.get(f) ?? '').trim().length > 0,
+    ).length;
 
     if (present === 0) return 'missing';
     if (present === requiredFields.length) return 'ok';

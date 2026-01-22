@@ -754,8 +754,8 @@
     "field_description": "Description",
     "field_text": "Text",
     "defaultsTitle": "Default",
-  "effectiveRu": "Effective (RU)",
-  "effectiveEn": "Effective (EN)"
+    "effectiveRu": "Effective (RU)",
+    "effectiveEn": "Effective (EN)"
   },
   "AdminQuizTranslationsHub": {
     "title": "Quiz translations (#{id})",

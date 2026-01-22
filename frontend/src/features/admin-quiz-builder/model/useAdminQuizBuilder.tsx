@@ -172,10 +172,10 @@ export function useAdminQuizBuilder({
     const ensureVersion = async () => {
       if (typeof effectiveQuizId !== 'number' || !latestVersion || !quizData)
         return;
-      
+
       // If we already ensured unpublished version for this quiz, don't do it again
       if (ensuredUnpublishedVersionRef.current === effectiveQuizId) return;
-      
+
       const isPublished = Boolean(
         (latestVersion as unknown as Record<string, unknown>)?.publishedAt,
       );

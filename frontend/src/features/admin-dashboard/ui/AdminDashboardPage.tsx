@@ -327,13 +327,15 @@ export function AdminDashboardPage() {
               // Find the latest published version (could be not the highest version if unpublished latest exists)
               const latestPublishedVersion =
                 versions.length > 0
-                  ? [...versions]
+                  ? ([...versions]
                       .filter((v) => isVersionPublished(v))
                       .sort(
                         (a, b) =>
-                          (Number((b as Record<string, unknown>)?.version) ?? 0) -
-                          (Number((a as Record<string, unknown>)?.version) ?? 0),
-                      )[0] ?? null
+                          (Number((b as Record<string, unknown>)?.version) ??
+                            0) -
+                          (Number((a as Record<string, unknown>)?.version) ??
+                            0),
+                      )[0] ?? null)
                   : null;
 
               return (
@@ -429,13 +431,19 @@ export function AdminDashboardPage() {
                         onClick={() => {
                           if (!Number.isFinite(id)) return;
                           const publishedId = toId(
-                            (latestPublishedVersion as Record<string, unknown> | undefined)?.id,
+                            (
+                              latestPublishedVersion as
+                                | Record<string, unknown>
+                                | undefined
+                            )?.id,
                           );
                           if (!publishedId) return;
                           const analyticsUrl = `${ANALYTICS_ROUTE(id)}?quizVersionId=${publishedId}`;
                           router.push(analyticsUrl);
                         }}
-                        disabled={!Number.isFinite(id) || !latestPublishedVersion}
+                        disabled={
+                          !Number.isFinite(id) || !latestPublishedVersion
+                        }
                       >
                         {t('analytics')}
                       </Button>

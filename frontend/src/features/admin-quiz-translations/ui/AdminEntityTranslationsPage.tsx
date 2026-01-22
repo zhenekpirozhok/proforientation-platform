@@ -43,8 +43,10 @@ function toArray<T>(v: unknown): T[] {
   if (Array.isArray(o.rows as unknown)) return o.rows as T[];
   if (Array.isArray(o.content as unknown)) return o.content as T[];
   if ((o.data as unknown) !== undefined) return toArray<T>(o.data as unknown);
-  if ((o.result as unknown) !== undefined) return toArray<T>(o.result as unknown);
-  if ((o.payload as unknown) !== undefined) return toArray<T>(o.payload as unknown);
+  if ((o.result as unknown) !== undefined)
+    return toArray<T>(o.result as unknown);
+  if ((o.payload as unknown) !== undefined)
+    return toArray<T>(o.payload as unknown);
   return [];
 }
 
@@ -57,9 +59,12 @@ function setArrayBack(original: unknown, nextArr: unknown[]): unknown {
     if (Array.isArray(o.results as unknown)) return { ...o, results: nextArr };
     if (Array.isArray(o.rows as unknown)) return { ...o, rows: nextArr };
     if (Array.isArray(o.content as unknown)) return { ...o, content: nextArr };
-    if ((o.data as unknown) !== undefined) return { ...o, data: setArrayBack(o.data, nextArr) };
-    if ((o.result as unknown) !== undefined) return { ...o, result: setArrayBack(o.result, nextArr) };
-    if ((o.payload as unknown) !== undefined) return { ...o, payload: setArrayBack(o.payload, nextArr) };
+    if ((o.data as unknown) !== undefined)
+      return { ...o, data: setArrayBack(o.data, nextArr) };
+    if ((o.result as unknown) !== undefined)
+      return { ...o, result: setArrayBack(o.result, nextArr) };
+    if ((o.payload as unknown) !== undefined)
+      return { ...o, payload: setArrayBack(o.payload, nextArr) };
     return { ...o, items: nextArr };
   }
 
@@ -124,12 +129,20 @@ export function AdminEntityTranslationsPage(props: {
 
   const ruParams = useMemo<SearchParams | undefined>(() => {
     if (!canLoad) return undefined;
-    return { entityType: config.entityType, entityId, locale: 'ru' } as SearchParams;
+    return {
+      entityType: config.entityType,
+      entityId,
+      locale: 'ru',
+    } as SearchParams;
   }, [canLoad, config.entityType, entityId]);
 
   const enParams = useMemo<SearchParams | undefined>(() => {
     if (!canLoad) return undefined;
-    return { entityType: config.entityType, entityId, locale: 'en' } as SearchParams;
+    return {
+      entityType: config.entityType,
+      entityId,
+      locale: 'en',
+    } as SearchParams;
   }, [canLoad, config.entityType, entityId]);
 
   const ruQuery = useSearchTranslations(ruParams);
@@ -159,24 +172,28 @@ export function AdminEntityTranslationsPage(props: {
     return m;
   }, [enItems]);
 
-  const fields = useMemo(() => config.fields.map((x) => x.key), [config.fields]);
+  const fields = useMemo(
+    () => config.fields.map((x) => x.key),
+    [config.fields],
+  );
 
-const defaultsNorm = useMemo<FormState>(() => {
-  return normalizeForm({ ...emptyForm(), ...(defaults ?? {}) });
-}, [defaults]);
+  const defaultsNorm = useMemo<FormState>(() => {
+    return normalizeForm({ ...emptyForm(), ...(defaults ?? {}) });
+  }, [defaults]);
 
-const ruInitial = useMemo<FormState>(() => {
-  const s = emptyForm();
-  for (const f of fields) s[f] = pickText(ruByField.get(f)) || (defaultsNorm[f] ?? '');
-  return normalizeForm(s);
-}, [fields, ruByField, defaultsNorm]);
+  const ruInitial = useMemo<FormState>(() => {
+    const s = emptyForm();
+    for (const f of fields)
+      s[f] = pickText(ruByField.get(f)) || (defaultsNorm[f] ?? '');
+    return normalizeForm(s);
+  }, [fields, ruByField, defaultsNorm]);
 
-const enInitial = useMemo<FormState>(() => {
-  const s = emptyForm();
-  for (const f of fields) s[f] = pickText(enByField.get(f)) || (defaultsNorm[f] ?? '');
-  return normalizeForm(s);
-}, [fields, enByField, defaultsNorm]);
-
+  const enInitial = useMemo<FormState>(() => {
+    const s = emptyForm();
+    for (const f of fields)
+      s[f] = pickText(enByField.get(f)) || (defaultsNorm[f] ?? '');
+    return normalizeForm(s);
+  }, [fields, enByField, defaultsNorm]);
 
   const [activeLocale, setActiveLocale] = useState<LocaleKey>('ru');
   const [splitView, setSplitView] = useState(false);
@@ -187,11 +204,15 @@ const enInitial = useMemo<FormState>(() => {
   const [ruSaved, setRuSaved] = useState<FormState>(emptyForm());
   const [enSaved, setEnSaved] = useState<FormState>(emptyForm());
 
-  const [savingLocale, setSavingLocale] = useState<LocaleKey | 'all' | null>(null);
+  const [savingLocale, setSavingLocale] = useState<LocaleKey | 'all' | null>(
+    null,
+  );
   const savingLocaleRef = useRef<LocaleKey | 'all' | null>(null);
 
-  const ruIsSuccess = (ruQuery as { isSuccess?: boolean } | undefined)?.isSuccess === true;
-  const enIsSuccess = (enQuery as { isSuccess?: boolean } | undefined)?.isSuccess === true;
+  const ruIsSuccess =
+    (ruQuery as { isSuccess?: boolean } | undefined)?.isSuccess === true;
+  const enIsSuccess =
+    (enQuery as { isSuccess?: boolean } | undefined)?.isSuccess === true;
 
   useEffect(() => {
     if (!ruIsSuccess) return;
@@ -211,8 +232,14 @@ const enInitial = useMemo<FormState>(() => {
 
   const isSaving = createTranslation.isPending || updateTranslation.isPending;
 
-  const dirtyRu = useMemo(() => isDirty(ruForm, ruSaved, fields), [ruForm, ruSaved, fields]);
-  const dirtyEn = useMemo(() => isDirty(enForm, enSaved, fields), [enForm, enSaved, fields]);
+  const dirtyRu = useMemo(
+    () => isDirty(ruForm, ruSaved, fields),
+    [ruForm, ruSaved, fields],
+  );
+  const dirtyEn = useMemo(
+    () => isDirty(enForm, enSaved, fields),
+    [enForm, enSaved, fields],
+  );
   const anyDirty = dirtyRu || dirtyEn;
 
   useEffect(() => {
@@ -225,7 +252,12 @@ const enInitial = useMemo<FormState>(() => {
     return () => window.removeEventListener('beforeunload', handler);
   }, [anyDirty]);
 
-  function upsertCache(locale: LocaleKey, field: FieldKey, text: string, idMaybe?: number) {
+  function upsertCache(
+    locale: LocaleKey,
+    field: FieldKey,
+    text: string,
+    idMaybe?: number,
+  ) {
     const query =
       locale === 'ru'
         ? (ruQuery as unknown as { queryKey?: unknown })
@@ -237,13 +269,18 @@ const enInitial = useMemo<FormState>(() => {
     qc.setQueryData(qk, (prev: unknown) => {
       const arr = toArray<Record<string, unknown>>(prev);
       const nextArr = [...arr];
-      const idx = nextArr.findIndex((x) => safeString((x as Record<string, unknown>)?.field) === field);
+      const idx = nextArr.findIndex(
+        (x) => safeString((x as Record<string, unknown>)?.field) === field,
+      );
 
       if (idx >= 0) {
         const cur = nextArr[idx] ?? {};
         nextArr[idx] = {
           ...cur,
-          id: typeof idMaybe === 'number' ? idMaybe : (cur as Record<string, unknown>)?.id,
+          id:
+            typeof idMaybe === 'number'
+              ? idMaybe
+              : (cur as Record<string, unknown>)?.id,
           entityType: config.entityType,
           entityId,
           locale,
@@ -295,7 +332,8 @@ const enInitial = useMemo<FormState>(() => {
         (createdRec?.result as Record<string, unknown> | undefined)?.id,
     );
 
-    if (typeof createdId === 'number') upsertCache(locale, field, text, createdId);
+    if (typeof createdId === 'number')
+      upsertCache(locale, field, text, createdId);
   }
 
   async function saveLocale(locale: LocaleKey) {
@@ -320,12 +358,16 @@ const enInitial = useMemo<FormState>(() => {
       if (locale === 'ru') setRuSaved(nextSaved);
       else setEnSaved(nextSaved);
 
-      message.success(locale === 'ru' ? t('saveSuccessRu') : t('saveSuccessEn'));
+      message.success(
+        locale === 'ru' ? t('saveSuccessRu') : t('saveSuccessEn'),
+      );
     } catch (e) {
       message.error((e as Error).message);
       try {
-        if (locale === 'ru') await (ruQuery as { refetch?: () => Promise<unknown> }).refetch?.();
-        else await (enQuery as { refetch?: () => Promise<unknown> }).refetch?.();
+        if (locale === 'ru')
+          await (ruQuery as { refetch?: () => Promise<unknown> }).refetch?.();
+        else
+          await (enQuery as { refetch?: () => Promise<unknown> }).refetch?.();
       } catch {}
     } finally {
       savingLocaleRef.current = null;
@@ -371,7 +413,9 @@ const enInitial = useMemo<FormState>(() => {
     });
   }
 
-  const headerTitle = titleKey ? t(titleKey) : t('pageTitle', { entityType: config.entityType });
+  const headerTitle = titleKey
+    ? t(titleKey)
+    : t('pageTitle', { entityType: config.entityType });
 
   return (
     <div className="w-full">
@@ -393,7 +437,11 @@ const enInitial = useMemo<FormState>(() => {
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
           <Button
             className="w-full sm:w-auto"
-            onClick={() => confirmNavigate(() => (backHref ? router.push(backHref) : router.back()))}
+            onClick={() =>
+              confirmNavigate(() =>
+                backHref ? router.push(backHref) : router.back(),
+              )
+            }
           >
             {t('back')}
           </Button>
@@ -422,13 +470,25 @@ const enInitial = useMemo<FormState>(() => {
               ]}
               disabled={!canLoad || isLoading || isSaving}
             />
-            {activeLocale === 'ru' && dirtyRu ? <Tag color="gold" className="m-0">{t('unsaved')}</Tag> : null}
-            {activeLocale === 'en' && dirtyEn ? <Tag color="gold" className="m-0">{t('unsaved')}</Tag> : null}
+            {activeLocale === 'ru' && dirtyRu ? (
+              <Tag color="gold" className="m-0">
+                {t('unsaved')}
+              </Tag>
+            ) : null}
+            {activeLocale === 'en' && dirtyEn ? (
+              <Tag color="gold" className="m-0">
+                {t('unsaved')}
+              </Tag>
+            ) : null}
           </div>
 
           <div className="flex items-center gap-2">
             <Typography.Text type="secondary">{t('splitView')}</Typography.Text>
-            <Switch checked={splitView} onChange={setSplitView} disabled={!canLoad || isLoading || isSaving} />
+            <Switch
+              checked={splitView}
+              onChange={setSplitView}
+              disabled={!canLoad || isLoading || isSaving}
+            />
           </div>
         </div>
 
@@ -479,23 +539,39 @@ const enInitial = useMemo<FormState>(() => {
         )}
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Card className="!rounded-2xl" bodyStyle={{ padding: 16 }} title={t('currentBackendRu')}>
+          <Card
+            className="!rounded-2xl"
+            bodyStyle={{ padding: 16 }}
+            title={t('currentBackendRu')}
+          >
             <div className="flex flex-col gap-2 text-sm">
               {fields.map((f) => (
                 <div key={`ru-${f}`}>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">{t(`field_${f}`)}</div>
-                  <div className="whitespace-pre-wrap">{(ruSaved[f] ?? '') || '—'}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {t(`field_${f}`)}
+                  </div>
+                  <div className="whitespace-pre-wrap">
+                    {(ruSaved[f] ?? '') || '—'}
+                  </div>
                 </div>
               ))}
             </div>
           </Card>
 
-          <Card className="!rounded-2xl" bodyStyle={{ padding: 16 }} title={t('currentBackendEn')}>
+          <Card
+            className="!rounded-2xl"
+            bodyStyle={{ padding: 16 }}
+            title={t('currentBackendEn')}
+          >
             <div className="flex flex-col gap-2 text-sm">
               {fields.map((f) => (
                 <div key={`en-${f}`}>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">{t(`field_${f}`)}</div>
-                  <div className="whitespace-pre-wrap">{(enSaved[f] ?? '') || '—'}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {t(`field_${f}`)}
+                  </div>
+                  <div className="whitespace-pre-wrap">
+                    {(enSaved[f] ?? '') || '—'}
+                  </div>
                 </div>
               ))}
             </div>
@@ -504,7 +580,8 @@ const enInitial = useMemo<FormState>(() => {
 
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
           <div>
-            {dirtyRu ? `RU: ${t('unsaved')}` : `RU: ${t('saved')}`} • {dirtyEn ? `EN: ${t('unsaved')}` : `EN: ${t('saved')}`}
+            {dirtyRu ? `RU: ${t('unsaved')}` : `RU: ${t('saved')}`} •{' '}
+            {dirtyEn ? `EN: ${t('unsaved')}` : `EN: ${t('saved')}`}
           </div>
           <div>{t('hint')}</div>
         </div>
@@ -513,16 +590,27 @@ const enInitial = useMemo<FormState>(() => {
           <Card className="!rounded-2xl" bodyStyle={{ padding: 12 }}>
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                <span>{dirtyRu ? `RU ${t('unsaved')}` : `RU ${t('saved')}`}</span>
+                <span>
+                  {dirtyRu ? `RU ${t('unsaved')}` : `RU ${t('saved')}`}
+                </span>
                 <Divider type="vertical" className="!h-4" />
-                <span>{dirtyEn ? `EN ${t('unsaved')}` : `EN ${t('saved')}`}</span>
+                <span>
+                  {dirtyEn ? `EN ${t('unsaved')}` : `EN ${t('saved')}`}
+                </span>
               </div>
 
               <Button
                 type="primary"
                 onClick={() => saveLocale(activeLocale)}
-                loading={savingLocale === 'all' || savingLocale === activeLocale}
-                disabled={!canLoad || isLoading || isSaving || !(activeLocale === 'ru' ? dirtyRu : dirtyEn)}
+                loading={
+                  savingLocale === 'all' || savingLocale === activeLocale
+                }
+                disabled={
+                  !canLoad ||
+                  isLoading ||
+                  isSaving ||
+                  !(activeLocale === 'ru' ? dirtyRu : dirtyEn)
+                }
               >
                 {t('save')}
               </Button>

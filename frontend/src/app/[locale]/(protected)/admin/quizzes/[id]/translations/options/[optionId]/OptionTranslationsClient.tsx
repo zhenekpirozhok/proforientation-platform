@@ -30,23 +30,40 @@ function safeString(v: unknown) {
 type OptionDto = { id?: number; label?: string };
 type QuestionDto = { options?: OptionDto[] };
 
-export default function OptionTranslationsClient(props: { quizId: number; optionId: number }) {
+export default function OptionTranslationsClient(props: {
+  quizId: number;
+  optionId: number;
+}) {
   const { quizId, optionId } = props;
 
   const versionsQ = useGetQuizVersions(quizId);
-  const versions = (versionsQ as unknown as { data?: QuizVersionDto[] | undefined })?.data;
+  const versions = (
+    versionsQ as unknown as { data?: QuizVersionDto[] | undefined }
+  )?.data;
   const latest = pickLatestQuizVersion(versions);
-  const version = Number((latest as Record<string, unknown> | undefined)?.version);
+  const version = Number(
+    (latest as Record<string, unknown> | undefined)?.version,
+  );
   const versionNum = Number.isFinite(version) ? version : undefined;
 
   const questionsQ = useAdminQuestionsForQuizVersion(quizId, versionNum);
-  const questions = toArray<QuestionDto>((questionsQ as unknown as { data?: unknown })?.data);
+  const questions = toArray<QuestionDto>(
+    (questionsQ as unknown as { data?: unknown })?.data,
+  );
 
   const labelDefault = useMemo(() => {
     for (const q of questions) {
-      const opts = toArray<OptionDto>((q as Record<string, unknown> | undefined)?.options);
-      const found = opts.find((o) => Number((o as Record<string, unknown> | undefined)?.id) === optionId);
-      if (found) return safeString((found as Record<string, unknown> | undefined)?.label);
+      const opts = toArray<OptionDto>(
+        (q as Record<string, unknown> | undefined)?.options,
+      );
+      const found = opts.find(
+        (o) =>
+          Number((o as Record<string, unknown> | undefined)?.id) === optionId,
+      );
+      if (found)
+        return safeString(
+          (found as Record<string, unknown> | undefined)?.label,
+        );
     }
     return '';
   }, [questions, optionId]);

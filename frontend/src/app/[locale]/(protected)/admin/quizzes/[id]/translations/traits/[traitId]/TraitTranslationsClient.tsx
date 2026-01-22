@@ -33,7 +33,10 @@ function toArray<T>(v: unknown): T[] {
 
 type TraitDtoLike = { id?: number; name?: string; description?: string };
 
-export default function TraitTranslationsClient(props: { quizId: number; traitId: number }) {
+export default function TraitTranslationsClient(props: {
+  quizId: number;
+  traitId: number;
+}) {
   const { quizId, traitId } = props;
 
   const versionsQ = useGetQuizVersions(quizId);
@@ -42,7 +45,10 @@ export default function TraitTranslationsClient(props: { quizId: number; traitId
   const quizVersionId = toNumber(latest?.id);
 
   const traitsQ = useQuizTraits(quizVersionId);
-  const traits = useMemo(() => toArray<TraitDtoLike>((traitsQ as { data?: unknown })?.data), [traitsQ]);
+  const traits = useMemo(
+    () => toArray<TraitDtoLike>((traitsQ as { data?: unknown })?.data),
+    [traitsQ],
+  );
 
   const defaults = useMemo(() => {
     const found = traits.find((x) => toNumber(x?.id) === traitId);

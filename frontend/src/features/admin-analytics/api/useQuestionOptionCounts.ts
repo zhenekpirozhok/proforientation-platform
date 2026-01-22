@@ -42,7 +42,10 @@ export function useQuestionOptionCounts(
 
       const pairs = await Promise.all(
         (page.content ?? []).map(async (q) => {
-          const opts = (await fetcher(`/api/questions/${q.id}/options`, locale)) as Array<{ id: number }>;
+          const opts = (await fetcher(
+            `/api/questions/${q.id}/options`,
+            locale,
+          )) as Array<{ id: number }>;
           return [q.id, opts.length] as const;
         }),
       );
@@ -56,7 +59,10 @@ export function useQuestionOptionCounts(
   return {
     data: swr.data,
     error: versionRes.error ?? swr.error,
-    isLoading: versionRes.isLoading || (versionNum == null && !versionRes.error) || swr.isLoading,
+    isLoading:
+      versionRes.isLoading ||
+      (versionNum == null && !versionRes.error) ||
+      swr.isLoading,
     versionNum,
   };
 }

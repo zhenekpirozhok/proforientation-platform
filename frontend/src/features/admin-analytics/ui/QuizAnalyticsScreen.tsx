@@ -67,9 +67,8 @@ export function QuizAnalyticsScreen(props: {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
 
-  const [selectedVersionId, setSelectedVersionId] = useState<string>(
-    quizVersionId,
-  );
+  const [selectedVersionId, setSelectedVersionId] =
+    useState<string>(quizVersionId);
 
   const versionsQuery = useGetQuizVersions(quizId);
   const publishedVersions = useMemo(() => {
@@ -83,8 +82,8 @@ export function QuizAnalyticsScreen(props: {
       else if (Array.isArray(o.payload)) arr = o.payload as unknown[];
       else arr = [];
     }
-    const pubs = (arr as Array<Record<string, unknown>>).filter(
-      (v) => Boolean((v as Record<string, unknown>)?.publishedAt),
+    const pubs = (arr as Array<Record<string, unknown>>).filter((v) =>
+      Boolean((v as Record<string, unknown>)?.publishedAt),
     );
     pubs.sort(
       (a, b) =>
@@ -230,10 +229,16 @@ export function QuizAnalyticsScreen(props: {
 
       {/* Tabs */}
       <div className="flex gap-2">
-        <TabButton active={tab === 'overview'} onClick={() => setTab('overview')}>
+        <TabButton
+          active={tab === 'overview'}
+          onClick={() => setTab('overview')}
+        >
           {i18n.overview}
         </TabButton>
-        <TabButton active={tab === 'detailed'} onClick={() => setTab('detailed')}>
+        <TabButton
+          active={tab === 'detailed'}
+          onClick={() => setTab('detailed')}
+        >
           {i18n.detailed}
         </TabButton>
       </div>
