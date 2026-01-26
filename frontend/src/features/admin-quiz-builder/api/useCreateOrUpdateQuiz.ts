@@ -73,14 +73,14 @@ export function useCreateOrUpdateQuiz(
         ) {
           const { quizId, ...updateData } = payload;
 
-          // Check if current version is published and a new version hasn't been created yet
           const currentVersionPublished = isVersionPublished(latestVersion);
 
           if (currentVersionPublished && ensuredForQuizRef.current !== quizId) {
             try {
-              // Create new version from the published one
-              const newVersionRes: unknown =
-                await createQuizVersion.mutateAsync(quizId);
+              const newVersionRes: unknown = await actions.copyLatestVersion.mutateAsync({
+                id: quizId,
+              });
+
               const { quizVersionId: newVersionId, version: newVersion } =
                 pickVersionPayload(newVersionRes);
 
@@ -89,7 +89,6 @@ export function useCreateOrUpdateQuiz(
                 return false;
               }
 
-              // Copy traits and questions data to cache for new version (optimistic caching)
               const traitsData = actions.quizTraits?.data;
               const questionsData = actions.quizQuestions?.data;
 

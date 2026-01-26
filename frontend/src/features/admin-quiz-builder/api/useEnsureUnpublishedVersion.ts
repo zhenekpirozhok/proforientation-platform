@@ -1,13 +1,17 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useAdminQuizBuilderStore } from '../model/store';
-import { useCreateQuizVersion } from '@/entities/quiz/api/useCreateQuizVersion';
 import type { ReturnTypeUseQuizBuilderActions } from './useQuizBuilderActions';
+
+function toId(v: unknown): number | null {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
 
 function pickVersionPayload(res: unknown) {
   const r = res as Record<string, unknown> | undefined;
@@ -47,10 +51,12 @@ export function useEnsureUnpublishedVersion(
 ) {
   const t = useTranslations('AdminQuizBuilder');
   const qc = useQueryClient();
-  const createQuizVersion = useCreateQuizVersion();
-
   const ensuredForQuizRef = useRef<number | null>(null);
-  const inFlightRef = useRef<Promise<boolean> | null>(null);
+  const storeQuizVersionId = useAdminQuizBuilderStore((s) => s.quizVersionId);
+
+  useEffect(() => {
+    ensuredForQuizRef.current = null;
+  }, [storeQuizVersionId]);
 
   return async (quizId: number): Promise<boolean> => {
     if (!actions) {
@@ -58,69 +64,52 @@ export function useEnsureUnpublishedVersion(
       return false;
     }
 
-    if (!isVersionPublished(latestVersion)) return true;
+    const id = toId(quizId);
+    if (!id) {
+      message.error(t('validation.quizOperationError'));
+      return false;
+    }
 
-    if (ensuredForQuizRef.current === quizId) return true;
+    try {
+      const currentVersionPublished = isVersionPublished(latestVersion);
 
-    if (inFlightRef.current) return inFlightRef.current;
+      if (!currentVersionPublished) return true;
+      if (ensuredForQuizRef.current === id) return true;
 
-    const run = (async () => {
-      try {
-        const newVersionRes: unknown = await createQuizVersion.mutateAsync(quizId);
-        const { quizVersionId: newVersionId, version: newVersion } =
-          pickVersionPayload(newVersionRes);
+      const res: unknown = await actions.copyLatestVersion.mutateAsync({
+        id: id,
+      });
+      const { quizVersionId: newVersionId, version: newVersion } =
+        pickVersionPayload(res);
 
-        if (typeof newVersionId !== 'number') {
-          message.error(t('validation.quizOperationError'));
-          return false;
-        }
-
-        const traitsData = actions.quizTraits?.data;
-        const questionsData = actions.quizQuestions?.data;
-
-        if (traitsData) {
-          qc.setQueryData(
-            [`/api/quiz-versions/${newVersionId}/traits`, newVersionId],
-            traitsData,
-          );
-        }
-
-        if (questionsData) {
-          qc.setQueryData(
-            [`/api/questions/quiz/${quizId}/version/${newVersion}`, quizId, newVersion],
-            questionsData,
-          );
-        }
-
-        const fallbackVersion =
-          typeof newVersion === 'number'
-            ? newVersion
-            : ((((latestVersion as Record<string, unknown> | undefined)?.version as
-              | number
-              | undefined) ?? 1) + 1);
-
-        const prevState = useAdminQuizBuilderStore.getState();
-        useAdminQuizBuilderStore.setState({
-          quizVersionId: newVersionId,
-          version: fallbackVersion,
-          scales: prevState.scales,
-          questions: prevState.questions,
-          results: prevState.results,
-        });
-
-        ensuredForQuizRef.current = quizId;
-
-        message.info(t('toastNewVersionCreated') || 'New version created');
-        return true;
-      } catch {
+      if (typeof newVersionId !== 'number') {
         message.error(t('validation.quizOperationError'));
         return false;
-      } finally {
-        inFlightRef.current = null;
       }
-    })();
 
-    inFlightRef.current = run;
-    return run;
+      const prev = useAdminQuizBuilderStore.getState();
+      const fallbackVersion =
+        typeof newVersion === 'number'
+          ? newVersion
+          : ((prev.version as number | undefined) ?? 1) + 1;
+
+      useAdminQuizBuilderStore.setState({
+        quizVersionId: newVersionId,
+        version: fallbackVersion,
+        scales: prev.scales,
+        questions: prev.questions,
+        results: prev.results,
+      });
+
+      ensuredForQuizRef.current = id;
+
+      qc.invalidateQueries();
+      message.info(t('toastNewVersionCreated') || 'New version created');
+
+      return true;
+    } catch {
+      message.error(t('validation.quizOperationError'));
+      return false;
+    }
   };
 }

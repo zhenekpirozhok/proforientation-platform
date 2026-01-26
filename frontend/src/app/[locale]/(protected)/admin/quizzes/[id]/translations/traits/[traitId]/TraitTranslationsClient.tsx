@@ -6,6 +6,7 @@ import { TRAIT_TRANSLATIONS_CONFIG } from '@/features/admin-quiz-translations/mo
 import { useGetQuizVersions } from '@/entities/quiz/api/useGetQuizVersions';
 import { pickLatestQuizVersion } from '@/shared/lib/quizVersion';
 import { useQuizTraits } from '@/entities/quiz/api/useQuizTraits';
+import type { QuizVersionDto } from '@/shared/api/generated/model';
 
 function toNumber(v: unknown): number | undefined {
   const n = typeof v === 'number' ? v : Number(v);
@@ -40,9 +41,16 @@ export default function TraitTranslationsClient(props: {
   const { quizId, traitId } = props;
 
   const versionsQ = useGetQuizVersions(quizId);
-  const versions = (versionsQ as { data?: { id?: number }[] })?.data;
-  const latest = pickLatestQuizVersion(versions);
-  const quizVersionId = toNumber(latest?.id);
+  const versions = useMemo(
+    () => toArray<QuizVersionDto>((versionsQ as { data?: unknown })?.data),
+    [versionsQ],
+  );
+
+  const latest = useMemo(() => pickLatestQuizVersion(versions), [versions]);
+  const quizVersionId = useMemo(
+    () => toNumber((latest as Record<string, unknown> | undefined)?.id),
+    [latest],
+  );
 
   const traitsQ = useQuizTraits(quizVersionId);
   const traits = useMemo(

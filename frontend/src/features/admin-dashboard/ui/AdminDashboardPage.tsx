@@ -8,7 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { useAdminQuizzes } from '@/entities/quiz/api/useAdminQuizzes';
 import { useAdminPublishQuiz } from '@/entities/quiz/api/useAdminPublishQuiz';
-import { useDeleteQuiz } from '@/entities/quiz/api/useDeleteQuiz';
+import { useAdminDeleteQuiz } from '@/entities/quiz/api/useAdminDeleteQuiz';
 import { getGetAllQueryKey } from '@/shared/api/generated/api';
 import { QuizzesPagination } from '@/entities/quiz/ui/QuizzesPagination';
 
@@ -158,7 +158,7 @@ export function AdminDashboardPage() {
     size: String(size),
   });
   const publishQuiz = useAdminPublishQuiz();
-  const deleteQuiz = useDeleteQuiz();
+  const deleteQuiz = useAdminDeleteQuiz();
 
   const [deletingQuizId, setDeletingQuizId] = useState<number | null>(null);
   const [publishingQuizId, setPublishingQuizId] = useState<number | null>(null);
@@ -457,7 +457,7 @@ export function AdminDashboardPage() {
                         loading={deleteQuiz.isPending && deletingQuizId === id}
                         disabled={!Number.isFinite(id)}
                       >
-                        {t('delete')}
+                        {t('archive')}
                       </Button>
                     </div>
                   </div>
@@ -482,7 +482,7 @@ export function AdminDashboardPage() {
       </div>
 
       <Modal
-        title={t('deleteConfirmTitle')}
+        title={t('archiveConfirmTitle')}
         open={deletingQuizId !== null}
         onOk={async () => {
           const id = deletingQuizId;
@@ -492,7 +492,7 @@ export function AdminDashboardPage() {
             const qk = getGetAllQueryKey();
             await qc.invalidateQueries({ queryKey: qk });
             await quizzesQuery.refetch();
-            message.success(t('toastDeleted'));
+            message.success(t('toastArchived'));
           } catch (e) {
             message.error((e as Error).message);
           } finally {
@@ -502,7 +502,7 @@ export function AdminDashboardPage() {
         onCancel={() => setDeletingQuizId(null)}
         okButtonProps={{ danger: true }}
       >
-        <p>{t('deleteConfirmBody')}</p>
+        <p>{t('archiveConfirmBody')}</p>
       </Modal>
     </div>
   );
