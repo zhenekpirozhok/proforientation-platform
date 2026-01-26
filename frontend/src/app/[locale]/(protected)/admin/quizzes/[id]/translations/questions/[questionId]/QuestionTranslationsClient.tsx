@@ -61,7 +61,8 @@ export default function QuestionTranslationsClient(props: {
 
   const textDefault = useMemo(() => {
     const found = questions.find(
-      (q) => toNumber((q as Record<string, unknown> | undefined)?.id) === questionId,
+      (q) =>
+        toNumber((q as Record<string, unknown> | undefined)?.id) === questionId,
     );
     return safeString((found as Record<string, unknown> | undefined)?.text);
   }, [questions, questionId]);

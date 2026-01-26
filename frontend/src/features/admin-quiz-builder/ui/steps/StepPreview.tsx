@@ -1,7 +1,7 @@
 'use client';
 
 import { JSX, useEffect, useMemo, useState } from 'react';
-import { Button, Divider, Typography, message } from 'antd';
+import { Button, Divider, Typography } from 'antd';
 import { useTranslations } from 'next-intl';
 
 import { SectionCard } from '../SectionCard';
@@ -284,12 +284,6 @@ export function StepPreview(): JSX.Element {
         }) as QuestionView,
     );
   }, [questions, scaleLabelByTraitId, t]);
-
-  const actions = useQuizBuilderActions(
-    typeof quizId === 'number' ? quizId : 0,
-    typeof quizVersionId === 'number' ? quizVersionId : 0,
-    typeof version === 'number' ? version : undefined,
-  );
 
   return (
     <SectionCard title={t('title')}>

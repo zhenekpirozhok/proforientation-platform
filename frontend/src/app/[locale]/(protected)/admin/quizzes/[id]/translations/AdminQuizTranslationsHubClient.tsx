@@ -56,20 +56,23 @@ export default function AdminQuizTranslationsHubClient({
   });
   const versionsQ = useGetQuizVersions(canLoad ? quizId : 0);
 
-const versions = useMemo(
-  () => toArray<QuizVersionDto>((versionsQ as unknown as { data?: unknown })?.data),
-  [versionsQ],
-);
+  const versions = useMemo(
+    () =>
+      toArray<QuizVersionDto>(
+        (versionsQ as unknown as { data?: unknown })?.data,
+      ),
+    [versionsQ],
+  );
 
-const latest = useMemo(() => pickLatestQuizVersion(versions), [versions]);
+  const latest = useMemo(() => pickLatestQuizVersion(versions), [versions]);
 
-const quizVersionId = safeNumber(
-  (latest as unknown as Record<string, unknown>)?.id,
-);
+  const quizVersionId = safeNumber(
+    (latest as unknown as Record<string, unknown>)?.id,
+  );
 
-const version = safeNumber(
-  (latest as unknown as Record<string, unknown>)?.version,
-);
+  const version = safeNumber(
+    (latest as unknown as Record<string, unknown>)?.version,
+  );
 
   const questionsQ = useAdminQuestionsForQuizVersion(
     canLoad ? quizId : undefined,
@@ -122,7 +125,6 @@ const version = safeNumber(
     const out: QuizTranslatableRow[] = [];
 
     for (const q of questions) {
-      const qId = safeNumber((q as Record<string, unknown>)?.id);
       const qOrd = safeNumber((q as Record<string, unknown>)?.ord);
       const opts = toArray<unknown>(
         (q as Record<string, unknown>)?.options ?? [],
@@ -250,9 +252,7 @@ const version = safeNumber(
     };
   }, [quizQ]);
 
-  const isLoadingQuiz = Boolean(
-    (quizQ as unknown as Record<string, unknown>)?.isLoading,
-  );
+  // isLoadingQuiz removed (not used)
   const isLoadingQuestions = Boolean(
     (questionsQ as unknown as Record<string, unknown>)?.isLoading,
   );

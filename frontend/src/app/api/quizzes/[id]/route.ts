@@ -86,12 +86,15 @@ export async function DELETE(
   const { id } = await ctx.params;
 
   try {
-    const upstreamRes = await bffAuthFetch(`/quizzes/${encodeURIComponent(id)}`, {
-      method: 'DELETE',
-      headers: {
-        accept: req.headers.get('accept') ?? 'application/json',
+    const upstreamRes = await bffAuthFetch(
+      `/quizzes/${encodeURIComponent(id)}`,
+      {
+        method: 'DELETE',
+        headers: {
+          accept: req.headers.get('accept') ?? 'application/json',
+        },
       },
-    });
+    );
 
     if (upstreamRes.status === 204) {
       return new Response(null, {
@@ -120,9 +123,12 @@ export async function DELETE(
   } catch (err) {
     // If the upstream call fails (network error, backend down, etc.), return a 502
     const msg = err instanceof Error ? err.message : String(err);
-    return new Response(JSON.stringify({ message: 'Bad gateway', detail: msg }), {
-      status: 502,
-      headers: { 'content-type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ message: 'Bad gateway', detail: msg }),
+      {
+        status: 502,
+        headers: { 'content-type': 'application/json' },
+      },
+    );
   }
 }

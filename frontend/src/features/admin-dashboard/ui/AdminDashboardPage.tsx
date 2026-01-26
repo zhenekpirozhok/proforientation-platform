@@ -95,22 +95,7 @@ function isVersionPublished(version: unknown): boolean {
   return Boolean((version as Record<string, unknown>).publishedAt);
 }
 
-function hasUnpublishedDraft(versions: unknown[] | undefined): boolean {
-  if (!Array.isArray(versions) || versions.length === 0) return false;
-
-  const arr = versions as Record<string, unknown>[];
-  const sorted = [...arr].sort(
-    (a, b) =>
-      (Number((b as Record<string, unknown>).version) ?? 0) -
-      (Number((a as Record<string, unknown>).version) ?? 0),
-  );
-
-  const hasPublished = sorted.some((v) => isVersionPublished(v));
-  if (!hasPublished) return false;
-
-  const latest = sorted[0];
-  return !isVersionPublished(latest);
-}
+// removed hasUnpublishedDraft — UI now relies on backend-provided status
 
 function formatDate(v: unknown): string | null {
   if (!v) return null;
@@ -211,24 +196,6 @@ export function AdminDashboardPage() {
 
       await publishQuiz.mutateAsync({ id: quizVersionId });
 
-      const updatedVersionsRes = await qc.fetchQuery({
-        queryKey: ['quiz-versions', quizId],
-        queryFn: async () => {
-          const res = await fetch(`/api/quizzes/${quizId}/versions`);
-          if (!res.ok) {
-            let msg = `Failed to load versions (${res.status})`;
-            try {
-              const body = await res.json();
-              msg = body?.message ?? msg;
-            } catch {}
-            throw new Error(msg);
-          }
-          return res.json();
-        },
-        staleTime: 0,
-      });
-      const updatedVersions = toArray<Record<string, unknown>>(updatedVersionsRes);
-
       await qc.invalidateQueries({ queryKey: getGetAllQueryKey() });
       await quizzesQuery.refetch();
       message.success(t('toastPublished'));
@@ -285,8 +252,7 @@ export function AdminDashboardPage() {
                 formatDate(q?.updatedAt) ?? formatDate(q?.updated) ?? null;
               const publishedAt = formatDate(q?.publishedAt) ?? null;
 
-              const quizStatus =
-                safeStr(q?.status) || safeStr(q?.quizStatus);
+              const quizStatus = safeStr(q?.status) || safeStr(q?.quizStatus);
 
               const hasDraftAfterPublished = quizStatus === 'UPDATED';
 
@@ -295,10 +261,9 @@ export function AdminDashboardPage() {
 
               const isPublishedWithoutDraft = quizStatus === 'PUBLISHED';
 
-              const publishedObj =
-                (q as Record<string, unknown>)?.published as
-                  | Record<string, unknown>
-                  | undefined;
+              const publishedObj = (q as Record<string, unknown>)?.published as
+                | Record<string, unknown>
+                | undefined;
               const publishedId = toId(
                 (q as Record<string, unknown>)?.publishedVersionId ??
                   (q as Record<string, unknown>)?.publishedId ??
@@ -451,7 +416,7 @@ export function AdminDashboardPage() {
             const qk = getGetAllQueryKey();
             await qc.invalidateQueries({ queryKey: qk });
             await quizzesQuery.refetch();
-              message.success(t('toastDeleted'));
+            message.success(t('toastDeleted'));
           } catch (e) {
             message.error((e as Error).message);
           } finally {
@@ -461,7 +426,7 @@ export function AdminDashboardPage() {
         onCancel={() => setDeletingQuizId(null)}
         okButtonProps={{ danger: true }}
       >
-          <p>{t('deleteConfirmBody')}</p>
+        <p>{t('deleteConfirmBody')}</p>
       </Modal>
     </div>
   );

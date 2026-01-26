@@ -56,7 +56,6 @@ export function useCreateOrUpdateQuiz(
 ) {
   const t = useTranslations('AdminQuizBuilder');
   const qc = useQueryClient();
-  const router = useRouter();
   const ensuredForQuizRef = useRef<number | null>(null);
 
   return useCallback(
@@ -96,7 +95,7 @@ export function useCreateOrUpdateQuiz(
               typeof version === 'number'
                 ? version
                 : (((latestVersion as Record<string, unknown> | undefined)
-                  ?.version as number | undefined) ?? 1) + 1;
+                    ?.version as number | undefined) ?? 1) + 1;
 
             const prevState = useAdminQuizBuilderStore.getState();
             useAdminQuizBuilderStore.setState({
@@ -140,9 +139,8 @@ export function useCreateOrUpdateQuiz(
           return false;
         }
 
-        const versionRes = await actions.createQuizVersion.mutateAsync(
-          newQuizId,
-        );
+        const versionRes =
+          await actions.createQuizVersion.mutateAsync(newQuizId);
 
         const { quizVersionId, version } = pickVersionPayload(versionRes);
 
@@ -162,13 +160,12 @@ export function useCreateOrUpdateQuiz(
         qc.invalidateQueries({ queryKey: getGetById1QueryKey(newQuizId) });
         qc.invalidateQueries({ queryKey: getGetVersionsQueryKey(newQuizId) });
 
-
         return true;
       } catch {
         message.error(t('validation.quizOperationError'));
         return false;
       }
     },
-    [actions, latestVersion, qc, router, t],
+    [actions, latestVersion, qc, t],
   );
 }

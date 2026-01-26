@@ -54,11 +54,7 @@ function toArray<T = unknown>(v: unknown): T[] {
   return [];
 }
 
-function invalidateAdminQuizzes(qc: ReturnType<typeof useQueryClient>) {
-  qc.invalidateQueries({
-    predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === '/quizzes/my',
-  });
-}
+// removed unused invalidateAdminQuizzes helper
 
 export function useAdminQuizBuilder({
   quizId: propQuizId,
@@ -179,10 +175,6 @@ export function useAdminQuizBuilder({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
-
-  useEffect(() => {
-    setSubmitAttempted(false);
-  }, [step]);
 
   const traitIds = useMemo(
     () =>
@@ -330,26 +322,25 @@ export function useAdminQuizBuilder({
     setStep((step + 1) as BuilderStep);
   };
 
-useEffect(() => {
-  if (step <= 4) {
-    createdToastShownRef.current = false;
-    return;
-  }
+  useEffect(() => {
+    if (step <= 4) {
+      createdToastShownRef.current = false;
+      return;
+    }
 
-  if (createdToastShownRef.current) return;
-  createdToastShownRef.current = true;
+    if (createdToastShownRef.current) return;
+    createdToastShownRef.current = true;
 
-  message.success(t('toastCreated'));
+    message.success(t('toastCreated'));
 
-  qc.invalidateQueries({ queryKey: ['/quizzes/my'], exact: false });
-  qc.refetchQueries({ queryKey: ['/quizzes/my'], exact: false });
+    qc.invalidateQueries({ queryKey: ['/quizzes/my'], exact: false });
+    qc.refetchQueries({ queryKey: ['/quizzes/my'], exact: false });
 
-  resetStore();
+    resetStore();
 
-  router.push('/admin');
-  router.refresh();
-}, [step, qc, resetStore, router, t]);
-
+    router.push('/admin');
+    router.refresh();
+  }, [step, qc, resetStore, router, t]);
 
   const a = actions as ReturnTypeUseQuizBuilderActions | null;
   const traitsData: unknown = a?.quizTraits?.data ?? undefined;
@@ -416,7 +407,9 @@ useEffect(() => {
                 side: 'RIGHT',
                 pairId,
                 bipolarPairCode: pairCode,
-                name: String(right?.name ?? right?.title ?? tr?.rightName ?? ''),
+                name: String(
+                  right?.name ?? right?.title ?? tr?.rightName ?? '',
+                ),
                 code: String(right?.code ?? tr?.rightCode ?? ''),
                 description: String(
                   right?.description ?? tr?.rightDescription ?? '',
@@ -442,7 +435,8 @@ useEffect(() => {
         .filter(Boolean) as unknown as ScaleDraft[];
 
       const detectedMode: 'single' | 'bipolar' | null = scaleDrafts.some(
-        (s) => (s as unknown as Record<string, unknown>)?.polarity === 'bipolar',
+        (s) =>
+          (s as unknown as Record<string, unknown>)?.polarity === 'bipolar',
       )
         ? 'bipolar'
         : scaleDrafts.length > 0
@@ -488,7 +482,8 @@ useEffect(() => {
             return {
               tempId: lid('opt'),
               ord:
-                toNumber(oRec?.ord ?? oRec?.order ?? oRec?.position) ?? oidx + 1,
+                toNumber(oRec?.ord ?? oRec?.order ?? oRec?.position) ??
+                oidx + 1,
               label: String(oRec?.label ?? oRec?.text ?? oRec?.title ?? ''),
               optionId: toNumber(oRec?.id ?? oRec?.optionId),
               weightsByTraitId: normalizeWeights(

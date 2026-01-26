@@ -16,10 +16,6 @@ const fetcher = async (url: string, locale?: string) => {
   return res.json();
 };
 
-function apiBase(locale: string) {
-  return `/api`;
-}
-
 export function useOverview(
   locale: string,
   quizId: string,
@@ -33,7 +29,7 @@ export function useOverview(
 
   const key =
     quizId && quizVersionId
-      ? `${apiBase(locale)}/admin/quizzes/${quizId}/analytics/overview?${qs.toString()}`
+      ? `api/admin/quizzes/${quizId}/analytics/overview?${qs.toString()}`
       : null;
 
   return useSWR<QuizAnalyticsOverviewDto>(key, (url: string) =>
@@ -50,7 +46,7 @@ export function useDetailed(
 
   const key =
     quizId && quizVersionId
-      ? `${apiBase(locale)}/admin/quizzes/${quizId}/analytics/detailed?${qs.toString()}`
+      ? `api/admin/quizzes/${quizId}/analytics/detailed?${qs.toString()}`
       : null;
 
   return useSWR<QuizAnalyticsDetailedDto>(key, (url: string) =>

@@ -435,11 +435,11 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
             q.tempId !== questionTempId
               ? q
               : {
-                ...q,
-                options: q.options.map((o) =>
-                  o.tempId === optionTempId ? { ...o, ...v } : o,
-                ),
-              },
+                  ...q,
+                  options: q.options.map((o) =>
+                    o.tempId === optionTempId ? { ...o, ...v } : o,
+                  ),
+                },
           ),
         }),
 
@@ -549,9 +549,9 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
             if (polarity === 'bipolar') {
               const pairId = String(
                 trRec?.pairId ??
-                trRec?.pairCode ??
-                trRec?.bipolarPairCode ??
-                id('pair'),
+                  trRec?.pairCode ??
+                  trRec?.bipolarPairCode ??
+                  id('pair'),
               );
               const pairCode = (trRec?.pairCode ??
                 trRec?.bipolarPairCode ??
@@ -660,13 +660,13 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
 
             const directLinkedTraitIds = safeIds(
               qq?.linkedTraitIds ??
-              qq?.traitIds ??
-              qq?.traits ??
-              (Array.isArray(qq?.linkedTraits)
-                ? qq.linkedTraits.map(
-                  (x: unknown) => (x as Record<string, unknown>)?.id,
-                )
-                : []),
+                qq?.traitIds ??
+                qq?.traits ??
+                (Array.isArray(qq?.linkedTraits)
+                  ? qq.linkedTraits.map(
+                      (x: unknown) => (x as Record<string, unknown>)?.id,
+                    )
+                  : []),
             ).slice(0, 2);
 
             const derivedLinkedTraitIds =
@@ -688,13 +688,13 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
                 optionDrafts.length > 0
                   ? optionDrafts
                   : [
-                    {
-                      tempId: id('opt'),
-                      ord: 1,
-                      label: '',
-                      weightsByTraitId: {},
-                    },
-                  ],
+                      {
+                        tempId: id('opt'),
+                        ord: 1,
+                        label: '',
+                        weightsByTraitId: {},
+                      },
+                    ],
             };
           })
           .sort((a, b) => (a.ord ?? 0) - (b.ord ?? 0));
@@ -710,18 +710,18 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
           | undefined;
         const selectedCategoryIds = safeIds(
           backendResults?.selectedCategoryIds ??
-          backendResults?.categoryIds ??
-          backendResults?.categories ??
-          q?.selectedCategoryIds ??
-          q?.categoryIds ??
-          (typeof q?.categoryId === 'number' ? [q.categoryId] : undefined),
+            backendResults?.categoryIds ??
+            backendResults?.categories ??
+            q?.selectedCategoryIds ??
+            q?.categoryIds ??
+            (typeof q?.categoryId === 'number' ? [q.categoryId] : undefined),
         );
         const selectedProfessionIds = safeIds(
           backendResults?.selectedProfessionIds ??
-          backendResults?.professionIds ??
-          backendResults?.professions ??
-          q?.selectedProfessionIds ??
-          q?.professionIds,
+            backendResults?.professionIds ??
+            backendResults?.professions ??
+            q?.selectedProfessionIds ??
+            q?.professionIds,
         );
 
         set({
