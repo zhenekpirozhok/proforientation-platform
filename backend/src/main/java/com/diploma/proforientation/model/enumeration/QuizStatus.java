@@ -7,10 +7,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
         example = "PUBLISHED"
 )
 public enum QuizStatus {
-    @Schema(description = "Quiz is in draft state and not visible to users")
+
+    @Schema(description = "Quiz is in draft state and has never been published")
     DRAFT,
-    @Schema(description = "Quiz is visible and available for users")
+
+    @Schema(description = "Quiz has a published version and is visible to users")
     PUBLISHED,
-    @Schema(description = "Quiz is archived and no longer maintained")
+
+    @Schema(description = "Quiz has a published version, but also has unpublished changes")
+    UPDATED,
+
+    @Schema(description = "Quiz is archived and no longer maintained or visible")
     ARCHIVED
 }

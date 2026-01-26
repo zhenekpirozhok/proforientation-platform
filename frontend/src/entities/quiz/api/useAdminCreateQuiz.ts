@@ -11,7 +11,6 @@ export function useAdminCreateQuiz() {
       onSuccess: () => {
         qc.invalidateQueries({ queryKey: getGetAll1QueryKey() });
         qc.invalidateQueries({ queryKey: getGetAllQueryKey() });
-        qc.invalidateQueries({ queryKey: ['/quizzes/my'] });
       },
     },
   });

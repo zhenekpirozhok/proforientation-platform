@@ -9,13 +9,14 @@ import com.diploma.proforientation.model.User;
 import com.diploma.proforientation.model.enumeration.QuizProcessingMode;
 import com.diploma.proforientation.model.enumeration.QuizStatus;
 import com.diploma.proforientation.repository.ProfessionCategoryRepository;
-import com.diploma.proforientation.repository.view.QuizPublicMetricsRepository;
 import com.diploma.proforientation.repository.QuizRepository;
 import com.diploma.proforientation.repository.UserRepository;
+import com.diploma.proforientation.repository.view.QuizPublicMetricsRepository;
 import com.diploma.proforientation.service.QuizService;
 import com.diploma.proforientation.util.I18n;
 import com.diploma.proforientation.util.TranslationResolver;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,8 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-
-import jakarta.persistence.criteria.Predicate;
 
 import static com.diploma.proforientation.util.Constants.*;
 
@@ -49,29 +48,29 @@ public class QuizServiceImpl implements QuizService {
     private final I18n i18n;
     private final QuizPublicMetricsRepository quizPublicMetricsRepo;
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public Page<QuizDto> getAll(Pageable pageable) {
-        return quizRepo.findAll(pageable)
-                .map(this::toDto);
+        return quizRepo.findAll(pageable).map(this::toDto);
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public Page<QuizDto> getAllLocalized(Pageable pageable) {
         String locale = i18n.currentLanguage();
-
         return quizRepo.findAllByStatus(QuizStatus.PUBLISHED, pageable)
                 .map(q -> toDtoLocalized(q, locale));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public QuizDto getById(Integer id) {
         return quizRepo.findById(id)
                 .map(this::toDto)
                 .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
     }
 
+    @Transactional(readOnly = true)
     public QuizDto getByIdLocalized(Integer id) {
         String locale = i18n.currentLanguage();
         Quiz quiz = quizRepo.findById(id)
@@ -79,6 +78,7 @@ public class QuizServiceImpl implements QuizService {
         return toDtoLocalized(quiz, locale);
     }
 
+    @Transactional(readOnly = true)
     public QuizDto getByCodeLocalized(String code) {
         String locale = i18n.currentLanguage();
         Quiz quiz = quizRepo.findByCode(code)
@@ -89,7 +89,6 @@ public class QuizServiceImpl implements QuizService {
     @Override
     @Transactional
     public QuizDto create(CreateQuizRequest req, Integer authorId) {
-
         User author = userRepo.findById(authorId)
                 .orElseThrow(() -> new EntityNotFoundException(AUTHOR_NOT_FOUND));
 
@@ -122,10 +121,9 @@ public class QuizServiceImpl implements QuizService {
         }
 
         if (req.processingMode() != null) {
-            q.setProcessingMode(Enum.valueOf(QuizProcessingMode.class,
-                    req.processingMode()
-            ));
+            q.setProcessingMode(Enum.valueOf(QuizProcessingMode.class, req.processingMode()));
         }
+
         if (req.status() != null) {
             q.setStatus(QuizStatus.valueOf(req.status()));
         }
@@ -150,15 +148,20 @@ public class QuizServiceImpl implements QuizService {
 
         quiz.setStatus(QuizStatus.ARCHIVED);
         quiz.setUpdatedAt(Instant.now());
-
         quizRepo.save(quiz);
     }
 
-    @Transactional(readOnly = true)
     @Override
+    @Transactional(readOnly = true)
     public Page<QuizDto> getByAuthor(Integer authorId, Pageable pageable) {
         String locale = i18n.currentLanguage();
-        return quizRepo.findAllByAuthorId(authorId, pageable)
+
+        Specification<Quiz> spec = (root, query, cb) -> cb.and(
+                cb.equal(root.get("author").get("id"), authorId),
+                cb.notEqual(root.get(STATUS_FIELD), QuizStatus.ARCHIVED)
+        );
+
+        return quizRepo.findAll(spec, pageable)
                 .map(q -> toDtoLocalized(q, locale));
     }
 
@@ -176,7 +179,7 @@ public class QuizServiceImpl implements QuizService {
         boolean hasDurationFilter = minDurationSec != null || maxDurationSec != null;
 
         final List<Integer> durationQuizIds =
-                (minDurationSec != null || maxDurationSec != null)
+                hasDurationFilter
                         ? quizPublicMetricsRepo.findQuizIdsByDuration(minDurationSec, maxDurationSec)
                         : null;
 
@@ -252,7 +255,6 @@ public class QuizServiceImpl implements QuizService {
     }
 
     private QuizDto toDtoLocalized(Quiz q, String locale) {
-
         String title = translationResolver.resolve(
                 ENTITY_TYPE_QUIZ,
                 q.getId(),
