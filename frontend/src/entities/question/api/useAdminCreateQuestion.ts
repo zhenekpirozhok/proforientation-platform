@@ -39,7 +39,7 @@ export function useAdminCreateQuestion(quizId: number, quizVersionId: number) {
       const fromStore = toNum(storeQuizVersionId);
       const dataRecord = variables.data as unknown as Record<string, unknown>;
       const fromArgs = toNum(dataRecord.quizVersionId);
-      const effective = toNum(quizVersionId) ?? fromStore ?? fromArgs;
+      const effective = fromStore ?? toNum(quizVersionId) ?? fromArgs;
 
       if (typeof effective !== 'number') {
         throw new Error(

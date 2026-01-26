@@ -6,12 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 
 import { normalizeWeights, useAdminQuizBuilderStore } from './store';
-import type {
-  ScaleDraft,
-  QuestionDraft,
-  BuilderStep,
-  OptionDraft,
-} from './store';
+import type { ScaleDraft, QuestionDraft, BuilderStep, OptionDraft } from './store';
 import {
   validateInit,
   validateScales,
@@ -45,8 +40,7 @@ function toArray<T = unknown>(v: unknown): T[] {
   if (Array.isArray(o.rows as unknown)) return o.rows as T[];
   if (Array.isArray(o.content as unknown)) return o.content as T[];
   if ((o.data as unknown) !== undefined) return toArray<T>(o.data as unknown);
-  if ((o.result as unknown) !== undefined)
-    return toArray<T>(o.result as unknown);
+  if ((o.result as unknown) !== undefined) return toArray<T>(o.result as unknown);
   if ((o.payload as unknown) !== undefined)
     return toArray<T>(o.payload as unknown);
   return [];
@@ -67,6 +61,7 @@ export function useAdminQuizBuilder({
 
   const storeQuizId = useAdminQuizBuilderStore((s) => s.quizId);
   const quizVersionId = useAdminQuizBuilderStore((s) => s.quizVersionId);
+  const storeVersion = useAdminQuizBuilderStore((s) => s.version);
 
   const init = useAdminQuizBuilderStore((s) => s.init);
   const serverInit = useAdminQuizBuilderStore((s) => s.serverInit);
@@ -83,7 +78,6 @@ export function useAdminQuizBuilder({
   const hydrated = useAdminQuizBuilderStore((s) => s.hydrated);
 
   const createdToastShownRef = useRef(false);
-  const ensuredUnpublishedVersionRef = useRef<number | null>(null);
 
   const effectiveQuizId = useMemo(
     () => n(propQuizId ?? storeQuizId),
@@ -104,40 +98,51 @@ export function useAdminQuizBuilder({
     () => pickLatestQuizVersion(versionsRes),
     [versionsRes],
   );
+
   const latestQuizVersionId = useMemo(
     () => n((latestVersion as unknown as Record<string, unknown>)?.id),
     [latestVersion],
   );
+
   const latestVersionNumber = useMemo(
     () => n((latestVersion as unknown as Record<string, unknown>)?.version),
     [latestVersion],
   );
 
   useEffect(() => {
-    if (!propQuizId) resetStore();
+    if (!propQuizId) {
+      resetStore();
+      return;
+    }
+    const st = useAdminQuizBuilderStore.getState();
+    if (st.quizId !== propQuizId) resetStore();
   }, [propQuizId, resetStore]);
 
   useEffect(() => {
-    if (propQuizId && quizData && hydrated && step === 0) {
+    if (propQuizId && quizData && hydrated) {
       hydrateFromServerQuiz(quizData as unknown);
     }
-  }, [propQuizId, quizData, hydrateFromServerQuiz, hydrated, step]);
+  }, [propQuizId, quizData, hydrateFromServerQuiz, hydrated]);
 
   useEffect(() => {
     if (typeof effectiveQuizId !== 'number') return;
-    if (typeof quizVersionId === 'number') return;
+    if (typeof quizVersionId === 'number' && typeof storeVersion === 'number')
+      return;
 
-    if (typeof latestQuizVersionId === 'number') {
+    if (
+      typeof latestQuizVersionId === 'number' &&
+      typeof latestVersionNumber === 'number'
+    ) {
       setQuizContext({
         quizId: effectiveQuizId,
-        version:
-          typeof latestVersionNumber === 'number' ? latestVersionNumber : 1,
+        version: latestVersionNumber,
         quizVersionId: latestQuizVersionId,
       });
     }
   }, [
     effectiveQuizId,
     quizVersionId,
+    storeVersion,
     latestQuizVersionId,
     latestVersionNumber,
     setQuizContext,
@@ -145,8 +150,8 @@ export function useAdminQuizBuilder({
 
   const actions = useQuizBuilderActions(
     typeof effectiveQuizId === 'number' ? effectiveQuizId : 0,
-    typeof latestQuizVersionId === 'number' ? latestQuizVersionId : 0,
-    typeof latestVersionNumber === 'number' ? latestVersionNumber : undefined,
+    typeof quizVersionId === 'number' ? quizVersionId : 0,
+    typeof storeVersion === 'number' ? storeVersion : undefined,
   );
 
   const setScales = useAdminQuizBuilderStore((s) => s.setScales);
@@ -167,26 +172,6 @@ export function useAdminQuizBuilder({
   useEffect(() => {
     Promise.resolve().then(() => setSubmitAttempted(false));
   }, [step]);
-
-  useEffect(() => {
-    const ensureVersion = async () => {
-      if (typeof effectiveQuizId !== 'number' || !latestVersion || !quizData)
-        return;
-
-      // If we already ensured unpublished version for this quiz, don't do it again
-      if (ensuredUnpublishedVersionRef.current === effectiveQuizId) return;
-
-      const isPublished = Boolean(
-        (latestVersion as unknown as Record<string, unknown>)?.publishedAt,
-      );
-      if (isPublished) {
-        ensuredUnpublishedVersionRef.current = effectiveQuizId;
-        await ensureUnpublishedVersion(effectiveQuizId);
-      }
-    };
-
-    ensureVersion();
-  }, [effectiveQuizId, quizData, ensureUnpublishedVersion]);
 
   const traitIds = useMemo(
     () =>
@@ -373,9 +358,7 @@ export function useAdminQuizBuilder({
             const pairId = String(
               tr?.pairId ?? tr?.pairCode ?? tr?.bipolarPairCode ?? lid('pair'),
             );
-            const pairCode = (tr?.pairCode ??
-              tr?.bipolarPairCode ??
-              '') as string;
+            const pairCode = (tr?.pairCode ?? tr?.bipolarPairCode ?? '') as string;
 
             const left = (tr?.left ?? tr?.negative ?? tr?.a ?? {}) as Record<
               string,
@@ -401,14 +384,9 @@ export function useAdminQuizBuilder({
                 side: 'LEFT',
                 pairId,
                 bipolarPairCode: pairCode,
-                name: (left?.name ??
-                  left?.title ??
-                  tr?.leftName ??
-                  '') as string,
+                name: (left?.name ?? left?.title ?? tr?.leftName ?? '') as string,
                 code: (left?.code ?? tr?.leftCode ?? '') as string,
-                description: (left?.description ??
-                  tr?.leftDescription ??
-                  '') as string,
+                description: (left?.description ?? tr?.leftDescription ?? '') as string,
                 codeTouched: true,
               },
               {
@@ -418,14 +396,9 @@ export function useAdminQuizBuilder({
                 side: 'RIGHT',
                 pairId,
                 bipolarPairCode: pairCode,
-                name: (right?.name ??
-                  right?.title ??
-                  tr?.rightName ??
-                  '') as string,
+                name: (right?.name ?? right?.title ?? tr?.rightName ?? '') as string,
                 code: (right?.code ?? tr?.rightCode ?? '') as string,
-                description: (right?.description ??
-                  tr?.rightDescription ??
-                  '') as string,
+                description: (right?.description ?? tr?.rightDescription ?? '') as string,
                 codeTouched: true,
               },
             ];
@@ -458,9 +431,7 @@ export function useAdminQuizBuilder({
         setScales(scaleDrafts as ScaleDraft[]);
         if (detectedMode) setScaleMode(detectedMode);
       }
-    } catch {
-      /* ignore parse errors */
-    }
+    } catch {}
   }, [traitsData, effectiveQuizId, scales.length, setScales, setScaleMode]);
 
   useEffect(() => {
@@ -497,8 +468,7 @@ export function useAdminQuizBuilder({
             return {
               tempId: lid('opt'),
               ord:
-                toNumber(oRec?.ord ?? oRec?.order ?? oRec?.position) ??
-                oidx + 1,
+                toNumber(oRec?.ord ?? oRec?.order ?? oRec?.position) ?? oidx + 1,
               label: (oRec?.label ?? oRec?.text ?? oRec?.title ?? '') as string,
               optionId: toNumber(oRec?.id ?? oRec?.optionId),
               weightsByTraitId: normalizeWeights(
@@ -539,10 +509,7 @@ export function useAdminQuizBuilder({
             tempId: lid('q'),
             ord,
             qtype,
-            text: (qqRec?.text ??
-              qqRec?.title ??
-              qqRec?.question ??
-              '') as string,
+            text: (qqRec?.text ?? qqRec?.title ?? qqRec?.question ?? '') as string,
             linkedTraitIds,
             questionId: toNumber(qqRec?.id ?? qqRec?.questionId),
             options:
@@ -562,16 +529,8 @@ export function useAdminQuizBuilder({
 
       if (questionDrafts.length > 0)
         setQuestions(questionDrafts as QuestionDraft[]);
-    } catch {
-      /* ignore parse errors */
-    }
-  }, [
-    questionsData,
-    effectiveQuizId,
-    questions.length,
-    setQuestions,
-    questions,
-  ]);
+    } catch {}
+  }, [questionsData, effectiveQuizId, questions.length, setQuestions, questions]);
 
   return {
     t,

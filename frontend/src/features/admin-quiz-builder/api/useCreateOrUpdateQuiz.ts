@@ -3,6 +3,7 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { message } from 'antd';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { useAdminQuizBuilderStore } from '../model/store';
 import type {
@@ -49,14 +50,10 @@ export function useCreateOrUpdateQuiz(
   latestVersion?: unknown,
 ) {
   const t = useTranslations('AdminQuizBuilder');
+  const qc = useQueryClient();
   const createQuizVersion = useCreateQuizVersion();
-  const newVersionCreatedRef = useRef(false);
-  const storeQuizVersionId = useAdminQuizBuilderStore((s) => s.quizVersionId);
+  const ensuredForQuizRef = useRef<number | null>(null);
 
-  // Reset the flag when quiz or version changes
-  useEffect(() => {
-    newVersionCreatedRef.current = false;
-  }, [storeQuizVersionId]);
 
   return useCallback(
     async (
@@ -79,7 +76,7 @@ export function useCreateOrUpdateQuiz(
           // Check if current version is published and a new version hasn't been created yet
           const currentVersionPublished = isVersionPublished(latestVersion);
 
-          if (currentVersionPublished && !newVersionCreatedRef.current) {
+          if (currentVersionPublished && ensuredForQuizRef.current !== quizId) {
             try {
               // Create new version from the published one
               const newVersionRes: unknown =
@@ -92,18 +89,40 @@ export function useCreateOrUpdateQuiz(
                 return false;
               }
 
-              // Update store with new version
+              // Copy traits and questions data to cache for new version (optimistic caching)
+              const traitsData = actions.quizTraits?.data;
+              const questionsData = actions.quizQuestions?.data;
+
+              if (traitsData) {
+                qc.setQueryData(
+                  [`/api/quiz-versions/${newVersionId}/traits`, newVersionId],
+                  traitsData,
+                );
+              }
+
+              if (questionsData) {
+                qc.setQueryData(
+                  [`/api/questions/quiz/${quizId}/version/${newVersion}`, quizId, newVersion],
+                  questionsData,
+                );
+              }
+
               const fallbackVersion =
                 typeof newVersion === 'number'
                   ? newVersion
-                  : (((latestVersion as Record<string, unknown> | undefined)
-                      ?.version as number | undefined) ?? 1 + 1);
+                  : ((((latestVersion as Record<string, unknown> | undefined)?.version as number | undefined) ?? 1) + 1);
+
+              const prevState = useAdminQuizBuilderStore.getState();
               useAdminQuizBuilderStore.setState({
                 quizVersionId: newVersionId,
                 version: fallbackVersion,
+                scales: prevState.scales,
+                questions: prevState.questions,
+                results: prevState.results,
               });
 
-              newVersionCreatedRef.current = true;
+              ensuredForQuizRef.current = quizId;
+
 
               message.info(
                 t('toastNewVersionCreated') || 'New version created',
@@ -148,6 +167,8 @@ export function useCreateOrUpdateQuiz(
           version: typeof version === 'number' ? version : 1,
           step: 0,
         });
+
+        qc.invalidateQueries({ queryKey: ['/quizzes/my'] });
 
         return true;
       } catch {
