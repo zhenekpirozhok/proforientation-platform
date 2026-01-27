@@ -25,6 +25,7 @@ class QuizVersionServiceTest {
     @Mock private QuizVersionRepository versionRepo;
     @Mock private QuestionRepository questionRepo;
     @Mock private QuestionOptionRepository optionRepo;
+    @Mock private QuestionOptionTraitRepository qotRepo;
 
     @InjectMocks
     private QuizVersionServiceImpl service;
@@ -315,6 +316,7 @@ class QuizVersionServiceTest {
 
         when(questionRepo.findByQuizVersionId(100)).thenReturn(List.of(q));
         when(optionRepo.findByQuestionId(500)).thenReturn(List.of(opt));
+        when(qotRepo.findByOptionId(600)).thenReturn(List.of());
 
         when(questionRepo.save(any())).thenReturn(new Question());
         when(optionRepo.save(any())).thenReturn(new QuestionOption());
@@ -372,5 +374,4 @@ class QuizVersionServiceTest {
         verify(versionRepo).findById(quizVersionId);
         verifyNoMoreInteractions(versionRepo);
     }
-
 }
