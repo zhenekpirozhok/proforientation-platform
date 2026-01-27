@@ -341,4 +341,36 @@ class QuizVersionServiceTest {
         assertThatThrownBy(() -> service.createDraftVersion(99))
                 .isInstanceOf(EntityNotFoundException.class);
     }
+
+    @Test
+    void getVersionById_shouldReturnDto() {
+        Integer quizVersionId = 100;
+
+        when(versionRepo.findById(quizVersionId)).thenReturn(Optional.of(version1));
+
+        QuizVersionDto dto = service.getVersionById(quizVersionId);
+
+        assertThat(dto.id()).isEqualTo(100);
+        assertThat(dto.quizId()).isEqualTo(10);
+        assertThat(dto.version()).isEqualTo(1);
+        assertThat(dto.isCurrent()).isTrue();
+
+        verify(versionRepo).findById(quizVersionId);
+        verifyNoMoreInteractions(versionRepo);
+    }
+
+    @Test
+    void getVersionById_shouldFailIfNotFound() {
+        Integer quizVersionId = 999;
+
+        when(versionRepo.findById(quizVersionId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.getVersionById(quizVersionId))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining(QUIZ_VERSION_NOT_FOUND);
+
+        verify(versionRepo).findById(quizVersionId);
+        verifyNoMoreInteractions(versionRepo);
+    }
+
 }

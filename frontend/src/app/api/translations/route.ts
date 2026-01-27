@@ -1,12 +1,11 @@
 import { NextRequest } from 'next/server';
-import { bffFetch } from '@/shared/api/bff/proxy';
 import { bffAuthFetch } from '@/shared/api/bffAuthFetch';
 
 export async function GET(req: NextRequest) {
   const search = req.nextUrl.search;
   const upstreamPath = `/translations${search}`;
 
-  const upstreamRes = await bffFetch(upstreamPath, { method: 'GET' });
+  const upstreamRes = await bffAuthFetch(upstreamPath, { method: 'GET' });
 
   const body = await upstreamRes.text();
 

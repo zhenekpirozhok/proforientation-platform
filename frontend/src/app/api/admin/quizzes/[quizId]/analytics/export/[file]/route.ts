@@ -18,7 +18,7 @@ function contentTypeFor(file: string) {
 
 export async function GET(
   req: NextRequest,
-  ctx: { params: Promise<{ quizId: string; file: string; locale: string }> },
+  ctx: { params: Promise<{ quizId: string; file: string }> },
 ) {
   const { quizId, file } = await ctx.params;
 

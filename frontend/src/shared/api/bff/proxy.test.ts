@@ -67,12 +67,13 @@ describe('bffFetch', () => {
     process.env = ORIGINAL_ENV;
   });
 
-  test('throws if BACKEND_URL is not defined', async () => {
+  test('falls back to localhost if BACKEND_URL is not defined', async () => {
     delete process.env.BACKEND_URL;
 
-    await expect(bffFetch('/api/v1/ping')).rejects.toThrow(
-      'BACKEND_URL is not defined',
-    );
+    const res = await bffFetch('/api/v1/ping');
+    expect(res).toBeDefined();
+    expect(res.ok).toBe(true);
+    expect(res.status).toBe(200);
   });
 
   test('forwards only allowlisted headers and preserves init.headers overrides', async () => {

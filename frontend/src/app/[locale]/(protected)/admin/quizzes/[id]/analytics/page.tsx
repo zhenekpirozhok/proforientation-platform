@@ -5,10 +5,10 @@ export default async function Page({
   params,
   searchParams,
 }: {
-  params: Promise<{ locale: string; quizId: string }>;
+  params: Promise<{ locale: string; id: string }>;
   searchParams: Promise<{ quizVersionId?: string }>;
 }) {
-  const { locale, quizId } = await params;
+  const { locale, id } = await params;
   const { quizVersionId } = await searchParams;
 
   const tr = t(locale);
@@ -20,7 +20,7 @@ export default async function Page({
   return (
     <QuizAnalyticsScreen
       locale={locale}
-      quizId={quizId}
+      quizId={id}
       quizVersionId={quizVersionId}
     />
   );

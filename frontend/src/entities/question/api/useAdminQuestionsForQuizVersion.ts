@@ -15,7 +15,7 @@ export function useAdminQuestionsForQuizVersion(
     version > 0;
 
   const defaults: GetQuestionsForQuizVersionParams = {
-    page: String(0),
+    page: String(1),
     size: String(200),
     sort: 'ord',
   };
