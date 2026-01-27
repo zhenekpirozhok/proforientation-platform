@@ -298,10 +298,16 @@ class QuizVersionServiceTest {
     }
 
     @Test
-    void createDraftVersion_shouldCopyQuestionsAndOptions() {
+    void createDraftVersion_shouldCopyQuestionsAndOptions_andSetQuizUpdatedWhenPublished() {
+        quiz.setId(10);
+        quiz.setStatus(QuizStatus.PUBLISHED);
+
+        version1.setId(100);
+        version1.setQuiz(quiz);
+        version1.setVersion(1);
+
         when(quizRepo.findById(10)).thenReturn(Optional.of(quiz));
-        when(versionRepo.findTopByQuizIdOrderByVersionDesc(10))
-                .thenReturn(Optional.of(version1));
+        when(versionRepo.findTopByQuizIdOrderByVersionDesc(10)).thenReturn(Optional.of(version1));
 
         Question q = new Question();
         q.setId(500);
@@ -318,22 +324,30 @@ class QuizVersionServiceTest {
         when(optionRepo.findByQuestionId(500)).thenReturn(List.of(opt));
         when(qotRepo.findByOptionId(600)).thenReturn(List.of());
 
-        when(questionRepo.save(any())).thenReturn(new Question());
-        when(optionRepo.save(any())).thenReturn(new QuestionOption());
+        when(questionRepo.save(any(Question.class))).thenReturn(new Question());
+        when(optionRepo.save(any(QuestionOption.class))).thenReturn(new QuestionOption());
 
-        QuizVersion saved = new QuizVersion();
-        saved.setId(222);
-        saved.setQuiz(quiz);
-        saved.setVersion(2);
+        QuizVersion savedDraft = new QuizVersion();
+        savedDraft.setId(222);
+        savedDraft.setQuiz(quiz);
+        savedDraft.setVersion(2);
+        savedDraft.setCurrent(false);
+        savedDraft.setPublishedAt(null);
 
-        when(versionRepo.save(any())).thenReturn(saved);
+        when(versionRepo.save(any(QuizVersion.class))).thenReturn(savedDraft);
 
         QuizVersionDto dto = service.createDraftVersion(10);
 
         assertThat(dto.version()).isEqualTo(2);
 
-        verify(questionRepo).save(any());
-        verify(optionRepo).save(any());
+        verify(questionRepo, atLeastOnce()).save(any(Question.class));
+        verify(optionRepo, atLeastOnce()).save(any(QuestionOption.class));
+
+        assertThat(quiz.getStatus()).isEqualTo(QuizStatus.UPDATED);
+        assertThat(quiz.getUpdatedAt()).isNotNull();
+        verify(quizRepo).save(quiz);
+
+        verify(versionRepo).save(any(QuizVersion.class));
     }
 
     @Test

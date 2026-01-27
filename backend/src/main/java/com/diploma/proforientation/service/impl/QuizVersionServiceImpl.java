@@ -56,70 +56,34 @@ public class QuizVersionServiceImpl implements QuizVersionService {
         return toDto(v);
     }
 
-@Override
-@Transactional
-public QuizVersionDto copyLatestVersion(Integer quizId) {
-    Quiz quiz = quizRepo.findById(quizId)
-            .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
+    @Override
+    @Transactional
+    public QuizVersionDto copyLatestVersion(Integer quizId) {
+        Quiz quiz = quizRepo.findById(quizId)
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
 
-    QuizVersion latest = versionRepo.findTopByQuizIdOrderByVersionDesc(quizId)
-            .orElseThrow(() -> new EntityNotFoundException(NO_QUIZ_VERSIONS));
+        QuizVersion latest = versionRepo.findTopByQuizIdOrderByVersionDesc(quizId)
+                .orElseThrow(() -> new EntityNotFoundException(NO_QUIZ_VERSIONS));
 
-    int newVersionNumber = latest.getVersion() + 1;
+        int newVersionNumber = latest.getVersion() + 1;
 
-    QuizVersion copy = new QuizVersion();
-    copy.setQuiz(quiz);
-    copy.setVersion(newVersionNumber);
-    copy.setCurrent(false);
-    copy.setPublishedAt(null);
-    copy = versionRepo.save(copy);
+        QuizVersion copy = new QuizVersion();
+        copy.setQuiz(quiz);
+        copy.setVersion(newVersionNumber);
+        copy.setCurrent(false);
+        copy.setPublishedAt(null);
+        copy = versionRepo.save(copy);
 
-    copyQuestionsAndOptions(latest, copy);
+        copyQuestionsAndOptions(latest, copy);
 
-    if (quiz.getStatus() == QuizStatus.PUBLISHED) {
-        quiz.setStatus(QuizStatus.UPDATED);
-        quiz.setUpdatedAt(Instant.now());
-        quizRepo.save(quiz);
-    }
-
-    return toDto(copy);
-}
-
-
-private void copyQuestionsAndOptions(QuizVersion source, QuizVersion target) {
-    List<Question> questions = questionRepo.findByQuizVersionId(source.getId());
-
-    for (Question q : questions) {
-        Question newQ = new Question();
-        newQ.setQuizVersion(target);
-        newQ.setOrd(q.getOrd());
-        newQ.setQtype(q.getQtype());
-        newQ.setTextDefault(q.getTextDefault());
-        newQ = questionRepo.save(newQ);
-
-        List<QuestionOption> opts = optionRepo.findByQuestionId(q.getId());
-        for (QuestionOption opt : opts) {
-            QuestionOption newOpt = new QuestionOption();
-            newOpt.setQuestion(newQ);
-            newOpt.setOrd(opt.getOrd());
-            newOpt.setLabelDefault(opt.getLabelDefault());
-            newOpt = optionRepo.save(newOpt);
-
-            Integer oldOptId = opt.getId();
-            if (oldOptId != null) {
-                List<QuestionOptionTrait> links = qotRepo.findByOptionId(oldOptId);
-                for (QuestionOptionTrait link : links) {
-                    QuestionOptionTrait newLink = new QuestionOptionTrait();
-                    newLink.setOption(newOpt);
-                    newLink.setTrait(link.getTrait());
-                    newLink.setWeight(link.getWeight());
-                    qotRepo.save(newLink);
-                }
-            }
+        if (quiz.getStatus() == QuizStatus.PUBLISHED) {
+            quiz.setStatus(QuizStatus.UPDATED);
+            quiz.setUpdatedAt(Instant.now());
+            quizRepo.save(quiz);
         }
-    }
-}
 
+        return toDto(copy);
+    }
 
     @Override
     public List<QuizVersionDto> getVersionsForQuiz(Integer quizId) {
@@ -156,37 +120,37 @@ private void copyQuestionsAndOptions(QuizVersion source, QuizVersion target) {
         return toDto(v);
     }
 
-@Override
-@Transactional
-public QuizVersionDto createDraftVersion(Integer quizId) {
-    Quiz quiz = quizRepo.findById(quizId)
-            .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
+    @Override
+    @Transactional
+    public QuizVersionDto createDraftVersion(Integer quizId) {
+        Quiz quiz = quizRepo.findById(quizId)
+                .orElseThrow(() -> new EntityNotFoundException(QUIZ_NOT_FOUND));
 
-    QuizVersion latest = versionRepo
-            .findTopByQuizIdOrderByVersionDesc(quizId)
-            .orElse(null);
+        QuizVersion latest = versionRepo
+                .findTopByQuizIdOrderByVersionDesc(quizId)
+                .orElse(null);
 
-    int newVersionNumber = latest != null ? latest.getVersion() + 1 : 1;
+        int newVersionNumber = latest != null ? latest.getVersion() + 1 : 1;
 
-    QuizVersion draft = new QuizVersion();
-    draft.setQuiz(quiz);
-    draft.setVersion(newVersionNumber);
-    draft.setCurrent(false);
-    draft.setPublishedAt(null);
-    draft = versionRepo.save(draft);
+        QuizVersion draft = new QuizVersion();
+        draft.setQuiz(quiz);
+        draft.setVersion(newVersionNumber);
+        draft.setCurrent(false);
+        draft.setPublishedAt(null);
+        draft = versionRepo.save(draft);
 
-    if (latest != null) {
-        copyQuestionsAndOptions(latest, draft);
+        if (latest != null) {
+            copyQuestionsAndOptions(latest, draft);
 
-        if (quiz.getStatus() == QuizStatus.PUBLISHED) {
-            quiz.setStatus(QuizStatus.UPDATED);
-            quiz.setUpdatedAt(Instant.now());
-            quizRepo.save(quiz);
+            if (quiz.getStatus() == QuizStatus.PUBLISHED) {
+                quiz.setStatus(QuizStatus.UPDATED);
+                quiz.setUpdatedAt(Instant.now());
+                quizRepo.save(quiz);
+            }
         }
-    }
 
-    return toDto(draft);
-}
+        return toDto(draft);
+    }
 
     private QuizVersionDto toDto(QuizVersion v) {
         return new QuizVersionDto(
@@ -196,5 +160,39 @@ public QuizVersionDto createDraftVersion(Integer quizId) {
                 v.isCurrent(),
                 v.getPublishedAt()
         );
+    }
+
+    private void copyQuestionsAndOptions(QuizVersion source, QuizVersion target) {
+        List<Question> questions = questionRepo.findByQuizVersionId(source.getId());
+
+        for (Question q : questions) {
+            Question newQ = new Question();
+            newQ.setQuizVersion(target);
+            newQ.setOrd(q.getOrd());
+            newQ.setQtype(q.getQtype());
+            newQ.setTextDefault(q.getTextDefault());
+            newQ = questionRepo.save(newQ);
+
+            List<QuestionOption> opts = optionRepo.findByQuestionId(q.getId());
+            for (QuestionOption opt : opts) {
+                QuestionOption newOpt = new QuestionOption();
+                newOpt.setQuestion(newQ);
+                newOpt.setOrd(opt.getOrd());
+                newOpt.setLabelDefault(opt.getLabelDefault());
+                newOpt = optionRepo.save(newOpt);
+
+                Integer oldOptId = opt.getId();
+                if (oldOptId != null) {
+                    List<QuestionOptionTrait> links = qotRepo.findByOptionId(oldOptId);
+                    for (QuestionOptionTrait link : links) {
+                        QuestionOptionTrait newLink = new QuestionOptionTrait();
+                        newLink.setOption(newOpt);
+                        newLink.setTrait(link.getTrait());
+                        newLink.setWeight(link.getWeight());
+                        qotRepo.save(newLink);
+                    }
+                }
+            }
+        }
     }
 }

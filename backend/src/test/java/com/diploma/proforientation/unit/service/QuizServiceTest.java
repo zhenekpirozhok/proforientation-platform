@@ -250,41 +250,50 @@ class QuizServiceTest {
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
-@Test
-void getByAuthor_shouldReturnPageOfQuizzes() {
-    Quiz quiz1 = new Quiz();
-    quiz1.setId(1);
-    quiz1.setTitleDefault("Quiz 1");
-    quiz1.setAuthor(author);
+    @Test
+    void getByAuthor_shouldReturnPageOfQuizzes_excludingArchived() {
+        Quiz quiz1 = new Quiz();
+        quiz1.setId(1);
+        quiz1.setTitleDefault("Quiz 1");
+        quiz1.setAuthor(author);
+        quiz1.setStatus(QuizStatus.DRAFT);
 
-    Quiz quiz2 = new Quiz();
-    quiz2.setId(2);
-    quiz2.setTitleDefault("Quiz 2");
-    quiz2.setAuthor(author);
+        Quiz quiz2 = new Quiz();
+        quiz2.setId(2);
+        quiz2.setTitleDefault("Quiz 2");
+        quiz2.setAuthor(author);
+        quiz2.setStatus(QuizStatus.PUBLISHED);
 
-    Pageable pageable = PageRequest.of(0, 10);
-    Page<Quiz> page = new PageImpl<>(List.of(quiz1, quiz2), pageable, 2);
+        Quiz archived = new Quiz();
+        archived.setId(3);
+        archived.setTitleDefault("Archived Quiz");
+        archived.setAuthor(author);
+        archived.setStatus(QuizStatus.ARCHIVED);
 
-    when(quizRepo.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+        Pageable pageable = PageRequest.of(0, 10);
 
-    when(localeProvider.currentLanguage()).thenReturn("en");
+        Page<Quiz> page = new PageImpl<>(List.of(quiz1, quiz2), pageable, 2);
 
-    when(translationResolver.resolve(
-            anyString(), anyInt(), anyString(), eq("en"), anyString()
-    )).thenAnswer(invocation -> invocation.getArgument(4)); 
+        when(quizRepo.findAll(any(Specification.class), eq(pageable))).thenReturn(page);
+        when(localeProvider.currentLanguage()).thenReturn("en");
 
-    Page<QuizDto> result = service.getByAuthor(author.getId(), pageable);
+        when(translationResolver.resolve(
+                anyString(), anyInt(), anyString(), eq("en"), anyString()
+        )).thenAnswer(invocation -> invocation.getArgument(4));
 
-    assertThat(result.getTotalElements()).isEqualTo(2);
-    assertThat(result.getContent().get(0).title()).isEqualTo("Quiz 1");
-    assertThat(result.getContent().get(1).title()).isEqualTo("Quiz 2");
+        Page<QuizDto> result = service.getByAuthor(author.getId(), pageable);
 
-    verify(quizRepo).findAll(any(Specification.class), eq(pageable));
-    verify(localeProvider).currentLanguage();
-    verify(translationResolver, times(2))
-            .resolve(anyString(), anyInt(), anyString(), eq("en"), anyString());
-}
+        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).title()).isEqualTo("Quiz 1");
+        assertThat(result.getContent().get(1).title()).isEqualTo("Quiz 2");
 
+        verify(localeProvider).currentLanguage();
+        verify(quizRepo).findAll(any(Specification.class), eq(pageable));
+        verify(translationResolver, times(2))
+                .resolve(anyString(), anyInt(), anyString(), eq("en"), anyString());
+        verifyNoMoreInteractions(quizRepo);
+    }
 
     @Test
     void search_withSearchAndCategory_returnsLocalizedDtos() {
