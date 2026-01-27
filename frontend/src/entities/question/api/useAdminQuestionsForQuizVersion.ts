@@ -20,9 +20,10 @@ export function useAdminQuestionsForQuizVersion(
     sort: 'ord',
   };
   const finalParams = {
-    ...(params ?? {}),
     ...defaults,
+    ...(params ?? {}),
   } as GetQuestionsForQuizVersionParams;
+
   return useGetQuestionsForQuizVersion(
     enabled ? (quizId ?? 0) : 0,
     enabled ? (version ?? 0) : 0,

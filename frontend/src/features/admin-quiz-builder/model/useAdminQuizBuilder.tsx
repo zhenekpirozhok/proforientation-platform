@@ -4,19 +4,20 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { message } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { normalizeWeights, useAdminQuizBuilderStore } from './store';
 import type {
-  ScaleDraft,
-  QuestionDraft,
   BuilderStep,
   OptionDraft,
+  QuestionDraft,
+  ScaleDraft,
 } from './store';
 import {
   validateInit,
-  validateScales,
   validateQuestions,
   validateResults,
+  validateScales,
 } from './validators';
 
 import {
@@ -31,7 +32,7 @@ import { useAdminQuiz } from '@/entities/quiz/api/useAdminQuiz';
 import { useGetQuizVersions } from '@/entities/quiz/api/useGetQuizVersions';
 import { pickLatestQuizVersion } from '@/shared/lib/quizVersion';
 
-function n(v: unknown): number | undefined {
+function toNumber(v: unknown): number | undefined {
   const x = typeof v === 'number' ? v : Number(v);
   return Number.isFinite(x) ? x : undefined;
 }
@@ -40,33 +41,34 @@ function toArray<T = unknown>(v: unknown): T[] {
   if (Array.isArray(v)) return v as T[];
   if (!v || typeof v !== 'object') return [];
   const o = v as Record<string, unknown>;
+
   if (Array.isArray(o.items as unknown)) return o.items as T[];
   if (Array.isArray(o.results as unknown)) return o.results as T[];
   if (Array.isArray(o.rows as unknown)) return o.rows as T[];
   if (Array.isArray(o.content as unknown)) return o.content as T[];
-  if ((o.data as unknown) !== undefined) return toArray<T>(o.data as unknown);
-  if ((o.result as unknown) !== undefined)
-    return toArray<T>(o.result as unknown);
-  if ((o.payload as unknown) !== undefined)
-    return toArray<T>(o.payload as unknown);
+
+  if (o.data !== undefined) return toArray<T>(o.data);
+  if (o.result !== undefined) return toArray<T>(o.result);
+  if (o.payload !== undefined) return toArray<T>(o.payload);
+
   return [];
 }
 
-function toNumber(v: unknown): number | undefined {
-  const x = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(x) ? x : undefined;
-}
+// removed unused invalidateAdminQuizzes helper
 
 export function useAdminQuizBuilder({
   quizId: propQuizId,
 }: { quizId?: number } = {}) {
   const t = useTranslations('AdminQuizBuilder');
+  const router = useRouter();
+  const qc = useQueryClient();
 
   const step = useAdminQuizBuilderStore((s) => s.step);
   const setStep = useAdminQuizBuilderStore((s) => s.setStep);
 
   const storeQuizId = useAdminQuizBuilderStore((s) => s.quizId);
   const quizVersionId = useAdminQuizBuilderStore((s) => s.quizVersionId);
+  const storeVersion = useAdminQuizBuilderStore((s) => s.version);
 
   const init = useAdminQuizBuilderStore((s) => s.init);
   const serverInit = useAdminQuizBuilderStore((s) => s.serverInit);
@@ -83,10 +85,9 @@ export function useAdminQuizBuilder({
   const hydrated = useAdminQuizBuilderStore((s) => s.hydrated);
 
   const createdToastShownRef = useRef(false);
-  const ensuredUnpublishedVersionRef = useRef<number | null>(null);
 
   const effectiveQuizId = useMemo(
-    () => n(propQuizId ?? storeQuizId),
+    () => toNumber(propQuizId ?? storeQuizId),
     [propQuizId, storeQuizId],
   );
 
@@ -104,40 +105,52 @@ export function useAdminQuizBuilder({
     () => pickLatestQuizVersion(versionsRes),
     [versionsRes],
   );
+
   const latestQuizVersionId = useMemo(
-    () => n((latestVersion as unknown as Record<string, unknown>)?.id),
+    () => toNumber((latestVersion as Record<string, unknown> | undefined)?.id),
     [latestVersion],
   );
+
   const latestVersionNumber = useMemo(
-    () => n((latestVersion as unknown as Record<string, unknown>)?.version),
+    () =>
+      toNumber((latestVersion as Record<string, unknown> | undefined)?.version),
     [latestVersion],
   );
 
   useEffect(() => {
-    if (!propQuizId) resetStore();
+    if (!propQuizId) {
+      resetStore();
+      return;
+    }
+    const st = useAdminQuizBuilderStore.getState();
+    if (st.quizId !== propQuizId) resetStore();
   }, [propQuizId, resetStore]);
 
   useEffect(() => {
-    if (propQuizId && quizData && hydrated && step === 0) {
+    if (propQuizId && quizData && hydrated) {
       hydrateFromServerQuiz(quizData as unknown);
     }
-  }, [propQuizId, quizData, hydrateFromServerQuiz, hydrated, step]);
+  }, [propQuizId, quizData, hydrateFromServerQuiz, hydrated]);
 
   useEffect(() => {
     if (typeof effectiveQuizId !== 'number') return;
-    if (typeof quizVersionId === 'number') return;
+    if (typeof quizVersionId === 'number' && typeof storeVersion === 'number')
+      return;
 
-    if (typeof latestQuizVersionId === 'number') {
+    if (
+      typeof latestQuizVersionId === 'number' &&
+      typeof latestVersionNumber === 'number'
+    ) {
       setQuizContext({
         quizId: effectiveQuizId,
-        version:
-          typeof latestVersionNumber === 'number' ? latestVersionNumber : 1,
+        version: latestVersionNumber,
         quizVersionId: latestQuizVersionId,
       });
     }
   }, [
     effectiveQuizId,
     quizVersionId,
+    storeVersion,
     latestQuizVersionId,
     latestVersionNumber,
     setQuizContext,
@@ -145,8 +158,8 @@ export function useAdminQuizBuilder({
 
   const actions = useQuizBuilderActions(
     typeof effectiveQuizId === 'number' ? effectiveQuizId : 0,
-    typeof latestQuizVersionId === 'number' ? latestQuizVersionId : 0,
-    typeof latestVersionNumber === 'number' ? latestVersionNumber : undefined,
+    typeof quizVersionId === 'number' ? quizVersionId : 0,
+    typeof storeVersion === 'number' ? storeVersion : undefined,
   );
 
   const setScales = useAdminQuizBuilderStore((s) => s.setScales);
@@ -162,31 +175,6 @@ export function useAdminQuizBuilder({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => {
-    Promise.resolve().then(() => setSubmitAttempted(false));
-  }, [step]);
-
-  useEffect(() => {
-    const ensureVersion = async () => {
-      if (typeof effectiveQuizId !== 'number' || !latestVersion || !quizData)
-        return;
-
-      // If we already ensured unpublished version for this quiz, don't do it again
-      if (ensuredUnpublishedVersionRef.current === effectiveQuizId) return;
-
-      const isPublished = Boolean(
-        (latestVersion as unknown as Record<string, unknown>)?.publishedAt,
-      );
-      if (isPublished) {
-        ensuredUnpublishedVersionRef.current = effectiveQuizId;
-        await ensureUnpublishedVersion(effectiveQuizId);
-      }
-    };
-
-    ensureVersion();
-  }, [effectiveQuizId, quizData, ensureUnpublishedVersion]);
 
   const traitIds = useMemo(
     () =>
@@ -237,15 +225,20 @@ export function useAdminQuizBuilder({
 
   const goNext = async () => {
     let e: Record<string, string> = {};
-    if (step === 0)
+
+    if (step === 0) {
       e = validateInit({
         title: init.title,
         code: init.code,
         description: init.description,
       });
-    if (step === 1) e = validateScales(scales);
-    if (step === 2) e = validateQuestions(questions, traitIds);
-    if (step === 3) e = validateResults(results);
+    } else if (step === 1) {
+      e = validateScales(scales);
+    } else if (step === 2) {
+      e = validateQuestions(questions, traitIds);
+    } else if (step === 3) {
+      e = validateResults(results);
+    }
 
     setErrors(e);
 
@@ -305,18 +298,17 @@ export function useAdminQuizBuilder({
         typeof effectiveQuizId === 'number' &&
         typeof selectedCategoryId === 'number'
       ) {
-        try {
-          const versionOk = await ensureUnpublishedVersion(effectiveQuizId);
-          if (!versionOk) return;
+        const versionOk = await ensureUnpublishedVersion(effectiveQuizId);
+        if (!versionOk) return;
 
+        try {
           await actions.updateQuiz.mutateAsync({
             id: effectiveQuizId,
             data: { categoryId: selectedCategoryId },
           });
         } catch (err) {
-          const e = err as unknown;
           const msg =
-            (e as { message?: string })?.message ??
+            (err as { message?: string })?.message ??
             t('validation.quizOperationError');
           message.error(msg);
           return;
@@ -331,19 +323,24 @@ export function useAdminQuizBuilder({
   };
 
   useEffect(() => {
-    if (step > 4) {
-      if (!createdToastShownRef.current) {
-        createdToastShownRef.current = true;
-        message.success(t('toastCreated'));
-        try {
-          resetStore();
-        } catch {}
-        router.push('/admin');
-      }
-    } else {
+    if (step <= 4) {
       createdToastShownRef.current = false;
+      return;
     }
-  }, [step, router, t, resetStore]);
+
+    if (createdToastShownRef.current) return;
+    createdToastShownRef.current = true;
+
+    message.success(t('toastCreated'));
+
+    qc.invalidateQueries({ queryKey: ['/quizzes/my'], exact: false });
+    qc.refetchQueries({ queryKey: ['/quizzes/my'], exact: false });
+
+    resetStore();
+
+    router.push('/admin');
+    router.refresh();
+  }, [step, qc, resetStore, router, t]);
 
   const a = actions as ReturnTypeUseQuizBuilderActions | null;
   const traitsData: unknown = a?.quizTraits?.data ?? undefined;
@@ -351,16 +348,13 @@ export function useAdminQuizBuilder({
 
   useEffect(() => {
     try {
-      const backendTraits = toArray<Record<string, unknown>>(
-        traitsData as unknown,
-      );
-      if (typeof effectiveQuizId !== 'number' || backendTraits.length === 0)
-        return;
+      const backendTraits = toArray<Record<string, unknown>>(traitsData);
+      if (typeof effectiveQuizId !== 'number') return;
+      if (backendTraits.length === 0) return;
       if (scales.length > 0) return;
 
-      function lid(prefix: string) {
-        return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
-      }
+      const lid = (prefix: string) =>
+        `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 
       const scaleDrafts = backendTraits
         .flatMap((tr) => {
@@ -373,9 +367,7 @@ export function useAdminQuizBuilder({
             const pairId = String(
               tr?.pairId ?? tr?.pairCode ?? tr?.bipolarPairCode ?? lid('pair'),
             );
-            const pairCode = (tr?.pairCode ??
-              tr?.bipolarPairCode ??
-              '') as string;
+            const pairCode = String(tr?.pairCode ?? tr?.bipolarPairCode ?? '');
 
             const left = (tr?.left ?? tr?.negative ?? tr?.a ?? {}) as Record<
               string,
@@ -401,14 +393,11 @@ export function useAdminQuizBuilder({
                 side: 'LEFT',
                 pairId,
                 bipolarPairCode: pairCode,
-                name: (left?.name ??
-                  left?.title ??
-                  tr?.leftName ??
-                  '') as string,
-                code: (left?.code ?? tr?.leftCode ?? '') as string,
-                description: (left?.description ??
-                  tr?.leftDescription ??
-                  '') as string,
+                name: String(left?.name ?? left?.title ?? tr?.leftName ?? ''),
+                code: String(left?.code ?? tr?.leftCode ?? ''),
+                description: String(
+                  left?.description ?? tr?.leftDescription ?? '',
+                ),
                 codeTouched: true,
               },
               {
@@ -418,14 +407,13 @@ export function useAdminQuizBuilder({
                 side: 'RIGHT',
                 pairId,
                 bipolarPairCode: pairCode,
-                name: (right?.name ??
-                  right?.title ??
-                  tr?.rightName ??
-                  '') as string,
-                code: (right?.code ?? tr?.rightCode ?? '') as string,
-                description: (right?.description ??
-                  tr?.rightDescription ??
-                  '') as string,
+                name: String(
+                  right?.name ?? right?.title ?? tr?.rightName ?? '',
+                ),
+                code: String(right?.code ?? tr?.rightCode ?? ''),
+                description: String(
+                  right?.description ?? tr?.rightDescription ?? '',
+                ),
                 codeTouched: true,
               },
             ];
@@ -437,17 +425,18 @@ export function useAdminQuizBuilder({
               tempId: lid('scale'),
               traitId: tid,
               polarity: 'single',
-              name: (tr?.name ?? tr?.title ?? '') as string,
-              code: (tr?.code ?? '') as string,
-              description: (tr?.description ?? '') as string,
+              name: String(tr?.name ?? tr?.title ?? ''),
+              code: String(tr?.code ?? ''),
+              description: String(tr?.description ?? ''),
               codeTouched: true,
             },
           ];
         })
-        .filter(Boolean) as Array<Record<string, unknown>>;
+        .filter(Boolean) as unknown as ScaleDraft[];
 
       const detectedMode: 'single' | 'bipolar' | null = scaleDrafts.some(
-        (s) => (s.polarity as string) === 'bipolar',
+        (s) =>
+          (s as unknown as Record<string, unknown>)?.polarity === 'bipolar',
       )
         ? 'bipolar'
         : scaleDrafts.length > 0
@@ -455,43 +444,39 @@ export function useAdminQuizBuilder({
           : null;
 
       if (scaleDrafts.length > 0) {
-        setScales(scaleDrafts as ScaleDraft[]);
+        setScales(scaleDrafts);
         if (detectedMode) setScaleMode(detectedMode);
       }
-    } catch {
-      /* ignore parse errors */
-    }
+    } catch {}
   }, [traitsData, effectiveQuizId, scales.length, setScales, setScaleMode]);
 
   useEffect(() => {
     try {
-      const backendQuestions = toArray<Record<string, unknown>>(
-        questionsData as unknown,
-      );
-      if (typeof effectiveQuizId !== 'number' || backendQuestions.length === 0)
-        return;
-      if (
+      const backendQuestions = toArray<Record<string, unknown>>(questionsData);
+      if (typeof effectiveQuizId !== 'number') return;
+      if (backendQuestions.length === 0) return;
+
+      const alreadyHydratedFromServer =
         questions.length > 0 &&
         questions.some(
           (q) =>
             typeof (q as unknown as Record<string, unknown>)?.questionId ===
             'number',
-        )
-      )
-        return;
+        );
+      if (alreadyHydratedFromServer) return;
 
-      function lid(prefix: string) {
-        return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
-      }
+      const lid = (prefix: string) =>
+        `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()}`;
 
       const questionDrafts = backendQuestions
         .map((qq, idx) => {
-          const qtype = (qq?.qtype ?? qq?.type ?? 'SINGLE_CHOICE') as string;
+          const qtype = String(qq?.qtype ?? qq?.type ?? 'SINGLE_CHOICE');
           const ord = toNumber(qq?.ord ?? qq?.order ?? qq?.position) ?? idx + 1;
 
           const opts = Array.isArray(qq?.options)
             ? (qq.options as unknown[])
             : ((qq?.answers ?? qq?.variants ?? []) as unknown[]);
+
           const optionDrafts = opts.map((o, oidx) => {
             const oRec = o as Record<string, unknown> | undefined;
             return {
@@ -499,26 +484,27 @@ export function useAdminQuizBuilder({
               ord:
                 toNumber(oRec?.ord ?? oRec?.order ?? oRec?.position) ??
                 oidx + 1,
-              label: (oRec?.label ?? oRec?.text ?? oRec?.title ?? '') as string,
+              label: String(oRec?.label ?? oRec?.text ?? oRec?.title ?? ''),
               optionId: toNumber(oRec?.id ?? oRec?.optionId),
               weightsByTraitId: normalizeWeights(
-                oRec?.weightsByTraitId ??
+                (oRec?.weightsByTraitId ??
                   oRec?.weights ??
                   oRec?.traitWeights ??
-                  {},
+                  {}) as unknown,
               ),
             } as OptionDraft;
           });
 
           const qqRec = qq as Record<string, unknown> | undefined;
+
           const linkedTraitIdsRaw = Array.isArray(qqRec?.linkedTraitIds)
-            ? ((qqRec!.linkedTraitIds as unknown[]).filter(
-                (x) => typeof x === 'number',
-              ) as number[])
+            ? (qqRec!.linkedTraitIds as unknown[]).filter(
+                (x): x is number => typeof x === 'number',
+              )
             : Array.isArray(qqRec?.traitIds)
-              ? ((qqRec!.traitIds as unknown[]).filter(
-                  (x) => typeof x === 'number',
-                ) as number[])
+              ? (qqRec!.traitIds as unknown[]).filter(
+                  (x): x is number => typeof x === 'number',
+                )
               : [];
 
           const derivedTraitIds = Array.from(
@@ -539,10 +525,7 @@ export function useAdminQuizBuilder({
             tempId: lid('q'),
             ord,
             qtype,
-            text: (qqRec?.text ??
-              qqRec?.title ??
-              qqRec?.question ??
-              '') as string,
+            text: String(qqRec?.text ?? qqRec?.title ?? qqRec?.question ?? ''),
             linkedTraitIds,
             questionId: toNumber(qqRec?.id ?? qqRec?.questionId),
             options:
@@ -560,18 +543,9 @@ export function useAdminQuizBuilder({
         })
         .sort((a, b) => (a.ord ?? 0) - (b.ord ?? 0));
 
-      if (questionDrafts.length > 0)
-        setQuestions(questionDrafts as QuestionDraft[]);
-    } catch {
-      /* ignore parse errors */
-    }
-  }, [
-    questionsData,
-    effectiveQuizId,
-    questions.length,
-    setQuestions,
-    questions,
-  ]);
+      if (questionDrafts.length > 0) setQuestions(questionDrafts);
+    } catch {}
+  }, [questionsData, effectiveQuizId, questions, setQuestions]);
 
   return {
     t,

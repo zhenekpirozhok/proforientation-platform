@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button, Card, Empty, Tag, Typography, message, Modal } from 'antd';
 import { useRouter } from 'next/navigation';
@@ -8,7 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { useAdminQuizzes } from '@/entities/quiz/api/useAdminQuizzes';
 import { useAdminPublishQuiz } from '@/entities/quiz/api/useAdminPublishQuiz';
-import { useDeleteQuiz } from '@/entities/quiz/api/useDeleteQuiz';
+import { useAdminDeleteQuiz } from '@/entities/quiz/api/useAdminDeleteQuiz';
 import { getGetAllQueryKey } from '@/shared/api/generated/api';
 import { QuizzesPagination } from '@/entities/quiz/ui/QuizzesPagination';
 
@@ -95,22 +95,7 @@ function isVersionPublished(version: unknown): boolean {
   return Boolean((version as Record<string, unknown>).publishedAt);
 }
 
-function hasUnpublishedDraft(versions: unknown[] | undefined): boolean {
-  if (!Array.isArray(versions) || versions.length === 0) return false;
-
-  const arr = versions as Record<string, unknown>[];
-  const sorted = [...arr].sort(
-    (a, b) =>
-      (Number((b as Record<string, unknown>).version) ?? 0) -
-      (Number((a as Record<string, unknown>).version) ?? 0),
-  );
-
-  const hasPublished = sorted.some((v) => isVersionPublished(v));
-  if (!hasPublished) return false;
-
-  const latest = sorted[0];
-  return !isVersionPublished(latest);
-}
+// removed hasUnpublishedDraft — UI now relies on backend-provided status
 
 function formatDate(v: unknown): string | null {
   if (!v) return null;
@@ -132,19 +117,6 @@ function toId(v: unknown): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-async function fetchQuizVersions(quizId: number) {
-  const res = await fetch(`/api/quizzes/${quizId}/versions`, { method: 'GET' });
-  if (!res.ok) {
-    let msg = `Failed to load versions (${res.status})`;
-    try {
-      const body = await res.json();
-      msg = body?.message ?? msg;
-    } catch {}
-    throw new Error(msg);
-  }
-  return res.json();
-}
-
 export function AdminDashboardPage() {
   const t = useTranslations('AdminDashboard');
   const router = useRouter();
@@ -158,47 +130,13 @@ export function AdminDashboardPage() {
     size: String(size),
   });
   const publishQuiz = useAdminPublishQuiz();
-  const deleteQuiz = useDeleteQuiz();
+  const deleteQuiz = useAdminDeleteQuiz();
 
   const [deletingQuizId, setDeletingQuizId] = useState<number | null>(null);
   const [publishingQuizId, setPublishingQuizId] = useState<number | null>(null);
-  const [versionsByQuizId, setVersionsByQuizId] = useState<
-    Record<number, Record<string, unknown>[]>
-  >({});
 
   const data = quizzesQuery.data as unknown;
   const items = useMemo(() => toArray<Record<string, unknown>>(data), [data]);
-
-  useEffect(() => {
-    const loadMissingVersions = async () => {
-      const missingIds = items
-        .map((q: unknown) => {
-          const id = (q as Record<string, unknown>)?.id;
-          return typeof id === 'number' && Number.isFinite(id)
-            ? id
-            : Number(id as unknown);
-        })
-        .filter((id: number) => Number.isFinite(id) && !versionsByQuizId[id]);
-
-      if (missingIds.length === 0) return;
-
-      for (const id of missingIds) {
-        try {
-          const versionsRes = await qc.fetchQuery({
-            queryKey: ['quiz-versions', id],
-            queryFn: () => fetchQuizVersions(id),
-            staleTime: 60000,
-          });
-          const loaded = toArray<Record<string, unknown>>(versionsRes);
-          setVersionsByQuizId((prev) => ({ ...prev, [id]: loaded }));
-        } catch (err) {
-          console.error(`Failed to load versions for quiz ${id}:`, err);
-        }
-      }
-    };
-
-    loadMissingVersions();
-  }, [items, versionsByQuizId, qc]);
 
   const total = useMemo(() => {
     const tt = pickTotal(data);
@@ -222,14 +160,24 @@ export function AdminDashboardPage() {
 
       const versionsRes = await qc.fetchQuery({
         queryKey: ['quiz-versions', quizId],
-        queryFn: () => fetchQuizVersions(quizId),
+        queryFn: async () => {
+          const res = await fetch(`/api/quizzes/${quizId}/versions`);
+          if (!res.ok) {
+            let msg = `Failed to load versions (${res.status})`;
+            try {
+              const body = await res.json();
+              msg = body?.message ?? msg;
+            } catch {}
+            throw new Error(msg);
+          }
+          return res.json();
+        },
       });
 
       const versions = toArray<Record<string, unknown>>(versionsRes);
-      setVersionsByQuizId((prev) => ({ ...prev, [quizId]: versions }));
 
       const latest = pickLatestQuizVersion(
-        versionsRes as unknown as Record<string, unknown>[],
+        versions as unknown as Record<string, unknown>[],
       );
       const quizVersionId = toId(
         (latest as Record<string, unknown> | undefined)?.id,
@@ -247,15 +195,6 @@ export function AdminDashboardPage() {
       }
 
       await publishQuiz.mutateAsync({ id: quizVersionId });
-
-      const updatedVersionsRes = await qc.fetchQuery({
-        queryKey: ['quiz-versions', quizId],
-        queryFn: () => fetchQuizVersions(quizId),
-        staleTime: 0,
-      });
-      const updatedVersions =
-        toArray<Record<string, unknown>>(updatedVersionsRes);
-      setVersionsByQuizId((prev) => ({ ...prev, [quizId]: updatedVersions }));
 
       await qc.invalidateQueries({ queryKey: getGetAllQueryKey() });
       await quizzesQuery.refetch();
@@ -313,30 +252,24 @@ export function AdminDashboardPage() {
                 formatDate(q?.updatedAt) ?? formatDate(q?.updated) ?? null;
               const publishedAt = formatDate(q?.publishedAt) ?? null;
 
-              const versions = versionsByQuizId[id] || [];
-              const hasDraftAfterPublished = hasUnpublishedDraft(versions);
-              const latestVersion =
-                versions.length > 0
-                  ? [...versions].sort(
-                      (a, b) =>
-                        (Number((b as Record<string, unknown>)?.version) ?? 0) -
-                        (Number((a as Record<string, unknown>)?.version) ?? 0),
-                    )[0]
-                  : null;
-              const latestVersionPublished = isVersionPublished(latestVersion);
-              // Find the latest published version (could be not the highest version if unpublished latest exists)
-              const latestPublishedVersion =
-                versions.length > 0
-                  ? ([...versions]
-                      .filter((v) => isVersionPublished(v))
-                      .sort(
-                        (a, b) =>
-                          (Number((b as Record<string, unknown>)?.version) ??
-                            0) -
-                          (Number((a as Record<string, unknown>)?.version) ??
-                            0),
-                      )[0] ?? null)
-                  : null;
+              const quizStatus = safeStr(q?.status) || safeStr(q?.quizStatus);
+
+              const hasDraftAfterPublished = quizStatus === 'UPDATED';
+
+              const hasPublishedVersion =
+                quizStatus === 'PUBLISHED' || quizStatus === 'UPDATED';
+
+              const isPublishedWithoutDraft = quizStatus === 'PUBLISHED';
+
+              const publishedObj = (q as Record<string, unknown>)?.published as
+                | Record<string, unknown>
+                | undefined;
+              const publishedId = toId(
+                (q as Record<string, unknown>)?.publishedVersionId ??
+                  (q as Record<string, unknown>)?.publishedId ??
+                  (publishedObj ? publishedObj['id'] : undefined) ??
+                  (q as Record<string, unknown>)?.latestPublishedVersionId,
+              );
 
               return (
                 <Card
@@ -363,8 +296,8 @@ export function AdminDashboardPage() {
                         ) : null}
                       </div>
 
-                      <Tag color={latestVersionPublished ? 'green' : 'gold'}>
-                        {latestVersionPublished ? t('published') : t('draft')}
+                      <Tag color={hasPublishedVersion ? 'green' : 'gold'}>
+                        {hasPublishedVersion ? t('published') : t('draft')}
                       </Tag>
                     </div>
                   }
@@ -420,7 +353,7 @@ export function AdminDashboardPage() {
                         }
                         disabled={
                           !Number.isFinite(id) ||
-                          latestVersionPublished ||
+                          isPublishedWithoutDraft ||
                           (publishQuiz.isPending && publishingQuizId !== id)
                         }
                       >
@@ -430,20 +363,11 @@ export function AdminDashboardPage() {
                       <Button
                         onClick={() => {
                           if (!Number.isFinite(id)) return;
-                          const publishedId = toId(
-                            (
-                              latestPublishedVersion as
-                                | Record<string, unknown>
-                                | undefined
-                            )?.id,
-                          );
                           if (!publishedId) return;
                           const analyticsUrl = `${ANALYTICS_ROUTE(id)}?quizVersionId=${publishedId}`;
                           router.push(analyticsUrl);
                         }}
-                        disabled={
-                          !Number.isFinite(id) || !latestPublishedVersion
-                        }
+                        disabled={!Number.isFinite(id) || !publishedId}
                       >
                         {t('analytics')}
                       </Button>

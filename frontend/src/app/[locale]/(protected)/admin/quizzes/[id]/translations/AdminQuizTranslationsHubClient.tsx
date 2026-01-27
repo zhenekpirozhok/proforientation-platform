@@ -17,6 +17,7 @@ import { useQuizTraits } from '@/entities/quiz/api/useQuizTraits';
 
 import { useSearchProfessions } from '@/entities/profession/api/useSearchProfessions';
 import { useCategories } from '@/entities/category/api/useCategories';
+import { QuizVersionDto } from '@/shared/api/generated/model';
 
 function safeString(v: unknown): string {
   return typeof v === 'string' ? v : v == null ? '' : String(v);
@@ -55,13 +56,20 @@ export default function AdminQuizTranslationsHubClient({
   });
   const versionsQ = useGetQuizVersions(canLoad ? quizId : 0);
 
-  const latest = useMemo(
-    () => pickLatestQuizVersion(versionsQ.data),
-    [versionsQ.data],
+  const versions = useMemo(
+    () =>
+      toArray<QuizVersionDto>(
+        (versionsQ as unknown as { data?: unknown })?.data,
+      ),
+    [versionsQ],
   );
+
+  const latest = useMemo(() => pickLatestQuizVersion(versions), [versions]);
+
   const quizVersionId = safeNumber(
     (latest as unknown as Record<string, unknown>)?.id,
   );
+
   const version = safeNumber(
     (latest as unknown as Record<string, unknown>)?.version,
   );
@@ -117,7 +125,6 @@ export default function AdminQuizTranslationsHubClient({
     const out: QuizTranslatableRow[] = [];
 
     for (const q of questions) {
-      const qId = safeNumber((q as Record<string, unknown>)?.id);
       const qOrd = safeNumber((q as Record<string, unknown>)?.ord);
       const opts = toArray<unknown>(
         (q as Record<string, unknown>)?.options ?? [],
@@ -245,9 +252,7 @@ export default function AdminQuizTranslationsHubClient({
     };
   }, [quizQ]);
 
-  const isLoadingQuiz = Boolean(
-    (quizQ as unknown as Record<string, unknown>)?.isLoading,
-  );
+  // isLoadingQuiz removed (not used)
   const isLoadingQuestions = Boolean(
     (questionsQ as unknown as Record<string, unknown>)?.isLoading,
   );

@@ -713,7 +713,8 @@ export const useAdminQuizBuilderStore = create<BuilderState>()(
             backendResults?.categoryIds ??
             backendResults?.categories ??
             q?.selectedCategoryIds ??
-            q?.categoryIds,
+            q?.categoryIds ??
+            (typeof q?.categoryId === 'number' ? [q.categoryId] : undefined),
         );
         const selectedProfessionIds = safeIds(
           backendResults?.selectedProfessionIds ??

@@ -97,7 +97,7 @@ export function QuizAnalyticsScreen(props: {
     if (!versionsQuery.isFetching && !Array.isArray(versionsQuery.data)) {
       void versionsQuery.refetch();
     }
-  }, [quizId]);
+  }, [quizId, versionsQuery.isFetching, versionsQuery.data]);
 
   const overview = useOverview(
     locale,
@@ -117,7 +117,7 @@ export function QuizAnalyticsScreen(props: {
       detailedCsv: `${base}/detailed.csv?${qs}`,
       detailedXlsx: `${base}/detailed.xlsx?${qs}`,
     };
-  }, [locale, quizId, selectedVersionId]);
+  }, [quizId, selectedVersionId]);
 
   return (
     <div className="p-4 sm:p-6 space-y-4">
