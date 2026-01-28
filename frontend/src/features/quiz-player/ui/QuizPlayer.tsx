@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale } from 'next-intl';
 import { useRouter } from '@/shared/i18n/lib/navigation';
 import { useTranslations } from 'next-intl';
@@ -149,6 +149,8 @@ export function QuizPlayer({ quizId }: Props) {
   const startedForVersionRef = useRef<number | null>(null);
   const startAttemptAsync = startAttempt.mutateAsync;
 
+  const [localSubmitting, setLocalSubmitting] = useState(false);
+
   const vId = versionQuery.data ?? null;
   const ready = Boolean(attemptId && vId && locale);
 
@@ -278,6 +280,7 @@ export function QuizPlayer({ quizId }: Props) {
     if (!question || !selectedOptionId) return;
 
     try {
+      setLocalSubmitting(true);
       const s = useQuizPlayerStore.getState();
       const optionIdsRaw = Object.values(s.answersByQuestionId);
       const optionIds = Array.from(new Set(optionIdsRaw));
@@ -316,6 +319,7 @@ export function QuizPlayer({ quizId }: Props) {
 
       setStatus('in-progress');
       setError(message);
+      setLocalSubmitting(false);
     }
   }
 
@@ -405,6 +409,12 @@ export function QuizPlayer({ quizId }: Props) {
         backDisabled={safeIndex <= 0 || isBusy}
         nextDisabled={!canNext || !selectedOptionId || isBusy}
         submitDisabled={submitDisabled}
+        submitLoading={
+          localSubmitting ||
+          status === 'submitting' ||
+          addAnswersBulk.isPending ||
+          submitAttempt.isPending
+        }
         isLast={isLast}
       />
     </QuizPlayerLayout>

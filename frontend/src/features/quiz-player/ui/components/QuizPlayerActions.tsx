@@ -14,6 +14,7 @@ export function QuizPlayerActions({
   backDisabled,
   nextDisabled,
   submitDisabled,
+  submitLoading,
   isLast,
 }: {
   backLabel: string;
@@ -25,6 +26,7 @@ export function QuizPlayerActions({
   backDisabled: boolean;
   nextDisabled: boolean;
   submitDisabled: boolean;
+  submitLoading?: boolean;
   isLast: boolean;
 }) {
   return (
@@ -58,6 +60,7 @@ export function QuizPlayerActions({
             className={`w-full rounded-2xl ${ACTION_WIDTH}`}
             onClick={onSubmit}
             disabled={submitDisabled}
+            loading={submitLoading}
           >
             {submitLabel}
           </Button>

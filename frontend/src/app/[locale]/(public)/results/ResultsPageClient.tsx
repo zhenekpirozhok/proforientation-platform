@@ -154,7 +154,15 @@ export default function ResultPage() {
           matchesTitle: t('Results.topMatchesTitle'),
           matchesSubtitle: t('Results.topMatchesSubtitle'),
           matchLabel: t('Results.match'),
-          traitRows,
+          traitRows: traitRows.map((r) => ({
+            label: r.label,
+            description: r.description,
+            value:
+              typeof r.value === 'number'
+                ? 
+                  Math.round(r.value <= 1 ? r.value * 100 : r.value)
+                : null,
+          })),
           matchRows: matchRows.slice(0, 3),
         });
 
