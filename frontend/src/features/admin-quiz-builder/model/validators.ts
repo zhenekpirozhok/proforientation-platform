@@ -75,9 +75,10 @@ export function validateScales(scales: ScaleDraft[]): ValidationErrors {
 
 export function validateQuestions(
   questions: QuestionDraft[],
-  traitIds: number[],
+  _traitIds: number[],
 ): ValidationErrors {
   const out: ValidationErrors = {};
+  void _traitIds;
   if (questions.length < 1) add(out, 'questions', 'min1');
 
   for (const q of questions) {

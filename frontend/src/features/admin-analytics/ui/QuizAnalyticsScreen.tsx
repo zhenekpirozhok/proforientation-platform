@@ -71,6 +71,7 @@ export function QuizAnalyticsScreen(props: {
     useState<string>(quizVersionId);
 
   const versionsQuery = useGetQuizVersions(quizId);
+  const { isFetching: versionsIsFetching, data: versionsData, refetch: versionsRefetch } = versionsQuery;
   const publishedVersions = useMemo(() => {
     const raw = versionsQuery.data ?? [];
     let arr: unknown[] = [];
@@ -94,10 +95,10 @@ export function QuizAnalyticsScreen(props: {
   }, [versionsQuery.data]);
 
   useEffect(() => {
-    if (!versionsQuery.isFetching && !Array.isArray(versionsQuery.data)) {
-      void versionsQuery.refetch();
+    if (!versionsIsFetching && !Array.isArray(versionsData)) {
+      void versionsRefetch();
     }
-  }, [quizId, versionsQuery.isFetching, versionsQuery.data]);
+  }, [quizId, versionsIsFetching, versionsData, versionsRefetch]);
 
   const overview = useOverview(
     quizId,

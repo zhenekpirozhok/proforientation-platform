@@ -225,7 +225,7 @@ export function AdminDashboardPage() {
         : `${ANALYTICS_ROUTE(quizId)}`;
 
       router.push(analyticsUrl);
-    } catch (e) {
+    } catch {
       const analyticsUrl = fallbackPublishedId
         ? `${ANALYTICS_ROUTE(quizId)}?quizVersionId=${fallbackPublishedId}`
         : `${ANALYTICS_ROUTE(quizId)}`;

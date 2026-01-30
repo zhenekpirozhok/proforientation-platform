@@ -6,7 +6,6 @@ import { useTranslations } from 'next-intl';
 
 import { SectionCard } from '../SectionCard';
 import { useAdminQuizBuilderStore } from '../../model/store';
-import { useQuizBuilderActions } from '@/features/admin-quiz-builder/api/useQuizBuilderActions';
 
 import { useAdminCategories } from '@/entities/category/api/useAdminCategories';
 import { useAdminProfessions } from '@/entities/profession/api/useAdminProfessions';
@@ -104,13 +103,7 @@ function safeIds(v: unknown): number[] {
 export function StepPreview(): JSX.Element {
   const t = useTranslations('AdminQuizBuilder.preview');
 
-  const quizId: number | undefined = useAdminQuizBuilderStore((s) => s.quizId);
-  const quizVersionId: number | undefined = useAdminQuizBuilderStore(
-    (s) => s.quizVersionId,
-  );
-  const version: number | undefined = useAdminQuizBuilderStore(
-    (s) => s.version,
-  );
+  
 
   const init: Init = useAdminQuizBuilderStore((s) => s.init);
   const scales: Scale[] | undefined = useAdminQuizBuilderStore((s) => s.scales);

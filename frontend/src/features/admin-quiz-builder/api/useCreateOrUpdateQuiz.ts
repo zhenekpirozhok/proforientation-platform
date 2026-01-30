@@ -4,7 +4,6 @@ import { useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 
 import { useAdminQuizBuilderStore } from '../model/store';
 import type {
@@ -95,7 +94,7 @@ export function useCreateOrUpdateQuiz(
               typeof version === 'number'
                 ? version
                 : (((latestVersion as Record<string, unknown> | undefined)
-                    ?.version as number | undefined) ?? 1) + 1;
+                  ?.version as number | undefined) ?? 1) + 1;
 
             const prevState = useAdminQuizBuilderStore.getState();
             useAdminQuizBuilderStore.setState({
