@@ -31,15 +31,10 @@ export function useOverview(
       ? `/api/admin/quizzes/${quizId}/analytics/overview?${qs.toString()}`
       : null;
 
-  return useSWR<QuizAnalyticsOverviewDto>(key, (url: string) =>
-    fetcher(url),
-  );
+  return useSWR<QuizAnalyticsOverviewDto>(key, (url: string) => fetcher(url));
 }
 
-export function useDetailed(
-  quizId: string,
-  quizVersionId: string,
-) {
+export function useDetailed(quizId: string, quizVersionId: string) {
   const qs = new URLSearchParams({ quizVersionId });
 
   const key =
@@ -47,7 +42,5 @@ export function useDetailed(
       ? `/api/admin/quizzes/${quizId}/analytics/detailed?${qs.toString()}`
       : null;
 
-  return useSWR<QuizAnalyticsDetailedDto>(key, (url: string) =>
-    fetcher(url),
-  );
+  return useSWR<QuizAnalyticsDetailedDto>(key, (url: string) => fetcher(url));
 }

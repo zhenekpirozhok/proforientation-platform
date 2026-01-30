@@ -204,7 +204,10 @@ export function AdminDashboardPage() {
     }
   }
 
-  async function onAnalytics(quizId: number, fallbackPublishedId: number | null) {
+  async function onAnalytics(
+    quizId: number,
+    fallbackPublishedId: number | null,
+  ) {
     try {
       const currentRes = await qc.fetchQuery({
         queryKey: ['quiz', 'versions', 'current', quizId],

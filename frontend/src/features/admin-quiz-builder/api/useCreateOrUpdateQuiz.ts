@@ -94,7 +94,7 @@ export function useCreateOrUpdateQuiz(
               typeof version === 'number'
                 ? version
                 : (((latestVersion as Record<string, unknown> | undefined)
-                  ?.version as number | undefined) ?? 1) + 1;
+                    ?.version as number | undefined) ?? 1) + 1;
 
             const prevState = useAdminQuizBuilderStore.getState();
             useAdminQuizBuilderStore.setState({

@@ -13,10 +13,7 @@ const fetcher = async (url: string, locale?: string) => {
   return res.json();
 };
 
-export function useQuizVersionNumber(
-  quizId: string,
-  quizVersionId?: string,
-) {
+export function useQuizVersionNumber(quizId: string, quizVersionId?: string) {
   const enabled = Boolean(quizId && quizVersionId);
   const url = enabled ? `/api/quizzes/${quizId}/versions` : null;
 

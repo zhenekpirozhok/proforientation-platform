@@ -159,8 +159,7 @@ export default function ResultPage() {
             description: r.description,
             value:
               typeof r.value === 'number'
-                ? 
-                  Math.round(r.value <= 1 ? r.value * 100 : r.value)
+                ? Math.round(r.value <= 1 ? r.value * 100 : r.value)
                 : null,
           })),
           matchRows: matchRows.slice(0, 3),

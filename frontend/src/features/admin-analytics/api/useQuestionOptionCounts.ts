@@ -20,10 +20,7 @@ const fetcher = async (url: string, locale?: string) => {
   return res.json();
 };
 
-export function useQuestionOptionCounts(
-  quizId: string,
-  quizVersionId: string,
-) {
+export function useQuestionOptionCounts(quizId: string, quizVersionId: string) {
   // 1) Resolve quizVersionId -> version number
   const versionRes = useQuizVersionNumber(quizId, quizVersionId);
   const versionNum = versionRes.data?.version;

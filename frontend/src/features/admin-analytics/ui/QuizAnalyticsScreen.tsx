@@ -71,7 +71,11 @@ export function QuizAnalyticsScreen(props: {
     useState<string>(quizVersionId);
 
   const versionsQuery = useGetQuizVersions(quizId);
-  const { isFetching: versionsIsFetching, data: versionsData, refetch: versionsRefetch } = versionsQuery;
+  const {
+    isFetching: versionsIsFetching,
+    data: versionsData,
+    refetch: versionsRefetch,
+  } = versionsQuery;
   const publishedVersions = useMemo(() => {
     const raw = versionsQuery.data ?? [];
     let arr: unknown[] = [];

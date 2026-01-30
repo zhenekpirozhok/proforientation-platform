@@ -103,8 +103,6 @@ function safeIds(v: unknown): number[] {
 export function StepPreview(): JSX.Element {
   const t = useTranslations('AdminQuizBuilder.preview');
 
-  
-
   const init: Init = useAdminQuizBuilderStore((s) => s.init);
   const scales: Scale[] | undefined = useAdminQuizBuilderStore((s) => s.scales);
   const questions: RawQuestion[] | undefined = useAdminQuizBuilderStore(
