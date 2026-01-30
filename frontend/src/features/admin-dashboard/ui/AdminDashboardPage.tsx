@@ -95,8 +95,6 @@ function isVersionPublished(version: unknown): boolean {
   return Boolean((version as Record<string, unknown>).publishedAt);
 }
 
-// removed hasUnpublishedDraft — UI now relies on backend-provided status
-
 function formatDate(v: unknown): string | null {
   if (!v) return null;
   try {
@@ -203,6 +201,35 @@ export function AdminDashboardPage() {
       message.error((e as Error).message);
     } finally {
       setPublishingQuizId(null);
+    }
+  }
+
+  async function onAnalytics(quizId: number, fallbackPublishedId: number | null) {
+    try {
+      const currentRes = await qc.fetchQuery({
+        queryKey: ['quiz', 'versions', 'current', quizId],
+        queryFn: async () => {
+          const res = await fetch(`/api/quizzes/${quizId}/versions/current`);
+          if (!res.ok) {
+            throw new Error(`Failed to load current version (${res.status})`);
+          }
+          return res.json();
+        },
+      });
+
+      const currentId = toId((currentRes as Record<string, unknown>)?.id);
+      const versionParam = currentId ?? fallbackPublishedId;
+
+      const analyticsUrl = versionParam
+        ? `${ANALYTICS_ROUTE(quizId)}?quizVersionId=${versionParam}`
+        : `${ANALYTICS_ROUTE(quizId)}`;
+
+      router.push(analyticsUrl);
+    } catch (e) {
+      const analyticsUrl = fallbackPublishedId
+        ? `${ANALYTICS_ROUTE(quizId)}?quizVersionId=${fallbackPublishedId}`
+        : `${ANALYTICS_ROUTE(quizId)}`;
+      router.push(analyticsUrl);
     }
   }
 
@@ -363,11 +390,9 @@ export function AdminDashboardPage() {
                       <Button
                         onClick={() => {
                           if (!Number.isFinite(id)) return;
-                          if (!publishedId) return;
-                          const analyticsUrl = `${ANALYTICS_ROUTE(id)}?quizVersionId=${publishedId}`;
-                          router.push(analyticsUrl);
+                          onAnalytics(id, publishedId);
                         }}
-                        disabled={!Number.isFinite(id) || !publishedId}
+                        disabled={!Number.isFinite(id) || !hasPublishedVersion}
                       >
                         {t('analytics')}
                       </Button>

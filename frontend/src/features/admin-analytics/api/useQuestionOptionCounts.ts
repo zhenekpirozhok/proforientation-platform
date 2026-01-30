@@ -21,12 +21,11 @@ const fetcher = async (url: string, locale?: string) => {
 };
 
 export function useQuestionOptionCounts(
-  locale: string,
   quizId: string,
   quizVersionId: string,
 ) {
   // 1) Resolve quizVersionId -> version number
-  const versionRes = useQuizVersionNumber(locale, quizId, quizVersionId);
+  const versionRes = useQuizVersionNumber(quizId, quizVersionId);
   const versionNum = versionRes.data?.version;
 
   // 2) Use version number in the existing backend route
@@ -38,13 +37,12 @@ export function useQuestionOptionCounts(
   const swr = useSWR<Record<number, number>>(
     url,
     async (u) => {
-      const page = (await fetcher(u, locale)) as Page<QuestionDto>;
+      const page = (await fetcher(u)) as Page<QuestionDto>;
 
       const pairs = await Promise.all(
         (page.content ?? []).map(async (q) => {
           const opts = (await fetcher(
             `/api/questions/${q.id}/options`,
-            locale,
           )) as Array<{ id: number }>;
           return [q.id, opts.length] as const;
         }),

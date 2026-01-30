@@ -100,13 +100,12 @@ export function QuizAnalyticsScreen(props: {
   }, [quizId, versionsQuery.isFetching, versionsQuery.data]);
 
   const overview = useOverview(
-    locale,
     quizId,
     selectedVersionId,
     from || undefined,
     to || undefined,
   );
-  const detailed = useDetailed(locale, quizId, selectedVersionId);
+  const detailed = useDetailed(quizId, selectedVersionId);
 
   const exportLinks = useMemo(() => {
     const qs = new URLSearchParams({ quizVersionId: selectedVersionId });
@@ -128,7 +127,7 @@ export function QuizAnalyticsScreen(props: {
             {i18n.title}
           </h1>
           <div className="text-sm text-slate-500 dark:text-slate-400 break-words">
-            Quiz ID: {quizId} • Version: {quizVersionId}
+            Quiz ID: {quizId} • Version: {selectedVersionId || i18n.allVersions}
           </div>
         </div>
 

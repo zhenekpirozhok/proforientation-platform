@@ -27,7 +27,7 @@ export function DetailedPanel({
 }: Props) {
   const i18n = t(locale);
 
-  const optionCounts = useQuestionOptionCounts(locale, quizId, quizVersionId);
+  const optionCounts = useQuestionOptionCounts(quizId, quizVersionId);
 
   const rows = useMemo(() => {
     return data ? buildQuestionMetricsRows(data) : [];
