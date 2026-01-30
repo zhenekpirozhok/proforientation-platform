@@ -13,15 +13,11 @@ const fetcher = async (url: string, locale?: string) => {
   return res.json();
 };
 
-export function useQuizVersionNumber(
-  locale: string,
-  quizId: string,
-  quizVersionId?: string,
-) {
+export function useQuizVersionNumber(quizId: string, quizVersionId?: string) {
   const enabled = Boolean(quizId && quizVersionId);
   const url = enabled ? `/api/quizzes/${quizId}/versions` : null;
 
-  const swr = useSWR<VersionRecord[] | null>(url, (u) => fetcher(u, locale), {
+  const swr = useSWR<VersionRecord[] | null>(url, (u) => fetcher(u), {
     revalidateOnFocus: false,
   });
 

@@ -4,7 +4,6 @@ import { useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { message } from 'antd';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 
 import { useAdminQuizBuilderStore } from '../model/store';
 import type {

@@ -17,7 +17,6 @@ const fetcher = async (url: string, locale?: string) => {
 };
 
 export function useOverview(
-  locale: string,
   quizId: string,
   quizVersionId: string,
   from?: string,
@@ -29,27 +28,19 @@ export function useOverview(
 
   const key =
     quizId && quizVersionId
-      ? `api/admin/quizzes/${quizId}/analytics/overview?${qs.toString()}`
+      ? `/api/admin/quizzes/${quizId}/analytics/overview?${qs.toString()}`
       : null;
 
-  return useSWR<QuizAnalyticsOverviewDto>(key, (url: string) =>
-    fetcher(url, locale),
-  );
+  return useSWR<QuizAnalyticsOverviewDto>(key, (url: string) => fetcher(url));
 }
 
-export function useDetailed(
-  locale: string,
-  quizId: string,
-  quizVersionId: string,
-) {
+export function useDetailed(quizId: string, quizVersionId: string) {
   const qs = new URLSearchParams({ quizVersionId });
 
   const key =
     quizId && quizVersionId
-      ? `api/admin/quizzes/${quizId}/analytics/detailed?${qs.toString()}`
+      ? `/api/admin/quizzes/${quizId}/analytics/detailed?${qs.toString()}`
       : null;
 
-  return useSWR<QuizAnalyticsDetailedDto>(key, (url: string) =>
-    fetcher(url, locale),
-  );
+  return useSWR<QuizAnalyticsDetailedDto>(key, (url: string) => fetcher(url));
 }
