@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { Button, Card, Empty, Tag, Typography, message, Modal } from 'antd';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
@@ -117,16 +117,20 @@ function toId(v: unknown): number | null {
 
 export function AdminDashboardPage() {
   const t = useTranslations('AdminDashboard');
+  const locale = useLocale();
   const router = useRouter();
   const qc = useQueryClient();
 
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(12);
 
-  const quizzesQuery = useAdminQuizzes({
-    page: String(page),
-    size: String(size),
-  });
+  const quizzesQuery = useAdminQuizzes(
+    {
+      page: String(page),
+      size: String(size),
+    },
+    locale,
+  );
   const publishQuiz = useAdminPublishQuiz();
   const deleteQuiz = useAdminDeleteQuiz();
 
