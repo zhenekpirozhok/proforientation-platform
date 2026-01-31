@@ -24,7 +24,7 @@ export default function QuizDetailsPage() {
   const quizId = validId ? parsedId : 0;
 
   const { quiz, metrics, questionCount, estimatedMinutes, isLoading, error } =
-    useQuizDetails(quizId);
+    useQuizDetails(quizId, locale);
 
   if (!validId) notFound();
 

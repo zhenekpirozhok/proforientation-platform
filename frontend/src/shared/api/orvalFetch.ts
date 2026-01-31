@@ -1,3 +1,5 @@
+import { routing } from '@/shared/i18n/lib/routing';
+
 function toBffUrl(url: string) {
   if (/^https?:\/\//.test(url)) return url;
 
@@ -76,17 +78,37 @@ export async function orvalFetch<T>(
   url: string,
   init?: RequestInit,
 ): Promise<T> {
-  const res = await fetch(toBffUrl(url), { ...init, credentials: 'include' });
+  const headers = new Headers(init?.headers);
+
+  if (typeof window !== 'undefined') {
+    const firstSegment = window.location.pathname.split('/')[1];
+    const browserLang = document.documentElement.lang;
+    const detected = (routing.locales as readonly string[]).includes(
+      firstSegment,
+    )
+      ? firstSegment
+      : browserLang || routing.defaultLocale;
+
+    if (!headers.has('x-locale') && detected) headers.set('x-locale', detected);
+    if (!headers.has('Accept-Language') && detected)
+      headers.set('Accept-Language', detected);
+  }
+
+  const res = await fetch(toBffUrl(url), {
+    ...init,
+    credentials: 'include',
+    headers,
+  });
 
   const text = await res.text().catch(() => '');
   const data: unknown = text
     ? (() => {
-        try {
-          return JSON.parse(text) as unknown;
-        } catch {
-          return text;
-        }
-      })()
+      try {
+        return JSON.parse(text) as unknown;
+      } catch {
+        return text;
+      }
+    })()
     : null;
 
   if (!res.ok) {
@@ -98,16 +120,17 @@ export async function orvalFetch<T>(
         const retryRes = await fetch(toBffUrl(url), {
           ...init,
           credentials: 'include',
+          headers,
         });
         const retryText = await retryRes.text().catch(() => '');
         const retryData: unknown = retryText
           ? (() => {
-              try {
-                return JSON.parse(retryText) as unknown;
-              } catch {
-                return retryText;
-              }
-            })()
+            try {
+              return JSON.parse(retryText) as unknown;
+            } catch {
+              return retryText;
+            }
+          })()
           : null;
 
         if (!retryRes.ok) {

@@ -78,6 +78,9 @@
     "finishedQuestions": "No more questions.",
     "toResults": "View results",
 
+    "progress": "Question {current}",
+    "progressWithTotal": "Question {current} / {total}",
+
     "attempt": "Attempt #{id}",
     "questionProgress": "Question {current} / {total}",
     "questionProgressShort": "Question {current}",

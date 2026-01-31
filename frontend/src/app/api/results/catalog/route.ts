@@ -110,22 +110,43 @@ export async function GET(req: Request) {
     const traitsRes = await bffFetch(`/traits`, { method: 'GET', headers });
     const traits = await fetchJsonOrThrow<TraitDto[]>(traitsRes, `/traits`);
 
-    const allProfessions = await fetchAllProfessions(headers);
-    const professions = allProfessions.filter(
-      (p) => p.categoryId === categoryId,
-    );
+    const spProf = new URLSearchParams({
+      page: '1',
+      size: '200',
+      categoryId: String(categoryId),
+      sortBy: 'id',
+    });
+
+    const profRes = await bffFetch(`/professions/search?${spProf.toString()}`, {
+      method: 'GET',
+      headers,
+    });
+
+    let professions: ProfessionDto[] = [];
+
+    if (!profRes.ok) {
+      // If search endpoint is access-restricted, fall back to public /professions listing
+      if (profRes.status === 403) {
+        const allProfessions = await fetchAllProfessions(headers);
+        professions = allProfessions.filter((p) => p.categoryId === categoryId);
+      } else {
+        const body = await profRes.text();
+        throw new Error(`/professions/search failed: ${profRes.status} ${body}`);
+      }
+    } else {
+      const profData = await parseResponse<PageLike<ProfessionDto> | ProfessionDto[]>(
+        profRes,
+      );
+
+      professions = Array.isArray(profData) ? profData : profData.content ?? [];
+    }
 
     return new Response(
       JSON.stringify({
         quizId,
         categoryId,
         traits,
-        professions,
-        debug: {
-          traitsCount: traits.length,
-          professionsTotal: allProfessions.length,
-          professionsInCategory: professions.length,
-        },
+        professions
       }),
       { status: 200, headers: { 'content-type': 'application/json' } },
     );

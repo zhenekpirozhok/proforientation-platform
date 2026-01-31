@@ -78,6 +78,9 @@
     "finishedQuestions": "Вопросы закончились.",
     "toResults": "К результатам",
 
+    "progress": "Вопрос {current}",
+    "progressWithTotal": "Вопрос {current} / {total}",
+
     "attempt": "Попытка #{id}",
     "questionProgress": "Вопрос {current} / {total}",
     "questionProgressShort": "Вопрос {current}",

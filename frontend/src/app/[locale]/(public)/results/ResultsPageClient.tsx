@@ -4,7 +4,7 @@ import '@/features/results/ui/results.css';
 
 import { useMemo } from 'react';
 import { useRouter } from '@/shared/i18n/lib/navigation';
-import { useTranslations, type _Translator } from 'next-intl';
+import { useTranslations, useLocale, type _Translator } from 'next-intl';
 import { Alert } from 'antd';
 
 import { useQuizPlayerStore } from '@/features/quiz-player/model/store';
@@ -68,12 +68,14 @@ export default function ResultPage() {
 
   const retake = () => {
     useQuizPlayerStore.getState().resetAll();
-    goToQuiz();
+    router.push(`/quizzes`);
   };
 
   const catalogEnabled =
     Boolean(storedResult) && Number.isFinite(quizId) && quizId > 0;
-  const catalogQ = useQuizCatalogForResults(catalogEnabled ? quizId : 0);
+  const locale = useLocale();
+
+  const catalogQ = useQuizCatalogForResults(catalogEnabled ? quizId : 0, locale);
 
   const traitByCode = useMemo(() => {
     const traits: TraitDto[] = catalogQ.data?.traits ?? [];
