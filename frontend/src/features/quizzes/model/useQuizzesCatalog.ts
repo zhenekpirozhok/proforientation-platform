@@ -117,15 +117,19 @@ export function useQuizzesCatalog(params: {
     params.filters.duration,
   ]);
 
-  const listQ = useQuizzes({ page: params.page, size: params.size });
+  const listQ = useQuizzes({ page: params.page, size: params.size, locale: params.locale });
   const searchQ = useSearchQuizzesLocalized(params.locale, searchParams);
   const quizzesSource = shouldSearch ? searchQ : listQ;
 
   const metricsQ = useGetAllMetrics({
     query: {
+      queryKey: ['api/v1/quizzes/metrics', params.locale],
       staleTime: 60_000,
       gcTime: 5 * 60_000,
       refetchOnWindowFocus: false,
+    },
+    request: {
+      headers: { 'x-locale': params.locale },
     },
   });
 
@@ -137,8 +141,8 @@ export function useQuizzesCatalog(params: {
     const quizzes =
       rawSearch && !shouldSearch
         ? base.filter((x) =>
-            (x.title ?? '').toLowerCase().includes(rawSearch.toLowerCase()),
-          )
+          (x.title ?? '').toLowerCase().includes(rawSearch.toLowerCase()),
+        )
         : base;
 
     const metricsArr = Array.isArray(metricsQ.data)

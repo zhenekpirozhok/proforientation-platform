@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 export function QuizProgressHeader({
   current,
   total,
@@ -9,12 +11,16 @@ export function QuizProgressHeader({
 }) {
   const hasTotal = typeof total === 'number' && total > 0;
   const percent = hasTotal ? Math.round((current / total) * 100) : undefined;
-
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-300">
         <div className="font-medium">
-          {hasTotal ? `Question ${current} of ${total}` : `Question ${current}`}
+          {(() => {
+            const t = useTranslations('QuizPlayer');
+            return hasTotal
+              ? t('progressWithTotal', { current, total })
+              : t('progress', { current });
+          })()}
         </div>
         {percent != null ? (
           <div className="font-semibold text-indigo-600 dark:text-indigo-400">

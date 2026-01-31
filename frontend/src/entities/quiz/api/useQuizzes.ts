@@ -6,6 +6,7 @@ type QuizzesParams = {
   page?: number;
   size?: number;
   sort?: string | string[];
+  locale?: string;
 };
 
 type Page<T> = {
@@ -55,12 +56,17 @@ export function useQuizzes(params?: QuizzesParams) {
     norm.page,
     norm.size,
     norm.sortArr.join('|'),
+    params?.locale ?? 'default-locale',
   ] as const;
 
   return useQuery({
     queryKey,
     queryFn: ({ signal }) =>
-      orvalFetch<Page<QuizDto>>(url, { method: 'GET', signal }),
+      orvalFetch<Page<QuizDto>>(url, {
+        method: 'GET',
+        signal,
+        headers: params?.locale ? { 'x-locale': params.locale } : undefined,
+      }),
     placeholderData: keepPreviousData,
   });
 }

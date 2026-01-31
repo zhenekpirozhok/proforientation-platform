@@ -20,10 +20,10 @@ export type QuizDetailsAggregate = {
   refetchAll: () => void;
 };
 
-export function useQuizDetails(quizId: number): QuizDetailsAggregate {
-  const quizQ = useQuiz(quizId);
-  const metricsQ = useQuizMetrics(quizId);
-  const versionQ = useCurrentQuizVersion(quizId);
+export function useQuizDetails(quizId: number, locale?: string): QuizDetailsAggregate {
+  const quizQ = useQuiz(quizId, locale);
+  const metricsQ = useQuizMetrics(quizId, locale);
+  const versionQ = useCurrentQuizVersion(quizId, locale);
 
   const isLoading = quizQ.isLoading || metricsQ.isLoading || versionQ.isLoading;
   const error: unknown = quizQ.error || metricsQ.error || versionQ.error;

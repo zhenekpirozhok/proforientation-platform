@@ -21,18 +21,17 @@ function tryGetMessage(v: unknown): string | null {
   return typeof msg === 'string' ? msg : null;
 }
 
-export function useQuizCatalogForResults(quizId: number) {
-  const { locale } = useParams<{ locale: string }>();
+export function useQuizCatalogForResults(quizId: number, locale?: string) {
 
   return useQuery({
-    queryKey: ['results', 'catalog', quizId, locale],
+    queryKey: ['results', 'catalog', quizId, locale ?? 'no-locale'],
     enabled: Number.isFinite(quizId) && quizId > 0 && Boolean(locale),
     queryFn: async ({ signal }) => {
       const res = await fetch(
         `/api/results/catalog?quizId=${encodeURIComponent(String(quizId))}`,
         {
           method: 'GET',
-          headers: { 'x-locale': locale },
+          headers: locale ? { 'x-locale': locale } : undefined,
           signal,
           cache: 'no-store',
         },
@@ -41,12 +40,12 @@ export function useQuizCatalogForResults(quizId: number) {
       const text = await res.text().catch(() => '');
       const data: unknown = text
         ? (() => {
-            try {
-              return JSON.parse(text) as unknown;
-            } catch {
-              return text;
-            }
-          })()
+          try {
+            return JSON.parse(text) as unknown;
+          } catch {
+            return text;
+          }
+        })()
         : null;
 
       if (!res.ok) {
